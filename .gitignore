@@ -1,0 +1,4 @@
+build/.vs
+build/packages/
+**/Debug
+**/x86
