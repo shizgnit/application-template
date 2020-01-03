@@ -8,6 +8,21 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\deps\pugixml\src\pugixml.cpp">
       <Filter>deps\pugixml</Filter>
     </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)platform\implementations\openal.cpp">
+      <Filter>platform\implementations</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)platform\implementations\opengl.cpp">
+      <Filter>platform\implementations</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)platform\implementations\opensl.cpp">
+      <Filter>platform\implementations</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)platform\implementations\posix.cpp">
+      <Filter>platform\implementations</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)platform\implementations\winapi.cpp">
+      <Filter>platform\implementations</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)\framework\Header.h" />
@@ -23,6 +38,84 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\deps\picojson\picojson.h">
       <Filter>deps\picojson</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)platform\interfaces\audio.hpp">
+      <Filter>platform\interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)platform\interfaces\filesystem.hpp">
+      <Filter>platform\interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)platform\interfaces\graphics.hpp">
+      <Filter>platform\interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)platform\interfaces\input.hpp">
+      <Filter>platform\interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)platform\interfaces\network.hpp">
+      <Filter>platform\interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)platform\implementations\openal.hpp">
+      <Filter>platform\implementations</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)platform\implementations\opengl.hpp">
+      <Filter>platform\implementations</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)platform\implementations\opensl.hpp">
+      <Filter>platform\implementations</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)platform\implementations\posix.hpp">
+      <Filter>platform\implementations</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)platform\implementations\winapi.hpp">
+      <Filter>platform\implementations</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)types\interfaces\audio.hpp">
+      <Filter>types\interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)types\interfaces\entity.hpp">
+      <Filter>types\interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)types\interfaces\font.hpp">
+      <Filter>types\interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)types\interfaces\image.hpp">
+      <Filter>types\interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)types\interfaces\material.hpp">
+      <Filter>types\interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)types\interfaces\object.hpp">
+      <Filter>types\interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)types\interfaces\program.hpp">
+      <Filter>types\interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)types\interfaces\shader.hpp">
+      <Filter>types\interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)types\implementations\fnt.hpp">
+      <Filter>types\implementations</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)types\implementations\frag.hpp">
+      <Filter>types\implementations</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)types\implementations\mtl.hpp">
+      <Filter>types\implementations</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)types\implementations\obj.hpp">
+      <Filter>types\implementations</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)types\implementations\png.hpp">
+      <Filter>types\implementations</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)types\implementations\tga.hpp">
+      <Filter>types\implementations</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)types\implementations\vert.hpp">
+      <Filter>types\implementations</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)types\implementations\wav.hpp">
+      <Filter>types\implementations</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="deps">
@@ -36,6 +129,27 @@
     </Filter>
     <Filter Include="deps\pugixml">
       <UniqueIdentifier>{5905b3c6-2c68-4e23-9523-a8b9dfbc4182}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="framework">
+      <UniqueIdentifier>{1ab906e2-6c32-40ef-a809-198a77a4efbe}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="platform">
+      <UniqueIdentifier>{41ad95c6-9f32-4a85-bb1b-dd92ee0e13d2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="types">
+      <UniqueIdentifier>{92ea1633-4703-468a-a345-90ed0f8405b8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="types\implementations">
+      <UniqueIdentifier>{fa490e92-5868-4081-93eb-b1f19dd97ac5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="types\interfaces">
+      <UniqueIdentifier>{bd6827f0-e655-4e3c-a0bd-f036975b7d08}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="platform\implementations">
+      <UniqueIdentifier>{ef68e275-c312-443c-b739-ee94111ddc64}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="platform\interfaces">
+      <UniqueIdentifier>{1c2cc555-f637-4236-bfd0-7ee6c31eb6fc}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

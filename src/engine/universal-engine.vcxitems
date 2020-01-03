@@ -18,11 +18,42 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\deps\picojson\picojson.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\deps\pugixml\src\pugiconfig.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\deps\pugixml\src\pugixml.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)platform\implementations\openal.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)platform\implementations\opengl.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)platform\implementations\opensl.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)platform\implementations\posix.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)platform\implementations\winapi.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)platform\interfaces\audio.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)platform\interfaces\filesystem.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)platform\interfaces\graphics.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)platform\interfaces\input.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)platform\interfaces\network.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)types\implementations\fnt.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)types\implementations\frag.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)types\implementations\mtl.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)types\implementations\obj.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)types\implementations\png.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)types\implementations\tga.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)types\implementations\vert.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)types\implementations\wav.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)types\interfaces\audio.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)types\interfaces\entity.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)types\interfaces\font.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)types\interfaces\image.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)types\interfaces\material.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)types\interfaces\object.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)types\interfaces\program.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)types\interfaces\shader.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)\framework\Header.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\deps\lodepng\lodepng.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\deps\pugixml\src\pugixml.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)platform\implementations\openal.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)platform\implementations\opengl.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)platform\implementations\opensl.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)platform\implementations\posix.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)platform\implementations\winapi.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)\framework\Source.cpp" />
   </ItemGroup>
 </Project>
