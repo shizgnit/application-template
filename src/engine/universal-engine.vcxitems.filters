@@ -1,0 +1,41 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="$(MSBuildThisFileDirectory)\framework\Source.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\deps\lodepng\lodepng.cpp">
+      <Filter>deps\lodepng</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\deps\pugixml\src\pugixml.cpp">
+      <Filter>deps\pugixml</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="$(MSBuildThisFileDirectory)\framework\Header.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\deps\lodepng\lodepng.h">
+      <Filter>deps\lodepng</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\deps\pugixml\src\pugiconfig.hpp">
+      <Filter>deps\pugixml</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\deps\pugixml\src\pugixml.hpp">
+      <Filter>deps\pugixml</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\deps\picojson\picojson.h">
+      <Filter>deps\picojson</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="deps">
+      <UniqueIdentifier>{b9974237-2a0f-45b1-b837-616b302cd381}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="deps\lodepng">
+      <UniqueIdentifier>{19b8cb77-8a66-4d28-a41a-f4dc9bbd37ec}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="deps\picojson">
+      <UniqueIdentifier>{7bb10da1-6d2f-4feb-ad19-eef58b905bde}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="deps\pugixml">
+      <UniqueIdentifier>{5905b3c6-2c68-4e23-9523-a8b9dfbc4182}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

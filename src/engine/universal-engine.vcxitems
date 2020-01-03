@@ -14,9 +14,15 @@
     <ProjectCapability Include="SourceItemsFromImports" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\deps\lodepng\lodepng.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\deps\picojson\picojson.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\deps\pugixml\src\pugiconfig.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\deps\pugixml\src\pugixml.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)\framework\Header.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\deps\lodepng\lodepng.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\deps\pugixml\src\pugixml.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)\framework\Source.cpp" />
   </ItemGroup>
 </Project>

@@ -193,7 +193,7 @@
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
     </ClCompile>
     <Link>
-      <LibraryDependencies>%(LibraryDependencies);GLESv2;EGL;OpenSLES</LibraryDependencies>
+      <LibraryDependencies>%(LibraryDependencies);GLESv2;EGL;OpenSLES;m</LibraryDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">

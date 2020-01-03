@@ -1,0 +1,9 @@
+[submodule "deps/pugixml"]
+	path = deps/pugixml
+	url = https://github.com/zeux/pugixml.git
+[submodule "deps/picojson"]
+	path = deps/picojson
+	url = https://github.com/kazuho/picojson.git
+[submodule "deps/lodepng"]
+	path = deps/lodepng
+	url = https://github.com/lvandeve/lodepng.git
