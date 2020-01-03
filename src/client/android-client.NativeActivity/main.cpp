@@ -15,9 +15,13 @@
 *
 */
 
+// C:\Microsoft\AndroidNDK64\android-ndk-r16b\platforms\android-27\arch-x86_64\usr\lib64
+
 #include <malloc.h>
 
 #include <string>
+
+#include "framework/Header.h"
 
 #define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO, "AndroidProject1.NativeActivity", __VA_ARGS__))
 #define LOGW(...) ((void)__android_log_print(ANDROID_LOG_WARN, "AndroidProject1.NativeActivity", __VA_ARGS__))
@@ -114,6 +118,8 @@ static int engine_init_display(struct engine* engine) {
 	glEnable(GL_CULL_FACE);
 	//glShadeModel(GL_SMOOTH);
 	glDisable(GL_DEPTH_TEST);
+
+	foo();
 
 	return 0;
 }
