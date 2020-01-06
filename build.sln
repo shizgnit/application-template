@@ -8,21 +8,36 @@ EndProject
 Project("{39E2626F-3545-4960-A6E8-258AD8476CE5}") = "android-client.Packaging", "src\client\android-client.Packaging\android-client.Packaging.androidproj", "{B1F6C688-C962-450B-A64F-CD46E3C61B88}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "android-client.NativeActivity", "src\client\android-client.NativeActivity\android-client.NativeActivity.vcxproj", "{B99E6339-699B-4076-9859-749B394D2690}"
+	ProjectSection(ProjectDependencies) = postProject
+		{A4417617-C77C-4964-B577-5E5A83804FCA} = {A4417617-C77C-4964-B577-5E5A83804FCA}
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "server", "server", "{A3B430A0-F46F-44F4-B6F8-9A118A1DDBC2}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "universal-server.Core", "src\server\universal-server.Core\universal-server.Core.csproj", "{A4417617-C77C-4964-B577-5E5A83804FCA}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "windows-client.Executable", "src\client\windows-client.Executable\windows-client.Executable.vcxproj", "{BF3F4A78-38AC-41D9-82B9-B985399AFD49}"
+	ProjectSection(ProjectDependencies) = postProject
+		{A4417617-C77C-4964-B577-5E5A83804FCA} = {A4417617-C77C-4964-B577-5E5A83804FCA}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "universal-engine", "src\engine\universal-engine.vcxitems", "{CA2A1CB3-E76D-4A44-9C44-0B5EB0426CF0}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "engine", "engine", "{8F9CC9DE-4C43-4081-AB36-B69A72CB954E}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tests", "tests\tests.vcxproj", "{2469415A-E388-4822-A284-C5DBDC016528}"
+	ProjectSection(ProjectDependencies) = postProject
+		{A4417617-C77C-4964-B577-5E5A83804FCA} = {A4417617-C77C-4964-B577-5E5A83804FCA}
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "files", "files", "{ADFD47D8-E4E5-40BA-8CF9-2628C8F7275E}"
+	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		src\engine\universal-engine.vcxitems*{2469415a-e388-4822-a284-c5dbdc016528}*SharedItemsImports = 4
 		src\engine\universal-engine.vcxitems*{b99e6339-699b-4076-9859-749b394d2690}*SharedItemsImports = 4
 		src\engine\universal-engine.vcxitems*{bf3f4a78-38ac-41d9-82b9-b985399afd49}*SharedItemsImports = 4
 		src\engine\universal-engine.vcxitems*{ca2a1cb3-e76d-4a44-9c44-0b5eb0426cf0}*SharedItemsImports = 9

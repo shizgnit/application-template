@@ -18,6 +18,8 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\deps\picojson\picojson.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\deps\pugixml\src\pugiconfig.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\deps\pugixml\src\pugixml.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)engine.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)framework\type_cast.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)platform\implementations\openal.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)platform\implementations\opengl.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)platform\implementations\opensl.hpp" />
@@ -44,7 +46,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)types\interfaces\object.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)types\interfaces\program.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)types\interfaces\shader.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)\framework\Header.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\deps\lodepng\lodepng.cpp" />
@@ -54,6 +55,5 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)platform\implementations\opensl.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)platform\implementations\posix.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)platform\implementations\winapi.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)\framework\Source.cpp" />
   </ItemGroup>
 </Project>

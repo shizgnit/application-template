@@ -19,9 +19,7 @@
 
 #include <malloc.h>
 
-#include <string>
-
-#include "framework/Header.h"
+#include "engine.hpp"
 
 #define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO, "AndroidProject1.NativeActivity", __VA_ARGS__))
 #define LOGW(...) ((void)__android_log_print(ANDROID_LOG_WARN, "AndroidProject1.NativeActivity", __VA_ARGS__))
@@ -119,7 +117,7 @@ static int engine_init_display(struct engine* engine) {
 	//glShadeModel(GL_SMOOTH);
 	glDisable(GL_DEPTH_TEST);
 
-	foo();
+	// foo();
 
 	return 0;
 }

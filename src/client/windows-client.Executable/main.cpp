@@ -4,7 +4,7 @@
 #include "framework.h"
 #include "windows-client.Executable.h"
 
-#include "framework/Header.h"
+#include "engine.hpp"
 
 #define MAX_LOADSTRING 100
 
@@ -54,7 +54,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         }
     }
 
-    foo();
+    // foo();
 
     return (int) msg.wParam;
 }
