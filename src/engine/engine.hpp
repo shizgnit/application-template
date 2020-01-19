@@ -31,10 +31,6 @@
 #define fseeko fseek
 #define ftello ftell
 #include <stdio.h>
-#define GLEW_STATIC
-//#include <GL\glew.h>
-//#include <GL\gl.h>
-//#include <GL\glu.h>
 #include <stdio.h>
 #include <io.h>
 #include <fcntl.h>
@@ -42,20 +38,20 @@
 #endif
 
 #if defined __PLATFORM_ANDROID
-#  include <unistd.h>
-#  include <fcntl.h>
-#  include <sys/mman.h>
-#  include <sys/socket.h>
-#  include <netinet/in.h>
-#  include <arpa/inet.h>
-#  include <dirent.h>
-#  include <utime.h>
-#  include <netdb.h>
-#  include <resolv.h>
-#  include <cstring>
-#  ifndef MAP_FILE
-#    define MAP_FILE 0
-#  endif
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/mman.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <dirent.h>
+#include <utime.h>
+#include <netdb.h>
+#include <resolv.h>
+#include <cstring>
+#ifndef MAP_FILE
+#define MAP_FILE 0
+#endif
 #endif
 
 #include <stdlib.h>
@@ -73,34 +69,63 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <memory>
+#include <iostream>
+#include <sstream>
+#include <fstream>
 
-#include "framework/type_cast.hpp"
+/// Utilities
+#include "utilities/type_cast.hpp"
 
+/// Types
+#include "types/interfaces/audio.hpp"
+#include "types/interfaces/shader.hpp"
+#include "types/interfaces/program.hpp"
+#include "types/interfaces/image.hpp"
+#include "types/interfaces/material.hpp"
+#include "types/interfaces/object.hpp"
+#include "types/interfaces/font.hpp"
+
+
+/// Formats
+#include "types/formats/wav.hpp"
+#include "types/formats/frag.hpp"
+#include "types/formats/vert.hpp"
+#include "types/formats/tga.hpp"
+#include "types/formats/png.hpp"
+
+
+/// Platform
+#include "platform/interfaces/audio.hpp"
 #include "platform/interfaces/filesystem.hpp"
+#include "platform/interfaces/assets.hpp"
+#include "platform/interfaces/graphics.hpp"
 
-#if defined __PLATFORM_LINUX
+
+/// Linux platform 
+#if defined __PLATFORM_ANDROID
+#include "platform/implementations/opengl.hpp"
+#include "platform/implementations/opensl.hpp"
 #include "platform/implementations/posix.hpp"
-inline interfaces::filesystem* filesystem = new posix::filesystem();
+#include "platform/implementations/android.hpp"
+inline platform::audio* audio = new implementation::opensl::audio();
+inline platform::filesystem* filesystem = new implementation::posix::filesystem();
+inline platform::assets* assets = new implementation::android::assets();
 #endif
 
+/// Windows platform
 #if defined __PLATFORM_WINDOWS
-#include "platform/implementations/winapi.hpp"
-inline interfaces::filesystem* filesystem = new winapi::filesystem();
+#include "platform/implementations/opengl.hpp"
+#include "platform/implementations/openal.hpp"
+#include "platform/implementations/windows.hpp"
+inline platform::audio* audio = new implementation::openal::audio();
+inline platform::filesystem* filesystem = new implementation::windows::filesystem();
+inline platform::assets* assets = new implementation::windows::assets();
 #endif
 
-/*
-auto test_return() {
-	return std::pair<int, int>({ 2, 10 });
-}
+/// Just a simple prototype implementation to test infrastructure portability
+#include "prototype.hpp"
 
-void test_capabilities() {
-	int something = 2;
-	auto [foo, bar] = test_return();
+/// Application definition instance to pass information into the prototype
+inline application* instance = new application();
 
-	auto data = std::map<int, int>({ { 103, 103 } });
-
-	for (const auto& [left, right] : data) {
-		int x = left + right;
-	}
-}
-*/

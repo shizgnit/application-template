@@ -1,8 +1,8 @@
 #include "engine.hpp"
 
-#if defined __PLATFORM_LINUX
+#if defined __PLATFORM_POSIX
 
-bool posix::filesystem::cp(std::string src, std::string dest) {
+bool implementation::posix::filesystem::cp(std::string src, std::string dest) {
     long fdin, fdout;
     void* sbuf, * dbuf;
     struct stat sst;
@@ -47,12 +47,12 @@ bool posix::filesystem::cp(std::string src, std::string dest) {
     return(true);
 }
 
-bool posix::filesystem::rm(std::string filename) {
-    remove(filename.c_str());
+bool implementation::posix::filesystem::rm(std::string filename) {
+    return remove(filename.c_str());
 }
 
-bool posix::filesystem::mv(std::string src, std::string dest) {
-    rename(src.c_str(), dest.c_str());
+bool implementation::posix::filesystem::mv(std::string src, std::string dest) {
+    return rename(src.c_str(), dest.c_str());
 }
 
 mode_t _mask(std::string& mask) {
@@ -95,15 +95,15 @@ mode_t _mask(std::string& mask) {
     return(bytes);
 }
 
-bool posix::filesystem::mkdir(std::string path, std::string mask) {
+bool implementation::posix::filesystem::mkdir(std::string path, std::string mask) {
     return(::mkdir(path.c_str(), _mask(mask)));
 }
 
-bool posix::filesystem::rmdir(std::string path) {
+bool implementation::posix::filesystem::rmdir(std::string path) {
     return(::rmdir(path.c_str()));
 }
 
-std::string posix::filesystem::pwd(std::string path) {
+std::string implementation::posix::filesystem::pwd(std::string path) {
     std::string result;
     static char current[2048];
 
@@ -115,7 +115,7 @@ std::string posix::filesystem::pwd(std::string path) {
     return(result);
 }
 
-std::vector<unsigned long> posix::filesystem::stat(std::string path) {
+std::vector<unsigned long> implementation::posix::filesystem::stat(std::string path) {
     std::vector<unsigned long> results;
     struct stat sst;
 
@@ -146,7 +146,7 @@ std::vector<unsigned long> posix::filesystem::stat(std::string path) {
     return(results);
 }
 
-std::vector<unsigned long> posix::filesystem::lstat(std::string path) {
+std::vector<unsigned long> implementation::posix::filesystem::lstat(std::string path) {
     std::vector<unsigned long> results;
     struct stat sst;
 
@@ -177,13 +177,13 @@ std::vector<unsigned long> posix::filesystem::lstat(std::string path) {
     return(results);
 }
 
-bool posix::filesystem::exists(std::string path) {
+bool implementation::posix::filesystem::exists(std::string path) {
     struct stat sst;
     return(::stat(path.c_str(), &sst) == 0);
 }
 
 
-std::string posix::filesystem::filetype(std::string path) {
+std::string implementation::posix::filesystem::filetype(std::string path) {
     std::string result;
 
     std::vector<unsigned long> stats = stat(path);
@@ -208,9 +208,29 @@ std::string posix::filesystem::filetype(std::string path) {
     return(result);
 }
 
-std::pair<int, std::string> posix::filesystem::error() {
+std::pair<int, std::string> implementation::posix::filesystem::error() {
     // TODO: need implementation
     return std::pair<int, std::string>(0, "");
 }
+
+std::vector<std::string> implementation::posix::filesystem::read_directory(std::string path) {
+    std::vector<std::string> results;
+
+    auto handle = opendir(path.c_str());
+    if (handle == NULL) {
+        return results;
+    }
+    while(auto last = readdir(handle)) {
+        results.push_back(last->d_name);
+    }
+    closedir(handle);
+
+    return results;
+}
+
+bool implementation::posix::filesystem::is_directory(std::string path) {
+    return filetype(path) == "directory";
+}
+
 
 #endif

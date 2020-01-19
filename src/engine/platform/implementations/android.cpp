@@ -1,0 +1,54 @@
+#include "engine.hpp"
+
+#if defined __PLATFORM_ANDROID
+
+struct membuf : std::streambuf
+{
+    membuf(char* ptr, off_t size)
+    {
+        this->setg(ptr, ptr, ptr+size);
+    }
+
+    pos_type seekoff(off_type off, std::ios_base::seekdir dir, std::ios_base::openmode which = std::ios_base::in) override
+    {
+        if (dir == std::ios_base::cur)
+            gbump(off);
+        else if (dir == std::ios_base::end)
+            setg(eback(), egptr() + off, egptr());
+        else if (dir == std::ios_base::beg)
+            setg(eback(), eback() + off, egptr());
+        return gptr() - eback();
+    }
+
+    pos_type seekpos(pos_type sp, std::ios_base::openmode which) override
+    {
+        return seekoff(sp - pos_type(off_type(0)), std::ios_base::beg, which);
+    }
+};
+
+void implementation::android::assets::init(void* ref) {
+    assetManager = (AAssetManager*)ref;
+}
+
+std::vector<std::string> implementation::android::assets::list(std::string path) {
+    std::vector<std::string> results;
+
+    auto handle = AAssetManager_openDir(assetManager, path.c_str());
+    while (auto file = AAssetDir_getNextFileName(handle)) {
+        results.push_back(file);
+    }
+    AAssetDir_close(handle);
+
+    return results;
+}
+
+std::istream &implementation::android::assets::retrieve(std::string path) {
+    static std::stringstream ss;
+    AAsset* asset = AAssetManager_open(assetManager, path.c_str(), AASSET_MODE_STREAMING);
+    if (asset) {
+        ss.write((char*)AAsset_getBuffer(asset), AAsset_getLength(asset));
+    }
+    return ss;
+}
+
+#endif

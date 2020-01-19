@@ -16,10 +16,14 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)platform\implementations\opensl.cpp">
       <Filter>platform\implementations</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)platform\implementations\posix.cpp">
+    <ClCompile Include="$(MSBuildThisFileDirectory)prototype.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)platform\implementations\android.cpp">
       <Filter>platform\implementations</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)platform\implementations\winapi.cpp">
+    <ClCompile Include="C:\Projects\application-template\src\engine\platform\implementations\posix.cpp">
+      <Filter>platform\implementations</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Projects\application-template\src\engine\platform\implementations\windows.cpp">
       <Filter>platform\implementations</Filter>
     </ClCompile>
   </ItemGroup>
@@ -60,12 +64,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)platform\implementations\opensl.hpp">
       <Filter>platform\implementations</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)platform\implementations\posix.hpp">
-      <Filter>platform\implementations</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)platform\implementations\winapi.hpp">
-      <Filter>platform\implementations</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)types\interfaces\audio.hpp">
       <Filter>types\interfaces</Filter>
     </ClInclude>
@@ -90,34 +88,59 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)types\interfaces\shader.hpp">
       <Filter>types\interfaces</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)types\implementations\fnt.hpp">
-      <Filter>types\implementations</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)types\implementations\frag.hpp">
-      <Filter>types\implementations</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)types\implementations\mtl.hpp">
-      <Filter>types\implementations</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)types\implementations\obj.hpp">
-      <Filter>types\implementations</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)types\implementations\png.hpp">
-      <Filter>types\implementations</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)types\implementations\tga.hpp">
-      <Filter>types\implementations</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)types\implementations\vert.hpp">
-      <Filter>types\implementations</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)types\implementations\wav.hpp">
-      <Filter>types\implementations</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)framework\type_cast.hpp">
-      <Filter>framework</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)engine.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)utilities\type_cast.hpp">
+      <Filter>utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\deps\zstream-cpp\izstream.hpp">
+      <Filter>deps\zstream</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\deps\zstream-cpp\izstream_impl.hpp">
+      <Filter>deps\zstream</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\deps\zstream-cpp\ozstream.hpp">
+      <Filter>deps\zstream</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\deps\zstream-cpp\ozstream_impl.hpp">
+      <Filter>deps\zstream</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)prototype.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)types\formats\fnt.hpp">
+      <Filter>types\formats</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)types\formats\frag.hpp">
+      <Filter>types\formats</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)types\formats\mtl.hpp">
+      <Filter>types\formats</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)types\formats\obj.hpp">
+      <Filter>types\formats</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)types\formats\png.hpp">
+      <Filter>types\formats</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)types\formats\tga.hpp">
+      <Filter>types\formats</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)types\formats\vert.hpp">
+      <Filter>types\formats</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)types\formats\wav.hpp">
+      <Filter>types\formats</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)platform\implementations\android.hpp">
+      <Filter>platform\implementations</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Projects\application-template\src\engine\platform\implementations\posix.hpp">
+      <Filter>platform\implementations</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Projects\application-template\src\engine\platform\implementations\windows.hpp">
+      <Filter>platform\implementations</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)platform\interfaces\assets.hpp">
+      <Filter>platform\interfaces</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="deps">
@@ -132,17 +155,11 @@
     <Filter Include="deps\pugixml">
       <UniqueIdentifier>{5905b3c6-2c68-4e23-9523-a8b9dfbc4182}</UniqueIdentifier>
     </Filter>
-    <Filter Include="framework">
-      <UniqueIdentifier>{1ab906e2-6c32-40ef-a809-198a77a4efbe}</UniqueIdentifier>
-    </Filter>
     <Filter Include="platform">
       <UniqueIdentifier>{41ad95c6-9f32-4a85-bb1b-dd92ee0e13d2}</UniqueIdentifier>
     </Filter>
     <Filter Include="types">
       <UniqueIdentifier>{92ea1633-4703-468a-a345-90ed0f8405b8}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="types\implementations">
-      <UniqueIdentifier>{fa490e92-5868-4081-93eb-b1f19dd97ac5}</UniqueIdentifier>
     </Filter>
     <Filter Include="types\interfaces">
       <UniqueIdentifier>{bd6827f0-e655-4e3c-a0bd-f036975b7d08}</UniqueIdentifier>
@@ -152,6 +169,15 @@
     </Filter>
     <Filter Include="platform\interfaces">
       <UniqueIdentifier>{1c2cc555-f637-4236-bfd0-7ee6c31eb6fc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="utilities">
+      <UniqueIdentifier>{8f4d8d4f-52c4-46d3-b232-3341d73c4d00}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="deps\zstream">
+      <UniqueIdentifier>{11cadb0f-627b-4e32-95dc-cc0a51c24bb8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="types\formats">
+      <UniqueIdentifier>{ce128ed7-4f3f-4f53-9afa-5365b7d4366c}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

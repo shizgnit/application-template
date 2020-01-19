@@ -2,4 +2,4 @@
 
 #include "engine.hpp"
 
-std::string testDataPath(const std::string subpath);
+std::string testDataPath(const std::string subpath="");

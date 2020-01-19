@@ -2,7 +2,7 @@
 
 #include <string>
 
-namespace framework {
+namespace utilities {
 
     template <class T> class type_cast {
     public:

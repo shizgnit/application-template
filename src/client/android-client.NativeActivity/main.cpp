@@ -94,7 +94,12 @@ static int engine_init_display(struct engine* engine) {
 	ANativeWindow_setBuffersGeometry(engine->app->window, 0, 0, format);
 
 	surface = eglCreateWindowSurface(display, config, engine->app->window, NULL);
-	context = eglCreateContext(display, config, NULL, NULL);
+
+	const EGLint GiveMeGLES2[] = {
+	  EGL_CONTEXT_CLIENT_VERSION, 2,
+	  EGL_NONE
+	};
+	context = eglCreateContext(display, config, NULL, GiveMeGLES2);
 
 	if (eglMakeCurrent(display, surface, surface, context) == EGL_FALSE) {
 		LOGW("Unable to eglMakeCurrent");
@@ -117,7 +122,8 @@ static int engine_init_display(struct engine* engine) {
 	//glShadeModel(GL_SMOOTH);
 	glDisable(GL_DEPTH_TEST);
 
-	// foo();
+	assets->init(engine->app->activity->assetManager);
+	instance->dimensions(w, h)->on_startup();
 
 	return 0;
 }
@@ -132,9 +138,11 @@ static void engine_draw_frame(struct engine* engine) {
 	}
 
 	// Just fill the screen with a color.
-	glClearColor(((float)engine->state.x) / engine->width, engine->state.angle,
-		((float)engine->state.y) / engine->height, 1);
-	glClear(GL_COLOR_BUFFER_BIT);
+	//glClearColor(((float)engine->state.x) / engine->width, engine->state.angle,
+//		((float)engine->state.y) / engine->height, 1);
+//	glClear(GL_COLOR_BUFFER_BIT);
+
+	instance->on_draw();
 
 	eglSwapBuffers(engine->display, engine->surface);
 }
@@ -162,6 +170,8 @@ static void engine_term_display(struct engine* engine) {
 /**
 * Process the next input event.
 */
+format::wav sound;
+
 static int32_t engine_handle_input(struct android_app* app, AInputEvent* event) {
 	struct engine* engine = (struct engine*)app->userData;
 	if (AInputEvent_getType(event) == AINPUT_EVENT_TYPE_MOTION) {
@@ -169,6 +179,9 @@ static int32_t engine_handle_input(struct android_app* app, AInputEvent* event) 
 		engine->state.y = AMotionEvent_getY(event, 0);
 		return 1;
 	}
+
+	audio->play(sound);
+
 	return 0;
 }
 
@@ -226,7 +239,7 @@ static void engine_handle_cmd(struct android_app* app, int32_t cmd) {
 */
 void android_main(struct android_app* state) {
 	struct engine engine;
-
+	
 	memset(&engine, 0, sizeof(engine));
 	state->userData = &engine;
 	state->onAppCmd = engine_handle_cmd;
@@ -246,6 +259,9 @@ void android_main(struct android_app* state) {
 	}
 
 	engine.animating = 1;
+
+	// TODO: this will probably be required for internet access
+	//check_android_permissions(state);
 
 	// loop waiting for stuff to do.
 

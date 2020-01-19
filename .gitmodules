@@ -7,3 +7,6 @@
 [submodule "deps/lodepng"]
 	path = deps/lodepng
 	url = https://github.com/lvandeve/lodepng.git
+[submodule "deps/zstream-cpp"]
+	path = deps/zstream-cpp
+	url = https://github.com/geromueller/zstream-cpp.git

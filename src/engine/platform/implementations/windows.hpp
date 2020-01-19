@@ -1,10 +1,10 @@
 #pragma once
 
-#define __PLATFORM_POSIX 1
+#define __PLATFORM_WINDOWS 1
 
 namespace implementation {
 
-    namespace posix {
+    namespace windows {
 
         class filesystem : public platform::filesystem {
         public:
@@ -31,8 +31,14 @@ namespace implementation {
             bool is_directory(std::string path);
         };
 
+        class assets : public platform::assets {
+        public:
+            void init(void* ref);
+
+            std::vector<std::string> list(std::string path);
+
+            std::istream& retrieve(std::string path);
+        };
+
     }
-
 }
-
-

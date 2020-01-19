@@ -43,3 +43,8 @@ TEST(FilesystemTest, Manipulation) {
     // EXPECT_FALSE(filesystem->exists(testfile_move));
 }
 
+TEST(FilesystemTest, ReadDirectory) {
+    auto contents = filesystem->read_directory(testDataPath());
+
+    EXPECT_TRUE(contents.size() > 0);
+}
