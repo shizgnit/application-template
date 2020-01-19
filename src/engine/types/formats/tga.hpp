@@ -29,7 +29,7 @@ namespace format {
             // parse the header
             unsigned char header[18];
 
-            input.read(header, 18);
+            input.read((char*)header, 18);
 
             instance.properties.type = header[2];
 
@@ -57,13 +57,13 @@ namespace format {
 
             // ignore colormaps for now
             if (instance.properties.colormap) {
-              input.seekg(input.tellg() + instance.properties.id + instance.properties.colormap);
+              input.seekg((off_t)input.tellg() + (off_t)instance.properties.id + (off_t)instance.properties.colormap);
             }
 
             // get the raster data to parse
-            size_t data = size - input.tellg();
+            off_t data = size - input.tellg();
             unsigned char* raster = new unsigned char[data];
-            input.read(raster, data);
+            input.read((char *)raster, data);
 
             // parse the raster data
             unsigned char order = (instance.properties.descriptor & 0x30) >> 4;
@@ -86,7 +86,7 @@ namespace format {
                     byte = raster[source++];
                     unsigned int count = (byte & 0x7F) + 1;
                     if (byte & 0x80) {
-                        memcpy(pixel, buffer + source, Bpp);
+                        memcpy(pixel, raster + source, Bpp);
                         source += Bpp;
                         for (unsigned int i = 0; i < count; i++) {
                             memcpy(temporary + target, pixel, Bpp);
@@ -120,7 +120,7 @@ namespace format {
                 normalization = temporary;
             }
 
-            unsigned char* final = new unsigned char[pixel_count * 4];
+            unsigned char* normalized = new unsigned char[pixel_count * 4];
 
             unsigned char* target;
             unsigned char* source;
@@ -128,7 +128,7 @@ namespace format {
                 for (unsigned int x = 0; x < instance.properties.width; x++) {
                     //        target = final + (y * instance.properties.width * 4) + ((instance.properties.width - x) * 4);
                     //        target = final + ((instance.properties.height - y - 1) * instance.properties.width * 4) + (x * 4);
-                    target = final + (y * instance.properties.width * 4) + (x * 4);
+                    target = normalized + (y * instance.properties.width * 4) + (x * 4);
                     source = normalization + (y * instance.properties.width * Bpp) + (x * Bpp);
                     target[0] = source[2];
                     target[1] = source[1];
@@ -139,8 +139,10 @@ namespace format {
 
             delete[] normalization;
 
-            instance.buffer.resize(allocation);
-            instance.buffer.write(final, allocation);
+            instance.raster.resize(allocation);
+            memcpy(instance.raster.data(), normalized, allocation);
+
+            delete[] normalized;
 
             return input;
         }

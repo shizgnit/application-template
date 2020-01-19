@@ -34,7 +34,7 @@ namespace format {
 
             /// load from input
             png.resize(size);
-            input.read(png.data(), size);
+            input.read((char *)png.data(), size);
 
             /// decode
             lodepng::State state;
@@ -51,8 +51,8 @@ namespace format {
 
             size_t allocation = width * height * instance.properties.bpp;
 
-            instance.buffer.resize(allocation);
-            instance.buffer.write(raster, raster.size());
+            instance.raster.resize(allocation);
+            memcpy(instance.raster.data(), raster.data(), raster.size());
 
             return input;
         }

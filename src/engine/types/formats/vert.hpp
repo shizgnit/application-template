@@ -2,20 +2,20 @@
 
 namespace format {
 
-    class frag : public type::shader {
+    class vert : public type::shader {
     public:
-        frag() {
+        vert() {
             /* NULL */
         }
 
-        frag(std::string filename) {
+        vert(std::string filename) {
             std::ifstream file(filename, std::ios::binary);
             if (file.is_open()) {
                 file >> *this;
             }
         }
 
-        friend std::istream& operator>>(std::istream& input, format::frag& instance) {
+        friend std::istream& operator>>(std::istream& input, format::vert& instance) {
             /// ignore any non-good stream states
             if (input.good() == false) {
                 return input;
