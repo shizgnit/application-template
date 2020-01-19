@@ -87,7 +87,7 @@
 #include "types/interfaces/font.hpp"
 
 
-/// Formats
+/// Supported Formats
 #include "types/formats/wav.hpp"
 #include "types/formats/frag.hpp"
 #include "types/formats/vert.hpp"
@@ -95,7 +95,7 @@
 #include "types/formats/png.hpp"
 
 
-/// Platform
+/// Platform Abstractions
 #include "platform/interfaces/audio.hpp"
 #include "platform/interfaces/filesystem.hpp"
 #include "platform/interfaces/assets.hpp"
