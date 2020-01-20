@@ -3,6 +3,12 @@
 namespace format {
 
     class vert : public type::shader {
+    protected:
+        void define() {
+            extensions = { "vert", "vsh" };
+            id = type::format::FORMAT_VERT;
+        }
+
     public:
         vert() {
             /* NULL */

@@ -52,6 +52,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)types\interfaces\object.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)types\interfaces\program.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)types\interfaces\shader.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)types\interfaces\info.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)utilities\type_cast.hpp" />
   </ItemGroup>
   <ItemGroup>

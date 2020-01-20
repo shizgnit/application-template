@@ -3,6 +3,12 @@
 namespace format {
 
     class frag : public type::shader {
+    protected:
+        void define() {
+            extensions = { "frag", "fsh" };
+            id = type::format::FORMAT_FRAG;
+        }
+
     public:
         frag() {
             /* NULL */

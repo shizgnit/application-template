@@ -3,6 +3,12 @@
 namespace format {
 
     class wav : public type::audio {
+    protected:
+        void define() {
+            extensions = { "wav" };
+            id = type::format::FORMAT_WAV;
+        }
+
     public:
         wav() {
             /* NULL */

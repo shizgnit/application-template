@@ -78,6 +78,7 @@
 #include "utilities/type_cast.hpp"
 
 /// Types
+#include "types/interfaces/info.hpp"
 #include "types/interfaces/audio.hpp"
 #include "types/interfaces/shader.hpp"
 #include "types/interfaces/program.hpp"

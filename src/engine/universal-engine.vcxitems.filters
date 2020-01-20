@@ -141,6 +141,9 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)platform\interfaces\assets.hpp">
       <Filter>platform\interfaces</Filter>
     </ClInclude>
+    <ClInclude Include="C:\Projects\application-template\src\engine\types\interfaces\info.hpp">
+      <Filter>types\interfaces</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="deps">

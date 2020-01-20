@@ -5,6 +5,12 @@
 namespace format {
 
     class png : public type::image {
+    protected:
+        void define() {
+            extensions = { "png" };
+            id = type::format::FORMAT_PNG;
+        }
+
     public:
         png() {
             /* NULL */

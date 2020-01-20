@@ -3,6 +3,12 @@
 namespace format {
 
     class tga : public type::image {
+    protected:
+        void define() {
+            extensions = { "tga" };
+            id = type::format::FORMAT_TGA;
+        }
+
     public:
         tga() {
             /* NULL */
