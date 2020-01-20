@@ -1,20 +1,26 @@
 # Application Template 1.0
 
+This project is both meant to be a practical framework for client/server infrastructure and an opportunity to learn modern C++ language/platform features.  In a corporate environment it is common that the following are true.
+
+  * WAN access is only through a restricted proxy.  This can cause difficulties in cross project dependencies and prevent IDE capabilities from fully working.
+  * Software platforms are often required to build/run on significantly older standards.  In my case only partial C++11 support is available (gcc443).
+    https://gcc.gnu.org/projects/cxx-status.html#cxx11
+
+## Build
+
+Use Microsoft Visual Studio 2019 and the build.sln solution file.
+
 ## Dependencies
 
-This project is intended to build with Microsoft Visual Studio 2019, using the build.sln solution file.  The following are also required for several of the projects.
+The following projects need to be installed on the client PC running the IDE.
 
-    https://nodejs.org/
-    https://developer.android.com/studio
+  https://nodejs.org/
+  https://developer.android.com/studio
 
 ## Notes
 
-The std::filesystem is missing from the NDK.
-  Write an alternative drop in replacement.
-Data read from disk does not need to persist... it will be loaded almost directly into the GPU.
-  Identify what data needs to remain on the heap and what should be streamed in/out.
+Work is being tracked on a Kanban board.
 
-  emplace, emplace_back and emplace_front
-  map try_emplace
+  https://trello.com/b/wMOMrSaL/application-template
 
 
