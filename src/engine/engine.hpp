@@ -76,6 +76,7 @@
 
 /// Utilities
 #include "utilities/type_cast.hpp"
+#include "utilities/spatial.hpp"
 
 /// Types
 #include "types/interfaces/info.hpp"

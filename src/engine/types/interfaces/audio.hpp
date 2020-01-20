@@ -2,7 +2,7 @@
 
 namespace type {
 
-    class audio : public type::info {
+    class audio : virtual public type::info {
     public:
         struct {
             unsigned short channels;

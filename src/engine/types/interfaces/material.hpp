@@ -2,7 +2,7 @@
 
 namespace type {
 
-    class material {
+    class material : virtual public type::info {
     public:
         std::string id;
 

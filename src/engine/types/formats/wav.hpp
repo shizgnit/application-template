@@ -3,18 +3,12 @@
 namespace format {
 
     class wav : public type::audio {
-    protected:
-        void define() {
-            extensions = { "wav" };
-            id = type::format::FORMAT_WAV;
-        }
-
     public:
-        wav() {
+        wav() : type::info({ { "wav" }, type::format::FORMAT_WAV }) {
             /* NULL */
         }
 
-        wav(std::string filename) {
+        wav(std::string filename) : wav() {
             std::ifstream file(filename, std::ios::binary);
             if (file.is_open()) {
                 file >> *this;

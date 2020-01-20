@@ -22,8 +22,18 @@ namespace type {
             define();
         }
 
-        std::vector<std::string> extensions;
-        format id;
+        std::vector<std::string> _extensions;
+        format _type;
+
+    public:
+        info(std::vector<std::string> extensions, format type) {
+            _extensions = extensions;
+            _type = type;
+        }
+
+         type::format type() {
+             return _type;
+         }
     };
 
 }

@@ -37,6 +37,7 @@
   <PropertyGroup Label="UserMacros" />
   <ItemGroup>
     <ClCompile Include="filesystem.cpp" />
+    <ClCompile Include="spatial.cpp" />
     <ClCompile Include="tests.cpp" />
     <ClCompile Include="type_cast.cpp" />
     <ClCompile Include="formats.cpp" />

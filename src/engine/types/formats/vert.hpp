@@ -2,19 +2,13 @@
 
 namespace format {
 
-    class vert : public type::shader {
-    protected:
-        void define() {
-            extensions = { "vert", "vsh" };
-            id = type::format::FORMAT_VERT;
-        }
-
+    class vert : virtual public type::shader {
     public:
-        vert() {
+        vert(): type::info({ { "vert", "vsh" }, type::format::FORMAT_VERT }) {
             /* NULL */
         }
 
-        vert(std::string filename) {
+        vert(std::string filename) : vert() {
             std::ifstream file(filename, std::ios::binary);
             if (file.is_open()) {
                 file >> *this;
@@ -31,8 +25,8 @@ namespace format {
             input.seekg(0, std::ios::end);
             size_t size = input.tellg();
             input.seekg(0, std::ios::beg);
-            instance.buffer.resize(size);
-            input.read(instance.buffer.data(), size);
+            instance.text.resize(size);
+            input.read(instance.text.data(), size);
 
             return input;
         }

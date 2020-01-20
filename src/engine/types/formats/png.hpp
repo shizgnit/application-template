@@ -5,18 +5,12 @@
 namespace format {
 
     class png : public type::image {
-    protected:
-        void define() {
-            extensions = { "png" };
-            id = type::format::FORMAT_PNG;
-        }
-
     public:
-        png() {
+        png() : type::info({ { "png" }, type::format::FORMAT_PNG }) {
             /* NULL */
         }
 
-        png(std::string filename) {
+        png(std::string filename) : png() {
             std::ifstream file(filename, std::ios::binary);
             if (file.is_open()) {
                 file >> *this;

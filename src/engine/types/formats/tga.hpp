@@ -2,19 +2,13 @@
 
 namespace format {
 
-    class tga : public type::image {
-    protected:
-        void define() {
-            extensions = { "tga" };
-            id = type::format::FORMAT_TGA;
-        }
-
+    class tga : virtual public type::image {
     public:
-        tga() {
+        tga() : type::info({ { "tga" }, type::format::FORMAT_TGA }) {
             /* NULL */
         }
 
-        tga(std::string filename) {
+        tga(std::string filename) : tga() {
             std::ifstream file(filename, std::ios::binary);
             if (file.is_open()) {
                 file >> *this;

@@ -2,9 +2,9 @@
 
 namespace type {
 
-    class shader : public type::info {
+    class shader : virtual public type::info {
     public:
-        std::vector<char> buffer;
+        std::string text;
         unsigned int context;
     };
 

@@ -26,6 +26,9 @@
     <ClCompile Include="C:\Projects\application-template\src\engine\platform\implementations\windows.cpp">
       <Filter>platform\implementations</Filter>
     </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)utilities\spatial.cpp">
+      <Filter>utilities</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\deps\lodepng\lodepng.h">
@@ -143,6 +146,9 @@
     </ClInclude>
     <ClInclude Include="C:\Projects\application-template\src\engine\types\interfaces\info.hpp">
       <Filter>types\interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)utilities\spatial.hpp">
+      <Filter>utilities</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

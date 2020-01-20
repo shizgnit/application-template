@@ -2,19 +2,13 @@
 
 namespace format {
 
-    class frag : public type::shader {
-    protected:
-        void define() {
-            extensions = { "frag", "fsh" };
-            id = type::format::FORMAT_FRAG;
-        }
-
+    class frag : virtual public type::shader {
     public:
-        frag() {
+        frag() : type::info({ { "frag", "fsh" }, type::format::FORMAT_FRAG }) {
             /* NULL */
         }
 
-        frag(std::string filename) {
+        frag(std::string filename) : frag() {
             std::ifstream file(filename, std::ios::binary);
             if (file.is_open()) {
                 file >> *this;
@@ -31,8 +25,8 @@ namespace format {
             input.seekg(0, std::ios::end);
             size_t size = input.tellg();
             input.seekg(0, std::ios::beg);
-            instance.buffer.resize(size);
-            input.read(instance.buffer.data(), size);
+            instance.text.resize(size);
+            input.read(instance.text.data(), size);
 
             return input;
         }

@@ -2,7 +2,7 @@
 
 namespace type {
 
-    class object {
+    class object : virtual public type::info {
     public:
         class vertex {
         public:

@@ -2,7 +2,7 @@
 
 namespace type {
 
-    class font {
+    class font : virtual public type::info {
     public:
         class glyph {
         public:

@@ -2,7 +2,7 @@
 
 namespace type {
 
-    class program {
+    class program : virtual public type::info {
     public:
         type::shader fragment;
         type::shader vertex;

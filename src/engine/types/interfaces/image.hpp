@@ -2,7 +2,7 @@
 
 namespace type {
 
-    class image : public type::info {
+    class image : virtual public type::info {
     public:
         struct {
             unsigned int type;
