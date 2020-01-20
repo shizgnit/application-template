@@ -17,10 +17,14 @@ namespace format {
             }
         }
 
-        friend std::istream& operator>>(std::istream& input, format::png& instance) {
+        operator type::image& () {
+            return(*this);
+        }
+
+        friend type::image& operator>>(std::istream& input, format::png& instance) {
             /// ignore any non-good stream states
             if (input.good() == false) {
-                return input;
+                return instance;
             }
 
             /// get the input size
@@ -54,9 +58,11 @@ namespace format {
             instance.raster.resize(allocation);
             memcpy(instance.raster.data(), raster.data(), raster.size());
 
-            return input;
+            return instance;
         }
-
     };
 
+    namespace parser {
+        inline format::png png;
+    }
 }

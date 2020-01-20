@@ -16,6 +16,11 @@ namespace type {
         std::vector<char> buffer;
         unsigned int size = 0;
         unsigned int context;
+
+        friend type::audio& operator>>(type::audio& input, type::audio& instance) {
+            instance = input;
+            return instance;
+        }
     };
 
 }

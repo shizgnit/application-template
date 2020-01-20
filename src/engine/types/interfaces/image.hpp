@@ -20,6 +20,11 @@ namespace type {
 
         std::vector<char> colormap;
         std::vector<char> raster;
+
+        friend type::image& operator>>(type::image& input, type::image& instance) {
+            instance = input;
+            return instance;
+        }
     };
 
 }

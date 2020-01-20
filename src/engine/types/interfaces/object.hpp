@@ -142,6 +142,11 @@ namespace type {
             }
 
         };
+
+        friend type::object& operator>>(type::object& input, type::object& instance) {
+            instance = input;
+            return instance;
+        }
     };
 
 }

@@ -61,6 +61,11 @@ namespace type {
             }
             return(0);
         }
+
+        friend type::font& operator>>(type::font& input, type::font& instance) {
+            instance = input;
+            return instance;
+        }
     };
 
 }

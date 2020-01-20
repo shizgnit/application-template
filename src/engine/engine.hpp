@@ -56,6 +56,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
 #include <time.h>
 #include <ctype.h>
 #include <sys/stat.h>
@@ -113,6 +114,7 @@
 inline platform::audio* audio = new implementation::opensl::audio();
 inline platform::filesystem* filesystem = new implementation::posix::filesystem();
 inline platform::assets* assets = new implementation::android::assets();
+inline platform::graphics* graphics = new implementation::opengl::graphics();
 #endif
 
 /// Windows platform
@@ -123,6 +125,7 @@ inline platform::assets* assets = new implementation::android::assets();
 inline platform::audio* audio = new implementation::openal::audio();
 inline platform::filesystem* filesystem = new implementation::windows::filesystem();
 inline platform::assets* assets = new implementation::windows::assets();
+inline platform::graphics* graphics = new implementation::opengl::graphics();
 #endif
 
 /// Just a simple prototype implementation to test infrastructure portability

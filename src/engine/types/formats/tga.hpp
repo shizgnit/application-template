@@ -149,4 +149,7 @@ namespace format {
 
     };
 
+    namespace parser {
+        inline format::tga tga;
+    }
 }

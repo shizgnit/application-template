@@ -15,10 +15,10 @@ namespace format {
             }
         }
 
-        friend std::istream& operator>>(std::istream& input, format::vert& instance) {
+        friend type::shader& operator>>(std::istream& input, format::vert& instance) {
             /// ignore any non-good stream states
             if (input.good() == false) {
-                return input;
+                return instance;
             }
 
             /// Read in the input stream
@@ -28,7 +28,11 @@ namespace format {
             instance.text.resize(size);
             input.read(instance.text.data(), size);
 
-            return input;
+            return instance;
         }
     };
+
+    namespace parser {
+        inline format::vert vert;
+    }
 }

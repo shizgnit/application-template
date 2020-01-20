@@ -15,10 +15,10 @@ namespace format {
             }
         }
 
-        friend std::istream& operator>>(std::istream& input, format::wav &instance) {
+        friend type::audio& operator>>(std::istream& input, format::wav &instance) {
             /// ignore any non-good stream states
             if (input.good() == false) {
-                return input;
+                return instance;
             }
 
             /// Read in the input stream
@@ -55,7 +55,11 @@ namespace format {
             instance.properties.channels = header.channels;
             instance.properties.size = header.data_size;
 
-            return input;
+            return instance;
         }
     };
+
+    namespace parser {
+        inline format::wav wav;
+    }
 }
