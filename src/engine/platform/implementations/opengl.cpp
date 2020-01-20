@@ -18,6 +18,10 @@ void implementation::opengl::graphics::clear(void) {
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 }
 
+void implementation::opengl::graphics::flush(void) {
+    glFlush();
+}
+
 void implementation::opengl::graphics::compile(type::shader& shader) {
     switch (shader.type()) {
     case(type::format::FORMAT_VERT):

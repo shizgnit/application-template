@@ -5,6 +5,7 @@ namespace platform {
     public:
         virtual void init(void) = 0;
         virtual void clear(void) = 0;
+        virtual void flush(void) = 0;
 
         virtual void compile(type::shader& shader) = 0;
         virtual void compile(type::program& program) = 0;

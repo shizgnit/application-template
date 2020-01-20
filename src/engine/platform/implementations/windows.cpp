@@ -173,6 +173,7 @@ bool implementation::windows::filesystem::is_directory(std::string path) {
 }
 
 void implementation::windows::assets::init(void* ref) {
+    base = (char*)ref;
 }
 
 std::vector<std::string> implementation::windows::assets::list(std::string path) {
@@ -181,7 +182,12 @@ std::vector<std::string> implementation::windows::assets::list(std::string path)
 
 std::istream& implementation::windows::assets::retrieve(std::string path) {
     static std::ifstream file;
-    file.open(path.c_str(), std::ios::in | std::ios::binary);
+    std::string asset = base + path;
+    if (file.is_open()) {
+        file.close();
+    }
+    file.clear();
+    file.open(asset.c_str(), std::ios::in | std::ios::binary);
     return file;
 }
 

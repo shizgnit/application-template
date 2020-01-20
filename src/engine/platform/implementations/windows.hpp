@@ -38,6 +38,8 @@ namespace implementation {
             std::vector<std::string> list(std::string path);
 
             std::istream& retrieve(std::string path);
+
+            std::string base;
         };
 
     }

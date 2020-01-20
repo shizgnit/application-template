@@ -155,9 +155,11 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
    UpdateWindow(hWnd);
 
+   static char path[] = "C:\\Projects\\application-template\\src\\client\\android-client.Packaging\\assets\\";
+   assets->init((void*)path);
    instance->dimensions(width, height)->on_startup();
 
-   return TRUE;
+   return instance->started = true;
 }
 
 //
@@ -355,7 +357,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
     case WM_PAINT:
         {
-            instance->on_draw();
+            if(instance->started)
+                instance->on_draw();
             PAINTSTRUCT ps;
             HDC hdc = BeginPaint(hWnd, &ps);
             EndPaint(hWnd, &ps);

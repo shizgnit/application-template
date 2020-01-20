@@ -117,13 +117,15 @@ static int engine_init_display(struct engine* engine) {
 	engine->state.angle = 0;
 
 	// Initialize GL state.
-	glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
-	glEnable(GL_CULL_FACE);
+	//glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
+	//glEnable(GL_CULL_FACE);
 	//glShadeModel(GL_SMOOTH);
-	glDisable(GL_DEPTH_TEST);
+	//glDisable(GL_DEPTH_TEST);
 
 	assets->init(engine->app->activity->assetManager);
 	instance->dimensions(w, h)->on_startup();
+	instance->started = true;
+	instance->on_resize();
 
 	return 0;
 }
@@ -141,8 +143,8 @@ static void engine_draw_frame(struct engine* engine) {
 	//glClearColor(((float)engine->state.x) / engine->width, engine->state.angle,
 //		((float)engine->state.y) / engine->height, 1);
 //	glClear(GL_COLOR_BUFFER_BIT);
-
-	instance->on_draw();
+	if(instance->started)
+		instance->on_draw();
 
 	eglSwapBuffers(engine->display, engine->surface);
 }

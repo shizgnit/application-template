@@ -1,36 +1,58 @@
 #include "engine.hpp"
 
-inline format::wav sound;
+inline type::audio sound;
 
 inline type::object icon;
+
+inline spatial::position camera;
+
+inline type::program shader;
+
+inline spatial::matrix ortho;
+
+
+bool init = false;
 
 void application::on_startup() {
 
     graphics->init();
     audio->init();
 
-    assets->retrieve("raw/glados.wav") >> sound;
+    assets->retrieve("raw/glados.wav") >> format::parser::wav >> sound;
 
-    assets->retrieve("raw/marvin.png") >> format::parser::png >> icon.texture.map;
+    /// Load up the shaders
+    assets->retrieve("shaders/shader_basic.vert") >> format::parser::vert >> shader.vertex;
+    assets->retrieve("shaders/shader_basic.frag") >> format::parser::frag >> shader.fragment;
+    graphics->compile(shader);
+
+    /// Get the icon ready for drawing
+    assets->retrieve("drawable/marvin.png") >> format::parser::png >> icon.texture.map;
+    icon.quad(295, 281);
+    icon.xy_projection(0, 0, 295, 281);
+    graphics->compile(icon);
+
+    camera.move(4.0f);
 
     audio->compile(sound);
+
+    init = true;
 }
 
 void application::on_resize() {
     glViewport(0, 0, width, height);
+    ortho.ortho(0, width, 0, height);
 }
 
-const GLfloat triangleVertices[] = {
-        0.0f, 1.0f,
-        -1.0f, -1.0f,
-        1.0f, -1.0f
-};
-
 void application::on_draw() {
-    glClear(GL_COLOR_BUFFER_BIT);
+    graphics->clear();
 
+    spatial::matrix frame;
+    frame.identity();
+    frame.translate(10, 10, 0);
 
-    glFlush();
+    graphics->draw(icon, shader, frame, spatial::matrix(), ortho);
+
+    graphics->flush();
 }
 
 void application::on_proc() {}
@@ -48,20 +70,3 @@ void application::on_key_down(int key) {}
 void application::on_key_up(int key) {}
 
 void application::on_mouse_move(long int x, long int y) {}
-
-
-/// Just some tests for newer syntax on the different compilers
-auto test_return() {
-    return std::pair<int, int>({ 2, 10 });
-}
-
-void test_capabilities() {
-    int something = 2;
-    auto [foo, bar] = test_return();
-
-    auto data = std::map<int, int>({ { 103, 103 } });
-
-    for (const auto& [left, right] : data) {
-        int x = left + right;
-    }
-}

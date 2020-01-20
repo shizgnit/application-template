@@ -25,6 +25,8 @@ public:
         this->height = height;
         return(this);
     }
+    
+    bool started = false;
 
 private:
     char* resources;

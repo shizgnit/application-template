@@ -28,6 +28,7 @@ namespace implementation {
         public:
             void init(void);
             void clear(void);
+            void flush(void);
 
             void compile(type::shader& shader);
             void compile(type::program& program);

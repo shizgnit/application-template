@@ -34,9 +34,7 @@ namespace type {
             }
         };
 
-        void xy_projection(type::image &reference, unsigned int x, unsigned int y, unsigned int width, unsigned int height) {
-            texture.map = reference;
-
+        void xy_projection(unsigned int x, unsigned int y, unsigned int width, unsigned int height) {
             float max_x = 0.0f;
             float max_y = 0.0f;
 
@@ -107,41 +105,34 @@ namespace type {
 
         unsigned int context;
 
-        static struct primitive {
+        void quad(float width, float height) {
+            int factor = 1;
 
-            static type::object quad(float width, float height) {
-                int factor = 1;
+            vertices.resize(6 * factor * factor);
 
-                type::object obj;
-                obj.vertices.reserve(6 * factor * factor);
+            float x = 0.0f;
+            float y = 0.0f;
 
-                float x = 0.0f;
-                float y = 0.0f;
+            float dx = width / factor;
+            float dy = height / factor;
 
-                float dx = width / factor;
-                float dy = height / factor;
+            int index = 0;
 
-                int index = 0;
+            for (int i = 0; i < factor; i++) {
+                x = dx * i;
+                for (int j = 0; j < factor; j++) {
+                    y = dy * j;
 
-                for (int i = 0; i < factor; i++) {
-                    x = dx * i;
-                    for (int j = 0; j < factor; j++) {
-                        y = dy * j;
+                    vertices[index++].set_coordinate(x + dx, y + dy);
+                    vertices[index++].set_coordinate(x, y + dy);
+                    vertices[index++].set_coordinate(x, y);
 
-                        obj.vertices[index++].set_coordinate(x + dx, y + dy);
-                        obj.vertices[index++].set_coordinate(x, y + dy);
-                        obj.vertices[index++].set_coordinate(x, y);
-
-                        obj.vertices[index++].set_coordinate(x + dx, y + dy);
-                        obj.vertices[index++].set_coordinate(x, y);
-                        obj.vertices[index++].set_coordinate(x + dx, y);
-                    }
+                    vertices[index++].set_coordinate(x + dx, y + dy);
+                    vertices[index++].set_coordinate(x, y);
+                    vertices[index++].set_coordinate(x + dx, y);
                 }
-
-                return(obj);
             }
-
-        };
+        }
 
         friend type::object& operator>>(type::object& input, type::object& instance) {
             instance = input;

@@ -119,8 +119,23 @@
     </AntPackage>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <Content Include="assets\drawable\marvin.png" />
     <Content Include="assets\raw\glados.wav" />
     <Content Include="assets\raw\test.txt" />
+    <Content Include="assets\shaders\pick_shader.frag" />
+    <Content Include="assets\shaders\pick_shader.vert" />
+    <Content Include="assets\shaders\shader_basic.frag" />
+    <Content Include="assets\shaders\shader_basic.vert" />
+    <Content Include="assets\shaders\shader_with_lighting.frag" />
+    <Content Include="assets\shaders\shader_with_lighting.vert" />
+    <Content Include="assets\shaders\texture_alpha_shader.frag" />
+    <Content Include="assets\shaders\texture_alpha_shader.vert" />
+    <Content Include="assets\shaders\texture_alpha_shader_defuse_lighting.frag" />
+    <Content Include="assets\shaders\texture_alpha_shader_defuse_lighting.vert" />
+    <Content Include="assets\shaders\texture_alpha_shader_lighting.frag" />
+    <Content Include="assets\shaders\texture_alpha_shader_lighting.vert" />
+    <Content Include="assets\shaders\texture_shader.frag" />
+    <Content Include="assets\shaders\texture_shader.vert" />
     <Content Include="res\values\strings.xml" />
     <AntBuildXml Include="build.xml" />
     <AndroidManifest Include="AndroidManifest.xml" />
@@ -130,9 +145,6 @@
     <ProjectReference Include="..\android-client.NativeActivity\android-client.NativeActivity.vcxproj">
       <Project>{b99e6339-699b-4076-9859-749b394d2690}</Project>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="assets\drawable\" />
   </ItemGroup>
   <Import Project="$(AndroidTargetsPath)\Android.targets" />
   <ImportGroup Label="ExtensionTargets" />

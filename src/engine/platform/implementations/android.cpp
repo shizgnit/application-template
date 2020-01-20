@@ -44,6 +44,9 @@ std::vector<std::string> implementation::android::assets::list(std::string path)
 
 std::istream &implementation::android::assets::retrieve(std::string path) {
     static std::stringstream ss;
+    ss.str(std::string());
+    ss.clear();
+
     AAsset* asset = AAssetManager_open(assetManager, path.c_str(), AASSET_MODE_STREAMING);
     if (asset) {
         ss.write((char*)AAsset_getBuffer(asset), AAsset_getLength(asset));
