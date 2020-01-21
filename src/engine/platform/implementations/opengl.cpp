@@ -146,7 +146,7 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
     glVertexAttribPointer(shader.a_Normal, 4, GL_FLOAT, GL_TRUE, sizeof(type::object::vertex), BUFFER_OFFSET(8 * sizeof(GL_FLOAT)));
 
     glEnableVertexAttribArray(shader.a_Vertex);
-    glEnableVertexAttribArray(shader.a_Texture);
+    glEnableVertexAttribArray(shader.a_Texture); 
     glEnableVertexAttribArray(shader.a_Normal);
 
     //glDrawArrays(GL_TRIANGLE_FAN, 0, object.vertices.size());

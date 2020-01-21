@@ -1,5 +1,102 @@
 #include "engine.hpp"
 
+static const char glVertexShader[] =
+"attribute vec4 vPosition;\n"
+"void main()\n"
+"{\n"
+"  gl_Position = vPosition;\n"
+"}\n";
+
+static const char glFragmentShader[] =
+"precision mediump float;\n"
+"void main()\n"
+"{\n"
+"  gl_FragColor = vec4(1.0, 0.0, 1.0, 1.0);\n"
+"}\n";
+
+GLuint loadShader(GLenum shaderType, const char* shaderSource)
+{
+    GLuint shader = glCreateShader(shaderType);
+    if (shader)
+    {
+        glShaderSource(shader, 1, &shaderSource, NULL);
+        glCompileShader(shader);
+        GLint compiled = 0;
+        glGetShaderiv(shader, GL_COMPILE_STATUS, &compiled);
+        if (!compiled)
+        {
+            GLint infoLen = 0;
+            glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &infoLen);
+            if (infoLen)
+            {
+                char* buf = (char*)malloc(infoLen);
+                if (buf)
+                {
+                    glGetShaderInfoLog(shader, infoLen, NULL, buf);
+                    //LOGE("Could not Compile Shader %d:\n%s\n", shaderType, buf);
+                    free(buf);
+                }
+                glDeleteShader(shader);
+                shader = 0;
+            }
+        }
+    }
+    return shader;
+}
+
+GLuint createProgram(const char* vertexSource, const char* fragmentSource)
+{
+    GLuint vertexShader = loadShader(GL_VERTEX_SHADER, vertexSource);
+    if (!vertexShader)
+    {
+        return 0;
+    }
+    GLuint fragmentShader = loadShader(GL_FRAGMENT_SHADER, fragmentSource);
+    if (!fragmentShader)
+    {
+        return 0;
+    }
+    GLuint program = glCreateProgram();
+    if (program)
+    {
+        glAttachShader(program, vertexShader);
+        glAttachShader(program, fragmentShader);
+        glLinkProgram(program);
+        GLint linkStatus = GL_FALSE;
+        glGetProgramiv(program, GL_LINK_STATUS, &linkStatus);
+        if (linkStatus != GL_TRUE)
+        {
+            GLint bufLength = 0;
+            glGetProgramiv(program, GL_INFO_LOG_LENGTH, &bufLength);
+            if (bufLength)
+            {
+                char* buf = (char*)malloc(bufLength);
+                if (buf)
+                {
+                    glGetProgramInfoLog(program, bufLength, NULL, buf);
+                    //LOGE("Could not link program:\n%s\n", buf);
+                    free(buf);
+                }
+            }
+            glDeleteProgram(program);
+            program = 0;
+        }
+    }
+    return program;
+}
+
+GLuint simpleTriangleProgram;
+GLuint vPosition;
+
+const GLfloat triangleVertices[] = {
+        0.0f, 1.0f,
+        -1.0f, -1.0f,
+        1.0f, -1.0f
+};
+
+
+//=====================================================================================================
+
 inline type::audio sound;
 
 inline type::object icon;
@@ -10,10 +107,15 @@ inline type::program shader;
 
 inline spatial::matrix ortho;
 
-
 bool init = false;
 
 void application::on_startup() {
+
+    simpleTriangleProgram = createProgram(glVertexShader, glFragmentShader);
+    if (!simpleTriangleProgram) {
+        return;
+    }
+    vPosition = glGetAttribLocation(simpleTriangleProgram, "vPosition");
 
     graphics->init();
     audio->init();
@@ -27,8 +129,8 @@ void application::on_startup() {
 
     /// Get the icon ready for drawing
     assets->retrieve("drawable/marvin.png") >> format::parser::png >> icon.texture.map;
-    icon.quad(295, 281);
-    icon.xy_projection(0, 0, 295, 281);
+    icon.quad(256, 256);
+    icon.xy_projection(0, 0, 256, 256);
     graphics->compile(icon);
 
     camera.move(4.0f);
@@ -45,6 +147,13 @@ void application::on_resize() {
 
 void application::on_draw() {
     graphics->clear();
+
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+    glUseProgram(simpleTriangleProgram);
+    glVertexAttribPointer(vPosition, 2, GL_FLOAT, GL_FALSE, 0, triangleVertices);
+    glEnableVertexAttribArray(vPosition);
+    glDrawArrays(GL_TRIANGLES, 0, 3);
 
     spatial::matrix frame;
     frame.identity();
