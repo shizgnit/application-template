@@ -232,5 +232,38 @@ bool implementation::posix::filesystem::is_directory(std::string path) {
     return filetype(path) == "directory";
 }
 
+std::string implementation::posix::network::hostname() {
+    char hostname[128];
+
+    if (gethostname(reinterpret_cast<char*>(hostname), 128)) {
+        //DEBUG("Failed to obtain host name");
+    }
+
+    return(std::string(hostname));
+}
+
+
+std::string implementation::posix::network::ip(std::string hostname) {
+    hostent* resolv = gethostbyname(hostname.c_str());
+    if (resolv == NULL) {
+        //DEBUG("Failed to resolve host IP, %s", hostname);
+    }
+
+    char addr[16];
+    if (inet_ntop((*resolv).h_addrtype, (*resolv).h_addr_list[0], reinterpret_cast<char*>(addr), 16)) {
+        //DEBUG("Failed to convert address, %s", hostname);
+    }
+
+    return(std::string(addr));
+}
+
+std::string implementation::posix::network::mac() {
+    return(std::string());
+}
+
+unsigned long implementation::posix::network::pid() {
+    return(getpid());
+}
+
 
 #endif

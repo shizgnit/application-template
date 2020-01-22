@@ -42,5 +42,13 @@ namespace implementation {
             std::string base;
         };
 
+        class network : public platform::network {
+        public:
+            std::string hostname();
+            std::string ip(std::string hostname="");
+            std::string mac();
+            unsigned long pid();
+        };
+
     }
 }

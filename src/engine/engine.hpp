@@ -76,6 +76,7 @@
 #include <fstream>
 
 /// Utilities
+#include "utilities/common.hpp"
 #include "utilities/type_cast.hpp"
 #include "utilities/spatial.hpp"
 
@@ -96,6 +97,7 @@
 #include "types/formats/vert.hpp"
 #include "types/formats/tga.hpp"
 #include "types/formats/png.hpp"
+#include "types/formats/fnt.hpp"
 
 
 /// Platform Abstractions
@@ -103,6 +105,7 @@
 #include "platform/interfaces/filesystem.hpp"
 #include "platform/interfaces/assets.hpp"
 #include "platform/interfaces/graphics.hpp"
+#include "platform/interfaces/network.hpp"
 
 
 /// Linux platform 
@@ -116,6 +119,7 @@ inline platform::filesystem* filesystem = new implementation::posix::filesystem(
 inline platform::assets* assets = new implementation::android::assets();
 inline platform::graphics* graphics = new implementation::opengl::graphics();
 #endif
+
 
 /// Windows platform
 #if defined __PLATFORM_WINDOWS

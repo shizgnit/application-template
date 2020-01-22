@@ -53,6 +53,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)types\interfaces\program.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)types\interfaces\shader.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)types\interfaces\info.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)utilities\common.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)utilities\spatial.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)utilities\type_cast.hpp" />
   </ItemGroup>
@@ -66,6 +67,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)platform\implementations\posix.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)platform\implementations\windows.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)prototype.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)utilities\common.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)utilities\spatial.cpp" />
   </ItemGroup>
 </Project>

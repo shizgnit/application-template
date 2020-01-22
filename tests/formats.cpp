@@ -30,3 +30,6 @@ TEST(FormatTest, PNG) {
     EXPECT_EQ(stream.raster.size(), 2652640);
 }
 
+TEST(FormatTest, FNT) {
+    format::fnt test(testDataPath() + "arial.fnt");
+}

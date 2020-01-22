@@ -191,4 +191,50 @@ std::istream& implementation::windows::assets::retrieve(std::string path) {
     return file;
 }
 
+std::string implementation::windows::network::hostname() {
+    char hostname[128];
+
+    WSADATA WSData;
+    unsigned long version_major = 1;
+    unsigned long version_minor = 1;
+    if (WSAStartup(MAKEWORD(version_major, version_minor), &WSData)) {
+        //std::cerr<<"ERROR: Cannot find Winsock (v"<<version_major<<"."<<version_minor<<" or later)!"<<std::endl;
+    }
+
+    if (gethostname(reinterpret_cast<char*>(hostname), 128)) {
+        printf("error getting hostname\n");
+    }
+
+    return(std::string(hostname));
+}
+
+std::string implementation::windows::network::ip(std::string hostname) {
+    hostent* resolv = gethostbyname(hostname.empty() ? network::hostname().c_str() : hostname.c_str());
+    return utilities::type_cast<std::string>(inet_ntoa(*(LPIN_ADDR) * (resolv->h_addr_list)));
+}
+
+std::string implementation::windows::network::mac() {
+    /*
+      IP_ADAPTER_INFO AdapterInfo[16];
+      DWORD dwBufLen = sizeof(AdapterInfo);
+
+      DWORD dwStatus = GetAdaptersInfo(AdapterInfo, &dwBufLen);
+      //assert(dwStatus == ERROR_SUCCESS);
+
+      PIP_ADAPTER_INFO pAdapterInfo = AdapterInfo;
+
+      do {
+        PrintMACaddress(pAdapterInfo->Address);
+        pAdapterInfo = pAdapterInfo->Next;
+
+      }
+      while(pAdapterInfo);
+    */
+    return(std::string());
+}
+
+unsigned long implementation::windows::network::pid() {
+    return(GetCurrentProcessId());
+}
+
 #endif

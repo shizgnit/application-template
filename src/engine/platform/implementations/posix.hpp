@@ -31,6 +31,14 @@ namespace implementation {
             bool is_directory(std::string path);
         };
 
+        class network : public platform::network {
+        public:
+            std::string hostname();
+            std::string ip(std::string hostname = "");
+            std::string mac();
+            unsigned long pid();
+        };
+
     }
 
 }

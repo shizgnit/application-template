@@ -39,7 +39,7 @@
     <ClCompile Include="filesystem.cpp" />
     <ClCompile Include="spatial.cpp" />
     <ClCompile Include="tests.cpp" />
-    <ClCompile Include="type_cast.cpp" />
+    <ClCompile Include="utilities.cpp" />
     <ClCompile Include="formats.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -70,7 +70,7 @@
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
-      <AdditionalDependencies>glew.lib;opengl32.lib;gtest_maind.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>glew.lib;opengl32.lib;gtest_maind.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)packages\glew.1.9.0.1\build\native\lib\v110\Win32\Release\static;$(SolutionDir)packages\Microsoft.googletest.v140.windesktop.msvcstl.static.rt-dyn.1.8.1\lib\native\v140\windesktop\msvcstl\static\rt-dyn\x86\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>

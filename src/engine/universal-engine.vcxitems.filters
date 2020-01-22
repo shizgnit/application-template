@@ -29,6 +29,9 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)utilities\spatial.cpp">
       <Filter>utilities</Filter>
     </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)utilities\common.cpp">
+      <Filter>utilities</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\deps\lodepng\lodepng.h">
@@ -148,6 +151,9 @@
       <Filter>types\interfaces</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)utilities\spatial.hpp">
+      <Filter>utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)utilities\common.hpp">
       <Filter>utilities</Filter>
     </ClInclude>
   </ItemGroup>
