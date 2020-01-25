@@ -91,15 +91,6 @@
 #include "types/interfaces/font.hpp"
 
 
-/// Supported Formats
-#include "types/formats/wav.hpp"
-#include "types/formats/frag.hpp"
-#include "types/formats/vert.hpp"
-#include "types/formats/tga.hpp"
-#include "types/formats/png.hpp"
-#include "types/formats/fnt.hpp"
-
-
 /// Platform Abstractions
 #include "platform/interfaces/audio.hpp"
 #include "platform/interfaces/filesystem.hpp"
@@ -131,6 +122,14 @@ inline platform::filesystem* filesystem = new implementation::windows::filesyste
 inline platform::assets* assets = new implementation::windows::assets();
 inline platform::graphics* graphics = new implementation::opengl::graphics();
 #endif
+
+/// Supported Formats
+#include "types/formats/wav.hpp"
+#include "types/formats/frag.hpp"
+#include "types/formats/vert.hpp"
+#include "types/formats/tga.hpp"
+#include "types/formats/png.hpp"
+#include "types/formats/fnt.hpp"
 
 /// Just a simple prototype implementation to test infrastructure portability
 #include "prototype.hpp"

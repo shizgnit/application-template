@@ -17,6 +17,10 @@ The following projects need to be installed on the client PC running the IDE.
   https://nodejs.org/
   https://developer.android.com/studio
 
+Bitmat fonts are created with the BMFont tool.
+
+  https://www.angelcode.com/products/bmfont/
+
 ## Notes
 
 Work is being tracked on a Kanban board.

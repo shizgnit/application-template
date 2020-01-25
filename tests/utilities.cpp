@@ -42,8 +42,28 @@ TEST(UtilitiesTest, UpperCase) {
     EXPECT_STREQ(utilities::uc("  foobar  ").c_str(), "  FOOBAR  ");
 }
 
+/*
+// This doesn't work, but currently don't intend to use this method
 TEST(UtilitiesTest, Format) {
-    EXPECT_STREQ(utilities::format("  %s%d  ", "FOOBAR", 1).c_str(), "  FOOBAR1  ");
+    EXPECT_STREQ(utilities::format("  %s%i  ", "FOOBAR", 1).c_str(), "  FOOBAR1  ");
+}
+*/
+
+TEST(UtilitiesTest, Join) {
+    EXPECT_STREQ(utilities::join(", ", { "FOO", "BAR" } ).c_str(), "FOO, BAR");
+}
+
+TEST(UtilitiesTest, Tokenize) {
+    auto tokens = utilities::tokenize("FOO, BAR,BAZ", ",");
+
+    EXPECT_EQ(tokens.size(), 3);
+    EXPECT_STREQ(tokens[0].c_str(), "FOO");
+    EXPECT_STREQ(tokens[1].c_str(), " BAR");
+    EXPECT_STREQ(tokens[2].c_str(), "BAZ");
+}
+
+TEST(UtilitiesTest, Base) {
+    EXPECT_STREQ(utilities::base("12", 16, 10).c_str(), "C");
 }
 
 

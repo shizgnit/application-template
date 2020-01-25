@@ -31,9 +31,9 @@ namespace type {
             _type = type;
         }
 
-         type::format type() {
-             return _type;
-         }
+        type::format type() {
+            return _type;
+        }
     };
 
 }

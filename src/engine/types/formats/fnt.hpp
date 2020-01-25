@@ -39,7 +39,15 @@ namespace format {
                 instance.bold = info.node().attribute("bold").value() == "1";
                 instance.italic = info.node().attribute("italic").value() == "1";
 
-                //auto padding =
+                auto padding = utilities::tokenize(info.node().attribute("padding").value(), ",");
+                instance.padding_top = utilities::type_cast<int>(padding[0]);
+                instance.padding_left = utilities::type_cast<int>(padding[1]);
+                instance.padding_bottom = utilities::type_cast<int>(padding[2]);
+                instance.padding_right = utilities::type_cast<int>(padding[3]);
+
+                auto spacing = utilities::tokenize(info.node().attribute("spacing").value(), ",");
+                instance.spacing_left = utilities::type_cast<int>(spacing[0]);
+                instance.spacing_right = utilities::type_cast<int>(spacing[1]);
 
                 auto characters = doc.select_nodes("/font/chars/char");
                 for (auto character : characters) {
@@ -70,6 +78,17 @@ namespace format {
                     details.amount = kerning.node().attribute("amount").as_int();
 
                     instance.kernings.push_back(details);
+                }
+
+                auto pages = doc.select_nodes("/font/pages/page");
+                for (auto page : pages) {
+                    int index = page.node().attribute("id").as_int();
+                    auto file = page.node().attribute("file").value();
+
+                    type::image glyphs;
+                    assets->retrieve(file) >> format::parser::png >> glyphs;
+
+                    instance.pages[index] = glyphs;
                 }
             }
 

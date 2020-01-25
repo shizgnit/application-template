@@ -1,12 +1,12 @@
 #include "engine.hpp"
 
 std::string utilities::rtrim(std::string in) {
-    size_t back = in.length();
+    size_t back = in.length() - 1;
     while (back != -1 && (in[back] == 0x09 || in[back] == 0x20)) {
         back -= 1;
     }
     if (back < in.length()) {
-        return(in.substr(0, back));
+        return(in.substr(0, back + 1));
     }
     return(in);
 }
@@ -27,12 +27,12 @@ std::string utilities::trim(std::string in) {
     while (front < in.length() && (in[front] == 0x09 || in[front] == 0x20)) {
         front += 1;
     }
-    size_t back = in.length();
+    size_t back = in.length() - 1;
     while (back != -1 && (in[back] == 0x09 || in[back] == 0x20)) {
         back -= 1;
     }
     if (front < back) {
-        return(in.substr(front, back - front));
+        return(in.substr(front, back - front + 1));
     }
     return(in);
 }
@@ -53,6 +53,7 @@ std::string utilities::uc(std::string in) {
     return(std::string(translated.data(), translated.size()));
 }
 
+/*
 std::string utilities::format(std::string str, ...) {
     std::string result;
 
@@ -70,6 +71,7 @@ std::string utilities::format(std::string str, ...) {
 
     return(result);
 }
+*/
 
 std::string utilities::join(std::string delimiter, std::vector<std::string> arguments) {
     std::string result;
@@ -85,10 +87,10 @@ std::string utilities::join(std::string delimiter, std::vector<std::string> argu
     return(result);
 }
 
+/*
 std::vector<std::string> utilities::split(std::string expression, std::string input, int limit) {
     std::vector<std::string> results;
     
-    /*  
     std::regex regex(expression);
 
     int iteration = 1;
@@ -111,42 +113,10 @@ std::vector<std::string> utilities::split(std::string expression, std::string in
     } while (++iteration != limit);
 
     results.push(buffer);
-    */
 
     return(results);
 }
-
-std::vector<char*> utilities::segment(char* input, char delimiter) {
-    std::vector<char*> pointers;
-
-    char* current = input;
-
-    while (*current) {
-        pointers.push_back(current);
-        bool seg = false;
-        while (*current) {
-            if (*current == delimiter) {
-                *current = '\0';
-                while (*(current + 1) == delimiter) {
-                    current++;
-                    *current = '\0';
-                }
-                if (delimiter == '\n' && *(current - 1) == '\r') {
-                    *(current - 1) = '\0';
-                }
-                seg = true;
-            }
-            else {
-                current++;
-            }
-        }
-        if (seg) {
-            current++;
-        }
-    }
-
-    return(pointers);
-}
+*/
 
 std::vector<std::string> utilities::tokenize(std::string input, std::string delimiter) {
     std::vector<std::string> results;
@@ -173,12 +143,12 @@ std::vector<std::string> utilities::tokenize(std::string input, std::string deli
 }
 
 
+/*
 std::string utilities::substitute(std::string input, std::string expression, std::string replacement, bool global) {
     size_t length = replacement.length();
 
     std::string buffer = input;
 
-    /*
     std::regex regex(expression);
 
     size_t offset = 0;
@@ -206,11 +176,11 @@ std::string utilities::substitute(std::string input, std::string expression, std
         offset = match_start + length;
     } while (global);
 
-    */
-
     return(buffer);
 }
+*/
 
+/*
 std::string utilities::substitute(std::string input, std::vector<std::string>& replacement) {
     std::string buffer = input;
 
@@ -222,6 +192,7 @@ std::string utilities::substitute(std::string input, std::vector<std::string>& r
 
     return(buffer);
 }
+*/
 
 std::string utilities::base(std::string in, int target_ordinal, int current_ordinal) {
     static const char digits[63] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";

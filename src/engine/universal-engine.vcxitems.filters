@@ -20,18 +20,14 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)platform\implementations\android.cpp">
       <Filter>platform\implementations</Filter>
     </ClCompile>
-    <ClCompile Include="C:\Projects\application-template\src\engine\platform\implementations\posix.cpp">
-      <Filter>platform\implementations</Filter>
-    </ClCompile>
-    <ClCompile Include="C:\Projects\application-template\src\engine\platform\implementations\windows.cpp">
-      <Filter>platform\implementations</Filter>
-    </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)utilities\spatial.cpp">
       <Filter>utilities</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)utilities\common.cpp">
       <Filter>utilities</Filter>
     </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)platform\implementations\posix.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)platform\implementations\windows.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\deps\lodepng\lodepng.h">
@@ -138,17 +134,8 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)platform\implementations\android.hpp">
       <Filter>platform\implementations</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Projects\application-template\src\engine\platform\implementations\posix.hpp">
-      <Filter>platform\implementations</Filter>
-    </ClInclude>
-    <ClInclude Include="C:\Projects\application-template\src\engine\platform\implementations\windows.hpp">
-      <Filter>platform\implementations</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)platform\interfaces\assets.hpp">
       <Filter>platform\interfaces</Filter>
-    </ClInclude>
-    <ClInclude Include="C:\Projects\application-template\src\engine\types\interfaces\info.hpp">
-      <Filter>types\interfaces</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)utilities\spatial.hpp">
       <Filter>utilities</Filter>
@@ -156,6 +143,9 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)utilities\common.hpp">
       <Filter>utilities</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)platform\implementations\posix.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)platform\implementations\windows.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)types\interfaces\info.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="deps">
