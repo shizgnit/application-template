@@ -5,18 +5,19 @@
 class FormatTest : public ::testing::Test {
 protected:
     void SetUp() override {
+        assets->init((void *)testDataPath().c_str());
     }
 
     // void TearDown() override {}
 };
 
-TEST(FormatTest, WAV) {
+TEST_F(FormatTest, WAV) {
     format::wav test(testDataPath() + "GLaDOS.wav");
     EXPECT_EQ(test.size, 238200);
     EXPECT_EQ(test.properties.sample_rate, 44100);
 }
 
-TEST(FormatTest, PNG) {
+TEST_F(FormatTest, PNG) {
     format::png test(testDataPath() + "marvin.png");
     EXPECT_EQ(test.properties.width, 295);
     EXPECT_EQ(test.properties.height, 281);
@@ -30,6 +31,6 @@ TEST(FormatTest, PNG) {
     EXPECT_EQ(stream.raster.size(), 2652640);
 }
 
-TEST(FormatTest, FNT) {
+TEST_F(FormatTest, FNT) {
     format::fnt test(testDataPath() + "arial.fnt");
 }

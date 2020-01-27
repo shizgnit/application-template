@@ -88,6 +88,7 @@ namespace format {
                     type::image glyphs;
                     assets->retrieve(file) >> format::parser::png >> glyphs;
 
+                    instance.pages.resize(index + 1);
                     instance.pages[index] = glyphs;
                 }
             }
