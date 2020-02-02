@@ -120,6 +120,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <Content Include="assets\drawable\marvin.png" />
+    <Content Include="assets\fonts\arial.fnt" />
+    <Content Include="assets\fonts\arial.png" />
     <Content Include="assets\raw\glados.wav" />
     <Content Include="assets\raw\test.txt" />
     <Content Include="assets\shaders\pick_shader.frag" />
