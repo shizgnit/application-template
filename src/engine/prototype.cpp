@@ -115,7 +115,7 @@ void print(int x, int y, std::string text) {
     position.identity();
     position.translate(x, y, 0);
 
-    graphics->draw(text, font, shader, position, spatial::matrix(), spatial::matrix());
+    graphics->draw(text, font, shader, position, spatial::matrix(), ortho);
 }
 
 void application::on_startup() {
@@ -162,6 +162,7 @@ void application::on_draw() {
 
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+
     glUseProgram(simpleTriangleProgram);
     glVertexAttribPointer(vPosition, 2, GL_FLOAT, GL_FALSE, 0, triangleVertices);
     glEnableVertexAttribArray(vPosition);
@@ -173,7 +174,7 @@ void application::on_draw() {
 
     graphics->draw(icon, shader, frame, spatial::matrix(), ortho);
 
-    print(10, 10, "HelloWorld");
+    print(100, 400, "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz");
 
     graphics->flush();
 }
