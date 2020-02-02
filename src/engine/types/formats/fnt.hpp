@@ -23,6 +23,9 @@ namespace format {
                 return instance;
             }
 
+            /// Preallocate the glyphs
+            instance.glyphs.resize(256);
+
             /// Load the stream into a string
             std::string str(std::istreambuf_iterator<char>(input), {});
 
@@ -31,7 +34,7 @@ namespace format {
 
                 auto info = doc.select_node("/font/info");
 
-                //face="Arial" size="32" bold="0" italic="0" charset="" unicode="1" stretchH="100" smooth="1" aa="1" padding="0,0,0,0" spacing="1,1" outline="0"
+                // face="Arial" size="32" bold="0" italic="0" charset="" unicode="1" stretchH="100" smooth="1" aa="1" padding="0,0,0,0" spacing="1,1" outline="0"
 
                 instance.name = info.node().attribute("face").value();
                 instance.size = info.node().attribute("size").as_int();
@@ -48,25 +51,6 @@ namespace format {
                 auto spacing = utilities::tokenize(info.node().attribute("spacing").value(), ",");
                 instance.spacing_left = utilities::type_cast<int>(spacing[0]);
                 instance.spacing_right = utilities::type_cast<int>(spacing[1]);
-
-                auto characters = doc.select_nodes("/font/chars/char");
-                for (auto character : characters) {
-                    format::fnt::glyph details;
-
-                    // Map XML attributes to struct members
-                    details.identifier = character.node().attribute("id").as_int();
-                    details.x = character.node().attribute("x").as_int();
-                    details.y = character.node().attribute("y").as_int();
-                    details.width = character.node().attribute("width").as_int();
-                    details.height = character.node().attribute("height").as_int();
-                    details.xoffset = character.node().attribute("xoffset").as_int();
-                    details.yoffset = character.node().attribute("yoffset").as_int();
-                    details.xadvance = character.node().attribute("xadvance").as_int();
-                    details.page = character.node().attribute("page").as_int();
-                    details.channel = character.node().attribute("chnl").as_int();
-
-                    instance.glyphs.push_back(details);
-                }
 
                 auto kernings = doc.select_nodes("/font/kernings/kerning");
                 for (auto kerning : kernings) {
@@ -85,12 +69,38 @@ namespace format {
                     int index = page.node().attribute("id").as_int();
                     auto file = page.node().attribute("file").value();
 
-                    type::image glyphs;
-                    assets->retrieve(file) >> format::parser::png >> glyphs;
+                    type::image texture;
+                    assets->retrieve(file) >> format::parser::png >> texture;
 
                     instance.pages.resize(index + 1);
-                    instance.pages[index] = glyphs;
+                    instance.pages[index] = texture;
                 }
+
+                auto characters = doc.select_nodes("/font/chars/char");
+                for (auto character : characters) {
+                    format::fnt::glyph details;
+
+                    // Map XML attributes to struct members
+                    details.identifier = character.node().attribute("id").as_int();
+                    details.x = character.node().attribute("x").as_int();
+                    details.y = character.node().attribute("y").as_int();
+                    details.width = character.node().attribute("width").as_int();
+                    details.height = character.node().attribute("height").as_int();
+                    details.xoffset = character.node().attribute("xoffset").as_int();
+                    details.yoffset = character.node().attribute("yoffset").as_int();
+                    details.xadvance = character.node().attribute("xadvance").as_int();
+                    details.page = character.node().attribute("page").as_int();
+                    details.channel = character.node().attribute("chnl").as_int();
+
+                    details.quad.texture.map = instance.pages[details.page];
+                    details.quad.quad(details.width, details.height);
+                    details.quad.xy_projection(details.x, details.y, details.width, details.height);
+
+                    details.quad.id = character.node().attribute("id").value();
+
+                    instance.glyphs[details.identifier] = details;
+                }
+
             }
 
             return instance;

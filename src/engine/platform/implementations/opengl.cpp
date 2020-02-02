@@ -116,7 +116,7 @@ void implementation::opengl::graphics::compile(type::object& object) {
 }
 
 void implementation::opengl::graphics::compile(type::font& font) {
-    for (auto glyph : font.glyphs) {
+    for (auto &glyph : font.glyphs) {
         if (glyph.identifier) {
             compile(glyph.quad);
         }

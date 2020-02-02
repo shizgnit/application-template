@@ -104,10 +104,19 @@ inline type::object icon;
 inline spatial::position camera;
 
 inline type::program shader;
+inline type::font font;
 
 inline spatial::matrix ortho;
 
 bool init = false;
+
+void print(int x, int y, std::string text) {
+    spatial::matrix position;
+    position.identity();
+    position.translate(x, y, 0);
+
+    graphics->draw(text, font, shader, position, spatial::matrix(), spatial::matrix());
+}
 
 void application::on_startup() {
 
@@ -132,6 +141,9 @@ void application::on_startup() {
     icon.quad(256, 256);
     icon.xy_projection(0, 0, 256, 256);
     graphics->compile(icon);
+
+    assets->retrieve("fonts/arial.fnt") >> format::parser::fnt >> font;
+    graphics->compile(font);
 
     camera.move(4.0f);
 
@@ -160,6 +172,8 @@ void application::on_draw() {
     frame.translate(10, 10, 0);
 
     graphics->draw(icon, shader, frame, spatial::matrix(), ortho);
+
+    print(10, 10, "HelloWorld");
 
     graphics->flush();
 }
