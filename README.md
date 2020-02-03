@@ -12,6 +12,11 @@ Use Microsoft Visual Studio 2019 and the build.sln solution file.
 
 ## Dependencies
 
+Submodules.
+
+  git submodule update --init --recursive
+  (includes; loadpng, pugixml, picojson, zstream)
+
 The following projects need to be installed on the client PC running the IDE.
 
   https://nodejs.org/
