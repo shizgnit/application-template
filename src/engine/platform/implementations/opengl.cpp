@@ -159,12 +159,15 @@ void implementation::opengl::graphics::draw(std::string text, type::font& font, 
     int prior = 0;
     spatial::matrix position = model;
     for (unsigned int i = 0; i < text.length(); i++) {
-        //draw(font.glyphs[text[i]].quad, shader, model, view, projection);
         position.translate(spatial::vector((float)font.kern(prior, text[i]), 0.0f, 0.0f));
         spatial::matrix relative = position;
-        relative.translate(spatial::vector((float)font.glyphs[text[i]].xoffset, 0.0f, 0.0f));
-        draw(font.glyphs[text[i]].quad, shader, relative, view, projection);
-        position.translate(spatial::vector((float)font.glyphs[text[i]].xadvance, 0.0f, 0.0f));
+
+        auto& glyph = font.glyphs[text[i]];
+
+        relative.translate(spatial::vector((float)glyph.xoffset, (float)(font.size - glyph.height - glyph.yoffset), 0.0f));
+
+        draw(glyph.quad, shader, relative, view, projection);
+        position.translate(spatial::vector((float)glyph.xadvance, 0.0f, 0.0f));
         prior = text[i];
     }
 }

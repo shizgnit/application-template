@@ -174,7 +174,8 @@ void application::on_draw() {
 
     graphics->draw(icon, shader, frame, spatial::matrix(), ortho);
 
-    print(100, 400, "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz");
+    print(100, 400, "ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz");
+    print(100, 450, "0123456789 !@#$%^&*()_-=+<>,./?{[]}\|");
 
     graphics->flush();
 }
