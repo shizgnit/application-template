@@ -130,6 +130,8 @@ inline platform::graphics* graphics = new implementation::opengl::graphics();
 #include "types/formats/tga.hpp"
 #include "types/formats/png.hpp"
 #include "types/formats/fnt.hpp"
+#include "types/formats/mtl.hpp"
+#include "types/formats/obj.hpp"
 
 /// Just a simple prototype implementation to test infrastructure portability
 #include "prototype.hpp"

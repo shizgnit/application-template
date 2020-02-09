@@ -138,6 +138,14 @@ namespace type {
             instance = input;
             return instance;
         }
+
+        friend std::vector<type::object>& operator>>(type::object& input, std::vector<type::object>& instance) {
+            instance = input.children;
+            return instance;
+        }
+
+    protected:
+        std::vector<object> children;
     };
 
 }

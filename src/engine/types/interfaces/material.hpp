@@ -17,6 +17,19 @@ namespace type {
 
         type::image map;
         unsigned int context;
+
+        friend type::material& operator>>(type::material& input, type::material& instance) {
+            instance = input;
+            return instance;
+        }
+
+        friend std::vector<type::material>& operator>>(type::material& input, std::vector<type::material>& instance) {
+            instance = input.children;
+            return instance;
+        }
+
+    protected:
+        std::vector<material> children;
     };
 
 }

@@ -33,4 +33,12 @@ TEST_F(FormatTest, PNG) {
 
 TEST_F(FormatTest, FNT) {
     format::fnt test(testDataPath() + "arial.fnt");
+
+
+}
+
+TEST_F(FormatTest, MTL) {
+    format::fnt test(testDataPath() + "arial.fnt");
+
+
 }
