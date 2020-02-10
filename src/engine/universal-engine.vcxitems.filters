@@ -26,8 +26,10 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)utilities\common.cpp">
       <Filter>utilities</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)platform\implementations\posix.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)platform\implementations\windows.cpp">
+      <Filter>platform\implementations</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)platform\implementations\posix.cpp">
       <Filter>platform\implementations</Filter>
     </ClCompile>
   </ItemGroup>
@@ -145,9 +147,11 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)utilities\common.hpp">
       <Filter>utilities</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)platform\implementations\posix.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)types\interfaces\info.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)platform\implementations\windows.hpp">
+      <Filter>platform\implementations</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)platform\implementations\posix.hpp">
       <Filter>platform\implementations</Filter>
     </ClInclude>
   </ItemGroup>

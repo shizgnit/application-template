@@ -46,13 +46,14 @@ namespace format {
             std::vector<std::vector<float>> textures;
             std::vector<std::vector<float>> normals;
 
+            std::vector<type::material> mats;
+
             std::string line;
             while (std::getline(input, line)) {
-                auto arguments = utilities::tokenize(line);
+                auto arguments = utilities::tokenize(line, " ");
                 auto command = arguments[0];
 
                 if (command == "mtllib") { //material
-                    std::vector<type::material> mats;
                     assets->retrieve(arguments[1]) >> format::parser::mtl >> mats;
                 }
                 if (command == "o") { //entity
@@ -82,6 +83,11 @@ namespace format {
                 if (command == "g") { //group
                 }
                 if (command == "usemtl") { //material
+                    for (auto mat : mats) {
+                        if (mat.id == arguments[1]) {
+                            instance.children.back().texture = mat;
+                        }
+                    }
                 }
                 if (command == "f") { //faces
                     if (arguments.size() >= 4) {
@@ -92,23 +98,23 @@ namespace format {
 
                             auto points = utilities::tokenize(arguments[i], "/");
 
-                            int vi = (atoi(points[0].c_str()) - 1) * 3;
-                            int ti = (atoi(points[1].c_str()) - 1) * 2;
-                            int ni = (atoi(points[2].c_str()) - 1) * 3;
+                            int vi = (atoi(points[0].c_str()) - 1);
+                            int ti = (atoi(points[1].c_str()) - 1);
+                            int ni = (atoi(points[2].c_str()) - 1);
 
                             vertex.coordinate[0] = coordinates[vi][0];
-                            vertex.coordinate[1] = coordinates[vi][0];
-                            vertex.coordinate[2] = coordinates[vi][0];
+                            vertex.coordinate[1] = coordinates[vi][1];
+                            vertex.coordinate[2] = coordinates[vi][2];
                             vertex.coordinate[3] = 1.0f;
 
                             vertex.texture[0] = textures[ti][0];
-                            vertex.texture[1] = textures[ti][0];
+                            vertex.texture[1] = textures[ti][1];
                             vertex.texture[2] = 0.0f;
                             vertex.texture[3] = 0.0f;
 
                             vertex.normal[0] = normals[ni][0];
-                            vertex.normal[1] = normals[ni][0];
-                            vertex.normal[2] = normals[ni][0];
+                            vertex.normal[1] = normals[ni][1];
+                            vertex.normal[2] = normals[ni][2];
                             vertex.normal[3] = 0.0f;
 
                             vertices.push_back(vertex);

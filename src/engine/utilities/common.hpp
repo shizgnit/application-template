@@ -19,5 +19,4 @@ namespace utilities {
 
     std::string base(std::string in, int target_ordinal, int current_ordinal = 10);
     std::string base64(std::string in);
-
 }

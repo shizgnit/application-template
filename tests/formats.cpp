@@ -38,7 +38,13 @@ TEST_F(FormatTest, FNT) {
 }
 
 TEST_F(FormatTest, MTL) {
-    format::fnt test(testDataPath() + "arial.fnt");
+    format::mtl test(testDataPath() + "poly.mtl");
+
+
+}
+
+TEST_F(FormatTest, OBJ) {
+    format::obj test(testDataPath() + "poly.obj");
 
 
 }

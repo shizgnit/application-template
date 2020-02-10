@@ -39,7 +39,7 @@ namespace format {
 
             std::string line;
             while (std::getline(input, line)) {
-                auto arguments = utilities::tokenize(line);
+                auto arguments = utilities::tokenize(line, " ");
                 auto command = arguments[0];
 
                 if (command == "newmtl") {
