@@ -34,17 +34,31 @@ TEST_F(FormatTest, PNG) {
 TEST_F(FormatTest, FNT) {
     format::fnt test(testDataPath() + "arial.fnt");
 
+    EXPECT_EQ(test.glyphs.size(), 256);
+    EXPECT_EQ(test.kernings.size(), 91);
+    EXPECT_EQ(test.pages.size(), 1);
 
+    EXPECT_EQ(test.pages[0].raster.size(), 2097152);
 }
 
 TEST_F(FormatTest, MTL) {
     format::mtl test(testDataPath() + "poly.mtl");
 
+    // Materials return as lists
+    std::vector<type::material> mats;
+    test >> mats;
 
+    EXPECT_EQ(mats.size(), 1);
+    EXPECT_EQ(mats[0].map.raster.size(), 33554432);
 }
 
 TEST_F(FormatTest, OBJ) {
     format::obj test(testDataPath() + "poly.obj");
 
+    // Materials return as lists
+    std::vector<type::object> objs;
+    test >> objs;
 
+    EXPECT_EQ(objs.size(), 1);
+    EXPECT_EQ(objs[0].texture.map.raster.size(), 33554432);
 }

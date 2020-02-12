@@ -66,6 +66,10 @@ TEST(UtilitiesTest, Base) {
     EXPECT_STREQ(utilities::base("12", 16, 10).c_str(), "C");
 }
 
+TEST(UtilitiesTest, UUID) {
+    auto uuid = utilities::uuid();
+    EXPECT_EQ(uuid.length() > 0, true);
+}
 
 /* // Tests left to add
 std::string join(std::string, std::vector<std::string> arguments);

@@ -21,8 +21,8 @@ TEST(FilesystemTest, Exists) {
 TEST(FilesystemTest, Manipulation) {
     auto testfile_source = testDataPath("filesystem") + "foobar.txt";
 
-    auto testfile_copy = testDataPath("filesystem") + "foobar-copy.txt";
-    auto testfile_move = testDataPath("filesystem") + "foobar-move.txt";
+    auto testfile_copy = testDataPath("filesystem") + "foobar-copy-" + utilities::uuid() + ".txt";
+    auto testfile_move = testDataPath("filesystem") + "foobar-move-" + utilities::uuid() + ".txt";
 
     EXPECT_TRUE(filesystem->cp(testfile_source, testfile_copy));
     EXPECT_TRUE(filesystem->exists(testfile_copy));

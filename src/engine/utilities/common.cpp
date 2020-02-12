@@ -292,3 +292,33 @@ std::string utilities::base64(std::string in) {
 
     return(results);
 }
+
+#if defined __PLATFORM_WINDOWS
+
+std::string utilities::uuid() {
+    uuid_t uuid;
+    std::string output;
+
+    ::UuidCreate(&uuid);
+
+    CHAR* szUuid = NULL;
+    if (::UuidToStringA(&uuid, (RPC_CSTR*)&szUuid) == RPC_S_OK)
+    {
+        output = szUuid;
+        ::RpcStringFreeA((RPC_CSTR*)&szUuid);
+    }
+
+    return(output);
+}
+
+#endif
+
+#if defined __PLATFORM_POSIX
+
+std::string utilities::uuid() {
+    // TODO: pull from /proc/sys/kernel/random/uuid
+
+    return "";
+}
+
+#endif
