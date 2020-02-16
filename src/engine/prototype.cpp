@@ -100,13 +100,17 @@ const GLfloat triangleVertices[] = {
 inline type::audio sound;
 
 inline type::object icon;
-
-inline spatial::position camera;
+inline type::object poly;
 
 inline type::program shader;
 inline type::font font;
 
 inline spatial::matrix ortho;
+
+inline spatial::matrix perspective;
+
+inline spatial::position pos;
+inline spatial::position camera;
 
 bool init = false;
 
@@ -116,6 +120,10 @@ void print(int x, int y, std::string text) {
     position.translate(x, y, 0);
 
     graphics->draw(text, font, shader, position, spatial::matrix(), ortho);
+}
+
+float deg_to_radf(float deg) {
+    return deg * (float)M_PI / 180.0f;
 }
 
 void application::on_startup() {
@@ -145,7 +153,8 @@ void application::on_startup() {
     assets->retrieve("fonts/arial.fnt") >> format::parser::fnt >> font;
     graphics->compile(font);
 
-    camera.move(4.0f);
+    assets->retrieve("objects/poly.obj") >> format::parser::obj >> poly;
+    graphics->compile(poly);
 
     audio->compile(sound);
 
@@ -155,6 +164,7 @@ void application::on_startup() {
 void application::on_resize() {
     glViewport(0, 0, width, height);
     ortho.ortho(0, width, 0, height);
+    perspective.perspective(deg_to_radf(90), (float)width / (float)height, -1.0f, 0.0f);
 }
 
 void application::on_draw() {
@@ -163,16 +173,35 @@ void application::on_draw() {
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
-    glUseProgram(simpleTriangleProgram);
-    glVertexAttribPointer(vPosition, 2, GL_FLOAT, GL_FALSE, 0, triangleVertices);
-    glEnableVertexAttribArray(vPosition);
-    glDrawArrays(GL_TRIANGLES, 0, 3);
+    //glUseProgram(simpleTriangleProgram);
+    //glVertexAttribPointer(vPosition, 2, GL_FLOAT, GL_FALSE, 0, triangleVertices);
+    //glEnableVertexAttribArray(vPosition);
+    //glDrawArrays(GL_TRIANGLES, 0, 3);
 
     spatial::matrix frame;
     frame.identity();
     frame.translate(10, 10, 0);
 
     graphics->draw(icon, shader, frame, spatial::matrix(), ortho);
+
+    spatial::matrix center;
+    center.identity();
+    center.translate(width / 2, height / 2, 0);
+
+    pos.rotate(0.0f, 1.0f);
+    pos.move(0.02f);
+
+    camera.move(4.0f);
+
+    spatial::matrix model;
+    model.identity();
+    model.translate(pos.eye, pos.center, pos.up);
+
+    spatial::matrix view;
+    view.identity();
+    view.lookat(camera.eye, camera.center, camera.up);
+
+    graphics->draw(icon, shader, model, view, perspective);
 
     print(100, 400, "ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz");
     print(100, 450, "0123456789 !@#$%^&*()_-=+<>,./?{[]}\|");

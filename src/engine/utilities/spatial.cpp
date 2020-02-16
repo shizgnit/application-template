@@ -607,6 +607,7 @@ spatial::quaternion spatial::quaternion::operator *(const quaternion& operand) {
 
     return(result);
 }
+
 /*
     void quaternion::euler(const float &x, const float &y, const float &z, const float &degrees) {
     float angle = float((degrees / 180.0f) * M_PI);
@@ -618,7 +619,8 @@ spatial::quaternion spatial::quaternion::operator *(const quaternion& operand) {
     this->y = float(y * result);
     this->z = float(z * result);
     }
-    */
+*/
+
 void spatial::quaternion::euler(const float& roll, const float& pitch, const float& yaw, const float& degrees)
 {
     float cr, cp, cy, sr, sp, sy, cpcy, spsy;
