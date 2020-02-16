@@ -53,7 +53,7 @@ namespace spatial {
 
     class matrix {
     public:
-        typedef float type_t;
+        typedef vector::type_t type_t;
         typedef struct matrix_t { type_t x[4][4]; type_t* const operator [] (int i) const { return const_cast<type_t *>(x[i]); } } matrix_t;
 
         matrix();
