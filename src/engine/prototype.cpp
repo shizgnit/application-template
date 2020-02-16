@@ -14,6 +14,7 @@ static const char glFragmentShader[] =
 "  gl_FragColor = vec4(1.0, 0.0, 1.0, 1.0);\n"
 "}\n";
 
+
 GLuint loadShader(GLenum shaderType, const char* shaderSource)
 {
     GLuint shader = glCreateShader(shaderType);
@@ -122,12 +123,29 @@ void print(int x, int y, std::string text) {
     graphics->draw(text, font, shader, position, spatial::matrix(), ortho);
 }
 
+void print(int x, int y, spatial::matrix matrix, int offset=30) {
+    spatial::matrix position;
+    position.identity();
+    position.translate(x, y, 0);
+
+    for (int row = 0; row < 3; row++) {
+        std::stringstream ss;
+        ss << (row == 0 ? "[ [ " : "  [ ");
+        for (int col = 0; col < 3; col++) {
+            ss << matrix[row][col] << (col < 2 ? ", " : "");
+        }
+        ss << (row == 2 ? "] ]" : "]");
+        print(x, y - (offset * row), ss.str());
+    }
+
+}
+
+
 float deg_to_radf(float deg) {
     return deg * (float)M_PI / 180.0f;
 }
 
 void application::on_startup() {
-
     simpleTriangleProgram = createProgram(glVertexShader, glFragmentShader);
     if (!simpleTriangleProgram) {
         return;
@@ -205,6 +223,8 @@ void application::on_draw() {
 
     print(100, 400, "ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz");
     print(100, 450, "0123456789 !@#$%^&*()_-=+<>,./?{[]}\|");
+
+    print(100, 600, model);
 
     graphics->flush();
 }

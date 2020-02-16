@@ -130,9 +130,9 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, object.texture.context);
 
-    glUniformMatrix4fv(shader.u_ModelMatrix, 1, GL_FALSE, (GLfloat*)model.r);
-    glUniformMatrix4fv(shader.u_ViewMatrix, 1, GL_FALSE, (GLfloat*)view.r);
-    glUniformMatrix4fv(shader.u_ProjectionMatrix, 1, GL_FALSE, (GLfloat*)projection.r);
+    glUniformMatrix4fv(shader.u_ModelMatrix, 1, GL_FALSE, (GLfloat*)model.data());
+    glUniformMatrix4fv(shader.u_ViewMatrix, 1, GL_FALSE, (GLfloat*)view.data());
+    glUniformMatrix4fv(shader.u_ProjectionMatrix, 1, GL_FALSE, (GLfloat*)projection.data());
     glUniform1i(shader.u_SurfaceTextureUnit, 0);
 
     glUniform4f(shader.u_AmbientLight, 0.0f, 0.0f, 0.0f, 1.0f);
@@ -146,7 +146,7 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
     glVertexAttribPointer(shader.a_Normal, 4, GL_FLOAT, GL_TRUE, sizeof(type::object::vertex), BUFFER_OFFSET(8 * sizeof(GL_FLOAT)));
 
     glEnableVertexAttribArray(shader.a_Vertex);
-    glEnableVertexAttribArray(shader.a_Texture); 
+    glEnableVertexAttribArray(shader.a_Texture);
     glEnableVertexAttribArray(shader.a_Normal);
 
     //glDrawArrays(GL_TRIANGLE_FAN, 0, object.vertices.size());
