@@ -183,7 +183,7 @@ void application::on_startup() {
 void application::on_resize() {
     glViewport(0, 0, width, height);
     ortho.ortho(0, width, 0, height);
-    perspective.perspective(deg_to_radf(90), (float)width / (float)height, -1.0f, 0.0f);
+    perspective.perspective(deg_to_radf(90), (float)width / (float)height, -1.0f, 1.0f);
 }
 
 void application::on_draw() {
@@ -210,7 +210,7 @@ void application::on_draw() {
     pos.rotate(0.0f, 1.0f);
     pos.move(0.02f);
 
-    camera.move(4.0f);
+    //camera.move(4.0f);
 
     spatial::matrix model;
     model.identity();
@@ -228,13 +228,8 @@ void application::on_draw() {
     print(30, height - 30, "MODEL");
     print(30, height - 60, model);
 
-    spatial::matrix position;
-    position.identity();
-    position.scale(0.003f);
-    position.translate(30, height - 60, 0);
-
-    print(30, height - 180, "POSITION");
-    print(30, height - 210, position);
+    print(30, height - 180, "VIEW");
+    print(30, height - 210, view);
 
     graphics->flush();
 }

@@ -177,12 +177,28 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     int nNoOfDevices = 0;
     POINT p;
 
+    static auto hdc = GetDC(hWnd);
+
     RAWINPUT input;
     UINT szData = sizeof(input), szHeader = sizeof(RAWINPUTHEADER);
     HRAWINPUT handle;
 
     switch (message)
     {
+    /*
+    case WM_ACTIVATE:
+        if ((LOWORD(wParam) != WA_INACTIVE) && !((BOOL)HIWORD(wParam))) {
+            SetTimer(hWnd, 1, 10, NULL);
+        }
+        return 0;
+
+    case WM_TIMER:
+        if(instance->started)
+            instance->on_draw();
+        SwapBuffers(hdc);
+        return 0;
+    */
+
     case WM_CREATE:
         AllocConsole();
 
@@ -357,11 +373,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
     case WM_PAINT:
         {
-            if(instance->started)
-                instance->on_draw();
-            PAINTSTRUCT ps;
-            HDC hdc = BeginPaint(hWnd, &ps);
-            EndPaint(hWnd, &ps);
+        if (instance->started)
+            instance->on_draw();
+        SwapBuffers(hdc);
+            //PAINTSTRUCT ps;
+            //HDC hdc = BeginPaint(hWnd, &ps);
+            //EndPaint(hWnd, &ps);
         }
         break;
 
