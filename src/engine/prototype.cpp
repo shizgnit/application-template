@@ -118,7 +118,7 @@ bool init = false;
 void print(int x, int y, std::string text) {
     spatial::matrix position;
     position.identity();
-    position.scale(0.6f);
+    position.scale(0.8f);
     position.translate(x, y, 0);
 
     graphics->draw(text, font, shader, position, spatial::matrix(), ortho);
@@ -228,24 +228,29 @@ void application::on_draw() {
     print(30, height - 30, "MODEL");
     print(30, height - 60, model);
 
-    print(30, height - 180, "VIEW");
-    print(30, height - 210, view);
+    print(30, height - 210, "VIEW");
+    print(30, height - 240, view);
 
     graphics->flush();
 }
 
 void application::on_proc() {}
 
-void application::on_touch_press(float x, float y) {}
-void application::on_touch_release(float x, float y) {
+void application::on_press(float x, float y) {}
+void application::on_release(float x, float y) {
     audio->play(sound);
 }
-void application::on_touch_drag(float x, float y) {}
-void application::on_touch_scale(float x, float y, float z) {}
-void application::on_touch_zoom_in() {}
-void application::on_touch_zoom_out() {}
+void application::on_drag(float x, float y) {}
+void application::on_scale(float x, float y, float z) {}
+void application::on_zoom_in() {
+    camera.move(10.0f);
+}
+
+void application::on_zoom_out() {
+    camera.move(-10.0f);
+}
 
 void application::on_key_down(int key) {}
 void application::on_key_up(int key) {}
 
-void application::on_mouse_move(long int x, long int y) {}
+void application::on_move(long int x, long int y) {}

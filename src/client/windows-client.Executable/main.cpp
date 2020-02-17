@@ -103,11 +103,11 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 {
    hInst = hInstance; // Store instance handle in our global variable
 
-   int width = 100;
-   int height = 100;
+   int width = 800;
+   int height = 600;
 
    HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
-       CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, nullptr, nullptr, hInstance, nullptr);
+       CW_USEDEFAULT, 0, width, height, nullptr, nullptr, hInstance, nullptr);
 
    if (!hWnd)
    {
@@ -157,6 +157,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
    static char path[] = "C:\\Projects\\application-template\\src\\client\\android-client.Packaging\\assets\\";
    assets->init((void*)path);
+
    instance->dimensions(width, height)->on_startup();
 
    return instance->started = true;
@@ -185,20 +186,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
     switch (message)
     {
-    /*
-    case WM_ACTIVATE:
-        if ((LOWORD(wParam) != WA_INACTIVE) && !((BOOL)HIWORD(wParam))) {
-            SetTimer(hWnd, 1, 10, NULL);
-        }
-        return 0;
-
-    case WM_TIMER:
-        if(instance->started)
-            instance->on_draw();
-        SwapBuffers(hdc);
-        return 0;
-    */
-
     case WM_CREATE:
         AllocConsole();
 
@@ -277,6 +264,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         // _HMENU = CreatePopupMenu();
         // AppendMenu(_HMENU, MF_STRING, ID_TRAY_EXIT_CONTEXT_MENU_ITEM, TEXT("Exit"));
 
+        instance->dimensions(LOWORD(lParam), HIWORD(lParam))->on_resize();
+
+        SetTimer(hWnd, 1, 10, NULL);
+
         break;
 
     case WM_INPUT:
@@ -344,10 +335,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         if (input.header.dwType == RIM_TYPEMOUSE && input.data.mouse.usButtonFlags & 0x0400)
         {
             if (input.data.mouse.usButtonData == 0xFF88) { // 65416
-                //platform::api::input->touch_zoom_in();
+                instance->on_zoom_in();
             }
             if (input.data.mouse.usButtonData == 0x0078) { // 120
-                //platform::api::input->touch_zoom_out();
+                instance->on_zoom_out();
             }
         }
 
@@ -371,21 +362,24 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         break;
 
-    case WM_PAINT:
-        {
-        if (instance->started)
-            instance->on_draw();
-        SwapBuffers(hdc);
-            //PAINTSTRUCT ps;
-            //HDC hdc = BeginPaint(hWnd, &ps);
-            //EndPaint(hWnd, &ps);
-        }
+    case WM_SIZING:
         break;
 
     case WM_SIZE:
         instance->dimensions(LOWORD(lParam), HIWORD(lParam))->on_resize();
-        PostMessage(hWnd, WM_PAINT, 0, 0);
+        //PostMessage(hWnd, WM_PAINT, 0, 0);
         break;
+
+    case WM_TIMER:
+        if (instance->started)
+            instance->on_draw();
+        SwapBuffers(hdc);
+        break;
+
+    //case WM_PAINT:
+        //PAINTSTRUCT ps;
+        //HDC hdc = BeginPaint(hWnd, &ps);
+        //EndPaint(hWnd, &ps);
 
     case WM_DESTROY:
         PostQuitMessage(0);
