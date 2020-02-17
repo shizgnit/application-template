@@ -118,6 +118,7 @@ bool init = false;
 void print(int x, int y, std::string text) {
     spatial::matrix position;
     position.identity();
+    position.scale(0.6f);
     position.translate(x, y, 0);
 
     graphics->draw(text, font, shader, position, spatial::matrix(), ortho);
@@ -128,13 +129,13 @@ void print(int x, int y, spatial::matrix matrix, int offset=30) {
     position.identity();
     position.translate(x, y, 0);
 
-    for (int row = 0; row < 3; row++) {
+    for (int row = 0; row < 4; row++) {
         std::stringstream ss;
         ss << (row == 0 ? "[ [ " : "  [ ");
-        for (int col = 0; col < 3; col++) {
-            ss << matrix[row][col] << (col < 2 ? ", " : "");
+        for (int col = 0; col < 4; col++) {
+            ss << matrix[row][col] << (col < 3 ? ", " : " ");
         }
-        ss << (row == 2 ? "] ]" : "]");
+        ss << (row == 3 ? "] ]" : "]");
         print(x, y - (offset * row), ss.str());
     }
 
@@ -221,10 +222,19 @@ void application::on_draw() {
 
     graphics->draw(icon, shader, model, view, perspective);
 
-    print(100, 400, "ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz");
-    print(100, 450, "0123456789 !@#$%^&*()_-=+<>,./?{[]}\|");
+    //print(100, 400, "ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz");
+    //print(100, 450, "0123456789 !@#$%^&*()_-=+<>,./?{[]}\|");
 
-    print(100, 600, model);
+    print(30, height - 30, "MODEL");
+    print(30, height - 60, model);
+
+    spatial::matrix position;
+    position.identity();
+    position.scale(0.003f);
+    position.translate(30, height - 60, 0);
+
+    print(30, height - 180, "POSITION");
+    print(30, height - 210, position);
 
     graphics->flush();
 }

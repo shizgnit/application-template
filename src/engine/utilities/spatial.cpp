@@ -234,7 +234,8 @@ spatial::matrix spatial::matrix::operator * (const type_t& operand) const {
     result.r[3][0] *= operand;
     result.r[3][1] *= operand;
     result.r[3][2] *= operand;
-    result.r[3][3] *= operand;
+
+    // result.r[3][3] *= operand;
 
     return result;
 }
