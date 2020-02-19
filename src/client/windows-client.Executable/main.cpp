@@ -19,6 +19,8 @@ BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
 
+inline BOOL LBUTTONDOWN = false;
+
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
                      _In_ LPWSTR    lpCmdLine,
@@ -308,29 +310,34 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
         if (input.header.dwType == RIM_TYPEKEYBOARD && (input.data.keyboard.Flags == 0 || input.data.keyboard.Flags == 2))
         {
-            //platform::api::input->key_down(input.data.keyboard.VKey);
+            instance->on_key_down(input.data.keyboard.VKey);
         }
         if (input.header.dwType == RIM_TYPEKEYBOARD && (input.data.keyboard.Flags == 1 || input.data.keyboard.Flags == 3))
         {
-            //platform::api::input->key_up(input.data.keyboard.VKey);
+            instance->on_key_up(input.data.keyboard.VKey);
         }
 
         if (input.header.dwType == RIM_TYPEMOUSE && input.data.mouse.ulButtons == 0)
         {
             GetCursorPos(&p);
             ScreenToClient(hWnd, &p);
-            //platform::api::input->mouse_move(p.x, p.y);
+            instance->on_move(p.x, p.y);
+            if(LBUTTONDOWN)
+                instance->on_drag(p.x, p.y);
         }
         if (input.header.dwType == RIM_TYPEMOUSE && input.data.mouse.usButtonFlags & 0x0001)
         {
             GetCursorPos(&p);
             ScreenToClient(hWnd, &p);
-            //platform::api::input->touch_press((float)p.x, (float)p.y);
-            //LBUTTONDOWN = true;
+            instance->on_press((float)p.x, (float)p.y);
+            LBUTTONDOWN = true;
         }
         if (input.header.dwType == RIM_TYPEMOUSE && input.data.mouse.usButtonFlags & 0x0002)
         {
-            //LBUTTONDOWN = false;
+            GetCursorPos(&p);
+            ScreenToClient(hWnd, &p);
+            instance->on_release((float)p.x, (float)p.y);
+            LBUTTONDOWN = false;
         }
         if (input.header.dwType == RIM_TYPEMOUSE && input.data.mouse.usButtonFlags & 0x0400)
         {

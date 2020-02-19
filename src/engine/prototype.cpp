@@ -1,4 +1,6 @@
 #include "engine.hpp"
+#include <list>
+#include <mutex>
 
 static const char glVertexShader[] =
 "attribute vec4 vPosition;\n"
@@ -98,6 +100,38 @@ const GLfloat triangleVertices[] = {
 
 //=====================================================================================================
 
+class message_container {
+public:
+    message_container(int entries = 20) {
+        limit = entries;
+    }
+
+    void add(std::string message) {
+        lock.lock();
+        data.push_back(message);
+        if (data.size() > limit) {
+            data.pop_front();
+        }
+        lock.unlock();
+    }
+
+    std::vector<std::string> get() {
+        std::vector<std::string> list;
+        lock.lock();
+        for (auto message: data) {
+            list.push_back(message);
+        }
+        lock.unlock();
+        return list;
+    }
+
+private:
+    int limit;
+
+    std::list<std::string> data;
+    std::mutex lock;
+} messages;
+
 inline type::audio sound;
 
 inline type::object icon;
@@ -125,10 +159,6 @@ void print(int x, int y, std::string text) {
 }
 
 void print(int x, int y, spatial::matrix matrix, int offset=30) {
-    spatial::matrix position;
-    position.identity();
-    position.translate(x, y, 0);
-
     for (int row = 0; row < 4; row++) {
         std::stringstream ss;
         ss << (row == 0 ? "[ [ " : "  [ ");
@@ -139,6 +169,15 @@ void print(int x, int y, spatial::matrix matrix, int offset=30) {
         print(x, y - (offset * row), ss.str());
     }
 
+}
+
+void print(int x, int y, message_container &messages, int offset=30) {
+    auto contents = messages.get();
+
+    int line = y + (offset * contents.size());
+    for (auto message : contents) {
+        print(x, y -= offset, message);
+    }
 }
 
 
@@ -231,26 +270,62 @@ void application::on_draw() {
     print(30, height - 210, "VIEW");
     print(30, height - 240, view);
 
+    print(450, height, messages);
+
     graphics->flush();
 }
 
-void application::on_proc() {}
-
-void application::on_press(float x, float y) {}
-void application::on_release(float x, float y) {
-    audio->play(sound);
+void application::on_proc() {
+    messages.add("on_proc");
 }
-void application::on_drag(float x, float y) {}
-void application::on_scale(float x, float y, float z) {}
+
+void application::on_press(float x, float y) {
+    std::stringstream ss;
+    ss << "on_press(" << x << ", " << y << ")";
+    messages.add(ss.str());
+}
+void application::on_release(float x, float y) {
+    std::stringstream ss;
+    ss << "on_release(" << x << ", " << y << ")";
+    messages.add(ss.str());
+}
+void application::on_move(long int x, long int y) {
+    std::stringstream ss;
+    ss << "on_move(" << x << ", " << y << ")";
+    messages.add(ss.str());
+}
+void application::on_drag(float x, float y) {
+    std::stringstream ss;
+    ss << "on_drag(" << x << ", " << y << ")";
+    messages.add(ss.str());
+}
+void application::on_scale(float x, float y, float z) {
+    std::stringstream ss;
+    ss << "on_scale(" << x << ", " << y << ", " << z << ")";
+    messages.add(ss.str());
+}
 void application::on_zoom_in() {
+    std::stringstream ss;
+    ss << "on_zoom_in";
+    messages.add(ss.str());
     camera.move(10.0f);
 }
 
 void application::on_zoom_out() {
+    std::stringstream ss;
+    ss << "on_zoom_out";
+    messages.add(ss.str());
     camera.move(-10.0f);
 }
 
-void application::on_key_down(int key) {}
-void application::on_key_up(int key) {}
+void application::on_key_down(int key) {
+    std::stringstream ss;
+    ss << "on_key_down(" << key << ")";
+    messages.add(ss.str());
+}
+void application::on_key_up(int key) {
+    std::stringstream ss;
+    ss << "on_key_up(" << key << ")";
+    messages.add(ss.str());
+}
 
-void application::on_move(long int x, long int y) {}
