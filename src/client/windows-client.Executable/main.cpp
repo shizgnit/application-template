@@ -105,8 +105,8 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 {
    hInst = hInstance; // Store instance handle in our global variable
 
-   int width = 800;
-   int height = 600;
+   int width = 1600;
+   int height = 1200;
 
    HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
        CW_USEDEFAULT, 0, width, height, nullptr, nullptr, hInstance, nullptr);
@@ -181,6 +181,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     POINT p;
 
     static auto hdc = GetDC(hWnd);
+
+    static bool sizing = false;
 
     RAWINPUT input;
     UINT szData = sizeof(input), szHeader = sizeof(RAWINPUTHEADER);
@@ -322,7 +324,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             GetCursorPos(&p);
             ScreenToClient(hWnd, &p);
             instance->on_move(p.x, p.y);
-            if(LBUTTONDOWN)
+            if(LBUTTONDOWN && !sizing)
                 instance->on_drag(p.x, p.y);
         }
         if (input.header.dwType == RIM_TYPEMOUSE && input.data.mouse.usButtonFlags & 0x0001)
@@ -370,10 +372,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         break;
 
     case WM_SIZING:
+        sizing = true;
         break;
 
     case WM_SIZE:
         instance->dimensions(LOWORD(lParam), HIWORD(lParam))->on_resize();
+        sizing = false;
         //PostMessage(hWnd, WM_PAINT, 0, 0);
         break;
 

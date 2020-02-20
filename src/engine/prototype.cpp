@@ -261,6 +261,9 @@ void application::on_draw() {
 
     graphics->draw(icon, shader, model, view, perspective);
 
+    graphics->draw(icon, shader, spatial::matrix(), view, perspective);
+
+
     //print(100, 400, "ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz");
     //print(100, 450, "0123456789 !@#$%^&*()_-=+<>,./?{[]}\|");
 
@@ -270,7 +273,7 @@ void application::on_draw() {
     print(30, height - 210, "VIEW");
     print(30, height - 240, view);
 
-    print(450, height, messages);
+    print(600, height, messages);
 
     graphics->flush();
 }
@@ -279,7 +282,12 @@ void application::on_proc() {
     messages.add("on_proc");
 }
 
+inline float prior_x;
+inline float prior_y;
+
 void application::on_press(float x, float y) {
+    prior_x = x;
+    prior_y = y;
     std::stringstream ss;
     ss << "on_press(" << x << ", " << y << ")";
     messages.add(ss.str());
@@ -298,6 +306,9 @@ void application::on_drag(float x, float y) {
     std::stringstream ss;
     ss << "on_drag(" << x << ", " << y << ")";
     messages.add(ss.str());
+    camera.rotate(y - prior_y, prior_x - x);
+    prior_x = x;
+    prior_y = y;
 }
 void application::on_scale(float x, float y, float z) {
     std::stringstream ss;
@@ -322,6 +333,21 @@ void application::on_key_down(int key) {
     std::stringstream ss;
     ss << "on_key_down(" << key << ")";
     messages.add(ss.str());
+
+    switch (key) {
+    case(87):
+        camera.move(-20.0f);
+        break;
+    case(83):
+        camera.move(20.0f);
+        break;
+    case(68):
+        camera.strafe(-20.0f);
+        break;
+    case(65):
+        camera.strafe(20.0f);
+        break;
+    };
 }
 void application::on_key_up(int key) {
     std::stringstream ss;
