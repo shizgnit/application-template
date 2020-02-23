@@ -181,14 +181,40 @@ std::vector<std::string> implementation::windows::assets::list(std::string path)
 }
 
 std::istream& implementation::windows::assets::retrieve(std::string path) {
-    static std::ifstream file;
-    std::string asset = base + path;
-    if (file.is_open()) {
-        file.close();
+    auto file = new std::ifstream();
+    if (file == NULL) {
+        // TODO : care about this
     }
-    file.clear();
-    file.open(asset.c_str(), std::ios::in | std::ios::binary);
-    return file;
+
+    std::vector<std::string> directories = { base };
+    for (auto entry : stack) {
+        if (entry.path.empty() == false) {
+            directories.push_back(entry.path);
+        }
+    }
+    directories.push_back(path);
+
+    std::string asset = utilities::join("\\", directories);
+
+    file->open(asset.c_str(), std::ios::in | std::ios::binary);
+
+    // push onto the stack regardless of success or failure
+    assets::source entry = { utilities::dirname(path), file };
+    stack.push_back(entry);
+
+    return *file;
+}
+
+void implementation::windows::assets::release() {
+    if (stack.size() == 0) {
+        return;
+    }
+    std::ifstream *ref = (std::ifstream *)stack.back().stream;
+    if (ref != NULL) {
+        ref->close();
+        delete ref;
+    }
+    stack.pop_back();
 }
 
 std::string implementation::windows::network::hostname() {

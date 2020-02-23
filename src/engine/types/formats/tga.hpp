@@ -144,6 +144,9 @@ namespace format {
 
             delete[] normalized;
 
+            // Done parsing the incoming asset
+            assets->release();
+
             return input;
         }
 

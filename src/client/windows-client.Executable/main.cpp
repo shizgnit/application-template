@@ -157,7 +157,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
    UpdateWindow(hWnd);
 
-   static char path[] = "C:\\Projects\\application-template\\src\\client\\android-client.Packaging\\assets\\";
+   static char path[] = "C:\\Projects\\application-template\\src\\client\\android-client.Packaging\\assets";
    assets->init((void*)path);
 
    instance->dimensions(width, height)->on_startup();

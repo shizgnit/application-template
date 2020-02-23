@@ -39,6 +39,8 @@ namespace implementation {
 
             std::istream& retrieve(std::string path);
 
+            void release();
+
             std::string base;
         };
 

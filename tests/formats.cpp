@@ -53,7 +53,7 @@ TEST_F(FormatTest, MTL) {
 }
 
 TEST_F(FormatTest, OBJ) {
-    format::obj test(testDataPath() + "poly.obj");
+    format::obj test(testDataPath() + "untitled.obj");
 
     // Materials return as lists
     std::vector<type::object> objs;

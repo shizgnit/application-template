@@ -176,13 +176,37 @@ format::wav sound;
 
 static int32_t engine_handle_input(struct android_app* app, AInputEvent* event) {
 	struct engine* engine = (struct engine*)app->userData;
-	if (AInputEvent_getType(event) == AINPUT_EVENT_TYPE_MOTION) {
+
+	// https://developer.android.com/training/gestures/multi
+
+	int type = AInputEvent_getType(event); // action & AMOTION_EVENT_ACTION_MASK;
+
+	int action = AMotionEvent_getAction(event);
+	int count = AMotionEvent_getPointerCount(event);
+	int index = (action & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
+
+	//AMotionEvent_getPointerId
+
+	switch (type) {
+	case AINPUT_EVENT_TYPE_MOTION:
+		break;
+
+	case AMOTION_EVENT_ACTION_DOWN: // Primary pointer down (always index 0)
 		engine->state.x = AMotionEvent_getX(event, 0);
 		engine->state.y = AMotionEvent_getY(event, 0);
-		return 1;
-	}
+		break;
 
-	audio->play(sound);
+	case AMOTION_EVENT_ACTION_UP: // Primary pointer up
+		break;
+
+	case AMOTION_EVENT_ACTION_POINTER_DOWN: // Secondary pointer down
+		break;
+
+	case AMOTION_EVENT_ACTION_POINTER_UP: // Secondary pointer up
+		break;
+	};
+
+	//audio->play(sound);
 
 	return 0;
 }

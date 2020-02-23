@@ -55,6 +55,9 @@ namespace format {
             instance.properties.channels = header.channels;
             instance.properties.size = header.data_size;
 
+            // Done parsing the incoming asset
+            assets->release();
+
             return instance;
         }
     };

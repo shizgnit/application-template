@@ -42,6 +42,12 @@ TEST(UtilitiesTest, UpperCase) {
     EXPECT_STREQ(utilities::uc("  foobar  ").c_str(), "  FOOBAR  ");
 }
 
+TEST(UtilitiesTest, Dirname) {
+    EXPECT_STREQ(utilities::dirname("/foo/bar/baz.txt").c_str(), "/foo/bar");
+    EXPECT_STREQ(utilities::dirname("c:\\foo\\bar\\baz.txt").c_str(), "c:\\foo\\bar");
+}
+
+
 /*
 // This doesn't work, but currently don't intend to use this method
 TEST(UtilitiesTest, Format) {

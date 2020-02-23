@@ -43,17 +43,41 @@ std::vector<std::string> implementation::android::assets::list(std::string path)
 }
 
 std::istream &implementation::android::assets::retrieve(std::string path) {
-    static std::stringstream ss;
-    ss.str(std::string());
-    ss.clear();
+    auto ss = new std::stringstream;
+    ss->str(std::string());
+    ss->clear();
 
-    const char* text = path.c_str();
+    std::vector<std::string> directories;
+    for (auto entry : stack) {
+        if (entry.path.empty() == false) {
+            directories.push_back(entry.path);
+        }
+    }
+    directories.push_back(path);
+
+    const char* text = utilities::join("/", directories).c_str();
 
     AAsset* asset = AAssetManager_open(assetManager, path.c_str(), AASSET_MODE_STREAMING);
     if (asset) {
-        ss.write((char*)AAsset_getBuffer(asset), AAsset_getLength(asset));
+        ss->write((char*)AAsset_getBuffer(asset), AAsset_getLength(asset));
     }
-    return ss;
+
+    assets::source entry = { utilities::dirname(path), ss };
+    stack.push_back(entry);
+
+    return *ss;
+}
+
+void implementation::android::assets::release() {
+    if (stack.size() == 0) {
+        return;
+    }
+    std::stringstream* ref = (std::stringstream*)stack.back().stream;
+    if (ref != NULL) {
+        // No special resource release for stringstreams
+        delete ref;
+    }
+    stack.pop_back();
 }
 
 #endif

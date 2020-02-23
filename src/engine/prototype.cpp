@@ -211,8 +211,8 @@ void application::on_startup() {
     assets->retrieve("fonts/arial.fnt") >> format::parser::fnt >> font;
     graphics->compile(font);
 
-    assets->retrieve("objects/poly.obj") >> format::parser::obj >> poly;
-    graphics->compile(poly);
+    assets->retrieve("objects/untitled.obj") >> format::parser::obj >> poly;
+    graphics->compile(poly.children[0]);
 
     audio->compile(sound);
 
@@ -263,6 +263,7 @@ void application::on_draw() {
 
     graphics->draw(icon, shader, spatial::matrix(), view, perspective);
 
+    graphics->draw(poly.children[0], shader, spatial::matrix(), view, perspective);
 
     //print(100, 400, "ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz");
     //print(100, 450, "0123456789 !@#$%^&*()_-=+<>,./?{[]}\|");

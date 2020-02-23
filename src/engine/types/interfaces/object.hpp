@@ -144,7 +144,6 @@ namespace type {
             return instance;
         }
 
-    protected:
         std::vector<object> children;
     };
 

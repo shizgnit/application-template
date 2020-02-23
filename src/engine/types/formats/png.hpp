@@ -58,6 +58,9 @@ namespace format {
             instance.raster.resize(allocation);
             memcpy(instance.raster.data(), raster.data(), raster.size());
 
+            // Done parsing the incoming asset
+            assets->release();
+
             return instance;
         }
     };

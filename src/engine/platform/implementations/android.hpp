@@ -14,6 +14,8 @@ namespace implementation {
 
             std::istream& retrieve(std::string path);
 
+            void release();
+
         private:
             AAssetManager* assetManager;
         };

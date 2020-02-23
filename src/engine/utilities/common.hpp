@@ -9,6 +9,8 @@ namespace utilities {
 
 //    std::string format(std::string str, ...);
 
+    std::string dirname(const std::string& in);
+
     std::string join(std::string, std::vector<std::string> arguments);
 //    std::vector<std::string> split(std::string expression, std::string buffer, int limit = 0);
 

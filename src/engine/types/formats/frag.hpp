@@ -28,6 +28,9 @@ namespace format {
             instance.text.resize(size);
             input.read(instance.text.data(), size);
 
+            // Done parsing the incoming asset
+            assets->release();
+
             return instance;
         }
     };

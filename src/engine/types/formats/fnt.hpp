@@ -107,6 +107,9 @@ namespace format {
 
             }
 
+            // Done parsing the incoming asset
+            assets->release();
+
             return instance;
         }
     };

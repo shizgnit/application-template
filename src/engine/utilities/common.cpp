@@ -73,6 +73,15 @@ std::string utilities::format(std::string str, ...) {
 }
 */
 
+std::string utilities::dirname(const std::string& in) {
+    auto pos = in.find_last_of("\\/");
+    if (pos != std::string::npos) {
+        return(in.substr(0, pos));
+    }
+    return("");
+}
+
+
 std::string utilities::join(std::string delimiter, std::vector<std::string> arguments) {
     std::string result;
 
