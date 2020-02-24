@@ -136,6 +136,7 @@ inline type::audio sound;
 
 inline type::object icon;
 inline type::object poly;
+inline type::object skybox;
 
 inline type::program shader;
 inline type::font font;
@@ -211,6 +212,9 @@ void application::on_startup() {
     assets->retrieve("fonts/arial.fnt") >> format::parser::fnt >> font;
     graphics->compile(font);
 
+    assets->retrieve("objects/skybox.obj") >> format::parser::obj >> skybox;
+    graphics->compile(skybox.children[0]);
+
     assets->retrieve("objects/untitled.obj") >> format::parser::obj >> poly;
     graphics->compile(poly.children[0]);
 
@@ -259,9 +263,11 @@ void application::on_draw() {
     view.identity();
     view.lookat(camera.eye, camera.center, camera.up);
 
-    graphics->draw(icon, shader, model, view, perspective);
+    //graphics->draw(icon, shader, model, view, perspective);
 
-    graphics->draw(icon, shader, spatial::matrix(), view, perspective);
+    //graphics->draw(icon, shader, spatial::matrix(), view, perspective);
+
+    graphics->draw(skybox.children[0], shader, spatial::matrix(), view, perspective);
 
     graphics->draw(poly.children[0], shader, spatial::matrix(), view, perspective);
 
@@ -320,14 +326,14 @@ void application::on_zoom_in() {
     std::stringstream ss;
     ss << "on_zoom_in";
     messages.add(ss.str());
-    camera.move(10.0f);
+    camera.move(1.0f);
 }
 
 void application::on_zoom_out() {
     std::stringstream ss;
     ss << "on_zoom_out";
     messages.add(ss.str());
-    camera.move(-10.0f);
+    camera.move(-1.0f);
 }
 
 void application::on_key_down(int key) {
@@ -337,16 +343,16 @@ void application::on_key_down(int key) {
 
     switch (key) {
     case(87):
-        camera.move(-20.0f);
+        camera.move(-2.0f);
         break;
     case(83):
-        camera.move(20.0f);
+        camera.move(2.0f);
         break;
     case(68):
-        camera.strafe(-20.0f);
+        camera.strafe(-2.0f);
         break;
     case(65):
-        camera.strafe(20.0f);
+        camera.strafe(2.0f);
         break;
     };
 }
