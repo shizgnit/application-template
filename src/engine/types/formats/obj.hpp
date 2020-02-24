@@ -42,6 +42,8 @@ namespace format {
             ...
             */
 
+            instance.children.clear();
+
             std::vector<std::vector<float>> coordinates;
             std::vector<std::vector<float>> textures;
             std::vector<std::vector<float>> normals;

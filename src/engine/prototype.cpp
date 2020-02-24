@@ -326,14 +326,14 @@ void application::on_zoom_in() {
     std::stringstream ss;
     ss << "on_zoom_in";
     messages.add(ss.str());
-    camera.move(1.0f);
+    camera.move(0.1f);
 }
 
 void application::on_zoom_out() {
     std::stringstream ss;
     ss << "on_zoom_out";
     messages.add(ss.str());
-    camera.move(-1.0f);
+    camera.move(-0.1f);
 }
 
 void application::on_key_down(int key) {
@@ -343,16 +343,16 @@ void application::on_key_down(int key) {
 
     switch (key) {
     case(87):
-        camera.move(-2.0f);
+        camera.move(-0.1f);
         break;
     case(83):
-        camera.move(2.0f);
+        camera.move(0.1f);
         break;
     case(68):
-        camera.strafe(-2.0f);
+        camera.strafe(-0.1f);
         break;
     case(65):
-        camera.strafe(2.0f);
+        camera.strafe(0.1f);
         break;
     };
 }
