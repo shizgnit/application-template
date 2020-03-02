@@ -187,24 +187,25 @@ static int32_t engine_handle_input(struct android_app* app, AInputEvent* event) 
 
 	//AMotionEvent_getPointerId
 
-	switch (type) {
-	case AINPUT_EVENT_TYPE_MOTION:
-		break;
-
-	case AMOTION_EVENT_ACTION_DOWN: // Primary pointer down (always index 0)
+	if (type == AINPUT_EVENT_TYPE_MOTION) {
 		engine->state.x = AMotionEvent_getX(event, 0);
 		engine->state.y = AMotionEvent_getY(event, 0);
-		break;
+		switch (action) {
+		case AMOTION_EVENT_ACTION_DOWN: // Primary pointer down (always index 0)
+			//instance->on_press(engine->state.x, engine->state.y);
+			break;
 
-	case AMOTION_EVENT_ACTION_UP: // Primary pointer up
-		break;
+		case AMOTION_EVENT_ACTION_UP: // Primary pointer up
+			//instance->on_release(engine->state.x, engine->state.y);
+			break;
 
-	case AMOTION_EVENT_ACTION_POINTER_DOWN: // Secondary pointer down
-		break;
+		case AMOTION_EVENT_ACTION_POINTER_DOWN: // Secondary pointer down
+			break;
 
-	case AMOTION_EVENT_ACTION_POINTER_UP: // Secondary pointer up
-		break;
-	};
+		case AMOTION_EVENT_ACTION_POINTER_UP: // Secondary pointer up
+			break;
+		};
+	}
 
 	//audio->play(sound);
 

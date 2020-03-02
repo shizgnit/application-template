@@ -134,6 +134,10 @@ spatial::vector spatial::vector::unit() {
     return(*this / (vector)length());
 }
 
+spatial::vector::type_t spatial::vector::distance(const vector& v) {
+    return sqrt(pow(x - v.x, 2) + pow(y - v.y, 2) + pow(z - v.z, 2));
+}
+
 void spatial::vector::unproject(vector mouse, const matrix& model, const matrix& projection, int width, int height) {
     matrix inverted = model * projection;
     inverted.invert();

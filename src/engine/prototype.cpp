@@ -186,7 +186,19 @@ float deg_to_radf(float deg) {
     return deg * (float)M_PI / 180.0f;
 }
 
-void application::on_startup() {
+inline float prior_x;
+inline float prior_y;
+
+void freelook(const platform::input::event& ev) {
+    std::stringstream ss;
+    ss << "on_drag(" << ev.point.x << ", " << ev.point.y << ")";
+    messages.add(ss.str());
+    camera.rotate(ev.point.y - prior_y, prior_x - ev.point.x);
+    prior_x = ev.point.x;
+    prior_y = ev.point.y;
+}
+
+void prototype::on_startup() {
     simpleTriangleProgram = createProgram(glVertexShader, glFragmentShader);
     if (!simpleTriangleProgram) {
         return;
@@ -223,13 +235,13 @@ void application::on_startup() {
     init = true;
 }
 
-void application::on_resize() {
+void prototype::on_resize() {
     glViewport(0, 0, width, height);
     ortho.ortho(0, width, 0, height);
     perspective.perspective(deg_to_radf(90), (float)width / (float)height, -1.0f, 1.0f);
 }
 
-void application::on_draw() {
+void prototype::on_draw() {
     graphics->clear();
 
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -285,31 +297,37 @@ void application::on_draw() {
     graphics->flush();
 }
 
-void application::on_proc() {
+void prototype::on_interval() {
     messages.add("on_proc");
 }
+
+
+
+/*
+
+/// These are moving to the generic callback event handlers that will be dispatched from the universal input implementation
 
 inline float prior_x;
 inline float prior_y;
 
-void application::on_press(float x, float y) {
+void prototype::on_press(float x, float y) {
     prior_x = x;
     prior_y = y;
     std::stringstream ss;
     ss << "on_press(" << x << ", " << y << ")";
     messages.add(ss.str());
 }
-void application::on_release(float x, float y) {
+void prototype::on_release(float x, float y) {
     std::stringstream ss;
     ss << "on_release(" << x << ", " << y << ")";
     messages.add(ss.str());
 }
-void application::on_move(long int x, long int y) {
+void prototype::on_move(long int x, long int y) {
     std::stringstream ss;
     ss << "on_move(" << x << ", " << y << ")";
     messages.add(ss.str());
 }
-void application::on_drag(float x, float y) {
+void prototype::on_drag(float x, float y) {
     std::stringstream ss;
     ss << "on_drag(" << x << ", " << y << ")";
     messages.add(ss.str());
@@ -317,26 +335,26 @@ void application::on_drag(float x, float y) {
     prior_x = x;
     prior_y = y;
 }
-void application::on_scale(float x, float y, float z) {
+void prototype::on_scale(float x, float y, float z) {
     std::stringstream ss;
     ss << "on_scale(" << x << ", " << y << ", " << z << ")";
     messages.add(ss.str());
 }
-void application::on_zoom_in() {
+void prototype::on_zoom_in() {
     std::stringstream ss;
     ss << "on_zoom_in";
     messages.add(ss.str());
     camera.move(0.1f);
 }
 
-void application::on_zoom_out() {
+void prototype::on_zoom_out() {
     std::stringstream ss;
     ss << "on_zoom_out";
     messages.add(ss.str());
     camera.move(-0.1f);
 }
 
-void application::on_key_down(int key) {
+void prototype::on_key_down(int key) {
     std::stringstream ss;
     ss << "on_key_down(" << key << ")";
     messages.add(ss.str());
@@ -356,9 +374,10 @@ void application::on_key_down(int key) {
         break;
     };
 }
-void application::on_key_up(int key) {
+void prototype::on_key_up(int key) {
     std::stringstream ss;
     ss << "on_key_up(" << key << ")";
     messages.add(ss.str());
 }
 
+*/

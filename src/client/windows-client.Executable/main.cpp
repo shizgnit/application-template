@@ -312,42 +312,42 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
         if (input.header.dwType == RIM_TYPEKEYBOARD && (input.data.keyboard.Flags == 0 || input.data.keyboard.Flags == 2))
         {
-            instance->on_key_down(input.data.keyboard.VKey);
+            //instance->on_key_down(input.data.keyboard.VKey);
         }
         if (input.header.dwType == RIM_TYPEKEYBOARD && (input.data.keyboard.Flags == 1 || input.data.keyboard.Flags == 3))
         {
-            instance->on_key_up(input.data.keyboard.VKey);
+            //instance->on_key_up(input.data.keyboard.VKey);
         }
 
         if (input.header.dwType == RIM_TYPEMOUSE && input.data.mouse.ulButtons == 0)
         {
             GetCursorPos(&p);
             ScreenToClient(hWnd, &p);
-            instance->on_move(p.x, p.y);
-            if(LBUTTONDOWN && !sizing)
-                instance->on_drag(p.x, p.y);
+            //instance->on_move(p.x, p.y);
+            //if(LBUTTONDOWN && !sizing)
+            //    instance->on_drag(p.x, p.y);
         }
         if (input.header.dwType == RIM_TYPEMOUSE && input.data.mouse.usButtonFlags & 0x0001)
         {
             GetCursorPos(&p);
             ScreenToClient(hWnd, &p);
-            instance->on_press((float)p.x, (float)p.y);
+            //instance->on_press((float)p.x, (float)p.y);
             LBUTTONDOWN = true;
         }
         if (input.header.dwType == RIM_TYPEMOUSE && input.data.mouse.usButtonFlags & 0x0002)
         {
             GetCursorPos(&p);
             ScreenToClient(hWnd, &p);
-            instance->on_release((float)p.x, (float)p.y);
+            //instance->on_release((float)p.x, (float)p.y);
             LBUTTONDOWN = false;
         }
         if (input.header.dwType == RIM_TYPEMOUSE && input.data.mouse.usButtonFlags & 0x0400)
         {
             if (input.data.mouse.usButtonData == 0xFF88) { // 65416
-                instance->on_zoom_in();
+                //instance->on_zoom_in();
             }
             if (input.data.mouse.usButtonData == 0x0078) { // 120
-                instance->on_zoom_out();
+                //instance->on_zoom_out();
             }
         }
 

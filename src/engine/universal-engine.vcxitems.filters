@@ -32,6 +32,9 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)platform\implementations\posix.cpp">
       <Filter>platform\implementations</Filter>
     </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)platform\implementations\universal.cpp">
+      <Filter>platform\implementations</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\deps\lodepng\lodepng.h">
@@ -153,6 +156,12 @@
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)platform\implementations\posix.hpp">
       <Filter>platform\implementations</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)platform\implementations\universal.hpp">
+      <Filter>platform\implementations</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)platform\interfaces\application.hpp">
+      <Filter>platform\interfaces</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

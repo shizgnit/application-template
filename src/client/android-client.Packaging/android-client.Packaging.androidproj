@@ -122,6 +122,15 @@
     <Content Include="assets\drawable\marvin.png" />
     <Content Include="assets\fonts\arial.fnt" />
     <Content Include="assets\fonts\arial.png" />
+    <Content Include="assets\objects\poly.mtl" />
+    <Content Include="assets\objects\poly.obj" />
+    <Content Include="assets\objects\poly.png" />
+    <Content Include="assets\objects\skybox.mtl" />
+    <Content Include="assets\objects\skybox.obj" />
+    <Content Include="assets\objects\skybox.png" />
+    <Content Include="assets\objects\untitled.mtl" />
+    <Content Include="assets\objects\untitled.obj" />
+    <Content Include="assets\objects\Untitled.png" />
     <Content Include="assets\raw\glados.wav" />
     <Content Include="assets\raw\test.txt" />
     <Content Include="assets\shaders\pick_shader.frag" />

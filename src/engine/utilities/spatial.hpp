@@ -42,6 +42,8 @@ namespace spatial {
         type_t length();
         vector unit();
 
+        type_t distance(const vector& v);
+
         void unproject(vector mouse, const matrix& model, const matrix& projection, int width, int height);
 
     public:

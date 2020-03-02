@@ -98,10 +98,13 @@
 #include "platform/interfaces/assets.hpp"
 #include "platform/interfaces/graphics.hpp"
 #include "platform/interfaces/network.hpp"
+#include "platform/interfaces/input.hpp"
+#include "platform/interfaces/application.hpp"
 
 
 /// Linux platform 
 #if defined __PLATFORM_ANDROID
+#include "platform/implementations/universal.hpp"
 #include "platform/implementations/opengl.hpp"
 #include "platform/implementations/opensl.hpp"
 #include "platform/implementations/posix.hpp"
@@ -110,11 +113,13 @@ inline platform::audio* audio = new implementation::opensl::audio();
 inline platform::filesystem* filesystem = new implementation::posix::filesystem();
 inline platform::assets* assets = new implementation::android::assets();
 inline platform::graphics* graphics = new implementation::opengl::graphics();
+inline platform::input* input = new implementation::universal::input();
 #endif
 
 
 /// Windows platform
 #if defined __PLATFORM_WINDOWS
+#include "platform/implementations/universal.hpp"
 #include "platform/implementations/opengl.hpp"
 #include "platform/implementations/openal.hpp"
 #include "platform/implementations/windows.hpp"
@@ -122,6 +127,7 @@ inline platform::audio* audio = new implementation::openal::audio();
 inline platform::filesystem* filesystem = new implementation::windows::filesystem();
 inline platform::assets* assets = new implementation::windows::assets();
 inline platform::graphics* graphics = new implementation::opengl::graphics();
+inline platform::input* input = new implementation::universal::input();
 #endif
 
 /// Supported Formats
@@ -138,5 +144,5 @@ inline platform::graphics* graphics = new implementation::opengl::graphics();
 #include "prototype.hpp"
 
 /// Application definition instance to pass information into the prototype
-inline application* instance = new application();
+inline application* instance = new prototype();
 

@@ -28,7 +28,9 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)platform\implementations\opengl.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)platform\implementations\opensl.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)platform\implementations\posix.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)platform\implementations\universal.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)platform\implementations\windows.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)platform\interfaces\application.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)platform\interfaces\assets.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)platform\interfaces\audio.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)platform\interfaces\filesystem.hpp" />
@@ -65,6 +67,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)platform\implementations\opengl.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)platform\implementations\opensl.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)platform\implementations\posix.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)platform\implementations\universal.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)platform\implementations\windows.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)prototype.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)utilities\common.cpp" />
