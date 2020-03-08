@@ -2,6 +2,32 @@
 
 #if defined __PLATFORM_UNIVERSAL
 
+void implementation::universal::input::raise(const event& ev) {
+    // Dispatch the event based on type
+    if (ev.input == POINTER) {
+        if (ev.gesture == DOWN) {
+            on_press(ev);
+        }
+        if (ev.gesture == UP) {
+            on_release(ev);
+        }
+        if (ev.gesture == MOVE) {
+            on_move(ev);
+        }
+        if (ev.gesture == WHEEL) {
+            platform::input::raise({ POINTER, WHEEL, ev.identifier, ev.point, time(NULL) - pointers[ev.identifier].pressed });
+        }
+    }
+    if (ev.input == KEY) {
+        if (ev.gesture == DOWN) {
+            on_key_down(ev);
+        }
+        if (ev.gesture == UP) {
+            on_key_up(ev);
+        }
+    }
+}
+
 void implementation::universal::input::on_press(const event& ev) {
     // Calculate values from prior event
     time_t delta = time(NULL) - pointers[ev.identifier].pressed;
@@ -16,10 +42,10 @@ void implementation::universal::input::on_press(const event& ev) {
 
     // TODO: make the thresholds configurable
     if (delta <= 1 && distance < 1.0) {
-        raise({ POINTER, DOUBLE_TAP, ev.identifier, ev.point, delta });
+        platform::input::raise({ POINTER, DOUBLE_TAP, ev.identifier, ev.point, delta });
     }
     else {
-        raise({ POINTER, DOWN, ev.identifier, ev.point, delta });
+        platform::input::raise({ POINTER, DOWN, ev.identifier, ev.point, delta });
     }
 }
 
@@ -30,7 +56,7 @@ void implementation::universal::input::on_release(const event& ev) {
                                 return p->code == ev.identifier;
                               });
     active_pointers.erase(end, active_pointers.end());
-    raise({ POINTER, UP, ev.identifier, ev.point, time(NULL) - pointers[ev.identifier].pressed });
+    platform::input::raise({ POINTER, UP, ev.identifier, ev.point, time(NULL) - pointers[ev.identifier].pressed });
 }
 
 void implementation::universal::input::on_move(const event& ev) {
@@ -43,14 +69,14 @@ void implementation::universal::input::on_move(const event& ev) {
                 total_distance += active_pointers[0]->point.distance(p->point);
             });
             float average_distance = total_distance / (active_pointers.size() - 1);
-            raise({ POINTER, PINCH, ev.identifier, { average_distance, average_distance, 0.0f }, time(NULL) - pointers[ev.identifier].pressed });
+            platform::input::raise({ POINTER, PINCH, ev.identifier, { average_distance, average_distance, 0.0f }, time(NULL) - pointers[ev.identifier].pressed });
         }
         else {
-            raise({ POINTER, DRAG, ev.identifier, ev.point, time(NULL) - pointers[ev.identifier].pressed });
+            platform::input::raise({ POINTER, DRAG, ev.identifier, ev.point, time(NULL) - pointers[ev.identifier].pressed });
         }
     }
     else {
-        raise({ POINTER, MOVE, ev.identifier, ev.point, time(NULL) - pointers[ev.identifier].pressed });
+        platform::input::raise({ POINTER, MOVE, ev.identifier, ev.point, time(NULL) - pointers[ev.identifier].pressed });
     }
 }
 
@@ -64,7 +90,7 @@ void implementation::universal::input::on_key_down(const event& ev) {
     // Track the event
     active_keys.push_back(&keys[ev.identifier]);
 
-    raise({ KEY, DOWN, ev.identifier, { 0.0f, 0.0f, 0.0f }, delta });
+    platform::input::raise({ KEY, DOWN, ev.identifier, { 0.0f, 0.0f, 0.0f }, delta });
 }
 
 void implementation::universal::input::on_key_up(const event& ev) {
@@ -74,17 +100,17 @@ void implementation::universal::input::on_key_up(const event& ev) {
                                 return k->code == ev.identifier;
                               });
     active_keys.erase(end, active_keys.end());
-    raise({ KEY, UP, ev.identifier, { 0.0f, 0.0f, 0.0f }, time(NULL) - keys[ev.identifier].pressed });
+    input::raise({ KEY, UP, ev.identifier, { 0.0f, 0.0f, 0.0f }, time(NULL) - keys[ev.identifier].pressed });
 }
 
-void implementation::universal::input::emit_active() {
+void implementation::universal::input::emit() {
     for (auto active : active_pointers) {
         time_t delta = time(NULL) - active->pressed;
-        raise({ POINTER, HELD_DOWN, active->code, active->point, delta });
+        platform::input::raise({ POINTER, HELD_DOWN, active->code, active->point, delta });
     }
     for (auto active : active_keys) {
         time_t delta = time(NULL) - active->pressed;
-        raise({ KEY, HELD_DOWN, active->code, { 0.0f, 0.0f, 0.0f }, delta });
+        platform::input::raise({ KEY, HELD_DOWN, active->code, { 0.0f, 0.0f, 0.0f }, delta });
     }
 }
 

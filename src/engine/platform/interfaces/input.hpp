@@ -17,6 +17,7 @@ namespace platform {
             DOUBLE_TAP,
             MOVE,
             DRAG,
+            WHEEL,
             PINCH,
             ROTATE
         };
@@ -40,11 +41,6 @@ namespace platform {
             const char* description;
         };
 
-        virtual void on_press(const event&) = 0;
-        virtual void on_release(const event&) = 0;
-
-        virtual void on_move(const event&) = 0;
-
         typedef struct key {
             time_t pressed;
             const char* label;
@@ -52,14 +48,11 @@ namespace platform {
             const char* description;
         };
 
-        virtual void on_key_down(const event&) = 0;
-        virtual void on_key_up(const event&) = 0;
-
-        void handler(type t, action a, callback c, int identifier = 0) {
+        virtual void handler(type t, action a, callback c, int identifier = 0) {
             callbacks[t][a][identifier] = c;
         }
 
-        void raise(const event &ev) {
+        virtual void raise(const event &ev) {
             if (callbacks.find(ev.input) != callbacks.end()) {
                 if (callbacks[ev.input].find(ev.gesture) != callbacks[ev.input].end()) {
                     if (callbacks[ev.input][ev.gesture].find(ev.identifier) != callbacks[ev.input][ev.gesture].end()) {
@@ -72,6 +65,8 @@ namespace platform {
                 }
             }
         }
+
+        virtual void emit() {}
 
     protected:
         std::map<type, std::map<action, std::map<int, callback>>> callbacks;

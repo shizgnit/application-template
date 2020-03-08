@@ -184,8 +184,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
     static bool sizing = false;
 
-    RAWINPUT input;
-    UINT szData = sizeof(input), szHeader = sizeof(RAWINPUTHEADER);
+    RAWINPUT rawinput;
+    UINT szData = sizeof(rawinput), szHeader = sizeof(RAWINPUTHEADER);
     HRAWINPUT handle;
 
     switch (message)
@@ -282,71 +282,84 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         //UINT szData = sizeof(input), szHeader = sizeof(RAWINPUTHEADER);
         //HRAWINPUT handle = reinterpret_cast<HRAWINPUT>(lParam);
 
-        GetRawInputData(handle, RID_INPUT, &input, &szData, szHeader);
+        GetRawInputData(handle, RID_INPUT, &rawinput, &szData, szHeader);
 
-        if (0 && input.header.dwType == RIM_TYPEKEYBOARD)
+        if (0 && rawinput.header.dwType == RIM_TYPEKEYBOARD)
         {
             std::cout << "Keyboard - ";
-            std::cout << " MakeCode:" << input.data.keyboard.MakeCode;
-            std::cout << " Flags:" << input.data.keyboard.Flags;
-            std::cout << " Reserved:" << input.data.keyboard.Reserved;
-            std::cout << " ExtraInformation:" << input.data.keyboard.ExtraInformation;
-            std::cout << " Message:" << input.data.keyboard.Message;
-            std::cout << " VKey:" << input.data.keyboard.VKey;
+            std::cout << " MakeCode:" << rawinput.data.keyboard.MakeCode;
+            std::cout << " Flags:" << rawinput.data.keyboard.Flags;
+            std::cout << " Reserved:" << rawinput.data.keyboard.Reserved;
+            std::cout << " ExtraInformation:" << rawinput.data.keyboard.ExtraInformation;
+            std::cout << " Message:" << rawinput.data.keyboard.Message;
+            std::cout << " VKey:" << rawinput.data.keyboard.VKey;
             std::cout << std::endl;
         }
 
-        if (0 && input.header.dwType == RIM_TYPEMOUSE)
+        if (0 && rawinput.header.dwType == RIM_TYPEMOUSE)
         {
             std::cout << "Mouse - ";
-            std::cout << " usFlags:" << input.data.mouse.usFlags;
-            std::cout << " ulButtons:" << input.data.mouse.ulButtons;
-            std::cout << " usButtonFlags:" << input.data.mouse.usButtonFlags;
-            std::cout << " usButtonData:" << input.data.mouse.usButtonData;
-            std::cout << " ulRawButtons:" << input.data.mouse.ulRawButtons;
-            std::cout << " lLastX:" << input.data.mouse.lLastX;
-            std::cout << " lLastY:" << input.data.mouse.lLastY;
-            std::cout << " ulExtraInformation:" << input.data.mouse.ulExtraInformation;
+            std::cout << " usFlags:" << rawinput.data.mouse.usFlags;
+            std::cout << " ulButtons:" << rawinput.data.mouse.ulButtons;
+            std::cout << " usButtonFlags:" << rawinput.data.mouse.usButtonFlags;
+            std::cout << " usButtonData:" << rawinput.data.mouse.usButtonData;
+            std::cout << " ulRawButtons:" << rawinput.data.mouse.ulRawButtons;
+            std::cout << " lLastX:" << rawinput.data.mouse.lLastX;
+            std::cout << " lLastY:" << rawinput.data.mouse.lLastY;
+            std::cout << " ulExtraInformation:" << rawinput.data.mouse.ulExtraInformation;
             std::cout << std::endl;
         }
 
-        if (input.header.dwType == RIM_TYPEKEYBOARD && (input.data.keyboard.Flags == 0 || input.data.keyboard.Flags == 2))
+        if (rawinput.header.dwType == RIM_TYPEKEYBOARD && (rawinput.data.keyboard.Flags == 0 || rawinput.data.keyboard.Flags == 2))
         {
-            //instance->on_key_down(input.data.keyboard.VKey);
+            //instance->on_key_down(rawinput.data.keyboard.VKey);
         }
-        if (input.header.dwType == RIM_TYPEKEYBOARD && (input.data.keyboard.Flags == 1 || input.data.keyboard.Flags == 3))
+        if (rawinput.header.dwType == RIM_TYPEKEYBOARD && (rawinput.data.keyboard.Flags == 1 || rawinput.data.keyboard.Flags == 3))
         {
-            //instance->on_key_up(input.data.keyboard.VKey);
+            //instance->on_key_up(rawinput.data.keyboard.VKey);
         }
 
-        if (input.header.dwType == RIM_TYPEMOUSE && input.data.mouse.ulButtons == 0)
+        if (rawinput.header.dwType == RIM_TYPEMOUSE && rawinput.data.mouse.ulButtons == 0)
         {
             GetCursorPos(&p);
             ScreenToClient(hWnd, &p);
-            //instance->on_move(p.x, p.y);
-            //if(LBUTTONDOWN && !sizing)
-            //    instance->on_drag(p.x, p.y);
+            input->raise({ platform::input::POINTER, platform::input::MOVE, 0, { (float)p.x, (float)p.y, 0.0f }, 1 });
         }
-        if (input.header.dwType == RIM_TYPEMOUSE && input.data.mouse.usButtonFlags & 0x0001)
+        if (rawinput.header.dwType == RIM_TYPEMOUSE && rawinput.data.mouse.ulButtons != 0)
         {
             GetCursorPos(&p);
             ScreenToClient(hWnd, &p);
-            //instance->on_press((float)p.x, (float)p.y);
-            LBUTTONDOWN = true;
+
+            switch (rawinput.data.mouse.usButtonFlags) {
+            case(RI_MOUSE_LEFT_BUTTON_DOWN):
+                input->raise({ platform::input::POINTER, platform::input::DOWN, 1, { (float)p.x, (float)p.y, 0.0f }, 0 });
+                break;
+            case(RI_MOUSE_RIGHT_BUTTON_DOWN):
+                input->raise({ platform::input::POINTER, platform::input::DOWN, 2, { (float)p.x, (float)p.y, 0.0f }, 0 });
+                break;
+            case(RI_MOUSE_MIDDLE_BUTTON_DOWN):
+                input->raise({ platform::input::POINTER, platform::input::DOWN, 3, { (float)p.x, (float)p.y, 0.0f }, 0 });
+                break;
+            case(RI_MOUSE_LEFT_BUTTON_UP):
+                input->raise({ platform::input::POINTER, platform::input::UP, 1, { (float)p.x, (float)p.y, 0.0f }, 0 });
+                break;
+            case(RI_MOUSE_RIGHT_BUTTON_UP):
+                input->raise({ platform::input::POINTER, platform::input::UP, 2, { (float)p.x, (float)p.y, 0.0f }, 0 });
+                break;
+            case(RI_MOUSE_MIDDLE_BUTTON_UP):
+                input->raise({ platform::input::POINTER, platform::input::UP, 3, { (float)p.x, (float)p.y, 0.0f }, 0 });
+                break;
+            case(RI_MOUSE_WHEEL):
+                input->raise({ platform::input::POINTER, platform::input::WHEEL, 3, { 0.0, (float)rawinput.data.mouse.usButtonData == 0xFF88 ? 0.1f : -0.1f, 0.0f }, 0 });
+                break;
+            };
         }
-        if (input.header.dwType == RIM_TYPEMOUSE && input.data.mouse.usButtonFlags & 0x0002)
+        if (rawinput.header.dwType == RIM_TYPEMOUSE && rawinput.data.mouse.usButtonFlags & 0x0400)
         {
-            GetCursorPos(&p);
-            ScreenToClient(hWnd, &p);
-            //instance->on_release((float)p.x, (float)p.y);
-            LBUTTONDOWN = false;
-        }
-        if (input.header.dwType == RIM_TYPEMOUSE && input.data.mouse.usButtonFlags & 0x0400)
-        {
-            if (input.data.mouse.usButtonData == 0xFF88) { // 65416
+            if (rawinput.data.mouse.usButtonData == 0xFF88) { // 65416
                 //instance->on_zoom_in();
             }
-            if (input.data.mouse.usButtonData == 0x0078) { // 120
+            if (rawinput.data.mouse.usButtonData == 0x0078) { // 120
                 //instance->on_zoom_out();
             }
         }

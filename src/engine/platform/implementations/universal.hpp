@@ -8,15 +8,16 @@ namespace implementation {
 
         class input : public platform::input {
         public:
+            void raise(const event& ev);
+            void emit();
+
+        protected:
             void on_press(const event& ev);
             void on_release(const event& ev);
-
             void on_move(const event& ev);
 
-            void on_key_down(const event& ev);
             void on_key_up(const event& ev);
-
-            void emit_active();
+            void on_key_down(const event& ev);
         };
 
     }

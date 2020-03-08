@@ -189,13 +189,25 @@ float deg_to_radf(float deg) {
 inline float prior_x;
 inline float prior_y;
 
-void freelook(const platform::input::event& ev) {
+void freelook_start(const platform::input::event& ev) {
+    prior_x = ev.point.x;
+    prior_y = ev.point.y;
+}
+
+void freelook_move(const platform::input::event& ev) {
     std::stringstream ss;
     ss << "on_drag(" << ev.point.x << ", " << ev.point.y << ")";
     messages.add(ss.str());
     camera.rotate(ev.point.y - prior_y, prior_x - ev.point.x);
     prior_x = ev.point.x;
     prior_y = ev.point.y;
+}
+
+void freelook_zoom(const platform::input::event& ev) {
+    std::stringstream ss;
+    ss << "on_zoom";
+    messages.add(ss.str());
+    camera.move(ev.point.y);
 }
 
 void prototype::on_startup() {
@@ -233,6 +245,12 @@ void prototype::on_startup() {
     audio->compile(sound);
 
     init = true;
+
+    // Hook up the input handlers
+    input->handler(platform::input::POINTER, platform::input::DOWN, &freelook_start, 2);
+    input->handler(platform::input::POINTER, platform::input::DRAG, &freelook_move, 0);
+
+    input->handler(platform::input::POINTER, platform::input::WHEEL, &freelook_zoom, 0);
 }
 
 void prototype::on_resize() {

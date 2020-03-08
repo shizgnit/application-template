@@ -40,13 +40,13 @@ TEST_F(InputTest, PointerDrag) {
         events.push_back(ev);
         }, 1);
 
-    input->on_press({ platform::input::POINTER, platform::input::DOWN, 1, { 0.0f, 0.0f, 0.0f }, 2 });
-    input->on_move({ platform::input::POINTER, platform::input::MOVE, 1, { 1.0f, 1.0f, 1.0f }, 3 });
-    input->on_move({ platform::input::POINTER, platform::input::MOVE, 1, { 1.0f, 1.0f, 1.0f }, 4 });
-    input->on_release({ platform::input::POINTER, platform::input::UP, 1, { 0.0f, 0.0f, 0.0f }, 2 });
+    input->raise({ platform::input::POINTER, platform::input::DOWN, 1, { 0.0f, 0.0f, 0.0f }, 2 });
+    input->raise({ platform::input::POINTER, platform::input::MOVE, 1, { 1.0f, 1.0f, 1.0f }, 3 });
+    input->raise({ platform::input::POINTER, platform::input::MOVE, 1, { 1.0f, 1.0f, 1.0f }, 4 });
+    input->raise({ platform::input::POINTER, platform::input::UP, 1, { 0.0f, 0.0f, 0.0f }, 2 });
 
     // Should not be a DRAG action without a index
-    input->on_move({ platform::input::POINTER, platform::input::MOVE, 1, { 1.0f, 1.0f, 1.0f }, 4 });
+    input->raise({ platform::input::POINTER, platform::input::MOVE, 1, { 1.0f, 1.0f, 1.0f }, 4 });
 
     EXPECT_EQ(events.size(), 2);
     delete input;
@@ -65,11 +65,11 @@ TEST_F(InputTest, PointerDoubleTap) {
         events.push_back(ev);
         }, 1);
 
-    input->on_press({ platform::input::POINTER, platform::input::DOWN, 1, { 0.0f, 0.0f, 0.0f }, 2 });
-    input->on_release({ platform::input::POINTER, platform::input::UP, 1, { 0.0f, 0.0f, 0.0f }, 2 });
+    input->raise({ platform::input::POINTER, platform::input::DOWN, 1, { 0.0f, 0.0f, 0.0f }, 2 });
+    input->raise({ platform::input::POINTER, platform::input::UP, 1, { 0.0f, 0.0f, 0.0f }, 2 });
 
-    input->on_press({ platform::input::POINTER, platform::input::DOWN, 1, { 0.0f, 0.1f, 0.0f }, 3 });
-    input->on_release({ platform::input::POINTER, platform::input::UP, 1, { 0.0f, 0.1f, 0.0f }, 3 });
+    input->raise({ platform::input::POINTER, platform::input::DOWN, 1, { 0.0f, 0.1f, 0.0f }, 3 });
+    input->raise({ platform::input::POINTER, platform::input::UP, 1, { 0.0f, 0.1f, 0.0f }, 3 });
 
     EXPECT_EQ(events.size(), 2);
     delete input;
