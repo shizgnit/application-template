@@ -139,6 +139,7 @@ inline platform::input* input = new implementation::universal::input();
 #include "types/formats/fnt.hpp"
 #include "types/formats/mtl.hpp"
 #include "types/formats/obj.hpp"
+#include "types/formats/fbx.hpp"
 
 /// Just a simple prototype implementation to test infrastructure portability
 #include "prototype.hpp"

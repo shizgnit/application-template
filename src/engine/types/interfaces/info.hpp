@@ -10,7 +10,8 @@ namespace type {
         FORMAT_PNG  = 0x05,
         FORMAT_TGA  = 0x06,
         FORMAT_VERT = 0x07,
-        FORMAT_WAV  = 0x08
+        FORMAT_WAV  = 0x08,
+        FORMAT_FBX  = 0x09
     };
 
     class info {

@@ -163,6 +163,9 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)platform\interfaces\application.hpp">
       <Filter>platform\interfaces</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)types\formats\fbx.hpp">
+      <Filter>types\formats</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="deps">
