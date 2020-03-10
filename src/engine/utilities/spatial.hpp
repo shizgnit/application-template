@@ -47,10 +47,16 @@ namespace spatial {
         void unproject(vector mouse, const matrix& model, const matrix& projection, int width, int height);
 
     public:
-        type_t x;
-        type_t y;
-        type_t z;
-        type_t w;
+
+        union {
+            type_t l[4];
+            struct {
+                type_t x;
+                type_t y;
+                type_t z;
+                type_t w;
+            };
+        };
     };
 
     class matrix {
