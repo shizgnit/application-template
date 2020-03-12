@@ -33,8 +33,8 @@ namespace format {
             std::string reference = "Kaydara FBX Binary  ";
             input.read(buffer, 23);
 
-            if (reference == buffer) {
-
+            if (reference != buffer) {
+                return instance;
             }
 
             int version = read<int>(input);
@@ -47,14 +47,9 @@ namespace format {
 
     private:
         template<typename T> static T read(std::istream& input, size_t bytes = sizeof(T)) {
-            char buffer[1024];
+            char buffer[8];
             input.read(buffer, bytes);
-            if (typeid(int) == typeid(T)) {
-                return atoi(buffer);
-            }
-            if (typeid(float) == typeid(T)) {
-                return atof(buffer);
-            }
+            return *reinterpret_cast<T *>(buffer);
         }
     };
 
