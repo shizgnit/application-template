@@ -331,3 +331,10 @@ std::string utilities::uuid() {
 }
 
 #endif
+
+template<> std::string utilities::read<std::string>(std::istream& input, size_t bytes) {
+    std::vector<char> buffer(bytes + 1, 0);
+    input.read(&buffer[0], bytes);
+    buffer[bytes] = '\0';
+    return std::string(&buffer[0]);
+}

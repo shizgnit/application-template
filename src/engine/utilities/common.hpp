@@ -23,4 +23,12 @@ namespace utilities {
     std::string base64(std::string in);
 
     std::string uuid();
+
+    template<class T> T read(std::istream& input, size_t bytes = sizeof(T)) {
+        char buffer[8];
+        input.read(buffer, bytes);
+        return *reinterpret_cast<T*>(buffer);
+    }
+
+    template<> std::string read<std::string>(std::istream& input, size_t bytes);
 }

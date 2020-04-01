@@ -3,80 +3,127 @@
 
 #include <variant>
 
+#include "zlib.h"
+
 // https://code.blender.org/2013/08/fbx-binary-file-format-specification/
 
 namespace format {
 
     class fbx : virtual public type::object {
-
+    public:
         class node {
-            typedef std::variant<short, char, int, float, double, long long, std::string, char *> property;
+        public:
+            typedef std::variant<char, short, int, float, double, long long, std::string, char *> property;
 
-            property scalar(std::istream& input) {
-                return property();
+            node() {}
+
+            void parse(std::istream& input, unsigned int end=0) {
+                if (end == 0) {
+                    end = utilities::read<int>(input);
+                    unsigned int count = utilities::read<int>(input);
+
+                    utilities::read<int>(input); // property size, just ignore
+
+                    name = utilities::read<std::string>(input, utilities::read<char>(input));
+
+                    values(input, count);
+                }
+                auto location = input.tellg();
+                while (input.tellg() < end) {
+                    children.resize(children.size() + 1);
+                    children.back().parse(input);
+                    location = input.tellg();
+                }
             }
 
-            node(std::istream& input) {
-
-                unsigned int size = read<int>(input);
-                unsigned int count = read<int>(input);
-                
-                read<int>(input); // property size, just ignore
-
-                name = read<std::string>(input, read<char>(input));
-
-                for (int i=0; i < count; i++) {
-                    char type = read<char>(input);
+            void values(std::istream& input, int count, char spec = '?') {
+                for (int i = 0; i < count; i++) {
+                    char type = spec == '?' ? utilities::read<char>(input) : spec;
 
                     switch (type) {
 
-                    // scalar values
+                        // scalar values
                     case('Y'):
-                        properties.push_back(read<short>(input));
+                        properties.push_back(utilities::read<short>(input));
                         break;
                     case('C'):
-                        properties.push_back(read<char>(input));
+                        properties.push_back(utilities::read<char>(input));
                         break;
                     case('I'):
-                        properties.push_back(read<int>(input));
+                        properties.push_back(utilities::read<int>(input));
                         break;
                     case('F'):
-                        properties.push_back(read<float>(input));
+                        properties.push_back(utilities::read<float>(input));
                         break;
                     case('D'):
-                        properties.push_back(read<double>(input));
+                        properties.push_back(utilities::read<double>(input));
                         break;
                     case('L'):
-                        properties.push_back(read<long long>(input));
+                        properties.push_back(utilities::read<long long>(input));
                         break;
                     case('S'):
-                        properties.push_back(read<std::string>(input, read<unsigned int>(input)));
+                        properties.push_back(utilities::read<std::string>(input, utilities::read<unsigned int>(input)));
                         break;
                     case('R'):
-                        properties.push_back(read<char *>(input, read<unsigned int>(input)));
+                        properties.push_back(utilities::read<std::string>(input, utilities::read<unsigned int>(input))); // This is just temporary
+                        // properties.push_back(read<char*>(input, read<unsigned int>(input)));
                         break;
 
-                    // assume array
+                        // assume array
                     default:
-                        unsigned int elements = read<unsigned int>(input);
-                        unsigned int encoding = read<unsigned int>(input);
-                        unsigned int compressed = read<unsigned int>(input);
+                        auto location = input.tellg();
 
-                        // TODO : conditional zstream decompress and move scalar read to a method
+                        unsigned int elements = utilities::read<unsigned int>(input);
+                        unsigned int compressed = utilities::read<unsigned int>(input);
+                        unsigned int compressed_size = utilities::read<unsigned int>(input);
+
+                        unsigned int uncompressed_size;
+                        switch (type) {
+                        case('y'):
+                            uncompressed_size = elements * 2;
+                            break;
+                        case('c'):
+                        case('b'):
+                            uncompressed_size = elements;
+                            break;
+                        case('i'):
+                        case('f'):
+                            uncompressed_size = elements * 4;
+                            break;
+                        case('d'):
+                        case('l'):
+                            uncompressed_size = elements * 8;
+                            break;
+                        }
+
+                        std::vector<char> compressed_buffer(compressed_size, 0);
+                        std::vector<char> uncompressed_buffer(uncompressed_size, 0);
+                        if (compressed) {
+                            input.read(compressed_buffer.data(), compressed_size);
+
+                            uncompress((unsigned char*)uncompressed_buffer.data(), (unsigned long *)&uncompressed_size, (unsigned char*)compressed_buffer.data(), compressed_size);
+
+                            std::stringstream stream;
+                            std::copy(uncompressed_buffer.begin(), uncompressed_buffer.end(), std::ostream_iterator<char>(stream, ""));
+
+                            values(stream, elements, toupper(type));
+                        }
+                        else {
+                            values(input, elements, toupper(type));
+                        }
 
                         break;
-                        
                     }
                 }
-
             }
+
+            std::string name;
 
             std::vector<property> properties;
 
-            std::string name;
+            std::vector<node> children;
         };
 
-    public:
         fbx() : type::info({ { "fbx" }, type::format::FORMAT_FBX }) {
             /* NULL */
         }
@@ -93,10 +140,15 @@ namespace format {
         }
 
         friend type::object& operator>>(std::istream& input, format::fbx& instance) {
-            /// ignore any non-good stream states
+            /// Ignore any non-good stream states
             if (input.good() == false) {
                 return instance;
             }
+
+            // Get the input size before consumption starts
+            input.seekg(0, input.end);
+            unsigned int size = input.tellg();
+            input.seekg(0, input.beg);
 
             char buffer[1024];
 
@@ -107,34 +159,16 @@ namespace format {
                 return instance;
             }
 
-            int version = read<int>(input);
+            int version = utilities::read<int>(input);
+
+            node document;
+            document.parse(input, size);
 
             // Done parsing the incoming asset
             assets->release();
 
             return instance;
         }
-
-    private:
-        template<class T> static T read(std::istream& input, size_t bytes = sizeof(T)) {
-            char buffer[8];
-            input.read(buffer, bytes);
-            return *reinterpret_cast<T *>(buffer);
-        }
-
-        template<std::string &t> static std::string read(std::istream& input, size_t bytes) {
-            std::vector<char> buffer(bytes);
-            input.read(&buffer[0], bytes);
-            buffer[bytes] = '\0';
-            return std::string(&buffer[0]);
-        }
-
-        template<char * t> static std::string read(std::istream& input, size_t bytes) {
-            char* memory = new char[bytes];  // TODO: do not allocate here
-            input.read(memory, bytes);
-            return memory;
-        }
-
     };
 
     namespace parser {
