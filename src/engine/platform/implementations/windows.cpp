@@ -263,4 +263,79 @@ unsigned long implementation::windows::network::pid() {
     return(GetCurrentProcessId());
 }
 
+implementation::windows::network::client::client() {
+    WSADATA WSData;
+    unsigned long version_major = 1;
+    unsigned long version_minor = 1;
+    if (WSAStartup(MAKEWORD(version_major, version_minor), &WSData)) {
+        //std::cerr<<"ERROR: Cannot find Winsock (v"<<version_major<<"."<<version_minor<<" or later)!"<<std::endl;
+    }
+}
+
+implementation::windows::network::client::~client() {
+}
+
+void implementation::windows::network::client::start() {
+    SOCKET server;
+    SOCKADDR_IN addr;
+
+    server = socket(AF_INET, SOCK_STREAM, 0);
+
+    addr.sin_addr.s_addr = inet_addr("127.0.0.1");
+    addr.sin_family = AF_INET;
+    addr.sin_port = htons(5555);
+
+    connect(server, (SOCKADDR*)&addr, sizeof(addr));
+    std::cout << "Connected to server!" << std::endl;
+
+    char buffer[1024] = { 'h', 'e', 'l', 'l', 'o', '.' };
+    send(server, buffer, sizeof(buffer), 0);
+    std::cout << "Message sent!" << std::endl;
+
+    closesocket(server);
+    WSACleanup();
+    std::cout << "Socket closed." << std::endl << std::endl;
+}
+
+implementation::windows::network::server::server() {
+    WSADATA WSData;
+    unsigned long version_major = 1;
+    unsigned long version_minor = 1;
+    if (WSAStartup(MAKEWORD(version_major, version_minor), &WSData)) {
+        //std::cerr<<"ERROR: Cannot find Winsock (v"<<version_major<<"."<<version_minor<<" or later)!"<<std::endl;
+    }
+}
+
+implementation::windows::network::server::~server() {
+}
+
+void implementation::windows::network::server::start() {
+    SOCKET server, client;
+    SOCKADDR_IN serverAddr, clientAddr;
+
+    server = socket(AF_INET, SOCK_STREAM, 0);
+
+    serverAddr.sin_addr.s_addr = INADDR_ANY;
+    serverAddr.sin_family = AF_INET;
+    serverAddr.sin_port = htons(5555);
+
+    bind(server, (SOCKADDR*)&serverAddr, sizeof(serverAddr));
+    listen(server, 0);
+
+    std::cout << "Listening for incoming connections..." << std::endl;
+
+    char buffer[1024];
+    int clientAddrSize = sizeof(clientAddr);
+    if ((client = accept(server, (SOCKADDR*)&clientAddr, &clientAddrSize)) != INVALID_SOCKET)
+    {
+        std::cout << "Client connected!" << std::endl;
+        recv(client, buffer, sizeof(buffer), 0);
+        std::cout << "Client says: " << buffer << std::endl;
+        memset(buffer, 0, sizeof(buffer));
+
+        closesocket(client);
+        std::cout << "Client disconnected." << std::endl;
+    }
+}
+
 #endif

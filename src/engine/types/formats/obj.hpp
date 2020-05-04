@@ -4,6 +4,8 @@ namespace format {
 
     class obj : virtual public type::object {
     public:
+        typedef spatial::vector::type_t type_t;
+
         obj() : type::info({ { "obj" }, type::format::FORMAT_OBJ }) {
             /* NULL */
         }
@@ -93,10 +95,10 @@ namespace format {
                 }
                 if (command == "f") { //faces
                     if (arguments.size() >= 4) {
-                        std::vector<object::vertex> vertices;
+                        std::vector<spatial::vertex> vertices;
 
                         for (unsigned int i = 1; i < arguments.size(); i++) {
-                            type::object::vertex vertex;
+                            spatial::vertex vertex;
 
                             auto points = utilities::tokenize(arguments[i], "/");
 
@@ -104,20 +106,20 @@ namespace format {
                             int ti = (atoi(points[1].c_str()) - 1);
                             int ni = (atoi(points[2].c_str()) - 1);
 
-                            vertex.coordinate[0] = coordinates[vi][0];
-                            vertex.coordinate[1] = coordinates[vi][1];
-                            vertex.coordinate[2] = coordinates[vi][2];
-                            vertex.coordinate[3] = 1.0f;
+                            vertex.coordinate.x = coordinates[vi][0];
+                            vertex.coordinate.y = coordinates[vi][1];
+                            vertex.coordinate.z = coordinates[vi][2];
+                            vertex.coordinate.w = 1.0f;
 
-                            vertex.texture[0] = textures[ti][0];
-                            vertex.texture[1] = textures[ti][1];
-                            vertex.texture[2] = 0.0f;
-                            vertex.texture[3] = 0.0f;
+                            vertex.texture.x = textures[ti][0];
+                            vertex.texture.y = textures[ti][1];
+                            vertex.texture.z = 0.0f;
+                            vertex.texture.w = 0.0f;
 
-                            vertex.normal[0] = normals[ni][0];
-                            vertex.normal[1] = normals[ni][1];
-                            vertex.normal[2] = normals[ni][2];
-                            vertex.normal[3] = 0.0f;
+                            vertex.normal.x = normals[ni][0];
+                            vertex.normal.y = normals[ni][1];
+                            vertex.normal.z = normals[ni][2];
+                            vertex.normal.w = 0.0f;
 
                             vertices.push_back(vertex);
                         }

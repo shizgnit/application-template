@@ -9,9 +9,9 @@ namespace spatial {
         typedef float type_t;
 
         vector();
-        vector(type_t v);
         vector(type_t v[]);
-        vector(type_t x, type_t y, type_t z, type_t w = 1.0f);
+        vector(const type_t& v);
+        vector(const type_t& x, const type_t& y, const type_t& z = 0.0f, const type_t& w = 1.0f);
 
         vector(const vector& ref);
         virtual vector& operator = (const vector& operand);
@@ -31,6 +31,8 @@ namespace spatial {
         virtual vector& operator %= (const vector& operand);
         virtual vector operator % (const vector& operand) const;
 
+        virtual vector& operator() (const type_t& x, const type_t& y, const type_t& z = 0.0f, const type_t& w = 1.0f);
+
         vector& rotate_x(type_t rad);
 
         vector rotate_y(type_t rad);
@@ -49,13 +51,13 @@ namespace spatial {
     public:
 
         union {
-            type_t l[4];
             struct {
                 type_t x;
                 type_t y;
                 type_t z;
                 type_t w;
             };
+            type_t l[4];
         };
     };
 
@@ -92,9 +94,14 @@ namespace spatial {
 
         virtual matrix& operator *= (const matrix& operand);
         matrix operator * (const matrix& operand) const;
+
         matrix& scale(const type_t& operand);
-        matrix& operator *= (const type_t& operand);
-        matrix operator * (const type_t& operand) const;
+        
+        
+        //matrix& operator *= (const type_t& operand);
+        //matrix operator * (const type_t& operand) const;
+
+        vector operator * (const vector& v);
 
         matrix& rotate_x(type_t angle);
         matrix& rotate_y(type_t angle);
@@ -157,6 +164,43 @@ namespace spatial {
         void euler(const type_t& x, const type_t& y, const type_t& z, const type_t& degrees);
 
         quaternion operator *(const quaternion& operand);
+    };
+
+    class vertex {
+    public:
+        vector coordinate;
+        vector texture;
+        vector normal;
+    };
+
+    class ray {
+    public:
+        typedef vector::type_t type_t;
+
+        vector origin;
+        vector direction;
+
+        type_t distance(const vector& v);
+        type_t distance(const ray& r);
+    };
+
+    class plane {
+    public:
+        vector point;
+        vector normal;
+
+        vector intersection(const ray& r);
+    };
+
+    class sphere {
+    public:
+        typedef vector::type_t type_t;
+
+        vector center;
+        type_t radius;
+
+        type_t distance(const ray& r);
+        bool intersects(const ray& r);
     };
 }
 

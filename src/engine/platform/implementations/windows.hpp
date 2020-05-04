@@ -50,6 +50,20 @@ namespace implementation {
             std::string ip(std::string hostname="");
             std::string mac();
             unsigned long pid();
+
+            class client : public platform::network::client {
+            public:
+                client();
+                virtual ~client(); 
+                virtual void start();
+            };
+
+            class server : public platform::network::server {
+            public:
+                server();
+                virtual ~server();
+                virtual void start();
+            };
         };
 
     }

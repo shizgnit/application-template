@@ -103,7 +103,7 @@ void implementation::opengl::graphics::compile(type::program& program) {
 void implementation::opengl::graphics::compile(type::object& object) {
     glGenBuffers(1, &object.context);
     glBindBuffer(GL_ARRAY_BUFFER, object.context);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(type::object::vertex) * object.vertices.size(), object.vertices.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(spatial::vertex) * object.vertices.size(), object.vertices.data(), GL_STATIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     glGenTextures(1, &object.texture.context);
@@ -140,10 +140,12 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
     glUniform4f(shader.u_DirectionalLight, 0.0f, 0.0f, 0.0f, 1.0f);
     glUniform4f(shader.u_DirectionalLightPosition, 1.0f, 1.0f, 0.1f, 1.0f);
 
+    size_t offset = 4; // necessary to offset object overhead
+
     glBindBuffer(GL_ARRAY_BUFFER, object.context);
-    glVertexAttribPointer(shader.a_Vertex, 4, GL_FLOAT, GL_FALSE, sizeof(type::object::vertex), BUFFER_OFFSET(0));
-    glVertexAttribPointer(shader.a_Texture, 4, GL_FLOAT, GL_FALSE, sizeof(type::object::vertex), BUFFER_OFFSET(4 * sizeof(GL_FLOAT)));
-    glVertexAttribPointer(shader.a_Normal, 4, GL_FLOAT, GL_TRUE, sizeof(type::object::vertex), BUFFER_OFFSET(8 * sizeof(GL_FLOAT)));
+    glVertexAttribPointer(shader.a_Vertex, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::vertex), BUFFER_OFFSET(offset));
+    glVertexAttribPointer(shader.a_Texture, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::vertex), BUFFER_OFFSET(offset+sizeof(spatial::vector)));
+    glVertexAttribPointer(shader.a_Normal, 4, GL_FLOAT, GL_TRUE, sizeof(spatial::vertex), BUFFER_OFFSET(offset+(sizeof(spatial::vector) * 2)));
 
     glEnableVertexAttribArray(shader.a_Vertex);
     glEnableVertexAttribArray(shader.a_Texture);

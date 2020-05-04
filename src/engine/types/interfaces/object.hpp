@@ -4,64 +4,33 @@ namespace type {
 
     class object : virtual public type::info {
     public:
-        class vertex {
-        public:
-            float coordinate[4];
-            float texture[4];
-            float normal[4];
-
-            void set_coordinate(float x = 0.0f, float y = 0.0f, float z = 0.0f, float w = 1.0f) {
-                coordinate[0] = x;
-                coordinate[1] = y;
-                coordinate[2] = z;
-                coordinate[3] = w;
-            }
-            void set_texture(float x = 0.0f, float y = 0.0f, float z = 0.0f, float w = 1.0f) {
-                texture[0] = x;
-                texture[1] = y;
-                texture[2] = z;
-                texture[3] = w;
-            }
-            void set_normal(float x = 0.0f, float y = 0.0f, float z = 0.0f, float w = 1.0f) {
-                normal[0] = x;
-                normal[1] = y;
-                normal[2] = z;
-                normal[3] = w;
-            }
-
-            operator bool() const {
-                return(true);
-            }
-        };
+        typedef spatial::vector::type_t type_t;
 
         void xy_projection(unsigned int x, unsigned int y, unsigned int width, unsigned int height) {
-            float max_x = 0.0f;
-            float max_y = 0.0f;
+            type_t max_x = 0.0f;
+            type_t max_y = 0.0f;
 
             for (unsigned int i = 0; i < vertices.size(); i++) {
-                if (vertices[i].coordinate[0] > max_x) {
-                    max_x = vertices[i].coordinate[0];
+                if (vertices[i].coordinate.x > max_x) {
+                    max_x = vertices[i].coordinate.x;
                 }
-                if (vertices[i].coordinate[1] > max_y) {
-                    max_y = vertices[i].coordinate[1];
+                if (vertices[i].coordinate.y > max_y) {
+                    max_y = vertices[i].coordinate.y;
                 }
             }
 
-            float texture_dx = 1 / (float)texture.map.properties.width;
-            float texture_dy = 1 / (float)texture.map.properties.height;
+            type_t texture_dx = 1 / (type_t)texture.map.properties.width;
+            type_t texture_dy = 1 / (type_t)texture.map.properties.height;
 
             for (unsigned int i = 0; i < vertices.size(); i++) {
-                float dx = vertices[i].coordinate[0] / max_x;
-                float dy = (max_y - vertices[i].coordinate[1]) / max_y;
+                type_t dx = vertices[i].coordinate.x / max_x;
+                type_t dy = (max_y - vertices[i].coordinate.y) / max_y;
 
-                float tx = (width * dx + x) * texture_dx;
-                float ty = (height * dy + y) * texture_dy;
+                type_t tx = (width * dx + x) * texture_dx;
+                type_t ty = (height * dy + y) * texture_dy;
                 //float ty = 1.0f - ((height * dy + y) * texture_dy);
 
-                vertices[i].texture[0] = tx;
-                vertices[i].texture[1] = ty;
-                vertices[i].texture[2] = 0.0f;
-                vertices[i].texture[3] = 0.0f;
+                vertices[i].texture(tx, ty, 0.0f, 0.0f);
             }
 
         }
@@ -72,22 +41,22 @@ namespace type {
             for (unsigned int i = 0; i < vertices.size() / 3; i++) {
                 int index = i * 3;
 
-                float u[3];
-                float v[3];
+                type_t u[3];
+                type_t v[3];
 
-                u[0] = vertices[index + 1].coordinate[0] - vertices[index].coordinate[0];
-                u[1] = vertices[index + 1].coordinate[1] - vertices[index].coordinate[1];
-                u[2] = vertices[index + 1].coordinate[2] - vertices[index].coordinate[2];
+                u[0] = vertices[index + 1].coordinate.x - vertices[index].coordinate.x;
+                u[1] = vertices[index + 1].coordinate.y - vertices[index].coordinate.y;
+                u[2] = vertices[index + 1].coordinate.z - vertices[index].coordinate.z;
 
-                v[0] = vertices[index + 2].coordinate[0] - vertices[index].coordinate[0];
-                v[1] = vertices[index + 2].coordinate[1] - vertices[index].coordinate[1];
-                v[2] = vertices[index + 2].coordinate[2] - vertices[index].coordinate[2];
+                v[0] = vertices[index + 2].coordinate.x - vertices[index].coordinate.x;
+                v[1] = vertices[index + 2].coordinate.y - vertices[index].coordinate.y;
+                v[2] = vertices[index + 2].coordinate.z - vertices[index].coordinate.z;
 
                 for (int j = index; j < index + 3; j++) {
-                    vertices[j].normal[0] = u[1] * v[2] - u[2] * v[1];
-                    vertices[j].normal[1] = u[2] * v[0] - u[0] * v[2];
-                    vertices[j].normal[2] = u[0] * v[1] - u[1] * v[0];
-                    vertices[j].normal[3] = 0.0f;
+                    vertices[j].normal.x = u[1] * v[2] - u[2] * v[1];
+                    vertices[j].normal.y = u[2] * v[0] - u[0] * v[2];
+                    vertices[j].normal.z = u[0] * v[1] - u[1] * v[0];
+                    vertices[j].normal.w = 0.0f;
                 }
 
             }
@@ -95,9 +64,9 @@ namespace type {
             return(NULL);
         }
 
-        std::vector<vertex> vertices;
+        std::vector<spatial::vertex> vertices;
 
-        std::vector<std::vector<vertex>> faces;
+        std::vector<std::vector<spatial::vertex>> faces;
 
         type::material texture;
 
@@ -110,11 +79,11 @@ namespace type {
 
             vertices.resize(6 * factor * factor);
 
-            float x = 0.0f;
-            float y = 0.0f;
+            type_t x = 0.0f;
+            type_t y = 0.0f;
 
-            float dx = width / factor;
-            float dy = height / factor;
+            type_t dx = width / factor;
+            type_t dy = height / factor;
 
             int index = 0;
 
@@ -123,13 +92,13 @@ namespace type {
                 for (int j = 0; j < factor; j++) {
                     y = dy * j;
 
-                    vertices[index++].set_coordinate(x + dx, y + dy);
-                    vertices[index++].set_coordinate(x, y + dy);
-                    vertices[index++].set_coordinate(x, y);
+                    vertices[index++].coordinate(x + dx, y + dy);
+                    vertices[index++].coordinate(x, y + dy);
+                    vertices[index++].coordinate(x, y);
 
-                    vertices[index++].set_coordinate(x + dx, y + dy);
-                    vertices[index++].set_coordinate(x, y);
-                    vertices[index++].set_coordinate(x + dx, y);
+                    vertices[index++].coordinate(x + dx, y + dy);
+                    vertices[index++].coordinate(x, y);
+                    vertices[index++].coordinate(x + dx, y);
                 }
             }
         }

@@ -7,7 +7,7 @@ spatial::vector::vector() {
     this->w = 1.0f;
 }
 
-spatial::vector::vector(type_t v) {
+spatial::vector::vector(const type_t& v) {
     this->x = v;
     this->y = v;
     this->z = v;
@@ -21,7 +21,7 @@ spatial::vector::vector(type_t v[]) {
     this->w = v[3];
 }
 
-spatial::vector::vector(type_t x, type_t y, type_t z, type_t w) {
+spatial::vector::vector(const type_t& x, const type_t& y, const type_t& z, const type_t& w) {
     this->x = x;
     this->y = y;
     this->z = z;
@@ -98,6 +98,15 @@ spatial::vector spatial::vector::operator % (const vector& operand) const {
     return result;
 }
 
+spatial::vector& spatial::vector::operator() (const type_t& x, const type_t& y, const type_t& z, const type_t& w) {
+    this->x = x;
+    this->y = y;
+    this->z = z;
+    this->w = w;
+    return(*this);
+}
+
+
 spatial::vector& spatial::vector::rotate_x(type_t rad) {
     vector result;
     result.x = (x * 1) + (y * 0) + (z * 0);
@@ -142,15 +151,16 @@ void spatial::vector::unproject(vector mouse, const matrix& model, const matrix&
     matrix inverted = model * projection;
     inverted.invert();
 
-    mouse.x /= width;
-    mouse.y /= height;
+    // TODO: this seems redundant
+    // mouse.x /= width;
+    // mouse.y /= height;
 
+    // Normalize the mouse
     mouse.x = (mouse.x / width) * 2 - 1;
     mouse.y = (mouse.y / height) * 2 - 1;
     mouse.z = mouse.z * 2 - 1;
 
-    // don't have a matrix vector multiply yet
-    //*this = inverted * mouse;
+    *this = inverted * mouse;
 
     mouse /= mouse.z;
 }
@@ -174,32 +184,6 @@ spatial::matrix& spatial::matrix::operator *= (const matrix& operand) {
     return (*this = (*this) * operand);
 }
 spatial::matrix spatial::matrix::operator * (const matrix& operand) const {
-    //matrix result = *this;
-
-    /*
-    result.r[0][0] = r[0][0] * operand.r[0][0] + r[1][0] * operand.r[0][1] + r[2][0] * operand.r[0][2] + r[3][0] * operand.r[0][3];
-    result.r[0][1] = r[0][1] * operand.r[0][0] + r[1][1] * operand.r[0][1] + r[2][1] * operand.r[0][2] + r[3][1] * operand.r[0][3];
-    result.r[0][2] = r[0][2] * operand.r[0][0] + r[1][2] * operand.r[0][1] + r[2][2] * operand.r[0][2] + r[3][2] * operand.r[0][3];
-    result.r[0][3] = r[0][3] * operand.r[0][0] + r[1][3] * operand.r[0][1] + r[2][3] * operand.r[0][2] + r[3][3] * operand.r[0][3];
-
-    result.r[1][0] = r[0][0] * operand.r[1][0] + r[1][0] * operand.r[1][1] + r[2][0] * operand.r[1][2] + r[3][0] * operand.r[1][3];
-    result.r[1][1] = r[0][1] * operand.r[1][0] + r[1][1] * operand.r[1][1] + r[2][1] * operand.r[1][2] + r[3][1] * operand.r[1][3];
-    result.r[1][2] = r[0][2] * operand.r[1][0] + r[1][2] * operand.r[1][1] + r[2][2] * operand.r[1][2] + r[3][2] * operand.r[1][3];
-    result.r[1][3] = r[0][3] * operand.r[1][0] + r[1][3] * operand.r[1][1] + r[2][3] * operand.r[1][2] + r[3][3] * operand.r[1][3];
-
-    result.r[2][0] = r[0][0] * operand.r[2][0] + r[1][0] * operand.r[2][1] + r[2][0] * operand.r[2][2] + r[3][0] * operand.r[2][3];
-    result.r[2][1] = r[0][1] * operand.r[2][0] + r[1][1] * operand.r[2][1] + r[2][1] * operand.r[2][2] + r[3][1] * operand.r[2][3];
-    result.r[2][2] = r[0][2] * operand.r[2][0] + r[1][2] * operand.r[2][1] + r[2][2] * operand.r[2][2] + r[3][2] * operand.r[2][3];
-    result.r[2][3] = r[0][3] * operand.r[2][0] + r[1][3] * operand.r[2][1] + r[2][3] * operand.r[2][2] + r[3][3] * operand.r[2][3];
-
-    result.r[3][0] = r[0][0] * operand.r[3][0] + r[1][0] * operand.r[3][1] + r[2][0] * operand.r[3][2] + r[3][0] * operand.r[3][3];
-    result.r[3][1] = r[0][1] * operand.r[3][0] + r[1][1] * operand.r[3][1] + r[2][1] * operand.r[3][2] + r[3][1] * operand.r[3][3];
-    result.r[3][2] = r[0][2] * operand.r[3][0] + r[1][2] * operand.r[3][1] + r[2][2] * operand.r[3][2] + r[3][2] * operand.r[3][3];
-
-    //result.r[3][3] = r[0][3] * operand.r[3][0] + r[1][3] * operand.r[3][1] + r[2][3] * operand.r[3][2] + r[3][3] * operand.r[3][3];
-
-    */
-
     matrix result;
     int k, r, c;
     for (c = 0; c < 4; ++c) for (r = 0; r < 4; ++r) {
@@ -212,8 +196,33 @@ spatial::matrix spatial::matrix::operator * (const matrix& operand) const {
 }
 
 spatial::matrix& spatial::matrix::scale(const type_t& operand) {
-    return(*this *= operand);
+    matrix result = *this;
+
+    result.r[0][0] *= operand;
+    result.r[0][1] *= operand;
+    result.r[0][2] *= operand;
+    result.r[0][3] *= operand;
+
+    result.r[1][0] *= operand;
+    result.r[1][1] *= operand;
+    result.r[1][2] *= operand;
+    result.r[1][3] *= operand;
+
+    result.r[2][0] *= operand;
+    result.r[2][1] *= operand;
+    result.r[2][2] *= operand;
+    result.r[2][3] *= operand;
+
+    result.r[3][0] *= operand;
+    result.r[3][1] *= operand;
+    result.r[3][2] *= operand;
+
+    // result.r[3][3] *= operand;
+
+    return result;
 }
+
+/*
 spatial::matrix& spatial::matrix::operator *= (const type_t& operand) {
     return (*this = (*this) * operand);
 }
@@ -240,6 +249,20 @@ spatial::matrix spatial::matrix::operator * (const type_t& operand) const {
     result.r[3][2] *= operand;
 
     // result.r[3][3] *= operand;
+
+    return result;
+}
+*/
+
+spatial::vector spatial::matrix::operator * (const vector& operand) {
+    spatial::vector result;
+
+    matrix current = *this;
+
+    result.x = (current.r[0][0] * operand.x) + (current.r[0][1] * operand.y) + (current.r[0][2] * operand.z) + (current.r[0][3] * operand.w);
+    result.y = (current.r[1][0] * operand.x) + (current.r[1][1] * operand.y) + (current.r[1][2] * operand.z) + (current.r[1][3] * operand.w);
+    result.z = (current.r[2][0] * operand.x) + (current.r[2][1] * operand.y) + (current.r[2][2] * operand.z) + (current.r[2][3] * operand.w);
+    result.w = (current.r[3][0] * operand.x) + (current.r[3][1] * operand.y) + (current.r[3][2] * operand.z) + (current.r[3][3] * operand.w);
 
     return result;
 }
@@ -607,7 +630,7 @@ spatial::quaternion spatial::quaternion::operator *(const quaternion& operand) {
 }
 
 /*
-    void quaternion::euler(const type_t &x, const type_t &y, const type_t &z, const type_t &degrees) {
+void quaternion::euler(const type_t &x, const type_t &y, const type_t &z, const type_t &degrees) {
     type_t angle = type_t((degrees / 180.0f) * M_PI);
     type_t result = type_t(sin(angle / 2.0f));
     this->w = type_t(cos(angle / 2.0f));
@@ -616,7 +639,7 @@ spatial::quaternion spatial::quaternion::operator *(const quaternion& operand) {
     this->x = type_t(x * result);
     this->y = type_t(y * result);
     this->z = type_t(z * result);
-    }
+}
 */
 
 void spatial::quaternion::euler(const type_t& roll, const type_t& pitch, const type_t& yaw, const type_t& degrees)
@@ -647,6 +670,32 @@ spatial::quaternion::operator spatial::matrix() {
 
     return(result);
 }
+
+spatial::ray::type_t spatial::ray::distance(const spatial::ray& r) {
+    return 0.0f;
+}
+
+spatial::ray::type_t spatial::ray::distance(const spatial::vector& v) {
+    auto translated = origin + direction;
+
+    auto point1 = v - origin;
+    auto point2 = v - translated;
+
+    return 0.0f;
+}
+
+spatial::vector spatial::plane::intersection(const spatial::ray& r) {
+    return spatial::vector();
+}
+
+spatial::sphere::type_t spatial::sphere::distance(const spatial::ray& r) {
+    return 0.0f;
+}
+
+bool spatial::sphere::intersects(const spatial::ray& r) {
+    return false;
+}
+
 
 /*
 Slerp(QUAT * from, QUAT * to, type_t t, QUAT * res)

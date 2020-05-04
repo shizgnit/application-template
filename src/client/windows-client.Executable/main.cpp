@@ -270,7 +270,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
         instance->dimensions(LOWORD(lParam), HIWORD(lParam))->on_resize();
 
-        SetTimer(hWnd, 1, 10, NULL);
+        //SetTimer(hWnd, 1, 10, NULL);
+        SetTimer(hWnd, 1, 1, NULL);
 
         break;
 

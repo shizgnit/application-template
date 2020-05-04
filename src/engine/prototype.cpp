@@ -148,7 +148,13 @@ inline spatial::matrix perspective;
 inline spatial::position pos;
 inline spatial::position camera;
 
+inline spatial::vector mouse;
+
 bool init = false;
+
+time_t timestamp = time(NULL);
+int frames = 0;
+float fps = 0.0f;
 
 void print(int x, int y, std::string text) {
     spatial::matrix position;
@@ -157,6 +163,18 @@ void print(int x, int y, std::string text) {
     position.translate(x, y, 0);
 
     graphics->draw(text, font, shader, position, spatial::matrix(), ortho);
+}
+
+void print(int x, int y, spatial::vector vector) {
+    for (int row = 0; row < 4; row++) {
+        std::stringstream ss;
+        ss << "[ ";
+        for (int col = 0; col < 4; col++) {
+            //ss << vector.l[col] << (col < 3 ? ", " : " ");
+        }
+        ss << "]";
+        print(x, y, ss.str());
+    }
 }
 
 void print(int x, int y, spatial::matrix matrix, int offset=30) {
@@ -169,7 +187,6 @@ void print(int x, int y, spatial::matrix matrix, int offset=30) {
         ss << (row == 3 ? "] ]" : "]");
         print(x, y - (offset * row), ss.str());
     }
-
 }
 
 void print(int x, int y, message_container &messages, int offset=30) {
@@ -208,6 +225,10 @@ void freelook_zoom(const platform::input::event& ev) {
     ss << "on_zoom";
     messages.add(ss.str());
     camera.move(ev.point.y);
+}
+
+void mouse_move(const platform::input::event& ev) {
+    mouse = ev.point;
 }
 
 void prototype::on_startup() {
@@ -251,6 +272,8 @@ void prototype::on_startup() {
     input->handler(platform::input::POINTER, platform::input::DRAG, &freelook_move, 0);
 
     input->handler(platform::input::POINTER, platform::input::WHEEL, &freelook_zoom, 0);
+
+    input->handler(platform::input::POINTER, platform::input::MOVE, &mouse_move, 0);
 }
 
 void prototype::on_resize() {
@@ -310,9 +333,33 @@ void prototype::on_draw() {
     print(30, height - 210, "VIEW");
     print(30, height - 240, view);
 
+    print(30, height - 390, "MOUSE");
+    print(30, height - 420, mouse);
+
+    spatial::vector unprojected_projection;
+    spatial::vector unprojected_ortho;
+
+    unprojected_projection.unproject(mouse, spatial::matrix(), perspective, width, height);
+    unprojected_ortho.unproject(mouse, spatial::matrix(), ortho, width, height);
+
+    print(30, height - 450, unprojected_ortho);
+    print(30, height - 480, unprojected_projection);
+
     print(600, height, messages);
 
+    std::string value = utilities::type_cast<std::string>(fps);
+    print(900, height - 30, std::string("FPS: ") + value);
+
+    frames += 1;
+    time_t now = time(NULL);
+    if (timestamp != now) {
+        timestamp = now;
+        fps = frames;
+        frames = 0;
+    }
+
     graphics->flush();
+
 }
 
 void prototype::on_interval() {
