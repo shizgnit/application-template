@@ -75,7 +75,7 @@ void print(int x, int y, spatial::vector vector) {
         std::stringstream ss;
         ss << "[ ";
         for (int col = 0; col < 4; col++) {
-            //ss << vector.l[col] << (col < 3 ? ", " : " ");
+            ss << vector.l[col] << (col < 3 ? ", " : " ");
         }
         ss << "]";
         print(x, y, ss.str());
