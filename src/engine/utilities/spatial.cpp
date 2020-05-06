@@ -46,7 +46,7 @@ spatial::vector& spatial::vector::operator = (const vector& operand) {
 spatial::vector& spatial::vector::operator += (const vector& operand) {
     return (*this = (*this) + operand);
 }
-spatial::vector spatial::vector::operator + (const vector& operand) {
+spatial::vector spatial::vector::operator + (const vector& operand) const {
     vector result;
     result.x = x + operand.x;
     result.y = y + operand.y;
@@ -106,6 +106,13 @@ spatial::vector& spatial::vector::operator() (const type_t& x, const type_t& y, 
     return(*this);
 }
 
+bool spatial::vector::operator == (const vector& operand) const {
+    return this->x == operand.x &&
+           this->y == operand.y &&
+           this->z == operand.z &&
+           this->w == operand.w;
+}
+
 
 spatial::vector& spatial::vector::rotate_x(type_t rad) {
     vector result;
@@ -115,15 +122,16 @@ spatial::vector& spatial::vector::rotate_x(type_t rad) {
     return (*this = result);
 }
 
-spatial::vector spatial::vector::rotate_y(type_t rad) {
+spatial::vector& spatial::vector::rotate_y(type_t rad) {
     vector result;
     result.x = (x * cosf(rad)) + (y * 0) + (z * sinf(rad));
     result.y = (x * 0) + (y * 1) + (z * 0);
     result.z = (x * -sinf(rad)) + (y * 0) + (z * cosf(rad));
+    result.z = (x * -sinf(rad)) + (y * 0) + (z * cosf(rad));
     return (*this = result);
 }
 
-spatial::vector spatial::vector::rotate_z(type_t rad) {
+spatial::vector& spatial::vector::rotate_z(type_t rad) {
     vector result;
     result.x = (x * cosf(rad)) + (y * sinf(rad)) + (z * 0);
     result.y = (x * -sinf(rad)) + (y * cosf(rad)) + (z * 0);
@@ -131,19 +139,23 @@ spatial::vector spatial::vector::rotate_z(type_t rad) {
     return (*this = result);
 }
 
-spatial::vector::type_t spatial::vector::dot() {
+spatial::vector::type_t spatial::vector::dot(const spatial::vector& operand) const {
+    return(x * operand.x + y * operand.y + z * operand.z);
+}
+
+spatial::vector::type_t spatial::vector::dot() const {
     return(x * x + y * y + z * z);
 }
 
-spatial::vector::type_t spatial::vector::length() {
+spatial::vector::type_t spatial::vector::length() const {
     return((type_t)sqrt(dot()));
 }
 
-spatial::vector spatial::vector::unit() {
+spatial::vector spatial::vector::unit() const {
     return(*this / (vector)length());
 }
 
-spatial::vector::type_t spatial::vector::distance(const vector& v) {
+spatial::vector::type_t spatial::vector::distance(const vector& v) const {
     return sqrt(pow(x - v.x, 2) + pow(y - v.y, 2) + pow(z - v.z, 2));
 }
 
@@ -672,30 +684,219 @@ spatial::quaternion::operator spatial::matrix() {
 }
 
 spatial::ray::type_t spatial::ray::distance(const spatial::ray& r) {
+    // TODO: needs implementation
     return 0.0f;
 }
 
-spatial::ray::type_t spatial::ray::distance(const spatial::vector& v) {
-    auto translated = origin + direction;
+spatial::ray::type_t spatial::ray::distance(const spatial::vector& v) const {
+    auto translated = point + direction;
 
-    auto point1 = v - origin;
-    auto point2 = v - translated;
+    auto p1 = v - point;
+    auto p2 = v - translated;
 
-    return 0.0f;
+    auto c = p1 % p2;
+
+    return c.length() / direction.length();
 }
 
-spatial::vector spatial::plane::intersection(const spatial::ray& r) {
-    return spatial::vector();
-}
+// https://cadxfem.org/inf/Fast%20MinimumStorage%20RayTriangle%20Intersection.pdf
+bool spatial::ray::intersects(const spatial::triangle& triangle) {
 
-spatial::sphere::type_t spatial::sphere::distance(const spatial::ray& r) {
-    return 0.0f;
-}
+    // barycentric coordinates to determine intersection
 
-bool spatial::sphere::intersects(const spatial::ray& r) {
+    auto e1 = triangle.vertices[1].coordinate - triangle.vertices[0].coordinate;
+    auto e2 = triangle.vertices[2].coordinate - triangle.vertices[0].coordinate;
+
+    auto d = direction - point;
+
+    auto h = d % e2;
+    auto a = e1.dot(h);
+
+    if (fabs(a) < 0.00001f) {
+        return false;
+    }
+
+    auto f = 1.0f / a;
+
+    auto s = point - triangle.vertices[0].coordinate;
+    auto u = s.dot(h) * f;
+    if (u < 0.0 || u > 1.0) {
+        return false;
+    }
+
+    auto q = s % e1;
+    auto v = direction.dot(q) * f;
+    if (v < 0.0f || u + v > 1.0f) {
+        return false;
+    }
+
+    auto t = e2.dot(q) * f;
+    if (t > 0.00001f) {
+        return true;
+    }
+
     return false;
 }
 
+bool spatial::ray::intersects(const spatial::plane& plane) {
+    auto d = direction - point;
+    auto w = point - plane.point;
+
+    auto a = -plane.normal.dot(w);
+    auto b = plane.normal.dot(d);
+
+    if (fabs(b) < 0.00001f) {
+        return false;
+    }
+
+    return true;
+}
+
+bool spatial::ray::intersects(const spatial::sphere& sphere) {
+    return distance(sphere.center) < sphere.radius;
+}
+
+
+spatial::vector spatial::ray::intersection(const spatial::triangle& triangle) {
+
+    // For now assuming callers check intersection first
+
+    spatial::plane plane;
+
+    plane.point = triangle.vertices[0].coordinate;
+    plane.normal = triangle.normal();
+
+    return intersection(plane);
+}
+
+// https://en.wikipedia.org/wiki/Line%E2%80%93plane_intersection
+spatial::vector spatial::ray::intersection(const spatial::plane& p) {
+    auto d = p.point - point;
+    auto s = d.dot(p.normal) / direction.dot(p.normal);
+    return point + direction * s;
+}
+
+spatial::vector spatial::triangle::normal() const {
+    auto e1 = vertices[1].coordinate - vertices[0].coordinate;
+    auto e2 = vertices[2].coordinate - vertices[0].coordinate;
+
+    return e1 % e2;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+
+// https://en.wikipedia.org/wiki/Line%E2%80%93plane_intersection
+spatial::vector spatial::plane::intersection(const spatial::ray& r) {
+    auto direction = point - r.point;
+    auto scale = direction.dot(normal) / r.direction.dot(normal);
+    auto scaled = r.direction * scale;
+    return r.point + scaled;
+}
+
+spatial::sphere::type_t spatial::sphere::distance(const spatial::ray& r) {
+    return r.distance(center);
+}
+
+bool spatial::sphere::intersects(const spatial::ray& r) {
+    return r.distance(center) < radius;
+}
+
+spatial::vector spatial::plane::intersection(const spatial::ray& r) {
+    auto direction = point - r.point;
+    auto scale = direction.dot(normal) / r.direction.dot(normal);
+    auto scaled = r.direction * scale;
+    return r.point + scaled;
+}
+
+// https://cadxfem.org/inf/Fast%20MinimumStorage%20RayTriangle%20Intersection.pdf
+bool spatial::triangle::intersects(const spatial::ray& r) {
+
+    // barycentric coordinates to determine intersection
+
+    auto e1 = vertices[1].coordinate - vertices[0].coordinate;
+    auto e2 = vertices[2].coordinate - vertices[0].coordinate;
+
+    auto d = r.direction - r.point;
+
+    auto h = d % e2;
+    auto a = e1.dot(h);
+
+    if (fabs(a) < 0.00001f) {
+        return false;
+    }
+
+    auto f = 1.0f / a;
+
+    auto s = r.point - vertices[0].coordinate;
+    auto u = s.dot(h) * f;
+    if (u < 0.0 || u > 1.0) {
+        return false;
+    }
+
+    auto q = s % e1;
+    auto v = r.direction.dot(q) * f;
+    if (v < 0.0f || u + v > 1.0f) {
+        return false;
+    }
+
+    auto t = e2.dot(q) * f;
+    if (t > 0.00001f) {
+        return true;
+    }
+
+    return false;
+}
+
+spatial::vector spatial::triangle::intersection(const spatial::ray& r) {
+
+    // For now assuming callers check intersection first
+
+    spatial::plane plane;
+
+    plane.point = vertices[0].coordinate;
+    plane.normal = normal();
+
+    return plane.intersection(r);
+}
+
+
+spatial::vector spatial::triangle::normal() {
+    auto edge1 = vertices[1].coordinate - vertices[0].coordinate;
+    auto edge2 = vertices[2].coordinate - vertices[0].coordinate;
+
+    return edge1 % edge2;
+}
+
+*/
 
 /*
 Slerp(QUAT * from, QUAT * to, type_t t, QUAT * res)

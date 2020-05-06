@@ -17,7 +17,7 @@ namespace spatial {
         virtual vector& operator = (const vector& operand);
 
         virtual vector& operator += (const vector& operand);
-        virtual vector operator + (const vector& operand);
+        virtual vector operator + (const vector& operand) const;
 
         virtual vector& operator -= (const vector& operand);
         virtual vector operator - (const vector& operand) const;
@@ -31,20 +31,31 @@ namespace spatial {
         virtual vector& operator %= (const vector& operand);
         virtual vector operator % (const vector& operand) const;
 
+        virtual bool operator == (const vector& operand) const;
+
+        vector& cross(const vector& operand) {
+            return(*this %= operand);
+        }
+
         virtual vector& operator() (const type_t& x, const type_t& y, const type_t& z = 0.0f, const type_t& w = 1.0f);
 
         vector& rotate_x(type_t rad);
 
-        vector rotate_y(type_t rad);
+        vector& rotate_y(type_t rad);
 
-        vector rotate_z(type_t rad);
+        vector& rotate_z(type_t rad);
 
-        type_t dot();
+        type_t inner(const vector& operand) {
+            return this->dot(operand);
+        };
 
-        type_t length();
-        vector unit();
+        type_t dot(const vector& operand) const;
+        type_t dot() const;
 
-        type_t distance(const vector& v);
+        type_t length() const;
+        vector unit() const; // TODO: make the interface consistent for behavior
+
+        type_t distance(const vector& v) const;
 
         void unproject(vector mouse, const matrix& model, const matrix& projection, int width, int height);
 
@@ -173,23 +184,10 @@ namespace spatial {
         vector normal;
     };
 
-    class ray {
-    public:
-        typedef vector::type_t type_t;
-
-        vector origin;
-        vector direction;
-
-        type_t distance(const vector& v);
-        type_t distance(const ray& r);
-    };
-
     class plane {
     public:
         vector point;
         vector normal;
-
-        vector intersection(const ray& r);
     };
 
     class sphere {
@@ -198,9 +196,39 @@ namespace spatial {
 
         vector center;
         type_t radius;
-
-        type_t distance(const ray& r);
-        bool intersects(const ray& r);
     };
+
+    class triangle {
+    public:
+        typedef vector::type_t type_t;
+
+        std::vector<spatial::vertex> vertices;
+
+        spatial::vector normal() const;
+    };
+
+    class quad {
+    public:
+        std::vector<spatial::vertex> vertices;
+    };
+
+    class ray {
+    public:
+        typedef vector::type_t type_t;
+
+        vector point;
+        vector direction;
+
+        type_t distance(const vector& v) const;
+        type_t distance(const ray& r);
+
+        bool intersects(const triangle& t);
+        bool intersects(const plane& t);
+        bool intersects(const sphere& t);
+
+        vector intersection(const triangle& t);
+        vector intersection(const plane& t);
+    };
+
 }
 
