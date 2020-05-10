@@ -113,6 +113,9 @@ bool spatial::vector::operator == (const vector& operand) const {
            this->w == operand.w;
 }
 
+spatial::vector::operator glm::vec3() const {
+    return glm::vec3(x, y, z);
+}
 
 spatial::vector& spatial::vector::rotate_x(type_t rad) {
     vector result;
@@ -730,58 +733,36 @@ spatial::ray::type_t spatial::ray::distance(const spatial::ray& r) {
 }
 
 spatial::ray::type_t spatial::ray::distance(const spatial::vector& v) const {
-    auto translated = point + direction;
+    auto translated = origin + terminus;
 
-    auto p1 = v - point;
+    auto p1 = v - origin;
     auto p2 = v - translated;
 
     auto c = p1 % p2;
 
-    return c.length() / direction.length();
+    return c.length() / terminus.length();
 }
 
 // https://cadxfem.org/inf/Fast%20MinimumStorage%20RayTriangle%20Intersection.pdf
 bool spatial::ray::intersects(const spatial::triangle& triangle) {
 
-    // barycentric coordinates to determine intersection
+    glm::vec3 r0 = origin;
+    glm::vec3 r1 = terminus;
 
-    auto e1 = triangle.vertices[1].coordinate - triangle.vertices[0].coordinate;
-    auto e2 = triangle.vertices[2].coordinate - triangle.vertices[0].coordinate;
+    glm::vec3 dir = glm::normalize(r1 - r0);
 
-    auto d = direction - point;
+    glm::vec3 v0 = triangle.vertices[0].coordinate;
+    glm::vec3 v1 = triangle.vertices[1].coordinate;
+    glm::vec3 v2 = triangle.vertices[2].coordinate;
 
-    auto h = d % e2;
-    auto a = e1.dot(h);
+    glm::vec3 pos;  // no current use for the barycentric coordinates
 
-    if (fabs(a) < 0.00001f) {
-        return false;
-    }
-
-    auto f = 1.0f / a;
-
-    auto s = point - triangle.vertices[0].coordinate;
-    auto u = s.dot(h) * f;
-    if (u < 0.0 || u > 1.0) {
-        return false;
-    }
-
-    auto q = s % e1;
-    auto v = direction.dot(q) * f;
-    if (v < 0.0f || u + v > 1.0f) {
-        return false;
-    }
-
-    auto t = e2.dot(q) * f;
-    if (t > 0.00001f) {
-        return true;
-    }
-
-    return false;
+    return glm::intersectLineTriangle(r0, dir, v0, v1, v2, pos);
 }
 
 bool spatial::ray::intersects(const spatial::plane& plane) {
-    auto d = direction - point;
-    auto w = point - plane.point;
+    auto d = terminus - origin;
+    auto w = origin - plane.point;
 
     auto a = -plane.normal.dot(w);
     auto b = plane.normal.dot(d);
@@ -812,13 +793,13 @@ spatial::vector spatial::ray::intersection(const spatial::triangle& triangle) {
 
 // https://en.wikipedia.org/wiki/Line%E2%80%93plane_intersection
 spatial::vector spatial::ray::intersection(const spatial::plane& p) {
-    auto d = direction - point;
+    auto d = terminus - origin;
     auto denominator = d.dot(p.normal);
 
     if (abs(denominator) > 0.0001f) {
-        auto t = p.normal.dot(p.point - point) / denominator;
+        auto t = p.normal.dot(p.point - origin) / denominator;
         //if (t >= 0) {
-            return point + d * t;
+            return origin + d * t;
         //}
     }
 

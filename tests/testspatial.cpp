@@ -64,11 +64,11 @@ TEST(SpatialTest, Projection) {
 
     projected.w = 0.0f;
 
-    r1.point = projected;
-    r1.direction = projected;
+    r1.origin = projected;
+    r1.terminus = projected;
 
-    r1.point.z = 200.0f;
-    r1.direction.z = -200.0f;
+    r1.origin.z = 200.0f;
+    r1.terminus.z = -200.0f;
 
     EXPECT_TRUE(r1.intersects(t1));
 }
@@ -77,8 +77,8 @@ TEST(SpatialTest, RayDistance) {
 
     spatial::ray ray;
 
-    ray.point(-1.0f, -1.0f, -1.0f, 0.0f);
-    ray.direction(1.0f, 1.0f, 1.0f, 0.0f);
+    ray.origin(-1.0f, -1.0f, -1.0f, 0.0f);
+    ray.terminus(1.0f, 1.0f, 1.0f, 0.0f);
 
     spatial::vector point(0.0f, 0.0f, 1.0f, 0.0f);
 
@@ -98,8 +98,8 @@ TEST(SpatialTest, PlaneIntersection) {
 
     spatial::ray ray;
 
-    ray.point(1.0f, 1.0f, 2.0f, 0.0f);
-    ray.direction(1.0f, 1.0f, 1.0f, 0.0f);
+    ray.origin(1.0f, 1.0f, 2.0f, 0.0f);
+    ray.terminus(1.0f, 1.0f, 1.0f, 0.0f);
 
     spatial::plane plane;
 
@@ -127,8 +127,8 @@ TEST(SpatialTest, TriangleIntersection) {
 
     spatial::ray ray;
 
-    ray.point(1.0f, 1.0f, 2.0f);
-    ray.direction(1.0f, 1.0f, -1.0f);
+    ray.origin(1.0f, 1.0f, 2.0f);
+    ray.terminus(1.0f, 1.0f, -1.0f);
 
     auto intersects = ray.intersects(triangle);
 
@@ -201,8 +201,8 @@ TEST(SpatialTest, TriangleIntersection2) {
 
     spatial::ray ray;
 
-    ray.point(1.0f, 1.0f, 2.0f, 1.0f);
-    ray.direction(1.0f, 1.0f, -1.0f, 1.0f);
+    ray.origin(1.0f, 1.0f, 2.0f, 1.0f);
+    ray.terminus(1.0f, 1.0f, -1.0f, 1.0f);
 
     auto intersects = ray.intersects(triangle);
 

@@ -189,6 +189,17 @@ void prototype::on_startup() {
     input->handler(platform::input::POINTER, platform::input::WHEEL, &freelook_zoom, 0);
 
     input->handler(platform::input::POINTER, platform::input::MOVE, &mouse_move, 0);
+
+    std::vector<glm::vec4> list;
+
+    list.push_back(glm::vec4(1.0f, 2.0f, 3.0f, 127.0f));
+    list.push_back(glm::vec4(1.0f, 2.0f, 3.0f, 127.0f));
+    list.push_back(glm::vec4(1.0f, 2.0f, 3.0f, 127.0f));
+
+    std::ofstream output;
+    output.open("c:\\projects\\output.txt");
+    output.write((char *)list.data(), sizeof(glm::vec4) * list.size());
+    output.close();
 }
 
 void prototype::on_resize() {
@@ -319,31 +330,17 @@ void prototype::on_draw() {
     print(30, height - 730, t2.vertices[1].coordinate);
     print(30, height - 760, t2.vertices[2].coordinate);
 
-    //spatial::ray r1;
+    spatial::ray r1;
 
-    //r1.point = projected_ortho;
-    //r1.direction = projected_ortho;
-    //r1.point.z = 100;
-    //r1.direction.z = -100;
+    r1.origin = projected_ortho;
+    r1.terminus = projected_ortho;
+    r1.origin.z = 100;
+    r1.terminus.z = -100;
 
     //auto i1 = r1.intersection(t1);
     //print(30, height - 820, i1);
 
-    glm::vec3 r0 = glm::vec3(projected_ortho.x, projected_ortho.y, -30.0f);
-    glm::vec3 r1 = glm::vec3(projected_ortho.x, projected_ortho.y, 30.0f);
-
-    glm::vec3 dir = glm::normalize(r1 - r0);
-
-    glm::vec3 v0 = glm::vec3(t1.vertices[0].coordinate.x, t1.vertices[0].coordinate.y, t1.vertices[0].coordinate.z);
-    glm::vec3 v1 = glm::vec3(t1.vertices[1].coordinate.x, t1.vertices[1].coordinate.y, t1.vertices[1].coordinate.z);
-    glm::vec3 v2 = glm::vec3(t1.vertices[2].coordinate.x, t1.vertices[2].coordinate.y, t1.vertices[2].coordinate.z);
-
-    glm::vec3 pos = { 0.0f, 0.0f, 0.0f };
-
-    auto inter = glm::intersectLineTriangle(r0, dir, v0, v1, v2, pos);
-
-    //if (r1.intersects(t1) || r1.intersects(t2)) {
-    if(inter) {
+    if (r1.intersects(t1) || r1.intersects(t2)) {
         print(200, height - 390, "(HOVER OVER)");
     }
 
