@@ -1,5 +1,13 @@
 #pragma once
 
+/// GLM - Trying it out to potentially replace custom implementation
+#include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
+#include <glm/mat4x4.hpp>
+#include <glm/ext/matrix_transform.hpp>
+#include <glm/ext/matrix_clip_space.hpp>
+#include <glm/ext/scalar_constants.hpp>
+
 namespace spatial {
 
     class matrix;
@@ -57,7 +65,8 @@ namespace spatial {
 
         type_t distance(const vector& v) const;
 
-        void unproject(vector mouse, const matrix& model, const matrix& projection, int width, int height);
+        vector project(const matrix& model, const matrix& view, const matrix& projection);
+        vector unproject(const matrix& view, const matrix& projection, int width, int height) const;
 
     public:
 
@@ -112,7 +121,9 @@ namespace spatial {
         //matrix& operator *= (const type_t& operand);
         //matrix operator * (const type_t& operand) const;
 
-        vector operator * (const vector& v);
+        virtual vector operator * (const vector& v) const;
+
+        vector interpolate(const vector& v) const;
 
         matrix& rotate_x(type_t angle);
         matrix& rotate_y(type_t angle);
@@ -200,11 +211,15 @@ namespace spatial {
 
     class triangle {
     public:
+        triangle() : vertices(3) {}
+
         typedef vector::type_t type_t;
 
         std::vector<spatial::vertex> vertices;
 
         spatial::vector normal() const;
+
+        void project(const matrix& model, const matrix& view, const matrix& projection);
     };
 
     class quad {

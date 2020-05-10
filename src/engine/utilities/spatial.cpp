@@ -127,7 +127,6 @@ spatial::vector& spatial::vector::rotate_y(type_t rad) {
     result.x = (x * cosf(rad)) + (y * 0) + (z * sinf(rad));
     result.y = (x * 0) + (y * 1) + (z * 0);
     result.z = (x * -sinf(rad)) + (y * 0) + (z * cosf(rad));
-    result.z = (x * -sinf(rad)) + (y * 0) + (z * cosf(rad));
     return (*this = result);
 }
 
@@ -159,7 +158,40 @@ spatial::vector::type_t spatial::vector::distance(const vector& v) const {
     return sqrt(pow(x - v.x, 2) + pow(y - v.y, 2) + pow(z - v.z, 2));
 }
 
-void spatial::vector::unproject(vector mouse, const matrix& model, const matrix& projection, int width, int height) {
+spatial::vector spatial::vector::project(const matrix& model, const matrix& view, const matrix& projection) {
+    matrix mvp = projection * view * model;
+    return mvp.interpolate(*this);
+}
+
+spatial::vector spatial::vector::unproject(const matrix& view, const matrix& projection, int width, int height) const {
+    matrix inverted = view * projection;
+    inverted.invert();
+
+    spatial::vector normalized((x / width) * 2 - 1, (y / height) * 2 - 1, z * 2 - 1);
+
+    return inverted * normalized;
+
+    /*
+    const float normalized_x = ((float)mouse.x / (float)width) * 2.f - 1.f;
+    const float normalized_y = -(((float)mouse.y / (float)height) * 2.f - 1.f);
+
+    spatial::ray r;
+    auto near_point = spatial::vector(normalized_x, normalized_y, -1, 1);
+    auto far_point = spatial::vector(normalized_x, normalized_y, 1, 1);
+
+    matrix inverted = model * projection;
+    inverted.invert();
+
+    auto near_point = inverted * r.point;
+    auto far_point = inverted * r.direction;
+
+    near_point /= near_point.w;
+    far_point /= far_point.w;
+
+    */
+
+    /*
+
     matrix inverted = model * projection;
     inverted.invert();
 
@@ -175,6 +207,8 @@ void spatial::vector::unproject(vector mouse, const matrix& model, const matrix&
     *this = inverted * mouse;
 
     mouse /= mouse.z;
+
+    */
 }
 
 spatial::matrix::matrix() {
@@ -192,6 +226,13 @@ spatial::matrix& spatial::matrix::identity() {
     return *this;
 }
 
+spatial::vector spatial::matrix::interpolate(const spatial::vector& v) const {
+    spatial::vector d(r[3][0], r[3][1], r[3][2], r[3][3]);
+    spatial::vector w = v + d;
+    return *this * w;
+}
+
+
 spatial::matrix& spatial::matrix::operator *= (const matrix& operand) {
     return (*this = (*this) * operand);
 }
@@ -200,10 +241,10 @@ spatial::matrix spatial::matrix::operator * (const matrix& operand) const {
     int k, r, c;
     for (c = 0; c < 4; ++c) for (r = 0; r < 4; ++r) {
         result.r[c][r] = 0.f;
-        for (k = 0; k < 4; ++k)
+        for (k = 0; k < 4; ++k) {
             result.r[c][r] += this->r[k][r] * operand.r[c][k];
+        }
     }
-
     return result;
 }
 
@@ -266,7 +307,7 @@ spatial::matrix spatial::matrix::operator * (const type_t& operand) const {
 }
 */
 
-spatial::vector spatial::matrix::operator * (const vector& operand) {
+spatial::vector spatial::matrix::operator * (const vector& operand) const {
     spatial::vector result;
 
     matrix current = *this;
@@ -397,7 +438,7 @@ spatial::matrix& spatial::matrix::perspective(type_t fov, type_t aspect, type_t 
 
 spatial::matrix& spatial::matrix::ortho(type_t left, type_t right, type_t bottom, type_t top) {
     r[0][0] = 2.0f / (right - left);
-    r[1][1] = 2.f / (top - bottom);
+    r[1][1] = 2.0f / (top - bottom);
     r[2][2] = -1.0f;
     r[3][0] = -(right + left) / (right - left);
     r[3][1] = -(top + bottom) / (top - bottom);
@@ -465,29 +506,29 @@ spatial::matrix& spatial::matrix::invert() {
     c[5] = r[2][2] * r[3][3] - r[3][2] * r[2][3];
 
     /* Assumes it is invertible */
-    type_t idet = 1.0f / (s[0] * c[5] - s[1] * c[4] + s[2] * c[3] + s[3] * c[2] - s[4] * c[1] + s[5] * c[0]);
+    type_t i = 1.0f / (s[0] * c[5] - s[1] * c[4] + s[2] * c[3] + s[3] * c[2] - s[4] * c[1] + s[5] * c[0]);
 
     matrix result;
 
-    result.r[0][0] = (r[1][1] * c[5] - r[1][2] * c[4] + r[1][3] * c[3]) * idet;
-    result.r[0][1] = (-r[0][1] * c[5] + r[0][2] * c[4] - r[0][3] * c[3]) * idet;
-    result.r[0][2] = (r[3][1] * s[5] - r[3][2] * s[4] + r[3][3] * s[3]) * idet;
-    result.r[0][3] = (-r[2][1] * s[5] + r[2][2] * s[4] - r[2][3] * s[3]) * idet;
+    result.r[0][0] = (r[1][1] * c[5] - r[1][2] * c[4] + r[1][3] * c[3]) * i;
+    result.r[0][1] = (-r[0][1] * c[5] + r[0][2] * c[4] - r[0][3] * c[3]) * i;
+    result.r[0][2] = (r[3][1] * s[5] - r[3][2] * s[4] + r[3][3] * s[3]) * i;
+    result.r[0][3] = (-r[2][1] * s[5] + r[2][2] * s[4] - r[2][3] * s[3]) * i;
 
-    result.r[1][0] = (-r[1][0] * c[5] + r[1][2] * c[2] - r[1][3] * c[1]) * idet;
-    result.r[1][1] = (r[0][0] * c[5] - r[0][2] * c[2] + r[0][3] * c[1]) * idet;
-    result.r[1][2] = (-r[3][0] * s[5] + r[3][2] * s[2] - r[3][3] * s[1]) * idet;
-    result.r[1][3] = (r[2][0] * s[5] - r[2][2] * s[2] + r[2][3] * s[1]) * idet;
+    result.r[1][0] = (-r[1][0] * c[5] + r[1][2] * c[2] - r[1][3] * c[1]) * i;
+    result.r[1][1] = (r[0][0] * c[5] - r[0][2] * c[2] + r[0][3] * c[1]) * i;
+    result.r[1][2] = (-r[3][0] * s[5] + r[3][2] * s[2] - r[3][3] * s[1]) * i;
+    result.r[1][3] = (r[2][0] * s[5] - r[2][2] * s[2] + r[2][3] * s[1]) * i;
 
-    result.r[2][0] = (r[1][0] * c[4] - r[1][1] * c[2] + r[1][3] * c[0]) * idet;
-    result.r[2][1] = (-r[0][0] * c[4] + r[0][1] * c[2] - r[0][3] * c[0]) * idet;
-    result.r[2][2] = (r[3][0] * s[4] - r[3][1] * s[2] + r[3][3] * s[0]) * idet;
-    result.r[2][3] = (-r[2][0] * s[4] + r[2][1] * s[2] - r[2][3] * s[0]) * idet;
+    result.r[2][0] = (r[1][0] * c[4] - r[1][1] * c[2] + r[1][3] * c[0]) * i;
+    result.r[2][1] = (-r[0][0] * c[4] + r[0][1] * c[2] - r[0][3] * c[0]) * i;
+    result.r[2][2] = (r[3][0] * s[4] - r[3][1] * s[2] + r[3][3] * s[0]) * i;
+    result.r[2][3] = (-r[2][0] * s[4] + r[2][1] * s[2] - r[2][3] * s[0]) * i;
 
-    result.r[3][0] = (-r[1][0] * c[3] + r[1][1] * c[1] - r[1][2] * c[0]) * idet;
-    result.r[3][1] = (r[0][0] * c[3] - r[0][1] * c[1] + r[0][2] * c[0]) * idet;
-    result.r[3][2] = (-r[3][0] * s[3] + r[3][1] * s[1] - r[3][2] * s[0]) * idet;
-    result.r[3][3] = (r[2][0] * s[3] - r[2][1] * s[1] + r[2][2] * s[0]) * idet;
+    result.r[3][0] = (-r[1][0] * c[3] + r[1][1] * c[1] - r[1][2] * c[0]) * i;
+    result.r[3][1] = (r[0][0] * c[3] - r[0][1] * c[1] + r[0][2] * c[0]) * i;
+    result.r[3][2] = (-r[3][0] * s[3] + r[3][1] * s[1] - r[3][2] * s[0]) * i;
+    result.r[3][3] = (r[2][0] * s[3] - r[2][1] * s[1] + r[2][2] * s[0]) * i;
 
     return *this = result;
 }
@@ -771,17 +812,36 @@ spatial::vector spatial::ray::intersection(const spatial::triangle& triangle) {
 
 // https://en.wikipedia.org/wiki/Line%E2%80%93plane_intersection
 spatial::vector spatial::ray::intersection(const spatial::plane& p) {
-    auto d = p.point - point;
-    auto s = d.dot(p.normal) / direction.dot(p.normal);
-    return point + direction * s;
+    auto d = direction - point;
+    auto denominator = d.dot(p.normal);
+
+    if (abs(denominator) > 0.0001f) {
+        auto t = p.normal.dot(p.point - point) / denominator;
+        //if (t >= 0) {
+            return point + d * t;
+        //}
+    }
+
+    return spatial::vector();
+
+    //auto d = p.point - point;
+    //auto s = d.dot(p.normal) / direction.dot(p.normal);
+    //return point + direction * s;
 }
 
 spatial::vector spatial::triangle::normal() const {
     auto e1 = vertices[1].coordinate - vertices[0].coordinate;
     auto e2 = vertices[2].coordinate - vertices[0].coordinate;
-
-    return e1 % e2;
+    return (e1 % e2).unit();
 }
+
+void spatial::triangle::project(const matrix& model, const matrix& view, const matrix& projection) {
+    matrix mvp = projection * view * model;
+    for (auto& v : vertices) {
+        v.coordinate = mvp.interpolate(v.coordinate);
+    }
+}
+
 
 /*
 Slerp(QUAT * from, QUAT * to, type_t t, QUAT * res)

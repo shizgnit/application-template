@@ -268,7 +268,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         // _HMENU = CreatePopupMenu();
         // AppendMenu(_HMENU, MF_STRING, ID_TRAY_EXIT_CONTEXT_MENU_ITEM, TEXT("Exit"));
 
-        instance->dimensions(LOWORD(lParam), HIWORD(lParam))->on_resize();
+        //instance->dimensions(LOWORD(lParam), HIWORD(lParam))->on_resize();
 
         //SetTimer(hWnd, 1, 10, NULL);
         SetTimer(hWnd, 1, 1, NULL);

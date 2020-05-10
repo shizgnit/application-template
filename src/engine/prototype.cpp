@@ -61,6 +61,10 @@ time_t timestamp = time(NULL);
 int frames = 0;
 float fps = 0.0f;
 
+glm::mat4 Projection;
+glm::mat4 View;
+glm::mat4 Model;
+
 void print(int x, int y, std::string text) {
     spatial::matrix position;
     position.identity();
@@ -83,6 +87,18 @@ void print(int x, int y, spatial::vector vector) {
 }
 
 void print(int x, int y, spatial::matrix matrix, int offset=30) {
+    for (int row = 0; row < 4; row++) {
+        std::stringstream ss;
+        ss << (row == 0 ? "[ [ " : "  [ ");
+        for (int col = 0; col < 4; col++) {
+            ss << matrix[row][col] << (col < 3 ? ", " : " ");
+        }
+        ss << (row == 3 ? "] ]" : "]");
+        print(x, y - (offset * row), ss.str());
+    }
+}
+
+void print(int x, int y, const glm::mat4& matrix, int offset = 30) {
     for (int row = 0; row < 4; row++) {
         std::stringstream ss;
         ss << (row == 0 ? "[ [ " : "  [ ");
@@ -179,6 +195,8 @@ void prototype::on_resize() {
     glViewport(0, 0, width, height);
     ortho.ortho(0, width, 0, height);
     perspective.perspective(deg_to_radf(90), (float)width / (float)height, -1.0f, 1.0f);
+
+    Projection = glm::perspective(glm::pi<float>() * 0.25f, (float)width / (float)height, 1.0f, 100.0f);
 }
 
 void prototype::on_draw() {
@@ -194,7 +212,7 @@ void prototype::on_draw() {
 
     spatial::matrix frame;
     frame.identity();
-    frame.translate(10, 10, 0);
+    frame.translate(400, 400, 0);
 
     graphics->draw(icon, shader, frame, spatial::matrix(), ortho);
 
@@ -215,6 +233,23 @@ void prototype::on_draw() {
     view.identity();
     view.lookat(camera.eye, camera.center, camera.up);
 
+    glm::vec3 veye;
+    veye.x = camera.eye.x;
+    veye.y = camera.eye.y;
+    veye.z = camera.eye.z;
+
+    glm::vec3 vcenter;
+    vcenter.x = camera.center.x;
+    vcenter.y = camera.center.y;
+    vcenter.z = camera.center.z;
+
+    glm::vec3 vup;
+    vup.x = camera.up.x;
+    vup.y = camera.up.y;
+    vup.z = camera.up.z;
+
+    View = glm::lookAt(veye, vcenter, vup);
+
     //graphics->draw(icon, shader, model, view, perspective);
 
     //graphics->draw(icon, shader, spatial::matrix(), view, perspective);
@@ -222,6 +257,8 @@ void prototype::on_draw() {
     graphics->draw(skybox.children[0], shader, spatial::matrix(), view, perspective);
 
     graphics->draw(poly.children[0], shader, spatial::matrix(), view, perspective);
+    //frame.scale(0.001);
+    //graphics->draw(icon, shader, frame, view, perspective);
 
     //print(100, 400, "ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz");
     //print(100, 450, "0123456789 !@#$%^&*()_-=+<>,./?{[]}\|");
@@ -235,14 +272,80 @@ void prototype::on_draw() {
     print(30, height - 390, "MOUSE");
     print(30, height - 420, mouse);
 
-    spatial::vector unprojected_projection;
-    spatial::vector unprojected_ortho;
+    //print(30, height - 520, "GLM::MAT4");
+    //print(30, height - 550, View);
 
-    unprojected_projection.unproject(mouse, spatial::matrix(), perspective, width, height);
-    unprojected_ortho.unproject(mouse, spatial::matrix(), ortho, width, height);
+    spatial::vector unprojected_projection = mouse.unproject(view, perspective, width, height);
+    spatial::vector unprojected_ortho = mouse.unproject(spatial::matrix(), ortho, width, height);
 
-    print(30, height - 450, unprojected_ortho);
-    print(30, height - 480, unprojected_projection);
+    auto relative = mouse;
+    relative.x = relative.x;
+    relative.y = height - relative.y;
+
+    spatial::vector projected_ortho = relative.project(spatial::matrix(), spatial::matrix(), spatial::matrix());
+
+    print(30, height - 450, projected_ortho);
+    //print(30, height - 480, unprojected_projection);
+
+    // temporary to test the math
+    spatial::triangle t1;
+    t1.vertices[0] = icon.vertices[0];
+    t1.vertices[1] = icon.vertices[1];
+    t1.vertices[2] = icon.vertices[2];
+
+    spatial::triangle t2;
+    t2.vertices[0] = icon.vertices[3];
+    t2.vertices[1] = icon.vertices[4];
+    t2.vertices[2] = icon.vertices[5];
+
+    t1.project(frame, spatial::matrix(), spatial::matrix());
+    t2.project(frame, spatial::matrix(), spatial::matrix());
+
+    t1.vertices[0].coordinate.w = 1.0f;
+    t1.vertices[1].coordinate.w = 1.0f;
+    t1.vertices[2].coordinate.w = 1.0f;
+
+    t2.vertices[0].coordinate.w = 1.0f;
+    t2.vertices[1].coordinate.w = 1.0f;
+    t2.vertices[2].coordinate.w = 1.0f;
+
+    print(30, height - 520, "TRIANGLE 1");
+    print(30, height - 550, t1.vertices[0].coordinate);
+    print(30, height - 580, t1.vertices[1].coordinate);
+    print(30, height - 610, t1.vertices[2].coordinate);
+
+    print(30, height - 670, "TRIANGLE 2");
+    print(30, height - 700, t2.vertices[0].coordinate);
+    print(30, height - 730, t2.vertices[1].coordinate);
+    print(30, height - 760, t2.vertices[2].coordinate);
+
+    //spatial::ray r1;
+
+    //r1.point = projected_ortho;
+    //r1.direction = projected_ortho;
+    //r1.point.z = 100;
+    //r1.direction.z = -100;
+
+    //auto i1 = r1.intersection(t1);
+    //print(30, height - 820, i1);
+
+    glm::vec3 r0 = glm::vec3(projected_ortho.x, projected_ortho.y, -30.0f);
+    glm::vec3 r1 = glm::vec3(projected_ortho.x, projected_ortho.y, 30.0f);
+
+    glm::vec3 dir = glm::normalize(r1 - r0);
+
+    glm::vec3 v0 = glm::vec3(t1.vertices[0].coordinate.x, t1.vertices[0].coordinate.y, t1.vertices[0].coordinate.z);
+    glm::vec3 v1 = glm::vec3(t1.vertices[1].coordinate.x, t1.vertices[1].coordinate.y, t1.vertices[1].coordinate.z);
+    glm::vec3 v2 = glm::vec3(t1.vertices[2].coordinate.x, t1.vertices[2].coordinate.y, t1.vertices[2].coordinate.z);
+
+    glm::vec3 pos = { 0.0f, 0.0f, 0.0f };
+
+    auto inter = glm::intersectLineTriangle(r0, dir, v0, v1, v2, pos);
+
+    //if (r1.intersects(t1) || r1.intersects(t2)) {
+    if(inter) {
+        print(200, height - 390, "(HOVER OVER)");
+    }
 
     print(600, height, messages);
 

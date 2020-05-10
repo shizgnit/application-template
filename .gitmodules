@@ -10,3 +10,6 @@
 [submodule "deps/zstream-cpp"]
 	path = deps/zstream-cpp
 	url = https://github.com/geromueller/zstream-cpp.git
+[submodule "deps/glm"]
+	path = deps/glm
+	url = https://github.com/g-truc/glm.git

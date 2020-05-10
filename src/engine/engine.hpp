@@ -76,6 +76,8 @@
 #include <fstream>
 #include <random>
 
+#include <glm/gtx/intersect.hpp>
+
 /// Utilities
 #include "utilities/common.hpp"
 #include "utilities/type_cast.hpp"
