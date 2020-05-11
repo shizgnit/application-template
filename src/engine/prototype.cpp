@@ -68,7 +68,7 @@ glm::mat4 Model;
 void print(int x, int y, std::string text) {
     spatial::matrix position;
     position.identity();
-    position.scale(0.8f);
+    position.scale(1.0f);
     position.translate(x, y, 0);
 
     graphics->draw(text, font, shader, position, spatial::matrix(), ortho);
@@ -164,12 +164,14 @@ void prototype::on_startup() {
     graphics->compile(shader);
 
     /// Get the icon ready for drawing
-    assets->retrieve("drawable/marvin.png") >> format::parser::png >> icon.texture.map;
+    //assets->retrieve("drawable/marvin.png") >> format::parser::png >> icon.texture.map;
+
+    icon.texture.map.create(0, 0, 0, 80);
     icon.quad(256, 256);
     icon.xy_projection(0, 0, 256, 256);
     graphics->compile(icon);
 
-    assets->retrieve("fonts/arial.fnt") >> format::parser::fnt >> font;
+    assets->retrieve("fonts/consolas-22.fnt") >> format::parser::fnt >> font;
     graphics->compile(font);
 
     assets->retrieve("objects/skybox.obj") >> format::parser::obj >> skybox;

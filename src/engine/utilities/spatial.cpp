@@ -252,30 +252,30 @@ spatial::matrix spatial::matrix::operator * (const matrix& operand) const {
 }
 
 spatial::matrix& spatial::matrix::scale(const type_t& operand) {
-    matrix result = *this;
+    //matrix result = *this;
 
-    result.r[0][0] *= operand;
-    result.r[0][1] *= operand;
-    result.r[0][2] *= operand;
-    result.r[0][3] *= operand;
+    r[0][0] *= operand;
+    r[0][1] *= operand;
+    r[0][2] *= operand;
+    r[0][3] *= operand;
 
-    result.r[1][0] *= operand;
-    result.r[1][1] *= operand;
-    result.r[1][2] *= operand;
-    result.r[1][3] *= operand;
+    r[1][0] *= operand;
+    r[1][1] *= operand;
+    r[1][2] *= operand;
+    r[1][3] *= operand;
 
-    result.r[2][0] *= operand;
-    result.r[2][1] *= operand;
-    result.r[2][2] *= operand;
-    result.r[2][3] *= operand;
+    r[2][0] *= operand;
+    r[2][1] *= operand;
+    r[2][2] *= operand;
+    r[2][3] *= operand;
 
-    result.r[3][0] *= operand;
-    result.r[3][1] *= operand;
-    result.r[3][2] *= operand;
+    r[3][0] *= operand;
+    r[3][1] *= operand;
+    r[3][2] *= operand;
 
     // result.r[3][3] *= operand;
 
-    return result;
+    return *this;
 }
 
 /*

@@ -25,6 +25,29 @@ namespace type {
             instance = input;
             return instance;
         }
+
+        void create(char r, char g, char b, char a) {
+            memset(&properties, 0, sizeof(properties));
+
+            properties.width = 256;
+            properties.height = 256;
+            properties.bpp = 32;
+            properties.depth = 8;
+            properties.channels = 4;
+
+            raster.resize(properties.width * properties.height * properties.channels);
+
+            int index = 0;
+            for (int width = 0; width < properties.width; width++) {
+                for (int height = 0; height < properties.width; height++) {
+                    raster[index++] = r;
+                    raster[index++] = g;
+                    raster[index++] = b;
+                    raster[index++] = a;
+                }
+            }
+
+        }
     };
 
 }
