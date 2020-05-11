@@ -225,8 +225,6 @@ void prototype::on_draw() {
     frame.identity();
     frame.translate(400, 400, 0);
 
-    graphics->draw(icon, shader, frame, spatial::matrix(), ortho);
-
     spatial::matrix center;
     center.identity();
     center.translate(width / 2, height / 2, 0);
@@ -356,6 +354,9 @@ void prototype::on_draw() {
         fps = frames;
         frames = 0;
     }
+
+    graphics->draw(icon, shader, frame, spatial::matrix(), ortho);
+
 
     graphics->flush();
 

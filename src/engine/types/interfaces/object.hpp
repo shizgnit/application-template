@@ -66,7 +66,7 @@ namespace type {
 
         std::vector<spatial::vertex> vertices;
 
-        std::vector<std::vector<spatial::vertex>> faces;
+        //std::vector<std::vector<spatial::vertex>> faces;
 
         type::material texture;
 

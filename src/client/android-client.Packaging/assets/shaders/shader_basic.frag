@@ -12,6 +12,5 @@ varying vec4 v_Normal;
 
 void main()
 {
-   // gl_FragColor = gl_FragColor + texture2D(u_SurfaceTextureUnit, v_Texture) * vec4(texture2D(u_SurfaceTextureUnit, v_Texture).a);
-   gl_FragColor = texture2D(u_SurfaceTextureUnit, v_Texture);
+   gl_FragColor = gl_FragColor + texture2D(u_SurfaceTextureUnit, v_Texture);
 }
