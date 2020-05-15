@@ -13,6 +13,8 @@ namespace type {
         int a_Texture;
         int a_Normal;
 
+        int u_Clipping;
+
         int u_ModelMatrix;
         int u_ViewMatrix;
         int u_ProjectionMatrix;

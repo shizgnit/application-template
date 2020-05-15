@@ -30,12 +30,27 @@ public:
         return list;
     }
 
-private:
+    void clear() {
+        lock.lock();
+        data.clear();
+        lock.unlock();
+    }
+
     int limit;
+private:
 
     std::list<std::string> data;
     std::mutex lock;
-} messages;
+};
+
+inline message_container text_input;
+inline message_container text_data;
+inline message_container text_events;
+
+inline type::object box_input;
+inline type::object box_data;
+inline type::object box_events;
+
 
 inline type::audio sound;
 
@@ -69,7 +84,7 @@ void print(int x, int y, std::string text) {
     spatial::matrix position;
     position.identity();
     position.scale(1.0f);
-    position.translate(x, y, 0);
+    position.translate(x, (graphics->height() - font.height) - y, 0);
 
     graphics->draw(text, font, shader, position, spatial::matrix(), ortho);
 }
@@ -86,7 +101,7 @@ void print(int x, int y, spatial::vector vector) {
     }
 }
 
-void print(int x, int y, spatial::matrix matrix, int offset=30) {
+void print(int x, int y, spatial::matrix matrix, int offset = 20) {
     for (int row = 0; row < 4; row++) {
         std::stringstream ss;
         ss << (row == 0 ? "[ [ " : "  [ ");
@@ -94,11 +109,11 @@ void print(int x, int y, spatial::matrix matrix, int offset=30) {
             ss << matrix[row][col] << (col < 3 ? ", " : " ");
         }
         ss << (row == 3 ? "] ]" : "]");
-        print(x, y - (offset * row), ss.str());
+        print(x, y + (offset * row), ss.str());
     }
 }
 
-void print(int x, int y, const glm::mat4& matrix, int offset = 30) {
+void print(int x, int y, const glm::mat4& matrix, int offset = 20) {
     for (int row = 0; row < 4; row++) {
         std::stringstream ss;
         ss << (row == 0 ? "[ [ " : "  [ ");
@@ -106,17 +121,34 @@ void print(int x, int y, const glm::mat4& matrix, int offset = 30) {
             ss << matrix[row][col] << (col < 3 ? ", " : " ");
         }
         ss << (row == 3 ? "] ]" : "]");
-        print(x, y - (offset * row), ss.str());
+        print(x, y + (offset * row), ss.str());
     }
 }
 
-void print(int x, int y, message_container &messages, int offset=30) {
+void print(int x, int y, message_container &messages, int offset = 20) {
     auto contents = messages.get();
-
     int line = y + (offset * contents.size());
     for (auto message : contents) {
-        print(x, y -= offset, message);
+        print(x, y += offset, message);
     }
+}
+
+void textbox(int x, int y, type::object &background, message_container& messages, int offset = 20) {
+    //graphics->clip(x, y, x + background.texture.map.properties.width, y + background.texture.map.properties.height);
+
+    spatial::matrix position;
+    position.identity();
+    position.scale(1.0f);
+    position.translate(x, (graphics->height() - background.height()) - y, 0);
+
+    print(800, graphics->height() - 30, "POSITION");
+    print(800, graphics->height() - 60, spatial::vector(graphics->height(), y, background.height()));
+
+    graphics->draw(background, shader, position, spatial::matrix(), ortho);
+
+    print(x+10, y+10, messages, offset);
+
+    graphics->noclip();
 }
 
 
@@ -135,7 +167,7 @@ void freelook_start(const platform::input::event& ev) {
 void freelook_move(const platform::input::event& ev) {
     std::stringstream ss;
     ss << "on_drag(" << ev.point.x << ", " << ev.point.y << ")";
-    messages.add(ss.str());
+    text_events.add(ss.str());
     camera.rotate(ev.point.y - prior_y, prior_x - ev.point.x);
     prior_x = ev.point.x;
     prior_y = ev.point.y;
@@ -144,7 +176,7 @@ void freelook_move(const platform::input::event& ev) {
 void freelook_zoom(const platform::input::event& ev) {
     std::stringstream ss;
     ss << "on_zoom";
-    messages.add(ss.str());
+    text_events.add(ss.str());
     camera.move(ev.point.y);
 }
 
@@ -165,6 +197,11 @@ void prototype::on_startup() {
 
     /// Get the icon ready for drawing
     //assets->retrieve("drawable/marvin.png") >> format::parser::png >> icon.texture.map;
+
+    box_events.texture.map.create(0, 0, 0, 80);
+    box_events.quad(512, 1024);
+    box_events.xy_projection(0, 0, 512, 1024);
+    graphics->compile(box_events);
 
     icon.texture.map.create(0, 0, 0, 80);
     icon.quad(256, 256);
@@ -205,7 +242,8 @@ void prototype::on_startup() {
 }
 
 void prototype::on_resize() {
-    glViewport(0, 0, width, height);
+    graphics->geometry(width, height);
+
     ortho.ortho(0, width, 0, height);
     perspective.perspective(deg_to_radf(90), (float)width / (float)height, -1.0f, 1.0f);
 
@@ -215,13 +253,7 @@ void prototype::on_resize() {
 void prototype::on_draw() {
     graphics->clear();
 
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-
-    //glUseProgram(simpleTriangleProgram);
-    //glVertexAttribPointer(vPosition, 2, GL_FLOAT, GL_FALSE, 0, triangleVertices);
-    //glEnableVertexAttribArray(vPosition);
-    //glDrawArrays(GL_TRIANGLES, 0, 3);
+    graphics->clip(10000, 100, 10000, 10000);
 
     spatial::matrix frame;
     frame.identity();
@@ -267,21 +299,24 @@ void prototype::on_draw() {
 
     graphics->draw(skybox.children[0], shader, spatial::matrix(), view, perspective);
 
-    graphics->draw(poly.children[0], shader, spatial::matrix(), view, perspective);
+    spatial::matrix box;
+    //box.translate(5, 10, 0);
+
+    graphics->draw(poly.children[0], shader, box, view, perspective);
     //frame.scale(0.001);
     //graphics->draw(icon, shader, frame, view, perspective);
 
     //print(100, 400, "ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz");
     //print(100, 450, "0123456789 !@#$%^&*()_-=+<>,./?{[]}\|");
 
-    print(30, height - 30, "MODEL");
-    print(30, height - 60, model);
+    print(30, 30, "MODEL");
+    print(30, 50, model);
 
-    print(30, height - 210, "VIEW");
-    print(30, height - 240, view);
+    print(30, 210, "VIEW");
+    print(30, 230, view);
 
-    print(30, height - 390, "MOUSE");
-    print(30, height - 420, mouse);
+    print(30, 390, "MOUSE");
+    print(30, 410, mouse);
 
     //print(30, height - 520, "GLM::MAT4");
     //print(30, height - 550, View);
@@ -295,7 +330,7 @@ void prototype::on_draw() {
 
     spatial::vector projected_ortho = relative.project(spatial::matrix(), spatial::matrix(), spatial::matrix());
 
-    print(30, height - 450, projected_ortho);
+    print(30, 430, projected_ortho);
     //print(30, height - 480, unprojected_projection);
 
     // temporary to test the math
@@ -320,15 +355,15 @@ void prototype::on_draw() {
     t2.vertices[1].coordinate.w = 1.0f;
     t2.vertices[2].coordinate.w = 1.0f;
 
-    print(30, height - 520, "TRIANGLE 1");
-    print(30, height - 550, t1.vertices[0].coordinate);
-    print(30, height - 580, t1.vertices[1].coordinate);
-    print(30, height - 610, t1.vertices[2].coordinate);
+    print(30, 520, "TRIANGLE 1");
+    print(30, 540, t1.vertices[0].coordinate);
+    print(30, 560, t1.vertices[1].coordinate);
+    print(30, 580, t1.vertices[2].coordinate);
 
-    print(30, height - 670, "TRIANGLE 2");
-    print(30, height - 700, t2.vertices[0].coordinate);
-    print(30, height - 730, t2.vertices[1].coordinate);
-    print(30, height - 760, t2.vertices[2].coordinate);
+    print(30, 660, "TRIANGLE 2");
+    print(30, 680, t2.vertices[0].coordinate);
+    print(30, 700, t2.vertices[1].coordinate);
+    print(30, 720, t2.vertices[2].coordinate);
 
     spatial::ray r1;
 
@@ -341,13 +376,20 @@ void prototype::on_draw() {
     //print(30, height - 820, i1);
 
     if (r1.intersects(t1) || r1.intersects(t2)) {
-        print(200, height - 390, "(HOVER OVER)");
+        print(200, 390, "(HOVER OVER)");
     }
 
-    print(600, height, messages);
+    // print(600, height, text_events);
+
+    textbox(600, 10, box_events, text_events);
+    //text_data.limit = 100;
+    //for (int i = 0; i < 100; i++) {
+    //    text_data.add(std::string('X', 200));
+    //}
+    //print(0, height-30, text_data);
 
     std::string value = utilities::type_cast<std::string>(fps);
-    print(900, height - 30, std::string("FPS: ") + value);
+    print(900, 30, std::string("FPS: ") + value);
 
     frames += 1;
     time_t now = time(NULL);
@@ -359,11 +401,9 @@ void prototype::on_draw() {
 
     graphics->draw(icon, shader, frame, spatial::matrix(), ortho);
 
-
     graphics->flush();
-
 }
 
 void prototype::on_interval() {
-    messages.add("on_proc");
+    text_events.add("on_proc");
 }

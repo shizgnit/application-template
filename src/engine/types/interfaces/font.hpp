@@ -49,6 +49,9 @@ namespace type {
         int spacing_left;
         int spacing_right;
 
+        int height = 0;
+        int width = 0;
+
         std::vector<image> pages;
         std::vector<glyph> glyphs;
         std::vector<kerning> kernings;

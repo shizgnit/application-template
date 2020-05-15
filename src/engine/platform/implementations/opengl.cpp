@@ -2,6 +2,12 @@
 
 #if defined __PLATFORM_SUPPORTS_OPENGL
 
+void implementation::opengl::graphics::geometry(int width, int height) {
+    glViewport(0, 0, width, height);
+    display_width = width;
+    display_height = height;
+}
+
 void implementation::opengl::graphics::init(void) {
     //glDisable(GL_DEPTH_TEST);
 
@@ -95,6 +101,8 @@ void implementation::opengl::graphics::compile(type::program& program) {
 
     program.u_SurfaceTextureUnit = glGetUniformLocation(program.context, "u_SurfaceTextureUnit");
 
+    program.u_Clipping = glGetUniformLocation(program.context, "u_Clipping");
+
     program.u_AmbientLight = glGetUniformLocation(program.context, "u_AmbientLight");
     program.u_DirectionalLight = glGetUniformLocation(program.context, "u_DirectionalLight");
     program.u_DirectionalLightPosition = glGetUniformLocation(program.context, "u_DirectionalLightPosition");
@@ -133,12 +141,15 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
     glUniformMatrix4fv(shader.u_ModelMatrix, 1, GL_FALSE, (GLfloat*)model.data());
     glUniformMatrix4fv(shader.u_ViewMatrix, 1, GL_FALSE, (GLfloat*)view.data());
     glUniformMatrix4fv(shader.u_ProjectionMatrix, 1, GL_FALSE, (GLfloat*)projection.data());
+
     glUniform1i(shader.u_SurfaceTextureUnit, 0);
 
     glUniform4f(shader.u_AmbientLight, 0.0f, 0.0f, 0.0f, 1.0f);
 
     glUniform4f(shader.u_DirectionalLight, 0.0f, 0.0f, 0.0f, 1.0f);
     glUniform4f(shader.u_DirectionalLightPosition, 1.0f, 1.0f, 0.1f, 1.0f);
+
+    glUniform4f(shader.u_Clipping, clip_top, clip_bottom, clip_left, clip_right);
 
     size_t offset = 4; // necessary to offset object overhead
 

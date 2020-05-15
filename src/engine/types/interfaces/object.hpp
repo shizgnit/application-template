@@ -74,7 +74,20 @@ namespace type {
 
         unsigned int context;
 
+        int width() {
+            return boundary_width;
+        }
+        int boundary_width;
+
+        int height() {
+            return boundary_height;
+        }
+        int boundary_height;
+
         void quad(float width, float height) {
+            boundary_width = width;
+            boundary_height = height;
+
             int factor = 1;
 
             vertices.resize(6 * factor * factor);

@@ -103,6 +103,13 @@ namespace format {
                     details.quad.id = character.node().attribute("id").value();
 
                     instance.glyphs[details.identifier] = details;
+
+                    if (details.height > instance.height) {
+                        instance.height = details.height;
+                    }
+                    if (details.width > instance.width) {
+                        instance.width = details.width;
+                    }
                 }
 
             }

@@ -26,6 +26,8 @@ namespace implementation {
 
         class graphics : public platform::graphics {
         public:
+            void geometry(int width, int height);
+
             void init(void);
             void clear(void);
             void flush(void);
@@ -37,8 +39,6 @@ namespace implementation {
 
             void draw(type::object& object, type::program& shader, const spatial::matrix& model, const spatial::matrix& view, const spatial::matrix& projection);
             void draw(std::string text, type::font& font, type::program& shader, const spatial::matrix& model, const spatial::matrix& view, const spatial::matrix& projection);
-
-        protected:
         };
 
     }
