@@ -18,17 +18,25 @@ namespace platform {
         virtual void draw(std::string text, type::font& font, type::program& shader, const spatial::matrix& model, const spatial::matrix& view, const spatial::matrix& projection) = 0;
 
         virtual void clip(float top, float bottom, float left, float right) {
-            clip_top = top;
-            clip_bottom = bottom;
-            clip_left = left;
-            clip_right = right;
+            clip_top.push_back(top);
+            clip_bottom.push_back(bottom);
+            clip_left.push_back(left);
+            clip_right.push_back(right);
         }
 
         virtual void noclip() {
-            clip_top = 10000.0f;
-            clip_bottom = 10000.0f;
-            clip_left = 10000.0f;
-            clip_right = 10000.0f;
+            if (clip_top.size() > 1) {
+                clip_top.pop_back();
+            }
+            if (clip_bottom.size() > 1) {
+                clip_bottom.pop_back();
+            }
+            if (clip_left.size() > 1) {
+                clip_left.pop_back();
+            }
+            if (clip_right.size() > 1) {
+                clip_right.pop_back();
+            }
         }
 
         int height() {
@@ -40,10 +48,10 @@ namespace platform {
         }
 
     protected:
-        float clip_top = 10000.0f;
-        float clip_bottom = 10000.0f;
-        float clip_left = 10000.0f;
-        float clip_right = 10000.0f;
+        std::vector<float> clip_top = { 10000.0f };
+        std::vector<float> clip_bottom = { 10000.0f };
+        std::vector<float> clip_left = { 10000.0f };
+        std::vector<float> clip_right = { 10000.0f };
 
         int display_width;
         int display_height;

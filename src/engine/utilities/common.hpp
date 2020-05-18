@@ -31,4 +31,44 @@ namespace utilities {
     }
 
     template<> std::string read<std::string>(std::istream& input, size_t bytes);
+
+    class text {
+    public:
+        text(int entries = 40) {
+            limit = entries;
+        }
+
+        void add(std::string message) {
+            lock.lock();
+            data.push_back(message);
+            if (data.size() > limit) {
+                data.pop_front();
+            }
+            lock.unlock();
+        }
+
+        std::vector<std::string> get() {
+            std::vector<std::string> list;
+            lock.lock();
+            for (auto message : data) {
+                list.push_back(message);
+            }
+            lock.unlock();
+            return list;
+        }
+
+        void clear() {
+            lock.lock();
+            data.clear();
+            lock.unlock();
+        }
+
+        int limit;
+    private:
+
+        std::list<std::string> data;
+        std::mutex lock;
+    };
+
+
 }

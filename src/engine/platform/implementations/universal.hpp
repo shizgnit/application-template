@@ -20,5 +20,18 @@ namespace implementation {
             void on_key_down(const event& ev);
         };
 
+        class interface : public platform::interface {
+        public:
+            void raise(const input::event& ev);
+            void emit();
+
+            void draw();
+
+            widget& create(widget::type t, int w, int h, const std::string& texture);
+            widget& create(widget::type t, int w, int h, int r, int g, int b, int a);
+
+            void draw(widget& instance);
+        };
+
     }
 }

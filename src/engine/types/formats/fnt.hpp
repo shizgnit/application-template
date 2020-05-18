@@ -104,11 +104,11 @@ namespace format {
 
                     instance.glyphs[details.identifier] = details;
 
-                    if (details.height > instance.height) {
-                        instance.height = details.height;
+                    if (details.height > instance.glyph_height) {
+                        instance.glyph_height = details.height;
                     }
-                    if (details.width > instance.width) {
-                        instance.width = details.width;
+                    if (details.width > instance.glyph_width) {
+                        instance.glyph_width = details.width;
                     }
                 }
 

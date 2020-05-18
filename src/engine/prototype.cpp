@@ -1,13 +1,11 @@
 #include "engine.hpp"
-#include <list>
-#include <mutex>
 
 
 //=====================================================================================================
 
 class message_container {
 public:
-    message_container(int entries = 20) {
+    message_container(int entries = 40) {
         limit = entries;
     }
 
@@ -84,7 +82,7 @@ void print(int x, int y, std::string text) {
     spatial::matrix position;
     position.identity();
     position.scale(1.0f);
-    position.translate(x, (graphics->height() - font.height) - y, 0);
+    position.translate(x, (graphics->height() - font.height()) - y, 0);
 
     graphics->draw(text, font, shader, position, spatial::matrix(), ortho);
 }
@@ -101,7 +99,7 @@ void print(int x, int y, spatial::vector vector) {
     }
 }
 
-void print(int x, int y, spatial::matrix matrix, int offset = 20) {
+void print(int x, int y, spatial::matrix matrix) {
     for (int row = 0; row < 4; row++) {
         std::stringstream ss;
         ss << (row == 0 ? "[ [ " : "  [ ");
@@ -109,11 +107,11 @@ void print(int x, int y, spatial::matrix matrix, int offset = 20) {
             ss << matrix[row][col] << (col < 3 ? ", " : " ");
         }
         ss << (row == 3 ? "] ]" : "]");
-        print(x, y + (offset * row), ss.str());
+        print(x, y + (font.leading() * row), ss.str());
     }
 }
 
-void print(int x, int y, const glm::mat4& matrix, int offset = 20) {
+void print(int x, int y, const glm::mat4& matrix) {
     for (int row = 0; row < 4; row++) {
         std::stringstream ss;
         ss << (row == 0 ? "[ [ " : "  [ ");
@@ -121,32 +119,29 @@ void print(int x, int y, const glm::mat4& matrix, int offset = 20) {
             ss << matrix[row][col] << (col < 3 ? ", " : " ");
         }
         ss << (row == 3 ? "] ]" : "]");
-        print(x, y + (offset * row), ss.str());
+        print(x, y + (font.leading() * row), ss.str());
     }
 }
 
-void print(int x, int y, message_container &messages, int offset = 20) {
+void print(int x, int y, message_container &messages) {
     auto contents = messages.get();
-    int line = y + (offset * contents.size());
+    int line = y + (font.leading() * contents.size());
     for (auto message : contents) {
-        print(x, y += offset, message);
+        print(x, y += font.leading(), message);
     }
 }
 
-void textbox(int x, int y, type::object &background, message_container& messages, int offset = 20) {
-    //graphics->clip(x, y, x + background.texture.map.properties.width, y + background.texture.map.properties.height);
+void textbox(int x, int y, type::object &background, message_container& messages) {
+    graphics->clip(graphics->height() - y, -((graphics->height() - background.height()) - y), -x, x + background.width());
 
     spatial::matrix position;
     position.identity();
     position.scale(1.0f);
     position.translate(x, (graphics->height() - background.height()) - y, 0);
 
-    print(800, graphics->height() - 30, "POSITION");
-    print(800, graphics->height() - 60, spatial::vector(graphics->height(), y, background.height()));
-
     graphics->draw(background, shader, position, spatial::matrix(), ortho);
 
-    print(x+10, y+10, messages, offset);
+    print(x+10, y-30, messages);
 
     graphics->noclip();
 }
@@ -195,12 +190,21 @@ void prototype::on_startup() {
     assets->retrieve("shaders/shader_basic.frag") >> format::parser::frag >> shader.fragment;
     graphics->compile(shader);
 
+    /// Load up the gui dependencies
+    // TODO move these into the interface implementation
+    assets->retrieve("shaders/shader_basic.vert") >> format::parser::vert >> gui->shader.vertex;
+    assets->retrieve("shaders/shader_basic.frag") >> format::parser::frag >> gui->shader.fragment;
+    graphics->compile(gui->shader);
+
+    assets->retrieve("fonts/consolas-22.fnt") >> format::parser::fnt >> gui->font;
+    graphics->compile(gui->font);
+
     /// Get the icon ready for drawing
     //assets->retrieve("drawable/marvin.png") >> format::parser::png >> icon.texture.map;
 
     box_events.texture.map.create(0, 0, 0, 80);
-    box_events.quad(512, 1024);
-    box_events.xy_projection(0, 0, 512, 1024);
+    box_events.quad(256, 512);
+    box_events.xy_projection(0, 0, 256, 512);
     graphics->compile(box_events);
 
     icon.texture.map.create(0, 0, 0, 80);
@@ -229,16 +233,15 @@ void prototype::on_startup() {
 
     input->handler(platform::input::POINTER, platform::input::MOVE, &mouse_move, 0);
 
-    std::vector<glm::vec4> list;
+    // Create some gui elements
+    gui->create(platform::interface::widget::type::button, 256, 256, 20, 0, 0, 80).position(200, 200);
 
-    list.push_back(glm::vec4(1.0f, 2.0f, 3.0f, 127.0f));
-    list.push_back(glm::vec4(1.0f, 2.0f, 3.0f, 127.0f));
-    list.push_back(glm::vec4(1.0f, 2.0f, 3.0f, 127.0f));
 
-    std::ofstream output;
-    output.open("c:\\projects\\output.txt");
-    output.write((char *)list.data(), sizeof(glm::vec4) * list.size());
-    output.close();
+
+//    hello.handler(platform::input::POINTER, platform::input::DOWN, [](const platform::input::event& ev) {
+//        print(200, 200, "HelloWorld");
+//    }, 1);
+
 }
 
 void prototype::on_resize() {
@@ -248,12 +251,14 @@ void prototype::on_resize() {
     perspective.perspective(deg_to_radf(90), (float)width / (float)height, -1.0f, 1.0f);
 
     Projection = glm::perspective(glm::pi<float>() * 0.25f, (float)width / (float)height, 1.0f, 100.0f);
+
+    gui->projection = ortho;
 }
 
 void prototype::on_draw() {
     graphics->clear();
 
-    graphics->clip(10000, 100, 10000, 10000);
+    //graphics->clip(10000, 0, -50, 10000);
 
     spatial::matrix frame;
     frame.identity();
@@ -310,13 +315,13 @@ void prototype::on_draw() {
     //print(100, 450, "0123456789 !@#$%^&*()_-=+<>,./?{[]}\|");
 
     print(30, 30, "MODEL");
-    print(30, 50, model);
+    print(30, 30 + font.leading(), model);
 
     print(30, 210, "VIEW");
-    print(30, 230, view);
+    print(30, 210 + font.leading(), view);
 
     print(30, 390, "MOUSE");
-    print(30, 410, mouse);
+    print(30, 390 + font.leading(), mouse);
 
     //print(30, height - 520, "GLM::MAT4");
     //print(30, height - 550, View);
@@ -330,7 +335,7 @@ void prototype::on_draw() {
 
     spatial::vector projected_ortho = relative.project(spatial::matrix(), spatial::matrix(), spatial::matrix());
 
-    print(30, 430, projected_ortho);
+    print(30, 390 + font.leading() * 2, projected_ortho);
     //print(30, height - 480, unprojected_projection);
 
     // temporary to test the math
@@ -356,14 +361,14 @@ void prototype::on_draw() {
     t2.vertices[2].coordinate.w = 1.0f;
 
     print(30, 520, "TRIANGLE 1");
-    print(30, 540, t1.vertices[0].coordinate);
-    print(30, 560, t1.vertices[1].coordinate);
-    print(30, 580, t1.vertices[2].coordinate);
+    print(30, 520 + font.leading(), t1.vertices[0].coordinate);
+    print(30, 520 + font.leading() * 2, t1.vertices[1].coordinate);
+    print(30, 520 + font.leading() * 3, t1.vertices[2].coordinate);
 
     print(30, 660, "TRIANGLE 2");
-    print(30, 680, t2.vertices[0].coordinate);
-    print(30, 700, t2.vertices[1].coordinate);
-    print(30, 720, t2.vertices[2].coordinate);
+    print(30, 660 + font.leading(), t2.vertices[0].coordinate);
+    print(30, 660 + font.leading() * 2, t2.vertices[1].coordinate);
+    print(30, 660 + font.leading() * 3, t2.vertices[2].coordinate);
 
     spatial::ray r1;
 
@@ -400,6 +405,8 @@ void prototype::on_draw() {
     }
 
     graphics->draw(icon, shader, frame, spatial::matrix(), ortho);
+
+    gui->draw();
 
     graphics->flush();
 }

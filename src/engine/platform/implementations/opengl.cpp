@@ -149,7 +149,7 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
     glUniform4f(shader.u_DirectionalLight, 0.0f, 0.0f, 0.0f, 1.0f);
     glUniform4f(shader.u_DirectionalLightPosition, 1.0f, 1.0f, 0.1f, 1.0f);
 
-    glUniform4f(shader.u_Clipping, clip_top, clip_bottom, clip_left, clip_right);
+    glUniform4f(shader.u_Clipping, clip_top[clip_top.size()-1], clip_bottom[clip_bottom.size() - 1], clip_left[clip_left.size() - 1], clip_right[clip_right.size() - 1]);
 
     size_t offset = 4; // necessary to offset object overhead
 
@@ -177,7 +177,7 @@ void implementation::opengl::graphics::draw(std::string text, type::font& font, 
 
         auto& glyph = font.glyphs[text[i]];
 
-        relative.translate(spatial::vector((float)glyph.xoffset, (float)(font.size - glyph.height - glyph.yoffset), 0.0f));
+        relative.translate(spatial::vector((float)glyph.xoffset, (float)(font.point() - glyph.height - glyph.yoffset), 0.0f));
 
         draw(glyph.quad, shader, relative, view, projection);
         position.translate(spatial::vector((float)glyph.xadvance, 0.0f, 0.0f));

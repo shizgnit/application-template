@@ -69,6 +69,8 @@
 
 #include <string>
 #include <vector>
+#include <list>
+#include <mutex>
 #include <map>
 #include <memory>
 #include <iostream>
@@ -92,6 +94,8 @@
 #include "types/interfaces/font.hpp"
 
 
+#undef interface // Thanks Microsoft
+
 /// Platform Abstractions
 #include "platform/interfaces/audio.hpp"
 #include "platform/interfaces/filesystem.hpp"
@@ -100,6 +104,7 @@
 #include "platform/interfaces/network.hpp"
 #include "platform/interfaces/input.hpp"
 #include "platform/interfaces/application.hpp"
+#include "platform/interfaces/interface.hpp"
 
 
 /// Linux platform 
@@ -114,6 +119,7 @@ inline platform::filesystem* filesystem = new implementation::posix::filesystem(
 inline platform::assets* assets = new implementation::android::assets();
 inline platform::graphics* graphics = new implementation::opengl::graphics();
 inline platform::input* input = new implementation::universal::input();
+inline platform::interface* gui = new implementation::universal::interface();
 #endif
 
 
@@ -128,6 +134,7 @@ inline platform::filesystem* filesystem = new implementation::windows::filesyste
 inline platform::assets* assets = new implementation::windows::assets();
 inline platform::graphics* graphics = new implementation::opengl::graphics();
 inline platform::input* input = new implementation::universal::input();
+inline platform::interface* gui = new implementation::universal::interface();
 #endif
 
 /// Supported Formats
@@ -140,6 +147,7 @@ inline platform::input* input = new implementation::universal::input();
 #include "types/formats/mtl.hpp"
 #include "types/formats/obj.hpp"
 #include "types/formats/fbx.hpp"
+
 
 /// Just a simple prototype implementation to test infrastructure portability
 #include "prototype.hpp"

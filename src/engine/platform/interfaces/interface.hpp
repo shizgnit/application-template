@@ -1,0 +1,144 @@
+#pragma once
+
+namespace platform {
+
+    class interface {
+    public:
+        type::program shader;
+        type::font font;
+        spatial::matrix projection;
+
+        // Base class for all gui elements
+        class widget {
+        friend class platform::interface;
+        public:
+            typedef void(*callback)(const platform::input::event&);
+
+            ~widget() {}
+
+            enum type {
+                button,
+                textbox,
+                tabbed
+            };
+
+            enum positioning {
+                none     = 0x00,
+                left     = (1u << 0),
+                right    = (1u << 1),
+                initial  = (1u << 2),
+                inherit  = (1u << 3),
+                hcenter  = (1u << 4),
+                vcenter  = (1u << 5),
+                top      = (1u << 6),
+                bottom   = (1u << 7),
+                absolute = (1u << 8)
+            };
+
+            virtual widget& position(int x, int y, positioning relativity=positioning::none) {
+                this->x = x;
+                this->y = y;
+
+                if (relativity & positioning::left) {
+                    horizontal = positioning::left;
+                }
+                if (relativity & positioning::hcenter) {
+                    horizontal = positioning::hcenter;
+                }
+                if (relativity & positioning::right) {
+                    horizontal = positioning::right;
+                }
+                if (relativity & positioning::top) {
+                    vertical = positioning::top;
+                }
+                if (relativity & positioning::vcenter) {
+                    vertical = positioning::vcenter;
+                }
+                if (relativity & positioning::bottom) {
+                    vertical = positioning::top;
+                }
+
+                return *this;
+            }
+
+            virtual widget& handler(platform::input::type t, platform::input::action a, callback c, int identifier = 0) {
+                callbacks[t][a][identifier] = c;
+                return *this;
+            }
+
+            ::type::object background;
+
+            int x;
+            int y;
+
+        protected:
+            bool floating = false;
+            positioning horizontal = positioning::none;
+            positioning vertical = positioning::none;
+
+            bool enabled;
+            bool active;
+            bool relative;
+
+            spatial::quad bounds;
+
+            std::vector<std::reference_wrapper<widget>> children;
+
+            std::map<platform::input::type, std::map<platform::input::action, std::map<int, callback>>> callbacks;
+        };
+
+        class button : public widget {
+        public:
+            std::string label;
+
+            ::type::object icon;
+        };
+
+        class textbox : public widget {
+        public:
+            utilities::text content;
+
+            bool edit;
+            bool multiline;
+
+            widget* parent;
+        };
+
+        class tabbed : public widget {
+        public:
+
+            int add(interface::widget& button, interface::widget& content) {
+                children.push_back(button);
+                crossreference[" "] = children.size();
+                children.push_back(content);
+
+                return 0;
+            }
+
+            void select(const std::string label) {
+                if (crossreference.find(label) != crossreference.end()) {
+                    selected = crossreference[label];
+                }
+            }
+
+        protected:
+            int selected = -1;
+
+            std::map<std::string, int> crossreference;
+        };
+
+        virtual void raise(const input::event& ev) = 0;
+        virtual void emit() = 0;
+
+        virtual void draw() = 0;
+
+        virtual widget& create(widget::type t, int w, int h, const std::string& resource) = 0;
+        virtual widget& create(widget::type t, int w, int h, int r, int g, int b, int a) = 0;
+
+        virtual void draw(widget& instance) = 0;
+
+    protected:
+        std::vector<widget *> instances;
+    };
+
+}

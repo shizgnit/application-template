@@ -114,5 +114,73 @@ void implementation::universal::input::emit() {
     }
 }
 
+void implementation::universal::interface::raise(const input::event& ev) {
+
+}
+
+void implementation::universal::interface::emit() {
+
+}
+
+void implementation::universal::interface::draw() {
+    for (auto instance : instances) {
+        draw(*instance);
+    }
+}
+
+platform::interface::widget& implementation::universal::interface::create(platform::interface::widget::type t, int w, int h, const std::string& texture) {
+    switch (t) {
+    case(widget::type::button):
+        instances.push_back(new button());
+        break;
+    case(widget::type::textbox):
+        instances.push_back(new textbox());
+        break;
+    }
+
+    // TODO Always assuming a png is being specified for now, fix this
+    assets->retrieve(texture) >> format::parser::png >> instances.back()->background.texture.map;
+
+    instances.back()->background.quad(w, h);
+    instances.back()->background.xy_projection(0, 0, w, h);
+
+    graphics->compile(instances.back()->background);
+
+    return *instances.back();
+}
+
+platform::interface::widget& implementation::universal::interface::create(platform::interface::widget::type t, int w, int h, int r, int g, int b, int a) {
+    switch (t) {
+    case(widget::type::button):
+        instances.push_back(new button());
+        break;
+    case(widget::type::textbox):
+        instances.push_back(new textbox());
+        break;
+    }
+
+    instances.back()->background.texture.map.create(r, g, b, a);
+
+    instances.back()->background.quad(w, h);
+    instances.back()->background.xy_projection(0, 0, w, h);
+
+    graphics->compile(instances.back()->background);
+
+    return *instances.back();
+}
+
+void implementation::universal::interface::draw(widget& instance) {
+    graphics->clip(graphics->height() - instance.y, -((graphics->height() - instance.background.height()) - instance.y), -instance.x, instance.x + instance.background.width());
+
+    spatial::matrix position;
+    position.identity();
+    position.translate(instance.x, (graphics->height() - instance.background.height()) - instance.y, 0);
+
+    graphics->draw(instance.background, shader, position, spatial::matrix(), projection);
+
+    graphics->noclip();
+}
+
+
 #endif
 

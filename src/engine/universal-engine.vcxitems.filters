@@ -150,7 +150,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)utilities\common.hpp">
       <Filter>utilities</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)types\interfaces\info.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)platform\implementations\windows.hpp">
       <Filter>platform\implementations</Filter>
     </ClInclude>
@@ -165,6 +164,12 @@
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)types\formats\fbx.hpp">
       <Filter>types\formats</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)types\interfaces\info.hpp">
+      <Filter>types\interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)platform\interfaces\interface.hpp">
+      <Filter>platform\interfaces</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

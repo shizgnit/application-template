@@ -36,6 +36,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)platform\interfaces\filesystem.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)platform\interfaces\graphics.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)platform\interfaces\input.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)platform\interfaces\interface.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)platform\interfaces\network.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)prototype.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)types\formats\fbx.hpp" />

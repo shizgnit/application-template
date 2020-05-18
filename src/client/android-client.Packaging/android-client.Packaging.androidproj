@@ -120,8 +120,28 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <Content Include="assets\drawable\marvin.png" />
+    <Content Include="assets\fonts\arial-16.fnt" />
+    <Content Include="assets\fonts\arial-16_0.png" />
     <Content Include="assets\fonts\arial.fnt" />
     <Content Include="assets\fonts\arial.png" />
+    <Content Include="assets\fonts\consolas-12.fnt" />
+    <Content Include="assets\fonts\consolas-12_0.png" />
+    <Content Include="assets\fonts\consolas-16.fnt" />
+    <Content Include="assets\fonts\consolas-16_0.png" />
+    <Content Include="assets\fonts\consolas-18.fnt" />
+    <Content Include="assets\fonts\consolas-18_0.png" />
+    <Content Include="assets\fonts\consolas-20.fnt" />
+    <Content Include="assets\fonts\consolas-20_0.png" />
+    <Content Include="assets\fonts\consolas-22.fnt" />
+    <Content Include="assets\fonts\consolas-22_0.png" />
+    <Content Include="assets\fonts\consolas-32.fnt" />
+    <Content Include="assets\fonts\consolas-32_0.png" />
+    <Content Include="assets\fonts\consolas-64.fnt" />
+    <Content Include="assets\fonts\consolas-64_0.png" />
+    <Content Include="assets\fonts\consolas-64_1.png" />
+    <Content Include="assets\fonts\consolas-64_2.png" />
+    <Content Include="assets\fonts\consolas-8.fnt" />
+    <Content Include="assets\fonts\consolas-8_0.png" />
     <Content Include="assets\objects\poly.mtl" />
     <Content Include="assets\objects\poly.obj" />
     <Content Include="assets\objects\poly.png" />

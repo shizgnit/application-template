@@ -228,6 +228,9 @@ namespace spatial {
 
     class quad {
     public:
+        int width;
+        int height;
+
         std::vector<spatial::vertex> vertices;
     };
 

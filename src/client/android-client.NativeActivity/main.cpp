@@ -190,19 +190,24 @@ static int32_t engine_handle_input(struct android_app* app, AInputEvent* event) 
 	if (type == AINPUT_EVENT_TYPE_MOTION) {
 		engine->state.x = AMotionEvent_getX(event, 0);
 		engine->state.y = AMotionEvent_getY(event, 0);
+
+		input->raise({ platform::input::POINTER, platform::input::MOVE, 0, { (float)engine->state.x, (float)engine->state.y, 0.0f }, 1 });
+
 		switch (action) {
 		case AMOTION_EVENT_ACTION_DOWN: // Primary pointer down (always index 0)
-			//instance->on_press(engine->state.x, engine->state.y);
+			input->raise({ platform::input::POINTER, platform::input::DOWN, 1, { (float)engine->state.x, (float)engine->state.y, 0.0f }, 0 });
 			break;
 
 		case AMOTION_EVENT_ACTION_UP: // Primary pointer up
-			//instance->on_release(engine->state.x, engine->state.y);
+			input->raise({ platform::input::POINTER, platform::input::UP, 1, { (float)engine->state.x, (float)engine->state.y, 0.0f }, 0 });
 			break;
 
 		case AMOTION_EVENT_ACTION_POINTER_DOWN: // Secondary pointer down
+			input->raise({ platform::input::POINTER, platform::input::DOWN, 2, { (float)engine->state.x, (float)engine->state.y, 0.0f }, 0 });
 			break;
 
 		case AMOTION_EVENT_ACTION_POINTER_UP: // Secondary pointer up
+			input->raise({ platform::input::POINTER, platform::input::UP, 2, { (float)engine->state.x, (float)engine->state.y, 0.0f }, 0 });
 			break;
 		};
 	}
