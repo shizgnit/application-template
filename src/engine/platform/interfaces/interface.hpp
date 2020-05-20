@@ -11,17 +11,25 @@ namespace platform {
         // Base class for all gui elements
         class widget {
         friend class platform::interface;
+        private:
+            interface* owner;
+
+            widget() {} // hide the default constructor
+
         public:
             typedef void(*callback)(const platform::input::event&);
-
-            widget() {}
-            ~widget() {}
 
             enum type {
                 button,
                 textbox,
                 tabbed
             };
+
+            widget(interface* owner, type spec) {
+                this->owner = owner;
+                this->spec = spec;
+            }
+            ~widget() {}
 
             enum positioning {
                 none     = 0x00,
@@ -59,6 +67,8 @@ namespace platform {
                     vertical = positioning::top;
                 }
 
+                owner->reposition(*this);
+
                 return *this;
             }
 
@@ -67,7 +77,7 @@ namespace platform {
                 return *this;
             }
 
-            virtual void raise(const input::event& ev) {
+            virtual widget& raise(const input::event& ev) {
                 if (callbacks.find(ev.input) != callbacks.end()) {
                     if (callbacks[ev.input].find(ev.gesture) != callbacks[ev.input].end()) {
                         if (callbacks[ev.input][ev.gesture].find(ev.identifier) != callbacks[ev.input][ev.gesture].end()) {
@@ -79,6 +89,7 @@ namespace platform {
                         }
                     }
                 }
+                return *this;
             }
 
             ::type::object background;
@@ -86,6 +97,11 @@ namespace platform {
 
             int x;
             int y;
+
+            std::string label;
+
+            int id;
+            type spec;
 
         protected:
             bool floating = false;
@@ -103,6 +119,8 @@ namespace platform {
 
         class button : public widget {
         public:
+            button(interface* owner, int id) : widget(owner, widget::type::button) { this->id = id; }
+
             std::string label;
 
             ::type::object icon;
@@ -110,6 +128,8 @@ namespace platform {
 
         class textbox : public widget {
         public:
+            textbox(interface* owner, int id) : widget(owner, widget::type::textbox) { this->id = id; }
+
             utilities::text content;
 
             bool edit;
@@ -118,6 +138,7 @@ namespace platform {
 
         class tabbed : public widget {
         public:
+            tabbed(interface* owner, int id) : widget(owner, widget::type::tabbed) { this->id = id; }
 
             int add(interface::widget& button, interface::widget& content) {
                 children.push_back(button);
@@ -147,9 +168,21 @@ namespace platform {
         virtual widget& create(widget::type t, int w, int h, const std::string& resource) = 0;
         virtual widget& create(widget::type t, int w, int h, int r, int g, int b, int a) = 0;
 
-        virtual void draw(widget& instance) = 0;
+        virtual void print(int x, int y, const std::string& text) = 0;
+
+        template<class t> t& get(int id) {
+            // TODO: protect this a bit, check for nulls, etc
+            return *dynamic_cast<t*>(instances[id]);
+        }
+
+        template<class t> t& cast(widget& instance) {
+            return dynamic_cast<t&>(instance);
+        }
 
     protected:
+        virtual void draw(widget& instance) = 0;
+        virtual void reposition(widget& instance) = 0;
+
         std::vector<widget *> instances;
     };
 

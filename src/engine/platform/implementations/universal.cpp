@@ -146,10 +146,10 @@ void implementation::universal::interface::draw() {
 platform::interface::widget& implementation::universal::interface::create(platform::interface::widget::type t, int w, int h, const std::string& texture) {
     switch (t) {
     case(widget::type::button):
-        instances.push_back(new button());
+        instances.push_back(new button(this, instances.size()));
         break;
     case(widget::type::textbox):
-        instances.push_back(new textbox());
+        instances.push_back(new textbox(this, instances.size()));
         break;
     }
 
@@ -169,10 +169,10 @@ platform::interface::widget& implementation::universal::interface::create(platfo
 platform::interface::widget& implementation::universal::interface::create(platform::interface::widget::type t, int w, int h, int r, int g, int b, int a) {
     switch (t) {
     case(widget::type::button):
-        instances.push_back(new button());
+        instances.push_back(new button(this, instances.size()));
         break;
     case(widget::type::textbox):
-        instances.push_back(new textbox());
+        instances.push_back(new textbox(this, instances.size()));
         break;
     }
 
@@ -188,20 +188,44 @@ platform::interface::widget& implementation::universal::interface::create(platfo
     return *instances.back();
 }
 
+void implementation::universal::interface::print(int x, int y, const std::string& text) {
+    spatial::matrix position;
+    position.identity();
+    position.scale(1.0f);
+    position.translate(x, (graphics->height() - font.height()) - y, 0);
+
+    graphics->draw(text, font, shader, position, spatial::matrix(), projection);
+}
+
 void implementation::universal::interface::draw(widget& instance) {
     graphics->clip(graphics->height() - instance.y, -((graphics->height() - instance.background.height()) - instance.y), -instance.x, instance.x + instance.background.width());
 
     spatial::matrix position;
-    position.identity();
     position.translate(instance.x, (graphics->height() - instance.background.height()) - instance.y, 0);
 
-    instance.bounds = spatial::quad(instances.back()->background.vertices).project(position, spatial::matrix(), spatial::matrix());
-
     graphics->draw(instance.background, shader, position, spatial::matrix(), projection);
+
+    switch (instance.spec) {
+    case(widget::type::button):
+        break;
+    case(widget::type::textbox):
+        auto contents = gui->cast<platform::interface::textbox>(instance).content.get();
+        int x = instance.x + 20; // TODO: add in a configurable margin, etc
+        int y = instance.y;
+        for (auto message : contents) {
+            print(x, y += font.leading(), message);
+        }
+        break;
+    }
 
     graphics->noclip();
 }
 
+void implementation::universal::interface::reposition(widget& instance) {
+    spatial::matrix position;
+    position.translate(instance.x, (graphics->height() - instance.background.height()) - instance.y, 0);
+
+    instance.bounds = spatial::quad(instances.back()->background.vertices).project(position, spatial::matrix(), spatial::matrix());
+}
 
 #endif
-

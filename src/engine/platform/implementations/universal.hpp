@@ -30,7 +30,11 @@ namespace implementation {
             widget& create(widget::type t, int w, int h, const std::string& texture);
             widget& create(widget::type t, int w, int h, int r, int g, int b, int a);
 
+            void print(int x, int y, const std::string& text);
+
+        protected:
             void draw(widget& instance);
+            void reposition(widget& instance);
         };
 
     }
