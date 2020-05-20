@@ -14,6 +14,7 @@ namespace platform {
         public:
             typedef void(*callback)(const platform::input::event&);
 
+            widget() {}
             ~widget() {}
 
             enum type {
@@ -66,7 +67,22 @@ namespace platform {
                 return *this;
             }
 
+            virtual void raise(const input::event& ev) {
+                if (callbacks.find(ev.input) != callbacks.end()) {
+                    if (callbacks[ev.input].find(ev.gesture) != callbacks[ev.input].end()) {
+                        if (callbacks[ev.input][ev.gesture].find(ev.identifier) != callbacks[ev.input][ev.gesture].end()) {
+                            callbacks[ev.input][ev.gesture][ev.identifier](ev);
+                        }
+                        /// Also fire off the catch-all handler
+                        if (callbacks[ev.input][ev.gesture].find(0) != callbacks[ev.input][ev.gesture].end()) {
+                            callbacks[ev.input][ev.gesture][0](ev);
+                        }
+                    }
+                }
+            }
+
             ::type::object background;
+            spatial::quad bounds;
 
             int x;
             int y;
@@ -79,8 +95,6 @@ namespace platform {
             bool enabled;
             bool active;
             bool relative;
-
-            spatial::quad bounds;
 
             std::vector<std::reference_wrapper<widget>> children;
 
@@ -100,8 +114,6 @@ namespace platform {
 
             bool edit;
             bool multiline;
-
-            widget* parent;
         };
 
         class tabbed : public widget {
@@ -127,7 +139,7 @@ namespace platform {
             std::map<std::string, int> crossreference;
         };
 
-        virtual void raise(const input::event& ev) = 0;
+        virtual void raise(const input::event& ev, int x, int y) = 0;
         virtual void emit() = 0;
 
         virtual void draw() = 0;

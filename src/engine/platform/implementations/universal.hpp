@@ -22,7 +22,7 @@ namespace implementation {
 
         class interface : public platform::interface {
         public:
-            void raise(const input::event& ev);
+            void raise(const input::event& ev, int x, int y);
             void emit();
 
             void draw();

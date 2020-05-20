@@ -234,13 +234,12 @@ void prototype::on_startup() {
     input->handler(platform::input::POINTER, platform::input::MOVE, &mouse_move, 0);
 
     // Create some gui elements
-    gui->create(platform::interface::widget::type::button, 256, 256, 20, 0, 0, 80).position(200, 200);
-
-
-
-//    hello.handler(platform::input::POINTER, platform::input::DOWN, [](const platform::input::event& ev) {
-//        print(200, 200, "HelloWorld");
-//    }, 1);
+    gui->create(platform::interface::widget::type::button, 256, 256, 20, 0, 0, 80).position(200, 200).handler(platform::input::POINTER, platform::input::MOVE, [](const platform::input::event& ev) {
+        std::stringstream ss;
+        ss << "hover_over(" << ev.point.x << ", " << ev.point.y << ")";
+        text_events.add(ss.str());
+        print(210, 210, "HelloWorld"); // TODO: this won't draw... likely before or after the frame buffer swap
+    }, 1);
 
 }
 
@@ -258,8 +257,6 @@ void prototype::on_resize() {
 void prototype::on_draw() {
     graphics->clear();
 
-    //graphics->clip(10000, 0, -50, 10000);
-
     spatial::matrix frame;
     frame.identity();
     frame.translate(400, 400, 0);
@@ -270,8 +267,6 @@ void prototype::on_draw() {
 
     pos.rotate(0.0f, 1.0f);
     pos.move(0.02f);
-
-    //camera.move(4.0f);
 
     spatial::matrix model;
     model.identity();
@@ -323,75 +318,7 @@ void prototype::on_draw() {
     print(30, 390, "MOUSE");
     print(30, 390 + font.leading(), mouse);
 
-    //print(30, height - 520, "GLM::MAT4");
-    //print(30, height - 550, View);
-
-    spatial::vector unprojected_projection = mouse.unproject(view, perspective, width, height);
-    spatial::vector unprojected_ortho = mouse.unproject(spatial::matrix(), ortho, width, height);
-
-    auto relative = mouse;
-    relative.x = relative.x;
-    relative.y = height - relative.y;
-
-    spatial::vector projected_ortho = relative.project(spatial::matrix(), spatial::matrix(), spatial::matrix());
-
-    print(30, 390 + font.leading() * 2, projected_ortho);
-    //print(30, height - 480, unprojected_projection);
-
-    // temporary to test the math
-    spatial::triangle t1;
-    t1.vertices[0] = icon.vertices[0];
-    t1.vertices[1] = icon.vertices[1];
-    t1.vertices[2] = icon.vertices[2];
-
-    spatial::triangle t2;
-    t2.vertices[0] = icon.vertices[3];
-    t2.vertices[1] = icon.vertices[4];
-    t2.vertices[2] = icon.vertices[5];
-
-    t1.project(frame, spatial::matrix(), spatial::matrix());
-    t2.project(frame, spatial::matrix(), spatial::matrix());
-
-    t1.vertices[0].coordinate.w = 1.0f;
-    t1.vertices[1].coordinate.w = 1.0f;
-    t1.vertices[2].coordinate.w = 1.0f;
-
-    t2.vertices[0].coordinate.w = 1.0f;
-    t2.vertices[1].coordinate.w = 1.0f;
-    t2.vertices[2].coordinate.w = 1.0f;
-
-    print(30, 520, "TRIANGLE 1");
-    print(30, 520 + font.leading(), t1.vertices[0].coordinate);
-    print(30, 520 + font.leading() * 2, t1.vertices[1].coordinate);
-    print(30, 520 + font.leading() * 3, t1.vertices[2].coordinate);
-
-    print(30, 660, "TRIANGLE 2");
-    print(30, 660 + font.leading(), t2.vertices[0].coordinate);
-    print(30, 660 + font.leading() * 2, t2.vertices[1].coordinate);
-    print(30, 660 + font.leading() * 3, t2.vertices[2].coordinate);
-
-    spatial::ray r1;
-
-    r1.origin = projected_ortho;
-    r1.terminus = projected_ortho;
-    r1.origin.z = 100;
-    r1.terminus.z = -100;
-
-    //auto i1 = r1.intersection(t1);
-    //print(30, height - 820, i1);
-
-    if (r1.intersects(t1) || r1.intersects(t2)) {
-        print(200, 390, "(HOVER OVER)");
-    }
-
-    // print(600, height, text_events);
-
     textbox(600, 10, box_events, text_events);
-    //text_data.limit = 100;
-    //for (int i = 0; i < 100; i++) {
-    //    text_data.add(std::string('X', 200));
-    //}
-    //print(0, height-30, text_data);
 
     std::string value = utilities::type_cast<std::string>(fps);
     print(900, 30, std::string("FPS: ") + value);

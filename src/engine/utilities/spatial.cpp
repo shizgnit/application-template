@@ -727,6 +727,51 @@ spatial::quaternion::operator spatial::matrix() {
     return(result);
 }
 
+spatial::quad::quad(int width, int height) {
+    spatial::quad::geometry(width, height);
+}
+
+void spatial::quad::geometry(int width, int height) {
+    this->width = width;
+    this->height = height;
+
+    int factor = 1;
+
+    vertices.resize(6 * factor * factor);
+
+    type_t x = 0.0f;
+    type_t y = 0.0f;
+
+    type_t dx = width / factor;
+    type_t dy = height / factor;
+
+    int index = 0;
+
+    for (int i = 0; i < factor; i++) {
+        x = dx * i;
+        for (int j = 0; j < factor; j++) {
+            y = dy * j;
+
+            vertices[index++].coordinate(x + dx, y + dy);
+            vertices[index++].coordinate(x, y + dy);
+            vertices[index++].coordinate(x, y);
+
+            vertices[index++].coordinate(x + dx, y + dy);
+            vertices[index++].coordinate(x, y);
+            vertices[index++].coordinate(x + dx, y);
+        }
+    }
+}
+
+spatial::quad& spatial::quad::project(const matrix& model, const matrix& view, const matrix& projection) {
+    matrix mvp = projection * view * model;
+    for (auto& v : vertices) {
+        v.coordinate = mvp.interpolate(v.coordinate);
+    }
+    return *this;
+}
+
+
 spatial::ray::type_t spatial::ray::distance(const spatial::ray& r) {
     // TODO: needs implementation
     return 0.0f;
@@ -741,6 +786,16 @@ spatial::ray::type_t spatial::ray::distance(const spatial::vector& v) const {
     auto c = p1 % p2;
 
     return c.length() / terminus.length();
+}
+
+bool spatial::ray::intersects(const spatial::quad& quad) {
+    if (intersects(spatial::triangle({ quad.vertices[0], quad.vertices[1], quad.vertices[2] }))) {
+        return true;
+    }
+    if (intersects(spatial::triangle({ quad.vertices[3], quad.vertices[4], quad.vertices[5] }))) {
+        return true;
+    }
+    return false;
 }
 
 // https://cadxfem.org/inf/Fast%20MinimumStorage%20RayTriangle%20Intersection.pdf
@@ -816,11 +871,12 @@ spatial::vector spatial::triangle::normal() const {
     return (e1 % e2).unit();
 }
 
-void spatial::triangle::project(const matrix& model, const matrix& view, const matrix& projection) {
+spatial::triangle& spatial::triangle::project(const matrix& model, const matrix& view, const matrix& projection) {
     matrix mvp = projection * view * model;
     for (auto& v : vertices) {
         v.coordinate = mvp.interpolate(v.coordinate);
     }
+    return *this;
 }
 
 

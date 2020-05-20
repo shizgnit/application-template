@@ -216,6 +216,11 @@ namespace spatial {
     class triangle {
     public:
         triangle() : vertices(3) {}
+        triangle(const spatial::vertex& v0, const spatial::vertex& v1, const spatial::vertex& v2) : triangle() {
+            vertices[0] = v0;
+            vertices[1] = v1;
+            vertices[2] = v2;
+        }
 
         typedef vector::type_t type_t;
 
@@ -223,15 +228,33 @@ namespace spatial {
 
         spatial::vector normal() const;
 
-        void project(const matrix& model, const matrix& view, const matrix& projection);
+        triangle& project(const matrix& model, const matrix& view, const matrix& projection);
     };
 
     class quad {
     public:
+        quad() {};
+        quad(int width, int height);
+        quad(const std::vector<spatial::vertex>& vertices) {
+            this->vertices = vertices;
+        }
+
+        void geometry(int width, int height);
+
+        quad& operator =(const std::vector<spatial::vertex>& vertices) {
+            this->vertices = vertices;
+            return *this;
+        }
+
+        typedef vector::type_t type_t;
+
         int width;
         int height;
 
         std::vector<spatial::vertex> vertices;
+
+        // TODO: might use this
+        quad& project(const matrix& model, const matrix& view, const matrix& projection);
     };
 
     class ray {
@@ -244,10 +267,12 @@ namespace spatial {
         type_t distance(const vector& v) const;
         type_t distance(const ray& r);
 
+        bool intersects(const quad& t);
         bool intersects(const triangle& t);
         bool intersects(const plane& t);
         bool intersects(const sphere& t);
 
+        vector intersection(const quad& t);
         vector intersection(const triangle& t);
         vector intersection(const plane& t);
     };

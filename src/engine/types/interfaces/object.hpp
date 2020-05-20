@@ -84,36 +84,15 @@ namespace type {
         }
         int boundary_height;
 
+        object& operator = (const spatial::quad& quad) {
+            this->vertices = quad.vertices;
+            return *this;
+        }
+
         void quad(float width, float height) {
             boundary_width = width;
             boundary_height = height;
-
-            int factor = 1;
-
-            vertices.resize(6 * factor * factor);
-
-            type_t x = 0.0f;
-            type_t y = 0.0f;
-
-            type_t dx = width / factor;
-            type_t dy = height / factor;
-
-            int index = 0;
-
-            for (int i = 0; i < factor; i++) {
-                x = dx * i;
-                for (int j = 0; j < factor; j++) {
-                    y = dy * j;
-
-                    vertices[index++].coordinate(x + dx, y + dy);
-                    vertices[index++].coordinate(x, y + dy);
-                    vertices[index++].coordinate(x, y);
-
-                    vertices[index++].coordinate(x + dx, y + dy);
-                    vertices[index++].coordinate(x, y);
-                    vertices[index++].coordinate(x + dx, y);
-                }
-            }
+            *this = spatial::quad(width, height);
         }
 
         friend type::object& operator>>(type::object& input, type::object& instance) {

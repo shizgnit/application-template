@@ -325,6 +325,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             GetCursorPos(&p);
             ScreenToClient(hWnd, &p);
             input->raise({ platform::input::POINTER, platform::input::MOVE, 0, { (float)p.x, (float)p.y, 0.0f }, 1 });
+            gui->raise({ platform::input::POINTER, platform::input::MOVE, 1, { (float)p.x, (float)p.y, 0.0f }, 0 }, p.x, p.y);
         }
         if (rawinput.header.dwType == RIM_TYPEMOUSE && rawinput.data.mouse.ulButtons != 0)
         {
@@ -334,9 +335,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             switch (rawinput.data.mouse.usButtonFlags) {
             case(RI_MOUSE_LEFT_BUTTON_DOWN):
                 input->raise({ platform::input::POINTER, platform::input::DOWN, 1, { (float)p.x, (float)p.y, 0.0f }, 0 });
+                gui->raise({ platform::input::POINTER, platform::input::DOWN, 1, { (float)p.x, (float)p.y, 0.0f }, 0 }, p.x, p.y);
                 break;
             case(RI_MOUSE_RIGHT_BUTTON_DOWN):
                 input->raise({ platform::input::POINTER, platform::input::DOWN, 2, { (float)p.x, (float)p.y, 0.0f }, 0 });
+                gui->raise({ platform::input::POINTER, platform::input::DOWN, 2, { (float)p.x, (float)p.y, 0.0f }, 0 }, p.x, p.y);
                 break;
             case(RI_MOUSE_MIDDLE_BUTTON_DOWN):
                 input->raise({ platform::input::POINTER, platform::input::DOWN, 3, { (float)p.x, (float)p.y, 0.0f }, 0 });

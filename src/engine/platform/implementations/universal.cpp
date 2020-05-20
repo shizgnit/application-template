@@ -114,8 +114,23 @@ void implementation::universal::input::emit() {
     }
 }
 
-void implementation::universal::interface::raise(const input::event& ev) {
+void implementation::universal::interface::raise(const input::event& ev, int x, int y) {
+    spatial::vector relative = { (float)x, (float)(graphics->height() - y), 0.0f };
+    spatial::vector projected = relative.project(spatial::matrix(), spatial::matrix(), spatial::matrix());
 
+    spatial::ray ray;
+
+    ray.origin = projected;
+    ray.terminus = projected;
+    ray.origin.z = 100;
+    ray.terminus.z = -100;
+
+    for (auto instance : instances) {
+        // TODO: currently filtering by intersection, this will not be adequate for keyboard/key input
+        if (ray.intersects(instance->bounds)) {
+            instance->raise(ev);
+        }
+    }
 }
 
 void implementation::universal::interface::emit() {
@@ -144,6 +159,8 @@ platform::interface::widget& implementation::universal::interface::create(platfo
     instances.back()->background.quad(w, h);
     instances.back()->background.xy_projection(0, 0, w, h);
 
+    instances.back()->bounds = instances.back()->background.vertices;
+
     graphics->compile(instances.back()->background);
 
     return *instances.back();
@@ -164,6 +181,8 @@ platform::interface::widget& implementation::universal::interface::create(platfo
     instances.back()->background.quad(w, h);
     instances.back()->background.xy_projection(0, 0, w, h);
 
+    instances.back()->bounds = spatial::quad(instances.back()->background.vertices).project(spatial::matrix(), spatial::matrix(), projection);
+
     graphics->compile(instances.back()->background);
 
     return *instances.back();
@@ -175,6 +194,8 @@ void implementation::universal::interface::draw(widget& instance) {
     spatial::matrix position;
     position.identity();
     position.translate(instance.x, (graphics->height() - instance.background.height()) - instance.y, 0);
+
+    instance.bounds = spatial::quad(instances.back()->background.vertices).project(position, spatial::matrix(), spatial::matrix());
 
     graphics->draw(instance.background, shader, position, spatial::matrix(), projection);
 
