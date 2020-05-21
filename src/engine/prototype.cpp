@@ -77,11 +77,14 @@ inline float prior_y;
 void freelook_start(const platform::input::event& ev) {
     prior_x = ev.point.x;
     prior_y = ev.point.y;
+    std::stringstream ss;
+    ss << "freelook_start(" << ev.point.x << ", " << ev.point.y << ")";
+    text_event(ss.str());
 }
 
 void freelook_move(const platform::input::event& ev) {
     std::stringstream ss;
-    ss << "on_drag(" << ev.point.x << ", " << ev.point.y << ")";
+    ss << "freelook_move(" << ev.point.x << ", " << ev.point.y << ")";
     text_event(ss.str());
     camera.rotate(ev.point.y - prior_y, prior_x - ev.point.x);
     prior_x = ev.point.x;
@@ -97,6 +100,11 @@ void freelook_zoom(const platform::input::event& ev) {
 
 void mouse_move(const platform::input::event& ev) {
     mouse = ev.point;
+    std::stringstream ss;
+    ss << "mouse_move(" << ev.point.x << ", " << ev.point.y << ")";
+    text_event(ss.str());
+    prior_x = ev.point.x;
+    prior_y = ev.point.y;
 }
 
 void prototype::on_startup() {
@@ -120,9 +128,7 @@ void prototype::on_startup() {
     graphics->compile(gui->font);
 
     /// Get the icon ready for drawing
-    //assets->retrieve("drawable/marvin.png") >> format::parser::png >> icon.texture.map;
-
-    icon.texture.map.create(0, 0, 0, 80);
+    assets->retrieve("drawable/marvin.png") >> format::parser::png >> icon.texture.map;
     icon.quad(256, 256);
     icon.xy_projection(0, 0, 256, 256);
     graphics->compile(icon);
@@ -138,8 +144,6 @@ void prototype::on_startup() {
 
     audio->compile(sound);
 
-    init = true;
-
     // Hook up the input handlers
     input->handler(platform::input::POINTER, platform::input::DOWN, &freelook_start, 2);
     input->handler(platform::input::POINTER, platform::input::DRAG, &freelook_move, 0);
@@ -149,14 +153,17 @@ void prototype::on_startup() {
     input->handler(platform::input::POINTER, platform::input::MOVE, &mouse_move, 0);
 
     // Create some gui elements
-    auto btn = gui->cast<platform::interface::button>(gui->create(platform::interface::widget::type::button, 256, 256, 20, 0, 0, 80).position(200, 200).handler(platform::input::POINTER, platform::input::MOVE, [](const platform::input::event& ev) {
+    auto btn = gui->cast<platform::interface::button>(gui->create(platform::interface::widget::type::button, 256, 256, 0, 0, 0, 80).position(20, 20).handler(platform::input::POINTER, platform::input::MOVE, [](const platform::input::event& ev) {
         std::stringstream ss;
         ss << "hover_over(" << ev.point.x << ", " << ev.point.y << ")";
         text_event(ss.str());
         gui->print(210, 210, "HelloWorld"); // TODO: this won't draw... likely before or after the frame buffer swap, don't intend to ever do this anyway
     }, 1));
 
-    textbox = gui->create(platform::interface::widget::type::textbox, 256, 512, 20, 0, 0, 80).position(600, 200).id;
+    textbox = gui->create(platform::interface::widget::type::textbox, 512, 720, 0, 0, 0, 80).position(graphics->width() - 512 - 20, 20).id;
+
+    init = true;
+
 }
 
 void prototype::on_resize() {
@@ -168,14 +175,12 @@ void prototype::on_resize() {
     Projection = glm::perspective(glm::pi<float>() * 0.25f, (float)width / (float)height, 1.0f, 100.0f);
 
     gui->projection = ortho;
+
+    if(init) gui->get<platform::interface::textbox>(textbox).position(width - 512 - 20, 20);
 }
 
 void prototype::on_draw() {
     graphics->clear();
-
-    spatial::matrix frame;
-    frame.identity();
-    frame.translate(400, 400, 0);
 
     spatial::matrix center;
     center.identity();
@@ -225,20 +230,20 @@ void prototype::on_draw() {
     //print(100, 400, "ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz");
     //print(100, 450, "0123456789 !@#$%^&*()_-=+<>,./?{[]}\|");
 
-    gui->print(30, 30, "MODEL");
-    print(30, 30 + font.leading(), model);
+    gui->print(30, 330, "MODEL");
+    print(30, 330 + font.leading(), model);
 
-    gui->print(30, 210, "VIEW");
-    print(30, 210 + font.leading(), view);
+    gui->print(30, 460, "VIEW");
+    print(30, 460 + font.leading(), view);
 
-    gui->print(30, 390, "MOUSE");
-    print(30, 390 + font.leading(), mouse);
+    gui->print(30, 590, "MOUSE");
+    print(30, 590 + font.leading(), mouse);
 
     //textbox(600, 10, box_events, text_events);
     //gui->get<platform::interface::textbox>(textbox).content.add(utilities::type_cast<std::string>(time(NULL)));
 
     std::string value = utilities::type_cast<std::string>(fps);
-    gui->print(900, 30, std::string("FPS: ") + value);
+    gui->print(30, 300, std::string("FPS: ") + value);
 
     frames += 1;
     time_t now = time(NULL);
@@ -247,6 +252,11 @@ void prototype::on_draw() {
         fps = frames;
         frames = 0;
     }
+
+
+    spatial::matrix frame;
+    frame.identity();
+    frame.translate(20, graphics->height() - 20 - 256, 0);
 
     graphics->draw(icon, shader, frame, spatial::matrix(), ortho);
 
