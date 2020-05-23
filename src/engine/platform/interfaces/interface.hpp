@@ -132,6 +132,8 @@ namespace platform {
 
             utilities::text content;
 
+            positioning text_alignment = positioning::top;
+
             bool edit;
             bool multiline;
         };

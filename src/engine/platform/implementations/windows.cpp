@@ -192,7 +192,9 @@ std::istream& implementation::windows::assets::retrieve(std::string path) {
             directories.push_back(entry.path);
         }
     }
-    directories.push_back(path);
+    for (auto path : utilities::tokenize(path, "/")) {
+        directories.push_back(path);
+    }
 
     std::string asset = utilities::join("\\", directories);
 
@@ -275,7 +277,7 @@ implementation::windows::network::client::client() {
 implementation::windows::network::client::~client() {
 }
 
-void implementation::windows::network::client::start() {
+void implementation::windows::network::client::connect() {
     SOCKET server;
     SOCKADDR_IN addr;
 
@@ -285,16 +287,16 @@ void implementation::windows::network::client::start() {
     addr.sin_family = AF_INET;
     addr.sin_port = htons(5555);
 
-    connect(server, (SOCKADDR*)&addr, sizeof(addr));
+    ::connect(server, (SOCKADDR*)&addr, sizeof(addr));
     std::cout << "Connected to server!" << std::endl;
 
     char buffer[1024] = { 'h', 'e', 'l', 'l', 'o', '.' };
-    send(server, buffer, sizeof(buffer), 0);
+    ::send(server, buffer, sizeof(buffer), 0);
     std::cout << "Message sent!" << std::endl;
 
-    closesocket(server);
-    WSACleanup();
-    std::cout << "Socket closed." << std::endl << std::endl;
+    //closesocket(server);
+    //WSACleanup();
+    //std::cout << "Socket closed." << std::endl << std::endl;
 }
 
 implementation::windows::network::server::server() {
@@ -309,7 +311,40 @@ implementation::windows::network::server::server() {
 implementation::windows::network::server::~server() {
 }
 
-void implementation::windows::network::server::start() {
+void* start_client(void* instance) {
+    auto reference = (implementation::windows::network::client*)instance;
+
+    char incoming[1024];
+
+    std::cout << "Client connected!" << std::endl;
+    while (1) {
+        if (reference->pending) {
+            std::vector<char> bytes;
+            reference->sending.lock();
+            reference->output.swap(bytes);
+            reference->pending = false;
+            reference->sending.unlock();
+            ::send(reference->connection, bytes.data(), bytes.size(), 0);
+        }
+
+        recv(reference->connection, incoming, sizeof(incoming), 0);
+        std::cout << "Client says: " << incoming << std::endl;
+        //reference->receive(incoming);
+
+        memset(incoming, 0, sizeof(incoming));
+    }
+
+    //closesocket(client);
+    std::cout << "Client disconnected." << std::endl;
+
+    pthread_exit(NULL);
+}
+
+void* start_server(void *instance) {
+    auto reference = (implementation::windows::network::server*)instance;
+
+    std::cout << "Listening for incoming connections..." << std::endl;
+
     SOCKET server, client;
     SOCKADDR_IN serverAddr, clientAddr;
 
@@ -322,20 +357,24 @@ void implementation::windows::network::server::start() {
     bind(server, (SOCKADDR*)&serverAddr, sizeof(serverAddr));
     listen(server, 0);
 
-    std::cout << "Listening for incoming connections..." << std::endl;
-
     char buffer[1024];
     int clientAddrSize = sizeof(clientAddr);
-    if ((client = accept(server, (SOCKADDR*)&clientAddr, &clientAddrSize)) != INVALID_SOCKET)
+    while ((client = accept(server, (SOCKADDR*)&clientAddr, &clientAddrSize)) != INVALID_SOCKET)
     {
-        std::cout << "Client connected!" << std::endl;
-        recv(client, buffer, sizeof(buffer), 0);
-        std::cout << "Client says: " << buffer << std::endl;
-        memset(buffer, 0, sizeof(buffer));
-
-        closesocket(client);
-        std::cout << "Client disconnected." << std::endl;
+        auto instantiated = (implementation::windows::network::client *)reference->add("somkething", new implementation::windows::network::client());
+        instantiated->connection = client;
+        pthread_create(&instantiated->thread, NULL, start_client, (void*)instantiated);
     }
+
+    pthread_exit(NULL);
+    return NULL;
+}
+
+void implementation::windows::network::server::start() {
+    pthread_create(&thread, NULL, start_server, (void*)this);
+}
+
+void implementation::windows::network::server::stop() {
 }
 
 #endif

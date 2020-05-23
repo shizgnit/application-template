@@ -209,11 +209,22 @@ void implementation::universal::interface::draw(widget& instance) {
     case(widget::type::button):
         break;
     case(widget::type::textbox):
-        auto contents = gui->cast<platform::interface::textbox>(instance).content.get();
-        int x = instance.x + 20; // TODO: add in a configurable margin, etc
-        int y = instance.y;
-        for (auto message : contents) {
-            print(x, y += font.leading(), message);
+        platform::interface::textbox& textbox = gui->cast<platform::interface::textbox>(instance);
+        auto contents = textbox.content.get();
+
+        if (textbox.text_alignment == widget::positioning::top) {
+            int x = textbox.x + 20; // TODO: add in a configurable margin, etc
+            int y = textbox.y + 20;
+            for (auto message : contents) {
+                print(x, y += font.leading(), message);
+            }
+        }
+        if (textbox.text_alignment == widget::positioning::bottom) {
+            int x = textbox.x + 20;
+            int y = textbox.y + textbox.background.height() - (contents.size() * font.leading()) - 20;
+            for (auto message : contents) {
+                print(x, y += font.leading(), message);
+            }
         }
         break;
     }

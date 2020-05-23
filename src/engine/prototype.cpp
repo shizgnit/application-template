@@ -158,12 +158,19 @@ void prototype::on_startup() {
         ss << "hover_over(" << ev.point.x << ", " << ev.point.y << ")";
         text_event(ss.str());
         gui->print(210, 210, "HelloWorld"); // TODO: this won't draw... likely before or after the frame buffer swap, don't intend to ever do this anyway
-    }, 1));
+    }, 1)).handler(platform::input::POINTER, platform::input::DOWN, [](const platform::input::event& ev) {
+        std::stringstream ss;
+        ss << "button_down(" << ev.point.x << ", " << ev.point.y << ")";
+        text_event(ss.str());
+        client->connect();
+     }, 1);
 
     textbox = gui->create(platform::interface::widget::type::textbox, 512, 720, 0, 0, 0, 80).position(graphics->width() - 512 - 20, 20).id;
+    gui->get<platform::interface::textbox>(textbox).text_alignment = platform::interface::widget::positioning::bottom;
+
+    //server->start();
 
     init = true;
-
 }
 
 void prototype::on_resize() {

@@ -54,8 +54,11 @@ namespace implementation {
             class client : public platform::network::client {
             public:
                 client();
-                virtual ~client(); 
-                virtual void start();
+                virtual ~client();
+
+                virtual void connect();
+
+                SOCKET connection;
             };
 
             class server : public platform::network::server {
@@ -63,6 +66,7 @@ namespace implementation {
                 server();
                 virtual ~server();
                 virtual void start();
+                virtual void stop();
             };
         };
 

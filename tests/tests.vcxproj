@@ -57,6 +57,8 @@
     <Import Project="..\packages\glew.1.9.0.1\build\native\glew.targets" Condition="Exists('..\packages\glew.1.9.0.1\build\native\glew.targets')" />
     <Import Project="..\packages\zlib_native.redist.1.2.11\build\native\zlib_native.redist.targets" Condition="Exists('..\packages\zlib_native.redist.1.2.11\build\native\zlib_native.redist.targets')" />
     <Import Project="..\packages\zlib_native.1.2.11\build\native\zlib_native.targets" Condition="Exists('..\packages\zlib_native.1.2.11\build\native\zlib_native.targets')" />
+    <Import Project="..\packages\pthreads.redist.2.9.1.4\build\native\pthreads.redist.targets" Condition="Exists('..\packages\pthreads.redist.2.9.1.4\build\native\pthreads.redist.targets')" />
+    <Import Project="..\packages\pthreads.2.9.1.4\build\native\pthreads.targets" Condition="Exists('..\packages\pthreads.2.9.1.4\build\native\pthreads.targets')" />
   </ImportGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -74,23 +76,27 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
       <AdditionalDependencies>glew.lib;opengl32.lib;gtest_maind.lib;ws2_32.lib;rpcrt4.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)packages\glew.1.9.0.1\build\native\lib\v110\Win32\Release\static;$(SolutionDir)packages\Microsoft.googletest.v140.windesktop.msvcstl.static.rt-dyn.1.8.1\lib\native\v140\windesktop\msvcstl\static\rt-dyn\x86\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)packages\pthreads.2.9.1.4\build\native\lib\v110\Win32\Release\static\stdcall;$(SolutionDir)packages\glew.1.9.0.1\build\native\lib\v110\Win32\Release\static;$(SolutionDir)packages\glew.1.9.0.1\build\native\lib\v110\Win32\Release\static;$(SolutionDir)packages\Microsoft.googletest.v140.windesktop.msvcstl.static.rt-dyn.1.8.1\lib\native\v140\windesktop\msvcstl\static\rt-dyn\x64\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>X64;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>SOLUTION_PATH=R"($(SolutionDir))";__WINDOWS__;WIN32;_DEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;_DEBUG;_WINDOWS;X64;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
+      <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)\packages\zlib_native.1.2.11\build\native\include;$(SolutionDir)\deps\glm;%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory);$(MSBuildThisFileDirectory)../..//build/native/include/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
+      <AdditionalLibraryDirectories>$(SolutionDir)packages\zlib_native.1.2.11\build\native\lib\x64\Release;$(SolutionDir)packages\pthreads.2.9.1.4\build\native\lib\v110\x64\Release\dynamic\cdecl;$(SolutionDir)packages\glew.1.9.0.1\build\native\lib\v110\x64\Release\static;%(AdditionalLibraryDirectories);$(MSBuildThisFileDirectory)\..\runtimes\win-$(PlatformTarget)\native\</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libpthread.lib;glew.lib;opengl32.lib;rpcrt4.lib;ws2_32.lib;zlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -135,5 +141,7 @@
     <Error Condition="!Exists('..\packages\OpenAL.Soft.1.19.1\build\openal.soft.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\OpenAL.Soft.1.19.1\build\openal.soft.props'))" />
     <Error Condition="!Exists('..\packages\zlib_native.redist.1.2.11\build\native\zlib_native.redist.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\zlib_native.redist.1.2.11\build\native\zlib_native.redist.targets'))" />
     <Error Condition="!Exists('..\packages\zlib_native.1.2.11\build\native\zlib_native.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\zlib_native.1.2.11\build\native\zlib_native.targets'))" />
+    <Error Condition="!Exists('..\packages\pthreads.redist.2.9.1.4\build\native\pthreads.redist.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\pthreads.redist.2.9.1.4\build\native\pthreads.redist.targets'))" />
+    <Error Condition="!Exists('..\packages\pthreads.2.9.1.4\build\native\pthreads.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\pthreads.2.9.1.4\build\native\pthreads.targets'))" />
   </Target>
 </Project>

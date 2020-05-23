@@ -35,6 +35,7 @@
 #include <io.h>
 #include <fcntl.h>
 #include <shellapi.h>
+#define HAVE_STRUCT_TIMESPEC
 #endif
 
 #if defined __PLATFORM_ANDROID
@@ -66,6 +67,7 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include <errno.h>
+#include <pthread.h>
 
 #include <string>
 #include <vector>
@@ -120,6 +122,8 @@ inline platform::assets* assets = new implementation::android::assets();
 inline platform::graphics* graphics = new implementation::opengl::graphics();
 inline platform::input* input = new implementation::universal::input();
 inline platform::interface* gui = new implementation::universal::interface();
+inline platform::network::client* client = new implementation::posix::network::client();
+inline platform::network::server* server = new implementation::posix::network::server();
 #endif
 
 
@@ -135,6 +139,8 @@ inline platform::assets* assets = new implementation::windows::assets();
 inline platform::graphics* graphics = new implementation::opengl::graphics();
 inline platform::input* input = new implementation::universal::input();
 inline platform::interface* gui = new implementation::universal::interface();
+inline platform::network::client* client = new implementation::windows::network::client();
+inline platform::network::server* server = new implementation::windows::network::server();
 #endif
 
 /// Supported Formats

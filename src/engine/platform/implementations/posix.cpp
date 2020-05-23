@@ -265,5 +265,32 @@ unsigned long implementation::posix::network::pid() {
     return(getpid());
 }
 
+implementation::posix::network::client::client() {
+
+}
+
+implementation::posix::network::client::~client() {
+
+}
+
+void implementation::posix::network::client::connect() {
+
+}
+
+implementation::posix::network::server::server() {
+
+}
+
+implementation::posix::network::server::~server() {
+
+}
+
+void implementation::posix::network::server::start() {
+
+}
+
+void implementation::posix::network::server::stop() {
+
+}
 
 #endif
