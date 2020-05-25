@@ -151,7 +151,11 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
 
     glUniform4f(shader.u_Clipping, clip_top[clip_top.size()-1], clip_bottom[clip_bottom.size() - 1], clip_left[clip_left.size() - 1], clip_right[clip_right.size() - 1]);
 
-    size_t offset = 8; // necessary to offset object overhead
+#ifdef __PLATFORM_64BIT
+    size_t offset = 8; // TODO: necessary to offset object overhead, this could/should be dynamic
+#else
+    size_t offset = 4;
+#endif
 
     glBindBuffer(GL_ARRAY_BUFFER, object.context);
     glVertexAttribPointer(shader.a_Vertex, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::vertex), BUFFER_OFFSET(offset));

@@ -103,14 +103,12 @@ namespace platform {
             int id;
             type spec;
 
+            bool selectable = false;
+
         protected:
             bool floating = false;
             positioning horizontal = positioning::none;
             positioning vertical = positioning::none;
-
-            bool enabled;
-            bool active;
-            bool relative;
 
             std::vector<std::reference_wrapper<widget>> children;
 
@@ -132,10 +130,9 @@ namespace platform {
 
             utilities::text content;
 
-            positioning text_alignment = positioning::top;
+            positioning alignment = positioning::top;
 
-            bool edit;
-            bool multiline;
+            bool multiline = true;
         };
 
         class tabbed : public widget {
@@ -186,6 +183,8 @@ namespace platform {
         virtual void reposition(widget& instance) = 0;
 
         std::vector<widget *> instances;
+
+        widget* selected = NULL;
     };
 
 }

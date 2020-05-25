@@ -313,11 +313,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
         if (rawinput.header.dwType == RIM_TYPEKEYBOARD && (rawinput.data.keyboard.Flags == 0 || rawinput.data.keyboard.Flags == 2))
         {
-            //instance->on_key_down(rawinput.data.keyboard.VKey);
+            input->raise({ platform::input::KEY, platform::input::DOWN, rawinput.data.keyboard.VKey, { 0.0f, 0.0f, 0.0f }, 1 });
+            gui->raise({ platform::input::KEY, platform::input::DOWN, rawinput.data.keyboard.VKey, { 0.0f, 0.0f, 0.0f }, 0 }, 0, 0);
         }
         if (rawinput.header.dwType == RIM_TYPEKEYBOARD && (rawinput.data.keyboard.Flags == 1 || rawinput.data.keyboard.Flags == 3))
         {
-            //instance->on_key_up(rawinput.data.keyboard.VKey);
+            input->raise({ platform::input::KEY, platform::input::UP, rawinput.data.keyboard.VKey, { 0.0f, 0.0f, 0.0f }, 1 });
+            gui->raise({ platform::input::KEY, platform::input::UP, rawinput.data.keyboard.VKey, { 0.0f, 0.0f, 0.0f }, 0 }, 0, 0);
         }
 
         if (rawinput.header.dwType == RIM_TYPEMOUSE && rawinput.data.mouse.ulButtons == 0)

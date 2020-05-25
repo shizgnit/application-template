@@ -9,7 +9,7 @@ inline type::object poly;
 inline type::object skybox;
 
 inline type::program shader;
-inline type::font font;
+//inline type::font font;
 
 inline spatial::matrix ortho;
 inline spatial::matrix perspective;
@@ -29,6 +29,7 @@ glm::mat4 Projection;
 glm::mat4 View;
 glm::mat4 Model;
 
+int events;
 int textbox;
 
 void print(int x, int y, spatial::vector vector) {
@@ -51,7 +52,7 @@ void print(int x, int y, spatial::matrix matrix) {
             ss << matrix[row][col] << (col < 3 ? ", " : " ");
         }
         ss << (row == 3 ? "] ]" : "]");
-        gui->print(x, y + (font.leading() * row), ss.str());
+        gui->print(x, y + (gui->font.leading() * row), ss.str());
     }
 }
 
@@ -63,12 +64,13 @@ void print(int x, int y, const glm::mat4& matrix) {
             ss << matrix[row][col] << (col < 3 ? ", " : " ");
         }
         ss << (row == 3 ? "] ]" : "]");
-        gui->print(x, y + (font.leading() * row), ss.str());
+        gui->print(x, y + (gui->font.leading() * row), ss.str());
     }
 }
 
 void text_event(const std::string& text) {
-    gui->get<platform::interface::textbox>(textbox).content.add(text);
+    std::string output = text + "\n";
+    gui->get<platform::interface::textbox>(events).content.add(output);
 }
 
 inline float prior_x;
@@ -133,8 +135,9 @@ void prototype::on_startup() {
     icon.xy_projection(0, 0, 256, 256);
     graphics->compile(icon);
 
-    assets->retrieve("fonts/consolas-22.fnt") >> format::parser::fnt >> font;
-    graphics->compile(font);
+    // TODO: find the bug that causes faults loading the same resources twice on android
+    //assets->retrieve("fonts/consolas-22.fnt") >> format::parser::fnt >> font;
+    //graphics->compile(font);
 
     assets->retrieve("objects/skybox.obj") >> format::parser::obj >> skybox;
     graphics->compile(skybox.children[0]);
@@ -165,10 +168,41 @@ void prototype::on_startup() {
         client->connect();
      }, 1);
 
-    textbox = gui->create(platform::interface::widget::type::textbox, 512, 720, 0, 0, 0, 80).position(graphics->width() - 512 - 20, 20).id;
-    gui->get<platform::interface::textbox>(textbox).text_alignment = platform::interface::widget::positioning::bottom;
+    events = gui->create(platform::interface::widget::type::textbox, 512, 720, 0, 0, 0, 80).position(graphics->width() - 512 - 20, 20).id;
+    gui->get<platform::interface::textbox>(events).alignment = platform::interface::widget::positioning::bottom;
 
-    //server->start();
+    textbox = gui->create(platform::interface::widget::type::textbox, 512, 60, 0, 0, 0, 80).position(graphics->width() - 512 - 20, 760).id;
+    gui->get<platform::interface::textbox>(textbox).selectable = true;
+    gui->get<platform::interface::textbox>(textbox).handler(platform::input::KEY, platform::input::DOWN, [](const platform::input::event& ev) {
+        std::stringstream ss;
+        std::vector<std::string> content;
+        switch (ev.identifier) {
+        case(8):
+            gui->get<platform::interface::textbox>(textbox).content.remove(1);
+            break;
+        case(13):
+            content = gui->get<platform::interface::textbox>(textbox).content.get();
+            if (content.size()) {
+                ss << "text_submit(" << content[0] << ")";
+                text_event(ss.str());
+                gui->get<platform::interface::textbox>(textbox).content.remove(-1);
+            }
+            break;
+        default:
+            //gui->get<platform::interface::textbox>(textbox).content.append(std::string(1, ev.identifier));
+            gui->get<platform::interface::textbox>(textbox).content.append(input->printable(ev.identifier));
+        };
+    });
+
+
+    server->handler([](platform::network::client* caller) {
+        std::stringstream ss;
+        std::string input(caller->input.begin(), caller->input.end());
+        ss << "client_message(" << input << ")";
+        text_event(ss.str());
+    });
+
+    server->start();
 
     init = true;
 }
@@ -183,7 +217,9 @@ void prototype::on_resize() {
 
     gui->projection = ortho;
 
-    if(init) gui->get<platform::interface::textbox>(textbox).position(width - 512 - 20, 20);
+    if (init) {
+        gui->get<platform::interface::textbox>(events).position(width - 512 - 20, 20);
+    }
 }
 
 void prototype::on_draw() {
@@ -238,13 +274,13 @@ void prototype::on_draw() {
     //print(100, 450, "0123456789 !@#$%^&*()_-=+<>,./?{[]}\|");
 
     gui->print(30, 330, "MODEL");
-    print(30, 330 + font.leading(), model);
+    print(30, 330 + gui->font.leading(), model);
 
     gui->print(30, 460, "VIEW");
-    print(30, 460 + font.leading(), view);
+    print(30, 460 + gui->font.leading(), view);
 
     gui->print(30, 590, "MOUSE");
-    print(30, 590 + font.leading(), mouse);
+    print(30, 590 + gui->font.leading(), mouse);
 
     //textbox(600, 10, box_events, text_events);
     //gui->get<platform::interface::textbox>(textbox).content.add(utilities::type_cast<std::string>(time(NULL)));

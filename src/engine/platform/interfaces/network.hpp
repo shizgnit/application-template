@@ -8,8 +8,12 @@ namespace platform {
         virtual std::string mac() = 0;
         virtual unsigned long pid() = 0;
 
+        class server; // forward declare so the client can have a reference to the server
+
         class client {
         public:
+            server* parent;
+
             client() {}
             virtual ~client() {}
 
@@ -42,6 +46,14 @@ namespace platform {
 
             std::mutex sending;
             std::mutex receiving;
+
+            typedef void(*callback)();
+
+            std::vector<callback> callbacks;
+
+            virtual void handler(callback c) {
+                callbacks.push_back(c);
+            }
         };
 
         class server {
@@ -67,6 +79,14 @@ namespace platform {
                     clients.erase(address);
                 }
                 connection.unlock();
+            }
+
+            typedef void(*callback)(client* caller);
+
+            std::vector<callback> callbacks;
+
+            virtual void handler(callback c) {
+                callbacks.push_back(c);
             }
 
             std::mutex connection;

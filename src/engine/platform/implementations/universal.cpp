@@ -88,19 +88,27 @@ void implementation::universal::input::on_key_down(const event& ev) {
     keys[ev.identifier].pressed = time(NULL);
 
     // Track the event
+    tracking.lock();
     active_keys.push_back(&keys[ev.identifier]);
+    tracking.unlock();
 
     platform::input::raise({ KEY, DOWN, ev.identifier, { 0.0f, 0.0f, 0.0f }, delta });
 }
 
 void implementation::universal::input::on_key_up(const event& ev) {
-    auto end = std::remove_if(active_keys.begin(),
-                              active_keys.end(),
-                              [ev](key const* k) {
-                                return k->code == ev.identifier;
-                              });
-    active_keys.erase(end, active_keys.end());
-    input::raise({ KEY, UP, ev.identifier, { 0.0f, 0.0f, 0.0f }, time(NULL) - keys[ev.identifier].pressed });
+    if (active_keys.size()) {
+        tracking.lock();
+        auto end = std::remove_if(active_keys.begin(),
+            active_keys.end(),
+            [ev](key const* k) {
+                return k->code == ev.identifier;
+            });
+        active_keys.erase(end, active_keys.end());
+        tracking.unlock();
+    }
+
+    keys[ev.identifier].pressed = 0;
+    platform::input::raise({ KEY, UP, ev.identifier, { 0.0f, 0.0f, 0.0f }, time(NULL) - keys[ev.identifier].pressed });
 }
 
 void implementation::universal::input::emit() {
@@ -127,7 +135,26 @@ void implementation::universal::interface::raise(const input::event& ev, int x, 
 
     for (auto instance : instances) {
         // TODO: currently filtering by intersection, this will not be adequate for keyboard/key input
-        if (ray.intersects(instance->bounds)) {
+        if (ev.input == input::POINTER && ev.gesture == platform::input::DOWN) {
+            if (selected && selected != instance) { // just wait to see if they are re-selecting the same instance
+                input::event select = ev;
+                select.gesture = platform::input::UNSELECT;
+                if (selected != NULL) {
+                    instance->raise(select);
+                }
+                selected = NULL;
+            }
+            if (ray.intersects(instance->bounds)) {
+                if (selected != instance && instance->selectable) {
+                    selected = instance;
+                    input::event select = ev;
+                    select.gesture = platform::input::SELECT;
+                    instance->raise(select);
+                }
+                instance->raise(ev);
+            }
+        }
+        if (ev.input == input::KEY && selected == instance) {
             instance->raise(ev);
         }
     }
@@ -212,20 +239,25 @@ void implementation::universal::interface::draw(widget& instance) {
         platform::interface::textbox& textbox = gui->cast<platform::interface::textbox>(instance);
         auto contents = textbox.content.get();
 
-        if (textbox.text_alignment == widget::positioning::top) {
-            int x = textbox.x + 20; // TODO: add in a configurable margin, etc
-            int y = textbox.y + 20;
-            for (auto message : contents) {
-                print(x, y += font.leading(), message);
+        int x = textbox.x + 20;
+        int y = textbox.alignment == widget::positioning::bottom ? textbox.y + textbox.background.height() - (contents.size() * font.leading()) : textbox.y + 20;
+
+        std::string line;
+        for (auto message : contents) {
+            line += message;
+            if (line.empty() == false && line[line.size()-1] == '\n') {
+                print(x, y, line);
+                y += font.leading();
+                line.clear();
             }
         }
-        if (textbox.text_alignment == widget::positioning::bottom) {
-            int x = textbox.x + 20;
-            int y = textbox.y + textbox.background.height() - (contents.size() * font.leading()) - 20;
-            for (auto message : contents) {
-                print(x, y += font.leading(), message);
-            }
+        if (selected == &instance && time(NULL) % 2 == 0) {
+            line += "|";
         }
+        if (line.empty() == false) {
+            print(x, y, line);
+        }
+
         break;
     }
 

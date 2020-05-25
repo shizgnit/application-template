@@ -75,10 +75,13 @@
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
-      <AdditionalDependencies>glew.lib;opengl32.lib;gtest_maind.lib;ws2_32.lib;rpcrt4.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)packages\pthreads.2.9.1.4\build\native\lib\v110\Win32\Release\static\stdcall;$(SolutionDir)packages\glew.1.9.0.1\build\native\lib\v110\Win32\Release\static;$(SolutionDir)packages\glew.1.9.0.1\build\native\lib\v110\Win32\Release\static;$(SolutionDir)packages\Microsoft.googletest.v140.windesktop.msvcstl.static.rt-dyn.1.8.1\lib\native\v140\windesktop\msvcstl\static\rt-dyn\x64\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libpthread.lib;glew.lib;opengl32.lib;gtest_maind.lib;ws2_32.lib;rpcrt4.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)packages\pthreads.2.9.1.4\build\native\lib\v110\Win32\Release\dynamic\cdecl;$(SolutionDir)packages\glew.1.9.0.1\build\native\lib\v110\Win32\Release\static;$(SolutionDir)packages\Microsoft.googletest.v140.windesktop.msvcstl.static.rt-dyn.1.8.1\lib\native\v140\windesktop\msvcstl\static\rt-dyn\x86\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
+    <PostBuildEvent>
+      <Command>copy $(SolutionDir)packages\pthreads.redist.2.9.1.4\build\native\bin\v110\x64\Release\dynamic\cdecl\libpthread.dll $(TargetDir)</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -95,8 +98,8 @@
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
-      <AdditionalLibraryDirectories>$(SolutionDir)packages\zlib_native.1.2.11\build\native\lib\x64\Release;$(SolutionDir)packages\pthreads.2.9.1.4\build\native\lib\v110\x64\Release\dynamic\cdecl;$(SolutionDir)packages\glew.1.9.0.1\build\native\lib\v110\x64\Release\static;%(AdditionalLibraryDirectories);$(MSBuildThisFileDirectory)\..\runtimes\win-$(PlatformTarget)\native\</AdditionalLibraryDirectories>
-      <AdditionalDependencies>libpthread.lib;glew.lib;opengl32.lib;rpcrt4.lib;ws2_32.lib;zlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)packages\zlib_native.1.2.11\build\native\lib\x64\Debug;$(SolutionDir)packages\pthreads.2.9.1.4\build\native\lib\v110\x64\Release\dynamic\cdecl;$(SolutionDir)packages\glew.1.9.0.1\build\native\lib\v110\x64\Release\static;%(AdditionalLibraryDirectories);$(MSBuildThisFileDirectory)\..\runtimes\win-$(PlatformTarget)\native\</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libpthread.lib;glew.lib;opengl32.lib;rpcrt4.lib;ws2_32.lib;zlibd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

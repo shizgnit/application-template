@@ -288,11 +288,9 @@ void implementation::windows::network::client::connect() {
     addr.sin_port = htons(5555);
 
     ::connect(server, (SOCKADDR*)&addr, sizeof(addr));
-    std::cout << "Connected to server!" << std::endl;
 
     char buffer[1024] = { 'h', 'e', 'l', 'l', 'o', '.' };
     ::send(server, buffer, sizeof(buffer), 0);
-    std::cout << "Message sent!" << std::endl;
 
     //closesocket(server);
     //WSACleanup();
@@ -314,9 +312,10 @@ implementation::windows::network::server::~server() {
 void* start_client(void* instance) {
     auto reference = (implementation::windows::network::client*)instance;
 
-    char incoming[1024];
+    //char incoming[1024];
 
-    std::cout << "Client connected!" << std::endl;
+    std::vector<char> incoming(1024);
+
     while (1) {
         if (reference->pending) {
             std::vector<char> bytes;
@@ -327,23 +326,20 @@ void* start_client(void* instance) {
             ::send(reference->connection, bytes.data(), bytes.size(), 0);
         }
 
-        recv(reference->connection, incoming, sizeof(incoming), 0);
-        std::cout << "Client says: " << incoming << std::endl;
-        //reference->receive(incoming);
-
-        memset(incoming, 0, sizeof(incoming));
+        recv(reference->connection, incoming.data(), incoming.size(), 0);
+        reference->receive(incoming);
+        for (auto handler : reference->parent->callbacks) {
+            handler(reference);
+        }
     }
 
     //closesocket(client);
-    std::cout << "Client disconnected." << std::endl;
 
     pthread_exit(NULL);
 }
 
 void* start_server(void *instance) {
     auto reference = (implementation::windows::network::server*)instance;
-
-    std::cout << "Listening for incoming connections..." << std::endl;
 
     SOCKET server, client;
     SOCKADDR_IN serverAddr, clientAddr;
@@ -363,6 +359,7 @@ void* start_server(void *instance) {
     {
         auto instantiated = (implementation::windows::network::client *)reference->add("somkething", new implementation::windows::network::client());
         instantiated->connection = client;
+        instantiated->parent = reference;
         pthread_create(&instantiated->thread, NULL, start_client, (void*)instantiated);
     }
 

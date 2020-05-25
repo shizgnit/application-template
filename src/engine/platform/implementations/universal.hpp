@@ -11,6 +11,10 @@ namespace implementation {
             void raise(const event& ev);
             void emit();
 
+            std::string printable(int vkey) {
+                return keys[16].pressed || keys[160].pressed ? keys[vkey].meta : keys[vkey].character;
+            }
+
         protected:
             void on_press(const event& ev);
             void on_release(const event& ev);
@@ -18,6 +22,8 @@ namespace implementation {
 
             void on_key_up(const event& ev);
             void on_key_down(const event& ev);
+
+            std::mutex tracking; 
         };
 
         class interface : public platform::interface {

@@ -2,14 +2,17 @@
 
 #if defined WIN32
 #define __PLATFORM_WINDOWS 1
+#define __PLATFORM_64BIT 1
 #endif
 
 #if defined __ANDROID__
 #define __PLATFORM_ANDROID 1
+#define __PLATFORM_32BIT 1
 #endif
 
 #if defined __linux__
 #define __PLATFORM_LINUX 1
+#define __PLATFORM_64BIT 1
 #endif
 
 
@@ -67,7 +70,6 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include <errno.h>
-#include <pthread.h>
 
 #include <string>
 #include <vector>
@@ -79,6 +81,8 @@
 #include <sstream>
 #include <fstream>
 #include <random>
+
+#include <pthread.h>
 
 /// Utilities
 #include "utilities/common.hpp"

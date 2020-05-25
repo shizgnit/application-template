@@ -47,6 +47,20 @@ namespace utilities {
             lock.unlock();
         }
 
+        void append(std::string message) {
+            lock.lock();
+            if (data.size()) data.back().append(message);
+            else data.push_back(message);
+            lock.unlock();
+        }
+
+        void remove(int count=-1) {
+            lock.lock();
+            if (count == -1 && data.size()) data.pop_back();
+            else while(count-- && data.size() && data.back().empty() == false) data.back().pop_back();
+            lock.unlock();
+        }
+
         std::vector<std::string> get() {
             std::vector<std::string> list;
             lock.lock();
