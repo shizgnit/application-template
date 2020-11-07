@@ -117,7 +117,9 @@ void prototype::on_startup() {
 
     /// Load up the shaders
     assets->retrieve("shaders/shader_basic.vert") >> format::parser::vert >> shader.vertex;
+    const char* vert = shader.vertex.text.c_str();
     assets->retrieve("shaders/shader_basic.frag") >> format::parser::frag >> shader.fragment;
+    const char* frag = shader.fragment.text.c_str();
     graphics->compile(shader);
 
     /// Load up the gui dependencies
@@ -145,7 +147,7 @@ void prototype::on_startup() {
     assets->retrieve("objects/untitled.obj") >> format::parser::obj >> poly;
     graphics->compile(poly.children[0]);
 
-    audio->compile(sound);
+    //audio->compile(sound);
 
     // Hook up the input handlers
     input->handler(platform::input::POINTER, platform::input::DOWN, &freelook_start, 2);
@@ -189,11 +191,9 @@ void prototype::on_startup() {
             }
             break;
         default:
-            //gui->get<platform::interface::textbox>(textbox).content.append(std::string(1, ev.identifier));
             gui->get<platform::interface::textbox>(textbox).content.append(input->printable(ev.identifier));
         };
     });
-
 
     server->handler([](platform::network::client* caller) {
         std::stringstream ss;
@@ -223,6 +223,7 @@ void prototype::on_resize() {
 }
 
 void prototype::on_draw() {
+    
     graphics->clear();
 
     spatial::matrix center;
@@ -230,6 +231,11 @@ void prototype::on_draw() {
     center.translate(width / 2, height / 2, 0);
 
     pos.rotate(0.0f, 1.0f);
+
+    //static float move = 0.02f;
+    //move -= 0.02f;
+    //pos.move(move);
+
     pos.move(0.02f);
 
     spatial::matrix model;
@@ -264,7 +270,7 @@ void prototype::on_draw() {
     graphics->draw(skybox.children[0], shader, spatial::matrix(), view, perspective);
 
     spatial::matrix box;
-    //box.translate(5, 10, 0);
+    box.translate(5, 10, 0);
 
     graphics->draw(poly.children[0], shader, box, view, perspective);
     //frame.scale(0.001);

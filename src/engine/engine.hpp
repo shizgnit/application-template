@@ -12,7 +12,7 @@
 
 #if defined __linux__
 #define __PLATFORM_LINUX 1
-#define __PLATFORM_64BIT 1
+//#define __PLATFORM_64BIT 1
 #endif
 
 

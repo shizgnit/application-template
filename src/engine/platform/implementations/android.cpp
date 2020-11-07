@@ -57,6 +57,7 @@ std::istream &implementation::android::assets::retrieve(std::string path) {
 
     std::string fullpath = utilities::join("/", directories).c_str();
 
+    const char* spath = fullpath.c_str();
     AAsset* asset = AAssetManager_open(assetManager, fullpath.c_str(), AASSET_MODE_STREAMING);
     if (asset) {
         ss->write((char*)AAsset_getBuffer(asset), AAsset_getLength(asset));

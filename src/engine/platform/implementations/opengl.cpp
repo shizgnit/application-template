@@ -152,7 +152,7 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
     glUniform4f(shader.u_Clipping, clip_top[clip_top.size()-1], clip_bottom[clip_bottom.size() - 1], clip_left[clip_left.size() - 1], clip_right[clip_right.size() - 1]);
 
 #ifdef __PLATFORM_64BIT
-    size_t offset = 8; // TODO: necessary to offset object overhead, this could/should be dynamic
+    size_t offset = 8; // TODO: necessary to offset object overhead, this could/should be dynamic    
 #else
     size_t offset = 4;
 #endif
