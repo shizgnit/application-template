@@ -135,6 +135,8 @@ void implementation::opengl::graphics::compile(type::font& font) {
 void implementation::opengl::graphics::draw(type::object& object, type::program& shader, const spatial::matrix& model, const spatial::matrix& view, const spatial::matrix& projection) {
     glUseProgram(shader.context);
 
+    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // GL_FILL
+
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, object.texture.context);
 
@@ -152,7 +154,7 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
     glUniform4f(shader.u_Clipping, clip_top[clip_top.size()-1], clip_bottom[clip_bottom.size() - 1], clip_left[clip_left.size() - 1], clip_right[clip_right.size() - 1]);
 
 #ifdef __PLATFORM_64BIT
-    size_t offset = 8; // TODO: necessary to offset object overhead, this could/should be dynamic    
+    size_t offset = 8; // TODO: necessary to offset object overhead, this could/should be dynamic.  if this is enabled for android it will not work.    
 #else
     size_t offset = 4;
 #endif

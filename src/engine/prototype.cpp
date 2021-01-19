@@ -95,9 +95,9 @@ void freelook_move(const platform::input::event& ev) {
 
 void freelook_zoom(const platform::input::event& ev) {
     std::stringstream ss;
-    ss << "on_zoom";
+    ss << "on_zoom: " << ev.point.y;
     text_event(ss.str());
-    camera.move(ev.point.y);
+    camera.move(ev.point.y * 2);
 }
 
 void mouse_move(const platform::input::event& ev) {
@@ -107,6 +107,12 @@ void mouse_move(const platform::input::event& ev) {
     text_event(ss.str());
     prior_x = ev.point.x;
     prior_y = ev.point.y;
+}
+
+void keyboard_input(const platform::input::event& ev) {
+    std::stringstream ss;
+    ss << "key(" << ev.identifier << ")";
+    text_event(ss.str());
 }
 
 void prototype::on_startup() {
@@ -157,6 +163,8 @@ void prototype::on_startup() {
 
     input->handler(platform::input::POINTER, platform::input::MOVE, &mouse_move, 0);
 
+    input->handler(platform::input::KEY, platform::input::DOWN, &keyboard_input, 0);
+
     // Create some gui elements
     auto btn = gui->cast<platform::interface::button>(gui->create(platform::interface::widget::type::button, 256, 256, 0, 0, 0, 80).position(20, 20).handler(platform::input::POINTER, platform::input::MOVE, [](const platform::input::event& ev) {
         std::stringstream ss;
@@ -179,10 +187,10 @@ void prototype::on_startup() {
         std::stringstream ss;
         std::vector<std::string> content;
         switch (ev.identifier) {
-        case(8):
+        case(8): // Backspace to remove a character
             gui->get<platform::interface::textbox>(textbox).content.remove(1);
             break;
-        case(13):
+        case(13): // Enter to submit
             content = gui->get<platform::interface::textbox>(textbox).content.get();
             if (content.size()) {
                 ss << "text_submit(" << content[0] << ")";
@@ -190,7 +198,7 @@ void prototype::on_startup() {
                 gui->get<platform::interface::textbox>(textbox).content.remove(-1);
             }
             break;
-        default:
+        default: // Every other printable gets added to the contents
             gui->get<platform::interface::textbox>(textbox).content.append(input->printable(ev.identifier));
         };
     });
