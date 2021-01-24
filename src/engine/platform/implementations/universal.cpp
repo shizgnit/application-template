@@ -124,14 +124,9 @@ void implementation::universal::input::emit() {
 
 void implementation::universal::interface::raise(const input::event& ev, int x, int y) {
     spatial::vector relative = { (float)x, (float)(graphics->height() - y), 0.0f };
-    spatial::vector projected = relative.project(spatial::matrix(), spatial::matrix(), spatial::matrix());
+    spatial::vector position = relative.project(spatial::matrix(), spatial::matrix(), spatial::matrix());
 
-    spatial::ray ray;
-
-    ray.origin = projected;
-    ray.terminus = projected;
-    ray.origin.z = 100;
-    ray.terminus.z = -100;
+    spatial::ray ray(position - spatial::vector(0,0,100), position - spatial::vector(0,0,-100));
 
     for (auto instance : instances) {
         // TODO: currently filtering by intersection, this will not be adequate for keyboard/key input
@@ -183,7 +178,7 @@ platform::interface::widget& implementation::universal::interface::create(platfo
     // TODO Always assuming a png is being specified for now, fix this
     assets->retrieve(texture) >> format::parser::png >> instances.back()->background.texture.map;
 
-    instances.back()->background.quad(w, h);
+    instances.back()->background = spatial::quad(w, h);
     instances.back()->background.xy_projection(0, 0, w, h);
 
     instances.back()->bounds = instances.back()->background.vertices;
@@ -203,9 +198,8 @@ platform::interface::widget& implementation::universal::interface::create(platfo
         break;
     }
 
-    instances.back()->background.texture.map.create(r, g, b, a);
-
-    instances.back()->background.quad(w, h);
+    instances.back()->background = spatial::quad(w, h);
+    instances.back()->background.texture.map.create(1, 1, r, g, b, a); // Single pixel is good enough
     instances.back()->background.xy_projection(0, 0, w, h);
 
     instances.back()->bounds = spatial::quad(instances.back()->background.vertices).project(spatial::matrix(), spatial::matrix(), projection);

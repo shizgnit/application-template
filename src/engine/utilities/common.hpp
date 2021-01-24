@@ -1,5 +1,18 @@
 namespace utilities {
 
+    template<typename t>
+    std::vector<int> indices(const std::vector<t>& list) {
+        std::vector<int> results(list.size());
+        int i = 0;
+        for(auto & v: list) {
+            results[i++] = i;
+        }
+        return results;
+    }
+
+    std::vector<int> range(int elements);
+    std::vector<int> range(int start, int end);
+
     std::string rtrim(std::string in);
     std::string ltrim(std::string in);
     std::string trim(std::string in);

@@ -14,7 +14,7 @@ void implementation::opengl::graphics::init(void) {
     glDepthFunc(GL_LEQUAL);
 
     glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
+    //glEnable(GL_CULL_FACE); // off for now, but should be toggled based on render options
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
@@ -169,7 +169,13 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
     glEnableVertexAttribArray(shader.a_Normal);
 
     //glDrawArrays(GL_TRIANGLE_FAN, 0, object.vertices.size());
-    glDrawArrays(GL_TRIANGLES, 0, object.vertices.size());
+    if (object.type == spatial::geometry::primitive::LINE) {
+        glDrawArrays(GL_LINES, 0, object.vertices.size());
+    }
+    else { // TODO: force all geometry to be explicit
+    //if (object.type == spatial::geometry::primitive::POLYGON) {
+        glDrawArrays(GL_TRIANGLES, 0, object.vertices.size());
+    }
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }

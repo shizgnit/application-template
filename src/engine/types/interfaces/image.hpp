@@ -26,11 +26,11 @@ namespace type {
             return instance;
         }
 
-        void create(char r, char g, char b, char a) {
+        void create(int width, int height, char r, char g, char b, char a) {
             memset(&properties, 0, sizeof(properties));
 
-            properties.width = 256;
-            properties.height = 256;
+            properties.width = width;
+            properties.height = height;
             properties.bpp = 32;
             properties.depth = 8;
             properties.channels = 4;

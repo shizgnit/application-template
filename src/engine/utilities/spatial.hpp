@@ -194,17 +194,48 @@ namespace spatial {
 
     class vertex {
     public:
+        vertex() {}
+        vertex(const vector& position) {
+            *this = position;
+        }
+
         vector coordinate;
         vector texture;
         vector normal;
+
+        // Assume that a vector assignment is for the coordinate portion
+        const vertex& operator=(const vector& position) {
+            coordinate = position;
+            return *this;
+        }
     };
 
+    class geometry {
+    public:
+        enum primitive {
+            UNDEFINED = 0x00,
+            POINT = 0x01,
+            LINE = 0x02,
+            POLYGON = 0x04
+        } type;
+
+        geometry(primitive t) : type(t) {}
+        geometry(primitive t, size_t elements) : type(t), vertices(elements) {}
+
+        geometry& operator = (const spatial::geometry& ref) {
+            this->vertices = ref.vertices;
+            return *this;
+        }
+
+        std::vector<spatial::vector> vertices;
+    };
+
+    // TODO: currently planes and spheres are specifications only and do not represent visualized geometry, eventually these need to auto generate geometry
     class plane {
     public:
         vector point;
         vector normal;
     };
-
     class sphere {
     public:
         typedef vector::type_t type_t;
@@ -213,10 +244,10 @@ namespace spatial {
         type_t radius;
     };
 
-    class triangle {
+    class triangle : public geometry {
     public:
-        triangle() : vertices(3) {}
-        triangle(const spatial::vertex& v0, const spatial::vertex& v1, const spatial::vertex& v2) : triangle() {
+        triangle() : geometry(geometry::POLYGON, 3) {}
+        triangle(const spatial::vector& v0, const spatial::vector& v1, const spatial::vector& v2) : triangle() {
             vertices[0] = v0;
             vertices[1] = v1;
             vertices[2] = v2;
@@ -224,45 +255,50 @@ namespace spatial {
 
         typedef vector::type_t type_t;
 
-        std::vector<spatial::vertex> vertices;
-
         spatial::vector normal() const;
 
         triangle& project(const matrix& model, const matrix& view, const matrix& projection);
     };
 
-    class quad {
+    class quad : public geometry {
     public:
-        quad() {};
+        quad() : geometry(geometry::POLYGON) {}
         quad(int width, int height);
-        quad(const std::vector<spatial::vertex>& vertices) {
+        quad(const std::vector<spatial::vector>& vertices) : quad() {
             this->vertices = vertices;
         }
+        quad(const std::vector<spatial::vertex>& vertices) : quad() {
+            this->vertices.resize(vertices.size());
+            for (auto& i : utilities::indices(vertices)) {
+                this->vertices[i] = vertices[i].coordinate;
+            }
+        }
 
-        void geometry(int width, int height);
+        void size(int width, int height);
 
-        quad& operator =(const std::vector<spatial::vertex>& vertices) {
+        quad& operator =(const std::vector<spatial::vector>& vertices) {
             this->vertices = vertices;
             return *this;
         }
 
         typedef vector::type_t type_t;
 
-        int width;
-        int height;
-
-        std::vector<spatial::vertex> vertices;
-
         // TODO: might use this
         quad& project(const matrix& model, const matrix& view, const matrix& projection);
+
+        operator geometry& () {
+            return *this;
+        }
     };
 
-    class ray {
+    class ray : public geometry {
     public:
-        typedef vector::type_t type_t;
+        ray() : geometry(geometry::LINE) {}
+        ray(const vector& origin, const vector& terminus, float thickness = 0.00f);
 
-        vector origin;
-        vector terminus;
+        void endpoints(const vector& origin, const vector& terminus, float thickness = 0.00f);
+
+        typedef vector::type_t type_t;
 
         type_t distance(const vector& v) const;
         type_t distance(const ray& r);

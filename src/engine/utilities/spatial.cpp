@@ -727,13 +727,13 @@ spatial::quaternion::operator spatial::matrix() {
     return(result);
 }
 
-spatial::quad::quad(int width, int height) {
-    spatial::quad::geometry(width, height);
+spatial::quad::quad(int width, int height) : quad() {
+    spatial::quad::size(width, height);
 }
 
-void spatial::quad::geometry(int width, int height) {
-    this->width = width;
-    this->height = height;
+void spatial::quad::size(int width, int height) {
+    //this->width = width;
+    //this->height = height;
 
     int factor = 1;
 
@@ -752,13 +752,13 @@ void spatial::quad::geometry(int width, int height) {
         for (int j = 0; j < factor; j++) {
             y = dy * j;
 
-            vertices[index++].coordinate(x + dx, y + dy);
-            vertices[index++].coordinate(x, y + dy);
-            vertices[index++].coordinate(x, y);
+            vertices[index++](x + dx, y + dy);
+            vertices[index++](x, y + dy);
+            vertices[index++](x, y);
 
-            vertices[index++].coordinate(x + dx, y + dy);
-            vertices[index++].coordinate(x, y);
-            vertices[index++].coordinate(x + dx, y);
+            vertices[index++](x + dx, y + dy);
+            vertices[index++](x, y);
+            vertices[index++](x + dx, y);
         }
     }
 }
@@ -766,9 +766,20 @@ void spatial::quad::geometry(int width, int height) {
 spatial::quad& spatial::quad::project(const matrix& model, const matrix& view, const matrix& projection) {
     matrix mvp = projection * view * model;
     for (auto& v : vertices) {
-        v.coordinate = mvp.interpolate(v.coordinate);
+        v = mvp.interpolate(v);
     }
     return *this;
+}
+
+spatial::ray::ray(const vector& origin, const vector& terminus, float thickness) : ray() {
+    endpoints(origin, terminus, thickness);
+}
+
+void spatial::ray::endpoints(const vector& origin, const vector& terminus, float thickness) {
+    vertices.resize(2);
+
+    vertices[0] = origin;
+    vertices[1] = terminus;
 }
 
 
@@ -778,14 +789,14 @@ spatial::ray::type_t spatial::ray::distance(const spatial::ray& r) {
 }
 
 spatial::ray::type_t spatial::ray::distance(const spatial::vector& v) const {
-    auto translated = origin + terminus;
+    auto translated = vertices[0] + vertices[1];
 
-    auto p1 = v - origin;
+    auto p1 = v - vertices[0];
     auto p2 = v - translated;
 
     auto c = p1 % p2;
 
-    return c.length() / terminus.length();
+    return c.length() / vertices[1].length();
 }
 
 bool spatial::ray::intersects(const spatial::quad& quad) {
@@ -801,14 +812,14 @@ bool spatial::ray::intersects(const spatial::quad& quad) {
 // https://cadxfem.org/inf/Fast%20MinimumStorage%20RayTriangle%20Intersection.pdf
 bool spatial::ray::intersects(const spatial::triangle& triangle) {
 
-    glm::vec3 r0 = origin;
-    glm::vec3 r1 = terminus;
+    glm::vec3 r0 = vertices[0];
+    glm::vec3 r1 = vertices[1];
 
     glm::vec3 dir = glm::normalize(r1 - r0);
 
-    glm::vec3 v0 = triangle.vertices[0].coordinate;
-    glm::vec3 v1 = triangle.vertices[1].coordinate;
-    glm::vec3 v2 = triangle.vertices[2].coordinate;
+    glm::vec3 v0 = triangle.vertices[0];
+    glm::vec3 v1 = triangle.vertices[1];
+    glm::vec3 v2 = triangle.vertices[2];
 
     glm::vec3 pos;  // no current use for the barycentric coordinates
 
@@ -816,8 +827,8 @@ bool spatial::ray::intersects(const spatial::triangle& triangle) {
 }
 
 bool spatial::ray::intersects(const spatial::plane& plane) {
-    auto d = terminus - origin;
-    auto w = origin - plane.point;
+    auto d = vertices[1] - vertices[0];
+    auto w = vertices[0] - plane.point;
 
     auto a = -plane.normal.dot(w);
     auto b = plane.normal.dot(d);
@@ -840,7 +851,7 @@ spatial::vector spatial::ray::intersection(const spatial::triangle& triangle) {
 
     spatial::plane plane;
 
-    plane.point = triangle.vertices[0].coordinate;
+    plane.point = triangle.vertices[0];
     plane.normal = triangle.normal();
 
     return intersection(plane);
@@ -848,13 +859,13 @@ spatial::vector spatial::ray::intersection(const spatial::triangle& triangle) {
 
 // https://en.wikipedia.org/wiki/Line%E2%80%93plane_intersection
 spatial::vector spatial::ray::intersection(const spatial::plane& p) {
-    auto d = terminus - origin;
+    auto d = vertices[1] - vertices[0];
     auto denominator = d.dot(p.normal);
 
     if (abs(denominator) > 0.0001f) {
-        auto t = p.normal.dot(p.point - origin) / denominator;
+        auto t = p.normal.dot(p.point - vertices[0]) / denominator;
         //if (t >= 0) {
-            return origin + d * t;
+            return vertices[0] + d * t;
         //}
     }
 
@@ -866,15 +877,15 @@ spatial::vector spatial::ray::intersection(const spatial::plane& p) {
 }
 
 spatial::vector spatial::triangle::normal() const {
-    auto e1 = vertices[1].coordinate - vertices[0].coordinate;
-    auto e2 = vertices[2].coordinate - vertices[0].coordinate;
+    auto e1 = vertices[1] - vertices[0];
+    auto e2 = vertices[2] - vertices[0];
     return (e1 % e2).unit();
 }
 
 spatial::triangle& spatial::triangle::project(const matrix& model, const matrix& view, const matrix& projection) {
     matrix mvp = projection * view * model;
     for (auto& v : vertices) {
-        v.coordinate = mvp.interpolate(v.coordinate);
+        v = mvp.interpolate(v);
     }
     return *this;
 }

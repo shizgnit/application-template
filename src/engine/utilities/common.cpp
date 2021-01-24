@@ -1,5 +1,21 @@
 #include "engine.hpp"
 
+std::vector<int> utilities::range(int elements) {
+    std::vector<int> results(elements);
+    for (int i = 0; i < elements; i++) {
+        results[i] = i;
+    }
+    return results;
+}
+std::vector<int> utilities::range(int start, int end) {
+    std::vector<int> results(end - start + 1);
+    for (int i = start; i <= end; i++) {
+        results[i-start] = i;
+    }
+    return results;
+}
+
+
 std::string utilities::rtrim(std::string in) {
     size_t back = in.length() - 1;
     while (back != -1 && (in[back] == 0x09 || in[back] == 0x20)) {

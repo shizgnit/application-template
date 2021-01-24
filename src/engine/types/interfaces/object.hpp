@@ -64,9 +64,10 @@ namespace type {
             return(NULL);
         }
 
-        std::vector<spatial::vertex> vertices;
-
         //std::vector<std::vector<spatial::vertex>> faces;
+
+        spatial::geometry::primitive type;
+        std::vector<spatial::vertex> vertices;
 
         type::material texture;
 
@@ -74,6 +75,7 @@ namespace type {
 
         unsigned int context;
 
+        // TODO: this needs to be replaced by bounding, either spheres or cubes
         int width() {
             return boundary_width;
         }
@@ -84,15 +86,13 @@ namespace type {
         }
         int boundary_height;
 
-        object& operator = (const spatial::quad& quad) {
-            this->vertices = quad.vertices;
+        object& operator = (const spatial::geometry& ref) {
+            //TODO: this is making a really bad assumption based on the spatial::quad coordinate organization.
+            boundary_width = ref.vertices[0].x;
+            boundary_height = ref.vertices[0].y;
+            std::copy(ref.vertices.begin(), ref.vertices.end(), std::back_inserter(this->vertices));
+            type = ref.type;
             return *this;
-        }
-
-        void quad(float width, float height) {
-            boundary_width = width;
-            boundary_height = height;
-            *this = spatial::quad(width, height);
         }
 
         friend type::object& operator>>(type::object& input, type::object& instance) {

@@ -8,6 +8,10 @@ inline type::object icon;
 inline type::object poly;
 inline type::object skybox;
 
+inline type::object xAxis;
+inline type::object yAxis;
+inline type::object zAxis;
+
 inline type::program shader;
 //inline type::font font;
 
@@ -138,10 +142,24 @@ void prototype::on_startup() {
     graphics->compile(gui->font);
 
     /// Get the icon ready for drawing
+    icon = spatial::quad(256, 256);
     assets->retrieve("drawable/marvin.png") >> format::parser::png >> icon.texture.map;
-    icon.quad(256, 256);
     icon.xy_projection(0, 0, 256, 256);
     graphics->compile(icon);
+
+    /// Setup the line
+    xAxis = spatial::ray(spatial::vector(0.0, 0.0, 0.0), spatial::vector(2.0, 0.0, 0.0));
+    xAxis.texture.map.create(1, 1, 255, 0, 0, 255); // Single pixel is good enough
+    xAxis.xy_projection(0, 0, 1, 1);
+    graphics->compile(xAxis);
+    yAxis = spatial::ray(spatial::vector(0.0, 0.0, 0.0), spatial::vector(0.0, 2.0, 0.0));
+    yAxis.texture.map.create(1, 1, 0, 255, 0, 255); // Single pixel is good enough
+    yAxis.xy_projection(0, 0, 1, 1);
+    graphics->compile(yAxis);
+    zAxis = spatial::ray(spatial::vector(0.0, 0.0, 0.0), spatial::vector(0.0, 0.0, 2.0));
+    zAxis.texture.map.create(1, 1, 0, 0, 255, 255); // Single pixel is good enough
+    zAxis.xy_projection(0, 0, 1, 1);
+    graphics->compile(zAxis);
 
     // TODO: find the bug that causes faults loading the same resources twice on android
     //assets->retrieve("fonts/consolas-22.fnt") >> format::parser::fnt >> font;
@@ -231,7 +249,6 @@ void prototype::on_resize() {
 }
 
 void prototype::on_draw() {
-    
     graphics->clear();
 
     spatial::matrix center;
@@ -283,6 +300,10 @@ void prototype::on_draw() {
     graphics->draw(poly.children[0], shader, box, view, perspective);
     //frame.scale(0.001);
     //graphics->draw(icon, shader, frame, view, perspective);
+
+    graphics->draw(xAxis, shader, spatial::matrix(), view, perspective);
+    graphics->draw(yAxis, shader, spatial::matrix(), view, perspective);
+    graphics->draw(zAxis, shader, spatial::matrix(), view, perspective);
 
     //print(100, 400, "ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz");
     //print(100, 450, "0123456789 !@#$%^&*()_-=+<>,./?{[]}\|");
