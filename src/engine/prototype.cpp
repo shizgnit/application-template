@@ -147,17 +147,17 @@ void prototype::on_startup() {
     icon.xy_projection(0, 0, 256, 256);
     graphics->compile(icon);
 
-    /// Setup the line
+    /// Setup the axis
     xAxis = spatial::ray(spatial::vector(0.0, 0.0, 0.0), spatial::vector(2.0, 0.0, 0.0));
-    xAxis.texture.map.create(1, 1, 255, 0, 0, 255); // Single pixel is good enough
+    xAxis.texture.map.create(1, 1, 255, 0, 0, 255);
     xAxis.xy_projection(0, 0, 1, 1);
     graphics->compile(xAxis);
     yAxis = spatial::ray(spatial::vector(0.0, 0.0, 0.0), spatial::vector(0.0, 2.0, 0.0));
-    yAxis.texture.map.create(1, 1, 0, 255, 0, 255); // Single pixel is good enough
+    yAxis.texture.map.create(1, 1, 0, 255, 0, 255);
     yAxis.xy_projection(0, 0, 1, 1);
     graphics->compile(yAxis);
     zAxis = spatial::ray(spatial::vector(0.0, 0.0, 0.0), spatial::vector(0.0, 0.0, 2.0));
-    zAxis.texture.map.create(1, 1, 0, 0, 255, 255); // Single pixel is good enough
+    zAxis.texture.map.create(1, 1, 0, 0, 255, 255);
     zAxis.xy_projection(0, 0, 1, 1);
     graphics->compile(zAxis);
 
@@ -330,7 +330,6 @@ void prototype::on_draw() {
         fps = frames;
         frames = 0;
     }
-
 
     spatial::matrix frame;
     frame.identity();

@@ -294,9 +294,9 @@ namespace spatial {
     class ray : public geometry {
     public:
         ray() : geometry(geometry::LINE) {}
-        ray(const vector& origin, const vector& terminus, float thickness = 0.00f);
+        ray(const vector& origin, const vector& terminus);
 
-        void endpoints(const vector& origin, const vector& terminus, float thickness = 0.00f);
+        void endpoints(const vector& origin, const vector& terminus);
 
         typedef vector::type_t type_t;
 

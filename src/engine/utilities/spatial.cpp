@@ -771,11 +771,11 @@ spatial::quad& spatial::quad::project(const matrix& model, const matrix& view, c
     return *this;
 }
 
-spatial::ray::ray(const vector& origin, const vector& terminus, float thickness) : ray() {
-    endpoints(origin, terminus, thickness);
+spatial::ray::ray(const vector& origin, const vector& terminus) : ray() {
+    endpoints(origin, terminus);
 }
 
-void spatial::ray::endpoints(const vector& origin, const vector& terminus, float thickness) {
+void spatial::ray::endpoints(const vector& origin, const vector& terminus) {
     vertices.resize(2);
 
     vertices[0] = origin;
