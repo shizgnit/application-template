@@ -68,7 +68,7 @@ TEST_F(FormatTest, FBX) {
 
     // Materials return as lists
     std::vector<type::object> fbxs;
-    test >> fbxs;
+    //test >> fbxs;
 
     EXPECT_EQ(fbxs.size(), 1);
     EXPECT_EQ(fbxs[0].texture.map.raster.size(), 33554432);

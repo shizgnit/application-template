@@ -6,15 +6,15 @@ namespace platform {
         enum type {
             POINTER,
             KEY,
-            CONTROLLER,
+            GAMEPAD,
             TIMER
         };
 
         enum action {
             DOWN,
-            HELD_DOWN,
+            HELD,
             UP,
-            DOUBLE_TAP,
+            DOUBLE,
             MOVE,
             DRAG,
             WHEEL,
@@ -52,6 +52,14 @@ namespace platform {
             const char* description;
         };
 
+        typedef struct gamepad {
+            time_t pressed;
+            const char* character;
+            const char* label;
+            int code;
+            const char* description;
+        };
+
         virtual void handler(type t, action a, callback c, int identifier = 0) {
             callbacks[t][a][identifier] = c;
         }
@@ -79,6 +87,7 @@ namespace platform {
 
         std::vector<pointer *> active_pointers;
         std::vector<key *> active_keys;
+        std::vector<gamepad *> active_buttons;
     };
 }
 
@@ -93,8 +102,65 @@ inline platform::input::pointer pointers[8] = {
     { 0, { 0.0f, 0.0f, 0.0f }, "", 0x07, "" }
 };
 
+inline platform::input::gamepad buttons[256] = {
+    { 0, "", "", 0x00, "Undefined" },
+    { 0, "", "VK_PAD_A", 0x00, "" },
+    { 0, "", "VK_PAD_B", 0x01, "" },
+    { 0, "", "VK_PAD_X", 0x02, "" },
+    { 0, "", "VK_PAD_Y", 0x03, "" },
+    { 0, "", "VK_PAD_RSHOULDER", 0x04, "" },
+    { 0, "", "VK_PAD_LSHOULDER", 0x05, "" },
+    { 0, "", "VK_PAD_LTRIGGER", 0x06, "" },
+    { 0, "", "VK_PAD_RTRIGGER", 0x07, "" },
+    { 0, "", "", 0x08, "Undefined" },
+    { 0, "", "", 0x0A, "Undefined" },
+    { 0, "", "", 0x0B, "Undefined" },
+    { 0, "", "", 0x0C, "Undefined" },
+    { 0, "", "", 0x0D, "Undefined" },
+    { 0, "", "", 0x0E, "Undefined" },
+    { 0, "", "", 0x0F, "Undefined" },
+    { 0, "", "VK_PAD_DPAD_UP", 0x10, "" },
+    { 0, "", "VK_PAD_DPAD_DOWN", 0x11, "" },
+    { 0, "", "VK_PAD_DPAD_LEFT", 0x12, "" },
+    { 0, "", "VK_PAD_DPAD_RIGHT", 0x13, "" },
+    { 0, "", "VK_PAD_START", 0x14, "" },
+    { 0, "", "VK_PAD_BACK", 0x15, "" },
+    { 0, "", "VK_PAD_LTHUMB_PRESS", 0x16, "" },
+    { 0, "", "VK_PAD_RTHUMB_PRESS", 0x17, "" },
+    { 0, "", "", 0x18, "Undefined" },
+    { 0, "", "", 0x1A, "Undefined" },
+    { 0, "", "", 0x1B, "Undefined" },
+    { 0, "", "", 0x1C, "Undefined" },
+    { 0, "", "", 0x1D, "Undefined" },
+    { 0, "", "", 0x1E, "Undefined" },
+    { 0, "", "", 0x1F, "Undefined" },
+    { 0, "", "VK_PAD_LTHUMB_UP", 0x20, "" },
+    { 0, "", "VK_PAD_LTHUMB_DOWN", 0x21, "" },
+    { 0, "", "VK_PAD_LTHUMB_RIGHT", 0x22, "" },
+    { 0, "", "VK_PAD_LTHUMB_LEFT", 0x23, "" },
+    { 0, "", "VK_PAD_LTHUMB_UPLEFT", 0x24, "" },
+    { 0, "", "VK_PAD_LTHUMB_UPRIGHT", 0x25, "" },
+    { 0, "", "VK_PAD_LTHUMB_DOWNRIGHT", 0x26, "" },
+    { 0, "", "VK_PAD_LTHUMB_DOWNLEFT", 0x27, "" },
+    { 0, "", "", 0x28, "Undefined" },
+    { 0, "", "", 0x2A, "Undefined" },
+    { 0, "", "", 0x2B, "Undefined" },
+    { 0, "", "", 0x2C, "Undefined" },
+    { 0, "", "", 0x2D, "Undefined" },
+    { 0, "", "", 0x2E, "Undefined" },
+    { 0, "", "", 0x2F, "Undefined" },
+    { 0, "", "VK_PAD_RTHUMB_UP", 0x30, "" },
+    { 0, "", "VK_PAD_RTHUMB_DOWN", 0x31, "" },
+    { 0, "", "VK_PAD_RTHUMB_RIGHT", 0x32, "" },
+    { 0, "", "VK_PAD_RTHUMB_LEFT", 0x33, "" },
+    { 0, "", "VK_PAD_RTHUMB_UPLEFT", 0x34, "" },
+    { 0, "", "VK_PAD_RTHUMB_UPRIGHT", 0x35, "" },
+    { 0, "", "VK_PAD_RTHUMB_DOWNRIGHT", 0x36, "" },
+    { 0, "", "VK_PAD_RTHUMB_DOWNLEFT", 0x37, "" }
+};
+
 inline platform::input::key keys[256] = {
-    { 0, "", "", "", 0x00, "" },
+    { 0, "", "", "", 0x00, "Undefined" },
     { 0, "", "", "VK_LBUTTON", 0x01, "Left mouse button" },
     { 0, "", "", "VK_RBUTTON", 0x02, "Right mouse button" },
     { 0, "", "", "VK_CANCEL", 0x03, "Control-break processing" },

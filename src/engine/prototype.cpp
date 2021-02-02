@@ -113,9 +113,55 @@ void mouse_move(const platform::input::event& ev) {
     prior_y = ev.point.y;
 }
 
+bool moving[4] = { false, false, false, false };
 void keyboard_input(const platform::input::event& ev) {
     std::stringstream ss;
     ss << "key(" << ev.identifier << ")";
+    text_event(ss.str());
+
+    if (ev.gesture == platform::input::DOWN) {
+        switch (ev.identifier) {
+        case(83):
+            moving[0] = true;
+            break;
+        case(87):
+            moving[1] = true;
+            break;
+        case(65):
+            moving[2] = true;
+            break;
+        case(68):
+            moving[3] = true;
+            break;
+        }
+    }
+
+    if (ev.gesture == platform::input::UP) {
+        switch (ev.identifier) {
+        case(83):
+            moving[0] = false;
+            break;
+        case(87):
+            moving[1] = false;
+            break;
+        case(65):
+            moving[2] = false;
+            break;
+        case(68):
+            moving[3] = false;
+            break;
+        }
+    }
+}
+
+void gamepad_input(const platform::input::event& ev) {
+    std::stringstream ss;
+    if (ev.gesture == platform::input::DOWN || ev.gesture == platform::input::HELD) {
+        ss << "button_down(" << ev.identifier << ")";
+    }
+    if (ev.gesture == platform::input::UP) {
+        ss << "button_up(" << ev.identifier << ")";
+    }
     text_event(ss.str());
 }
 
@@ -182,6 +228,11 @@ void prototype::on_startup() {
     input->handler(platform::input::POINTER, platform::input::MOVE, &mouse_move, 0);
 
     input->handler(platform::input::KEY, platform::input::DOWN, &keyboard_input, 0);
+    input->handler(platform::input::KEY, platform::input::UP, &keyboard_input, 0);
+
+    input->handler(platform::input::GAMEPAD, platform::input::DOWN, &gamepad_input, 0);
+    input->handler(platform::input::GAMEPAD, platform::input::HELD, &gamepad_input, 0);
+    input->handler(platform::input::GAMEPAD, platform::input::UP, &gamepad_input, 0);
 
     // Create some gui elements
     auto btn = gui->cast<platform::interface::button>(gui->create(platform::interface::widget::type::button, 256, 256, 0, 0, 0, 80).position(20, 20).handler(platform::input::POINTER, platform::input::MOVE, [](const platform::input::event& ev) {
@@ -262,6 +313,20 @@ void prototype::on_draw() {
     //pos.move(move);
 
     pos.move(0.02f);
+
+    if (moving[0]) {
+        camera.move(1);
+    }
+    if (moving[1]) {
+        camera.move(-1);
+    }
+    if (moving[2]) {
+        camera.strafe(1);
+    }
+    if (moving[3]) {
+        camera.strafe(-1);
+    }
+
 
     spatial::matrix model;
     model.identity();

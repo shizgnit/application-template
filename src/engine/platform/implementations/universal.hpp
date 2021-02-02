@@ -23,6 +23,9 @@ namespace implementation {
             void on_key_up(const event& ev);
             void on_key_down(const event& ev);
 
+            void on_button_up(const event& ev);
+            void on_button_down(const event& ev);
+
             std::mutex tracking; 
         };
 

@@ -21,6 +21,49 @@ INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
 
 inline BOOL LBUTTONDOWN = false;
 
+class Controller
+{
+public:
+    XINPUT_KEYSTROKE keystroke;
+    XINPUT_STATE state;
+    DWORD status;
+    int id;
+
+    Controller(int id=-1) {
+        this->id = id;
+        if(id >= 0) GetState();
+    }
+    Controller &GetState() {
+        ZeroMemory(&state, sizeof(XINPUT_STATE));
+        status = XInputGetState(id, &state);
+        return *this;
+    }
+    Controller& GetKeystroke() {
+        ZeroMemory(&keystroke, sizeof(XINPUT_KEYSTROKE));
+        status = XInputGetKeystroke(id, 0, &keystroke);
+        return *this;
+    }
+
+    bool IsConnected() {
+        return id >= 0 && status == ERROR_SUCCESS;
+    }
+
+    operator bool() {
+        return IsConnected();
+    }
+
+    // TODO: support a time, so this should be threaded off
+    void Vibrate(int left, int right) {
+        XINPUT_VIBRATION vibration;
+        ZeroMemory(&vibration, sizeof(XINPUT_VIBRATION));
+        vibration.wLeftMotorSpeed = left;
+        vibration.wRightMotorSpeed = right;
+        XInputSetState(id, &vibration);
+    }
+};
+
+Controller controllers[2];
+
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
                      _In_ LPWSTR    lpCmdLine,
@@ -270,6 +313,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
         //instance->dimensions(LOWORD(lParam), HIWORD(lParam))->on_resize();
 
+        controllers[0].id = 0;
+        controllers[1].id = 1;
+        controllers[2].id = 2;
+
         //SetTimer(hWnd, 1, 10, NULL);
         SetTimer(hWnd, 1, 1, NULL);
 
@@ -278,12 +325,31 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     case WM_INPUT:
         // https://msdn.microsoft.com/en-us/library/windows/desktop/ms645546(v=vs.85).aspx
 
+        if (controllers[0].GetKeystroke()) {
+            if (controllers[0].keystroke.Flags == XINPUT_KEYSTROKE_KEYDOWN) {
+                input->raise({ platform::input::GAMEPAD, platform::input::DOWN, controllers[0].keystroke.VirtualKey ^ 0x5800, { 0.0f, 0.0f, 0.0f }, 1 });
+                gui->raise({ platform::input::GAMEPAD, platform::input::DOWN, controllers[0].keystroke.VirtualKey ^ 0x5800, { 0.0f, 0.0f, 0.0f }, 0 }, 0, 0);
+            }
+            if (controllers[0].keystroke.Flags == XINPUT_KEYSTROKE_REPEAT) {
+                input->raise({ platform::input::GAMEPAD, platform::input::HELD, controllers[0].keystroke.VirtualKey ^ 0x5800, { 0.0f, 0.0f, 0.0f }, 1 });
+                gui->raise({ platform::input::GAMEPAD, platform::input::HELD, controllers[0].keystroke.VirtualKey ^ 0x5800, { 0.0f, 0.0f, 0.0f }, 0 }, 0, 0);
+            }
+            if (controllers[0].keystroke.Flags == XINPUT_KEYSTROKE_KEYUP) {
+                input->raise({ platform::input::GAMEPAD, platform::input::UP, controllers[0].keystroke.VirtualKey ^ 0x5800, { 0.0f, 0.0f, 0.0f }, 1 });
+                gui->raise({ platform::input::GAMEPAD, platform::input::UP, controllers[0].keystroke.VirtualKey ^ 0x5800, { 0.0f, 0.0f, 0.0f }, 0 }, 0, 0);
+            }
+        }
+
         handle = reinterpret_cast<HRAWINPUT>(lParam);
         //RAWINPUT input;
         //UINT szData = sizeof(input), szHeader = sizeof(RAWINPUTHEADER);
         //HRAWINPUT handle = reinterpret_cast<HRAWINPUT>(lParam);
 
         GetRawInputData(handle, RID_INPUT, &rawinput, &szData, szHeader);
+
+        if (rawinput.header.dwType == RIM_TYPEHID) { // Using xinput instead && rawinput.data.hid.bRawData & VK_GAMEPAD_MENU) {
+            std::cout << "Generic HID - ";
+        }
 
         if (0 && rawinput.header.dwType == RIM_TYPEKEYBOARD)
         {
@@ -401,6 +467,42 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         break;
 
     case WM_TIMER:
+        for (int i = 0; i < 3; i++) {
+            if (0 && controllers[i].GetState()) {
+                float LX = controllers[i].state.Gamepad.sThumbLX;
+                float LY = controllers[i].state.Gamepad.sThumbLY;
+
+                //determine how far the controller is pushed
+                float magnitude = sqrt(LX * LX + LY * LY);
+
+                //determine the direction the controller is pushed
+                float normalizedLX = LX / magnitude;
+                float normalizedLY = LY / magnitude;
+
+                float normalizedMagnitude = 0;
+
+                //check if the controller is outside a circular dead zone
+                if (magnitude > XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE)
+                {
+                    //clip the magnitude at its expected maximum value
+                    if (magnitude > 32767) magnitude = 32767;
+
+                    //adjust magnitude relative to the end of the dead zone
+                    magnitude -= XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE;
+
+                    //optionally normalize the magnitude with respect to its expected range
+                    //giving a magnitude value of 0.0 to 1.0
+                    normalizedMagnitude = magnitude / (32767 - XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE);
+                }
+                else //if the controller is in the deadzone zero out the magnitude
+                {
+                    magnitude = 0.0;
+                    normalizedMagnitude = 0.0;
+                }
+            }
+
+        }
+
         if (instance->started)
             instance->on_draw();
         SwapBuffers(hdc);

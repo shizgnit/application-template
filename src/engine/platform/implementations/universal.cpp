@@ -4,6 +4,14 @@
 
 void implementation::universal::input::raise(const event& ev) {
     // Dispatch the event based on type
+    if (ev.input == GAMEPAD) {
+        if (ev.gesture == DOWN || ev.gesture == HELD) {
+            on_button_down(ev);
+        }
+        if (ev.gesture == UP) {
+            on_button_up(ev);
+        }
+    }
     if (ev.input == POINTER) {
         if (ev.gesture == DOWN) {
             on_press(ev);
@@ -42,7 +50,7 @@ void implementation::universal::input::on_press(const event& ev) {
 
     // TODO: make the thresholds configurable
     if (delta <= 1 && distance < 1.0) {
-        platform::input::raise({ POINTER, DOUBLE_TAP, ev.identifier, ev.point, delta });
+        platform::input::raise({ POINTER, DOUBLE, ev.identifier, ev.point, delta });
     }
     else {
         platform::input::raise({ POINTER, DOWN, ev.identifier, ev.point, delta });
@@ -111,14 +119,45 @@ void implementation::universal::input::on_key_up(const event& ev) {
     platform::input::raise({ KEY, UP, ev.identifier, { 0.0f, 0.0f, 0.0f }, time(NULL) - keys[ev.identifier].pressed });
 }
 
+void implementation::universal::input::on_button_down(const event& ev) {
+    // Calculate values from prior event
+    time_t delta = time(NULL) - pointers[ev.identifier].pressed;
+
+    // Update to current
+    buttons[ev.identifier].pressed = time(NULL);
+
+    // Track the event
+    tracking.lock();
+    active_buttons.push_back(&buttons[ev.identifier]);
+    tracking.unlock();
+
+    platform::input::raise({ GAMEPAD, DOWN, ev.identifier, { 0.0f, 0.0f, 0.0f }, delta });
+}
+
+void implementation::universal::input::on_button_up(const event& ev) {
+    if (active_buttons.size()) {
+        tracking.lock();
+        auto end = std::remove_if(active_buttons.begin(),
+            active_buttons.end(),
+            [ev](gamepad const* b) {
+                return b->code == ev.identifier;
+            });
+        active_buttons.erase(end, active_buttons.end());
+        tracking.unlock();
+    }
+
+    keys[ev.identifier].pressed = 0;
+    platform::input::raise({ GAMEPAD, UP, ev.identifier, { 0.0f, 0.0f, 0.0f }, time(NULL) - buttons[ev.identifier].pressed });
+}
+
 void implementation::universal::input::emit() {
     for (auto active : active_pointers) {
         time_t delta = time(NULL) - active->pressed;
-        platform::input::raise({ POINTER, HELD_DOWN, active->code, active->point, delta });
+        platform::input::raise({ POINTER, HELD, active->code, active->point, delta });
     }
     for (auto active : active_keys) {
         time_t delta = time(NULL) - active->pressed;
-        platform::input::raise({ KEY, HELD_DOWN, active->code, { 0.0f, 0.0f, 0.0f }, delta });
+        platform::input::raise({ KEY, HELD, active->code, { 0.0f, 0.0f, 0.0f }, delta });
     }
 }
 

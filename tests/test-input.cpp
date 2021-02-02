@@ -61,7 +61,7 @@ TEST_F(InputTest, PointerDoubleTap) {
         events.push_back(ev);
         }, 1);
 
-    input->handler(platform::input::POINTER, platform::input::DOUBLE_TAP, [](const platform::input::event& ev) {
+    input->handler(platform::input::POINTER, platform::input::DOUBLE, [](const platform::input::event& ev) {
         events.push_back(ev);
         }, 1);
 

@@ -38,6 +38,7 @@
 #include <io.h>
 #include <fcntl.h>
 #include <shellapi.h>
+#include <xinput.h>
 #define HAVE_STRUCT_TIMESPEC
 #endif
 
