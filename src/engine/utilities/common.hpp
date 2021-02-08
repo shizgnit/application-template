@@ -1,5 +1,32 @@
 namespace utilities {
 
+    template <class type, class method>
+    class scoped {
+    public:
+        //typedef void(*callback)();
+        scoped();
+        scoped(type instance, method callback) {
+            this->instance = std::make_unique<type>(instance);
+            this->callback = std::make_unique<method>(callback);
+        }
+        scoped(const scoped& ref) {
+            *this = ref;
+        }
+
+        scoped& operator=(const scoped& rval) {
+            this->instance = std::move(rval.instance);
+            this->callback = std::move(rval.callback);
+            return *this;
+        }
+
+        ~scoped() {
+            if(instance != NULL && callback != NULL) std::invoke(*callback, *instance);
+        }
+
+        std::unique_ptr<type> instance = NULL;
+        std::unique_ptr<method> callback = NULL;
+    };
+
     template<typename t>
     std::vector<int> indices(const std::vector<t>& list) {
         std::vector<int> results(list.size());

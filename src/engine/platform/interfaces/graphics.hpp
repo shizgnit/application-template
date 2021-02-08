@@ -17,6 +17,15 @@ namespace platform {
         virtual void draw(type::object& object, type::program& shader, const spatial::matrix& model, const spatial::matrix& view, const spatial::matrix& projection) = 0;
         virtual void draw(std::string text, type::font& font, type::program& shader, const spatial::matrix& model, const spatial::matrix& view, const spatial::matrix& projection) = 0;
 
+        virtual void ontarget(type::object& object) {}
+        virtual void untarget() {}
+
+        typedef void (graphics::*callback)();
+        utilities::scoped<graphics*, callback> target(type::object& object) {
+            ontarget(object);
+            return utilities::scoped<graphics*, callback>(this, &graphics::untarget);
+        }
+
         virtual void clip(float top, float bottom, float left, float right) {
             clip_top.push_back(top);
             clip_bottom.push_back(bottom);

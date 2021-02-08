@@ -327,6 +327,14 @@ void prototype::on_draw() {
         camera.strafe(-1);
     }
 
+    spatial::matrix frame;
+    frame.identity();
+    frame.translate(20, graphics->height() - 20 - 256, 0);
+
+    {
+        auto scope = graphics->target(poly.children[0]);
+        graphics->draw(icon, shader, frame, spatial::matrix(), ortho);
+    }
 
     spatial::matrix model;
     model.identity();
@@ -395,12 +403,6 @@ void prototype::on_draw() {
         fps = frames;
         frames = 0;
     }
-
-    spatial::matrix frame;
-    frame.identity();
-    frame.translate(20, graphics->height() - 20 - 256, 0);
-
-    graphics->draw(icon, shader, frame, spatial::matrix(), ortho);
 
     gui->draw();
 

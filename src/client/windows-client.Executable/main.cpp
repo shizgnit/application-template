@@ -183,7 +183,9 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    auto _HGLRC = wglCreateContext(HDC);
    wglMakeCurrent(HDC, _HGLRC);
 
+   // TODO: Move to the graphics abstraction
    GLenum err = glewInit();
+
    //if (err != GLEW_OK)
    //    exit(1); // or handle the error in a nicer way
    //if (!GLEW_VERSION_2_1)  // check that the machine supports the 2.1 API.

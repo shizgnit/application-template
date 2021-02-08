@@ -2,6 +2,66 @@
 
 #if defined __PLATFORM_SUPPORTS_OPENGL
 
+bool implementation::opengl::fbo::init(bool depth) {
+    static attachment attachments;
+    allocation = attachments.allocate();
+
+    glGenFramebuffers(1, &context.frame);
+    glBindFramebuffer(GL_FRAMEBUFFER, context.frame);
+
+    if (0) {
+        glGenTextures(1, &texture.context);
+        glBindTexture(GL_TEXTURE_2D, texture.context);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture.map.properties.width, texture.map.properties.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture.context, 0);
+    }
+
+    if (depth) {
+        glGenRenderbuffers(1, &context.depth);
+        glBindRenderbuffer(GL_RENDERBUFFER, context.depth);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, texture.map.properties.width, texture.map.properties.height);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, context.depth);
+
+        glBindTexture(GL_TEXTURE_2D, 0);
+        glBindRenderbuffer(GL_RENDERBUFFER, 0);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    }
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glGenBuffers(1, &context.render);
+
+    glBindRenderbuffer(GL_RENDERBUFFER, context.render);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, texture.map.properties.width, texture.map.properties.height);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, context.render);
+
+    int status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+    if (status != GL_FRAMEBUFFER_COMPLETE) {
+        throw("failed to initialize frame buffer");
+    }
+    return true;
+}
+
+void implementation::opengl::fbo::enable() {
+    glBindFramebuffer(GL_FRAMEBUFFER, context.frame);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture.context, 0);
+    //glPushAttrib(GL_VIEWPORT_BIT | GL_COLOR_BUFFER_BIT);
+    glViewport(0, 0, texture.map.properties.width, texture.map.properties.height);
+    //glDrawBuffer(allocation);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
+
+void implementation::opengl::fbo::disable() {
+    //glPopAttrib();
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glBindRenderbuffer(GL_RENDERBUFFER, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    //glViewport(0, 0, prior, prior);
+}
+
 void implementation::opengl::graphics::geometry(int width, int height) {
     glViewport(0, 0, width, height);
     display_width = width;
@@ -17,6 +77,8 @@ void implementation::opengl::graphics::init(void) {
     //glEnable(GL_CULL_FACE); // off for now, but should be toggled based on render options
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    auto str = utilities::tokenize((const char*)glGetString(GL_EXTENSIONS), " ");
 }
 
 void implementation::opengl::graphics::clear(void) {
