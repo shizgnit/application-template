@@ -276,7 +276,7 @@ void implementation::universal::interface::draw(widget& instance) {
         int y = textbox.alignment == widget::positioning::bottom ? textbox.y + textbox.background.height() - (contents.size() * font.leading()) : textbox.y + 20;
 
         std::string line;
-        for (auto message : contents) {
+        for (auto &message : contents) {
             line += message;
             if (line.empty() == false && line[line.size()-1] == '\n') {
                 print(x, y, line);

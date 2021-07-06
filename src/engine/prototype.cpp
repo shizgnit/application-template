@@ -327,15 +327,6 @@ void prototype::on_draw() {
         camera.strafe(-1);
     }
 
-    spatial::matrix frame;
-    frame.identity();
-    frame.translate(20, graphics->height() - 20 - 256, 0);
-
-    {
-        auto scope = graphics->target(poly.children[0]);
-        graphics->draw(icon, shader, frame, spatial::matrix(), ortho);
-    }
-
     spatial::matrix model;
     model.identity();
     model.translate(pos.eye, pos.center, pos.up);
@@ -395,6 +386,20 @@ void prototype::on_draw() {
 
     std::string value = utilities::type_cast<std::string>(fps);
     gui->print(30, 300, std::string("FPS: ") + value);
+
+    spatial::matrix frame;
+    frame.identity();
+    frame.translate(20, graphics->height() - 20 - 256, 0);
+
+    graphics->draw(icon, shader, frame, spatial::matrix(), ortho);
+
+    {
+        auto scope = graphics->target(poly.children[0]);
+        spatial::matrix rendertotex;
+        rendertotex.identity();
+        rendertotex.translate(20, 20, 0);
+        graphics->draw(icon, shader, rendertotex, spatial::matrix(), ortho);
+    }
 
     frames += 1;
     time_t now = time(NULL);

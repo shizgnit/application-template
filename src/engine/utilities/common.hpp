@@ -79,47 +79,45 @@ namespace utilities {
         }
 
         void add(std::string message) {
-            lock.lock();
+            std::lock_guard<std::mutex> scoped(lock);
             data.push_back(message);
             if (data.size() > limit) {
                 data.pop_front();
             }
-            lock.unlock();
         }
 
         void append(std::string message) {
-            lock.lock();
+            std::lock_guard<std::mutex> scoped(lock);
             if (data.size()) data.back().append(message);
             else data.push_back(message);
-            lock.unlock();
         }
 
         void remove(int count=-1) {
-            lock.lock();
+            std::lock_guard<std::mutex> scoped(lock);
             if (count == -1 && data.size()) data.pop_back();
             else while(count-- && data.size() && data.back().empty() == false) data.back().pop_back();
-            lock.unlock();
         }
 
-        std::vector<std::string> get() {
-            std::vector<std::string> list;
-            lock.lock();
-            for (auto message : data) {
-                list.push_back(message);
+        std::vector<std::string> &get() {
+            std::lock_guard<std::mutex> scoped(lock);
+            //std::vector<std::string> list;
+            contents.clear();
+            for (auto &message : data) {
+                contents.push_back(message);
             }
-            lock.unlock();
-            return list;
+            //return list;
+            return contents; // TODO: fix this, making a copy is creating a leak for some reason
         }
 
         void clear() {
-            lock.lock();
+            std::lock_guard<std::mutex> scoped(lock);
             data.clear();
-            lock.unlock();
         }
 
         int limit;
     private:
 
+        std::vector<std::string> contents;
         std::list<std::string> data;
         std::mutex lock;
     };

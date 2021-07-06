@@ -90,8 +90,8 @@ namespace implementation {
             void draw(std::string text, type::font& font, type::program& shader, const spatial::matrix& model, const spatial::matrix& view, const spatial::matrix& projection);
 
             void ontarget(type::object& object) {
-                fx = new fbo(object.texture);
-                fx->init(false);
+                if(fx == NULL) fx = new fbo(object.texture);
+                fx->init(true);
                 fx->enable();
             }
 

@@ -349,7 +349,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
         GetRawInputData(handle, RID_INPUT, &rawinput, &szData, szHeader);
 
-        if (rawinput.header.dwType == RIM_TYPEHID) { // Using xinput instead && rawinput.data.hid.bRawData & VK_GAMEPAD_MENU) {
+        if (0 && rawinput.header.dwType == RIM_TYPEHID) { // Using xinput instead && rawinput.data.hid.bRawData & VK_GAMEPAD_MENU) {
             std::cout << "Generic HID - ";
         }
 
