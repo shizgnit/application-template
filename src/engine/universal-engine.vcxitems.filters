@@ -35,6 +35,21 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)platform\implementations\universal.cpp">
       <Filter>platform\implementations</Filter>
     </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\deps\fbx-master\src\fbxdocument.cpp">
+      <Filter>deps\fbx</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\deps\fbx-master\src\fbxnode.cpp">
+      <Filter>deps\fbx</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\deps\fbx-master\src\fbxproperty.cpp">
+      <Filter>deps\fbx</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\deps\fbx-master\src\fbxutil.cpp">
+      <Filter>deps\fbx</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\deps\miniz-2.2.0\miniz.c">
+      <Filter>deps\miniz</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\deps\lodepng\lodepng.h">
@@ -171,6 +186,21 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)platform\interfaces\interface.hpp">
       <Filter>platform\interfaces</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\deps\fbx-master\src\fbxdocument.h">
+      <Filter>deps\fbx</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\deps\fbx-master\src\fbxnode.h">
+      <Filter>deps\fbx</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\deps\fbx-master\src\fbxproperty.h">
+      <Filter>deps\fbx</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\deps\fbx-master\src\fbxutil.h">
+      <Filter>deps\fbx</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\deps\miniz-2.2.0\miniz.h">
+      <Filter>deps\miniz</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="deps">
@@ -208,6 +238,12 @@
     </Filter>
     <Filter Include="types\formats">
       <UniqueIdentifier>{ce128ed7-4f3f-4f53-9afa-5365b7d4366c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="deps\fbx">
+      <UniqueIdentifier>{b2c97835-323c-43f3-b40b-7128426d8816}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="deps\miniz">
+      <UniqueIdentifier>{b31ab9ae-202f-4735-bf7f-270a845bfcc8}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

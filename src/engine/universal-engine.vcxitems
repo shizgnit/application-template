@@ -14,7 +14,12 @@
     <ProjectCapability Include="SourceItemsFromImports" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\deps\fbx-master\src\fbxdocument.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\deps\fbx-master\src\fbxnode.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\deps\fbx-master\src\fbxproperty.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\deps\fbx-master\src\fbxutil.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\deps\lodepng\lodepng.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)..\..\deps\miniz-2.2.0\miniz.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\deps\picojson\picojson.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\deps\pugixml\src\pugiconfig.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\deps\pugixml\src\pugixml.hpp" />
@@ -62,7 +67,12 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)utilities\type_cast.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\deps\fbx-master\src\fbxdocument.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\deps\fbx-master\src\fbxnode.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\deps\fbx-master\src\fbxproperty.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\deps\fbx-master\src\fbxutil.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\deps\lodepng\lodepng.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\deps\miniz-2.2.0\miniz.c" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\deps\pugixml\src\pugixml.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)platform\implementations\android.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)platform\implementations\openal.cpp" />

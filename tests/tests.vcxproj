@@ -92,14 +92,14 @@
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
-      <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)\packages\zlib_native.1.2.11\build\native\include;$(SolutionDir)\deps\glm;%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory);$(MSBuildThisFileDirectory)../..//build/native/include/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)\deps\glm;%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory);$(MSBuildThisFileDirectory)../..//build/native/include/</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
-      <AdditionalLibraryDirectories>$(SolutionDir)packages\zlib_native.1.2.11\build\native\lib\x64\Debug;$(SolutionDir)packages\pthreads.2.9.1.4\build\native\lib\v110\x64\Release\dynamic\cdecl;$(SolutionDir)packages\glew.1.9.0.1\build\native\lib\v110\x64\Release\static;%(AdditionalLibraryDirectories);$(MSBuildThisFileDirectory)\..\runtimes\win-$(PlatformTarget)\native\</AdditionalLibraryDirectories>
-      <AdditionalDependencies>libpthread.lib;glew.lib;opengl32.lib;rpcrt4.lib;ws2_32.lib;zlibd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)packages\pthreads.2.9.1.4\build\native\lib\v110\x64\Release\dynamic\cdecl;$(SolutionDir)packages\glew.1.9.0.1\build\native\lib\v110\x64\Release\static;%(AdditionalLibraryDirectories);$(MSBuildThisFileDirectory)\..\runtimes\win-$(PlatformTarget)\native\</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libpthread.lib;glew.lib;opengl32.lib;rpcrt4.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

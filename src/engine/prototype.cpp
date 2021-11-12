@@ -166,6 +166,8 @@ void gamepad_input(const platform::input::event& ev) {
 }
 
 void prototype::on_startup() {
+    //format::fbx doc("C:\\Projects\\application-template\\src\\client\\android-client.Packaging\\assets\\objects\\wiggle.fbx");
+    
     graphics->init();
     audio->init();
 
@@ -394,11 +396,11 @@ void prototype::on_draw() {
     graphics->draw(icon, shader, frame, spatial::matrix(), ortho);
 
     {
-        auto scope = graphics->target(poly.children[0]);
-        spatial::matrix rendertotex;
-        rendertotex.identity();
-        rendertotex.translate(20, 20, 0);
-        graphics->draw(icon, shader, rendertotex, spatial::matrix(), ortho);
+        //auto scope = graphics->target(poly.children[0]);
+        //spatial::matrix rendertotex;
+        //rendertotex.identity();
+        //rendertotex.translate(20, 20, 0);
+        //graphics->draw(icon, shader, rendertotex, spatial::matrix(), ortho);
     }
 
     frames += 1;

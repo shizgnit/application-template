@@ -36,7 +36,9 @@ namespace implementation {
                 attachment() {
                     int supported;
                     glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS, &supported);
-                    inuse.resize(supported, false);
+                    if (supported > 0) {
+                        inuse.resize(supported, false);
+                    }
                 }
 
                 GLenum allocate() {

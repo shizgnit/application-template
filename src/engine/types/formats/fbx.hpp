@@ -1,9 +1,12 @@
 #pragma once
 
+#include "deps/fbx-master/src/fbxdocument.h"
+
 
 #include <variant>
+#include <deps/miniz-2.2.0/miniz.h>
 
-#include "zlib.h"
+//#include "zlib.h"
 
 // https://code.blender.org/2013/08/fbx-binary-file-format-specification/
 
@@ -17,24 +20,37 @@ namespace format {
 
             node() {}
 
-            void parse(std::istream& input, unsigned int end=0) {
+            // 385
+
+            // 380 - 160
+
+            bool parse(std::istream& input, unsigned int end=0) {
                 if (end == 0) {
                     end = utilities::read<int>(input);
+                    if (end == 0x9ABBCFA) {
+                        auto location = input.tellg();
+                        return false; // hit the footer
+                    }
                     unsigned int count = utilities::read<int>(input);
-
                     utilities::read<int>(input); // property size, just ignore
-
                     name = utilities::read<std::string>(input, utilities::read<char>(input));
-
                     values(input, count);
                 }
                 auto location = input.tellg();
-                while (input.tellg() < end) {
-                    children.resize(children.size() + 1);
-                    children.back().parse(input);
-                    location = input.tellg();
+                if (location > 78880) {
+                    int y = 0;
                 }
+
+                bool done = false;
+                while (input.tellg() < end && !done) {
+                    children.resize(children.size() + 1);
+                    done = children.back().parse(input) == false;
+                }
+
+                return true;
             }
+
+            
 
             void values(std::istream& input, int count, char spec = '?') {
                 for (int i = 0; i < count; i++) {
@@ -99,6 +115,10 @@ namespace format {
                         std::vector<char> compressed_buffer(compressed_size, 0);
                         std::vector<char> uncompressed_buffer(uncompressed_size, 0);
                         if (compressed) {
+                            if (compressed_size == 0 || compressed_size > 74000) {
+                                int x = 0;
+                            }
+
                             input.read(compressed_buffer.data(), compressed_size);
 
                             uncompress((unsigned char*)uncompressed_buffer.data(), (unsigned long *)&uncompressed_size, (unsigned char*)compressed_buffer.data(), compressed_size);
@@ -129,9 +149,14 @@ namespace format {
         }
 
         fbx(std::string filename) : fbx() {
+#ifdef _WIN32
+            ::fbx::FBXDocument doc;
+            doc.read(filename);
+            doc.print();
+#endif
             std::ifstream file(filename, std::ios::binary);
             if (file.is_open()) {
-                file >> *this;
+                this->read(file);
             }
         }
 
@@ -139,10 +164,9 @@ namespace format {
             return(*this);
         }
 
-        friend type::object& operator>>(std::istream& input, format::fbx& instance) {
-            /// Ignore any non-good stream states
+        type::object& read(std::istream& input) {
             if (input.good() == false) {
-                return instance;
+                return *this;
             }
 
             // Get the input size before consumption starts
@@ -156,7 +180,7 @@ namespace format {
             input.read(buffer, 23);
 
             if (reference != buffer) {
-                return instance;
+                return *this;
             }
 
             int version = utilities::read<int>(input);
@@ -167,7 +191,13 @@ namespace format {
             // Done parsing the incoming asset
             assets->release();
 
-            return instance;
+            // TODO: Need to translate the document to the object members!
+
+            return *this;
+        }
+
+        friend type::object& operator>>(std::istream& input, format::fbx& instance) {
+            instance.read(input);
         }
     };
 
