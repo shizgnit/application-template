@@ -185,6 +185,7 @@ struct engine {
 	ASensorEventQueue* sensorEventQueue;
 
 	int animating;
+	EGLConfig config;
 	EGLDisplay display;
 	EGLSurface surface;
 	EGLContext context;
@@ -250,6 +251,7 @@ static int engine_init_display(struct engine* engine) {
 	eglQuerySurface(display, surface, EGL_WIDTH, &w);
 	eglQuerySurface(display, surface, EGL_HEIGHT, &h);
 
+	engine->config = config;
 	engine->display = display;
 	engine->context = context;
 	engine->surface = surface;
@@ -263,12 +265,31 @@ static int engine_init_display(struct engine* engine) {
 	//glShadeModel(GL_SMOOTH);
 	//glDisable(GL_DEPTH_TEST);
 
-	setupGraphics(1440, 2960);
+	//setupGraphics(1440, 2960);
+	setupGraphics(w, h);
 
 	assets->init(engine->app->activity->assetManager);
-	instance->dimensions(w, h)->on_startup();
-	instance->started = true;
+	instance->dimensions(w, h);
 	instance->on_resize();
+	instance->on_startup();
+	instance->started = true;
+	//instance->on_resize();
+
+	return 0;
+}
+
+static int engine_resize_display(struct engine* engine) {
+	EGLint w, h;
+
+	eglQuerySurface(engine->display, engine->surface, EGL_WIDTH, &w);
+	eglQuerySurface(engine->display, engine->surface, EGL_HEIGHT, &h);
+
+	engine->width = w;
+	engine->height = h;
+
+	//setupGraphics(w, h);
+
+	instance->dimensions(h, w)->on_resize();
 
 	return 0;
 }
@@ -294,8 +315,6 @@ static void engine_draw_frame(struct engine* engine) {
 	if (instance->started)
 		instance->on_draw();
 	
-
-
 	eglSwapBuffers(engine->display, engine->surface);
 }
 
@@ -335,29 +354,40 @@ static int32_t engine_handle_input(struct android_app* app, AInputEvent* event) 
 	int count = AMotionEvent_getPointerCount(event);
 	int index = (action & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
 
+	index += 1; // Offset by one
+
 	//AMotionEvent_getPointerId
 
 	if (type == AINPUT_EVENT_TYPE_MOTION) {
 		engine->state.x = AMotionEvent_getX(event, 0);
 		engine->state.y = AMotionEvent_getY(event, 0);
 
-		input->raise({ platform::input::POINTER, platform::input::MOVE, 0, { (float)engine->state.x, (float)engine->state.y, 0.0f }, 1 });
+		std::vector<spatial::vector> points;
+		for (int i = 0; i < count; i++) {
+			points.push_back({ AMotionEvent_getX(event, i), AMotionEvent_getY(event, i), 0.0f });
+		}
+		input->raise({ platform::input::POINTER, platform::input::MOVE, index, 1, 0.0f, { (float)engine->state.x, (float)engine->state.y, 0.0f }, points });
+		gui->raise({ platform::input::POINTER, platform::input::MOVE, index, 1, 0.0f, { (float)engine->state.x, (float)engine->state.y, 0.0f }, points }, (float)engine->state.x, (float)engine->state.y);
 
 		switch (action) {
 		case AMOTION_EVENT_ACTION_DOWN: // Primary pointer down (always index 0)
-			input->raise({ platform::input::POINTER, platform::input::DOWN, 1, { (float)engine->state.x, (float)engine->state.y, 0.0f }, 0 });
+			input->raise({ platform::input::POINTER, platform::input::DOWN, index, 0, 0.0f, { (float)engine->state.x, (float)engine->state.y, 0.0f } });
+			gui->raise({ platform::input::POINTER, platform::input::DOWN, index, 0, 0.0f, { (float)engine->state.x, (float)engine->state.y, 0.0f } }, (float)engine->state.x, (float)engine->state.y);
 			break;
 
 		case AMOTION_EVENT_ACTION_UP: // Primary pointer up
-			input->raise({ platform::input::POINTER, platform::input::UP, 1, { (float)engine->state.x, (float)engine->state.y, 0.0f }, 0 });
+			input->raise({ platform::input::POINTER, platform::input::UP, index, 0, 0.0f, { (float)engine->state.x, (float)engine->state.y, 0.0f } });
+			gui->raise({ platform::input::POINTER, platform::input::UP, index, 0, 0.0f, { (float)engine->state.x, (float)engine->state.y, 0.0f } }, (float)engine->state.x, (float)engine->state.y);
 			break;
 
 		case AMOTION_EVENT_ACTION_POINTER_DOWN: // Secondary pointer down
-			input->raise({ platform::input::POINTER, platform::input::DOWN, 2, { (float)engine->state.x, (float)engine->state.y, 0.0f }, 0 });
+			input->raise({ platform::input::POINTER, platform::input::DOWN, index, 0, 0.0f, { (float)engine->state.x, (float)engine->state.y, 0.0f } });
+			gui->raise({ platform::input::POINTER, platform::input::DOWN, index, 0, 0.0f, { (float)engine->state.x, (float)engine->state.y, 0.0f } }, (float)engine->state.x, (float)engine->state.y);
 			break;
 
 		case AMOTION_EVENT_ACTION_POINTER_UP: // Secondary pointer up
-			input->raise({ platform::input::POINTER, platform::input::UP, 2, { (float)engine->state.x, (float)engine->state.y, 0.0f }, 0 });
+			input->raise({ platform::input::POINTER, platform::input::UP, index, 0, 0.0f, { (float)engine->state.x, (float)engine->state.y, 0.0f } });
+			gui->raise({ platform::input::POINTER, platform::input::UP, index, 0, 0.0f, { (float)engine->state.x, (float)engine->state.y, 0.0f } }, (float)engine->state.x, (float)engine->state.y);
 			break;
 		};
 	}
@@ -384,6 +414,11 @@ static void engine_handle_cmd(struct android_app* app, int32_t cmd) {
 		if (engine->app->window != NULL) {
 			engine_init_display(engine);
 			engine_draw_frame(engine);
+		}
+		break;
+	case APP_CMD_CONFIG_CHANGED:
+		if (engine->app->window != NULL) {
+			engine_resize_display(engine);
 		}
 		break;
 	case APP_CMD_TERM_WINDOW:

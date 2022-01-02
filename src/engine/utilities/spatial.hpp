@@ -49,10 +49,9 @@ namespace spatial {
 
         virtual vector& operator() (const type_t& x, const type_t& y, const type_t& z = 0.0f, const type_t& w = 1.0f);
 
+        vector& rotate(const vector& axis, type_t angle);
         vector& rotate_x(type_t rad);
-
         vector& rotate_y(type_t rad);
-
         vector& rotate_z(type_t rad);
 
         type_t inner(const vector& operand) {
@@ -72,6 +71,10 @@ namespace spatial {
 
         operator glm::vec3() const;
 
+        virtual bool value() {
+            return (x == 0 && y == 0 && z == 0 && w == 1) == false;
+        }
+
     public:
 
         union {
@@ -83,6 +86,48 @@ namespace spatial {
             };
             type_t l[4];
         };
+    };
+
+    class vertex {
+    public:
+        vertex() {}
+        vertex(const vector& position) {
+            *this = position;
+        }
+
+        vector coordinate;
+        vector texture;
+        vector normal;
+
+        // Assume that a vector assignment is for the coordinate portion
+        const vertex& operator=(const vector& position) {
+            coordinate = position;
+            return *this;
+        }
+    };
+
+    class geometry {
+    public:
+        geometry() {}
+        geometry(size_t elements) : vertices(elements) {}
+        geometry(const std::vector<spatial::vertex>& vertices) {
+            *this = vertices;
+        }
+
+        geometry& operator = (const spatial::geometry& ref) {
+            this->vertices = ref.vertices;
+            return *this;
+        }
+
+        geometry& operator = (const std::vector<spatial::vertex>& vertices) {
+            this->vertices.resize(vertices.size());
+            for (auto& i : utilities::indices(vertices)) {
+                this->vertices[i] = vertices[i].coordinate;
+            }
+            return *this;
+        }
+
+        std::vector<spatial::vector> vertices;
     };
 
     class matrix {
@@ -120,18 +165,23 @@ namespace spatial {
         matrix operator * (const matrix& operand) const;
 
         matrix& scale(const type_t& operand);
-        
-        
-        //matrix& operator *= (const type_t& operand);
-        //matrix operator * (const type_t& operand) const;
+        matrix& scale_x(const type_t& operand);
+        matrix& scale_y(const type_t& operand);
+        matrix& scale_z(const type_t& operand);
 
         virtual vector operator * (const vector& v) const;
+        virtual geometry operator * (const geometry& v) const;
 
         vector interpolate(const vector& v) const;
+        geometry interpolate(const geometry& g) const;
 
+        matrix& rotate(const vector& axis, type_t angle);
         matrix& rotate_x(type_t angle);
         matrix& rotate_y(type_t angle);
         matrix& rotate_z(type_t angle);
+
+        matrix& position(const vector& v);
+        matrix& position(const type_t& x, const type_t& y, const type_t& z, const type_t& w = 1.0f);
 
         matrix& translate(const vector& v);
         matrix& translate(const type_t& x, const type_t& y, const type_t& z, const type_t& w = 1.0f);
@@ -143,6 +193,23 @@ namespace spatial {
         matrix& lookat(const vector& eye, const vector& center, const vector& up);
 
         matrix& invert();
+    };
+
+    class quaternion : public vector {
+    public:
+        typedef vector::type_t type_t;
+
+        quaternion();
+        quaternion(const matrix& m);
+
+        ~quaternion();
+
+        operator matrix();
+
+        quaternion& translate(const vector& eye, const vector& center, const vector& up);
+        quaternion& euler(const type_t& x, const type_t& y, const type_t& z, const type_t& degrees);
+
+        quaternion operator *(const quaternion& operand);
     };
 
     class position {
@@ -158,95 +225,58 @@ namespace spatial {
 
         void viewable(bool toggle);
 
-        void move(type_t t);
-        void vertical(type_t t);
+        position& move(type_t t);
+        position& elevate(type_t t);
 
-        void strafe(type_t t);
+        position& strafe(type_t t);
 
-        void rotate(type_t x, type_t y, type_t z = 0.0f);
+        position& pitch(type_t angle);
+        position& yaw(type_t angle);
+        position& roll(type_t angle);
+        position& spin(type_t angle);
 
         void project(const vector& offset, const vector& projection);
 
     public:
         bool view;
 
-        vector rotation;
+        struct {
+            type_t pitch = 0.0f;
+            type_t yaw = 0.0f;
+            type_t roll = 0.0f;
+            type_t spin = 0.0f;
+        } rotation;
 
         vector eye;
         vector center;
         vector up;
+
+    protected:
+        position& rotate();
     };
 
-    class quaternion : public vector {
-    public:
-        typedef vector::type_t type_t;
-
-        quaternion();
-        quaternion(const matrix& m);
-
-        ~quaternion();
-
-        operator matrix();
-        void euler(const type_t& x, const type_t& y, const type_t& z, const type_t& degrees);
-
-        quaternion operator *(const quaternion& operand);
-    };
-
-    class vertex {
-    public:
-        vertex() {}
-        vertex(const vector& position) {
-            *this = position;
-        }
-
-        vector coordinate;
-        vector texture;
-        vector normal;
-
-        // Assume that a vector assignment is for the coordinate portion
-        const vertex& operator=(const vector& position) {
-            coordinate = position;
-            return *this;
-        }
-    };
-
-    class geometry {
-    public:
-        enum primitive {
-            UNDEFINED = 0x00,
-            POINT = 0x01,
-            LINE = 0x02,
-            POLYGON = 0x04
-        } type;
-
-        geometry(primitive t) : type(t) {}
-        geometry(primitive t, size_t elements) : type(t), vertices(elements) {}
-
-        geometry& operator = (const spatial::geometry& ref) {
-            this->vertices = ref.vertices;
-            return *this;
-        }
-
-        std::vector<spatial::vector> vertices;
-    };
-
-    // TODO: currently planes and spheres are specifications only and do not represent visualized geometry, eventually these need to auto generate geometry
     class plane {
     public:
         vector point;
         vector normal;
     };
-    class sphere {
+
+    class sphere : public geometry {
     public:
+        sphere() : geometry() {}
+        sphere(int horizontal, int vertical);
+
         typedef vector::type_t type_t;
 
-        vector center;
-        type_t radius;
+        vector center = { 0.0f, 0.0f, 0.0f };
+        type_t radius = 1.0f;
+
+        sphere &interpolate(int horizontal, int vertical);
     };
 
     class triangle : public geometry {
     public:
-        triangle() : geometry(geometry::POLYGON, 3) {}
+        triangle() : geometry(3) {}
         triangle(const spatial::vector& v0, const spatial::vector& v1, const spatial::vector& v2) : triangle() {
             vertices[0] = v0;
             vertices[1] = v1;
@@ -262,7 +292,7 @@ namespace spatial {
 
     class quad : public geometry {
     public:
-        quad() : geometry(geometry::POLYGON) {}
+        quad() : geometry() {}
         quad(int width, int height);
         quad(const std::vector<spatial::vector>& vertices) : quad() {
             this->vertices = vertices;
@@ -274,7 +304,7 @@ namespace spatial {
             }
         }
 
-        void size(int width, int height);
+        quad &interpolate(int width, int height);
 
         quad& operator =(const std::vector<spatial::vector>& vertices) {
             this->vertices = vertices;
@@ -289,26 +319,28 @@ namespace spatial {
         operator geometry& () {
             return *this;
         }
+
+        static spatial::geometry edges(int width, int height);
     };
 
     class ray : public geometry {
     public:
-        ray() : geometry(geometry::LINE) {}
+        ray() : geometry() {}
         ray(const vector& origin, const vector& terminus);
 
-        void endpoints(const vector& origin, const vector& terminus);
+        ray &interpolate(const vector& origin, const vector& terminus);
 
         typedef vector::type_t type_t;
 
         type_t distance(const vector& v) const;
         type_t distance(const ray& r);
 
-        bool intersects(const quad& t);
+        bool intersects(const geometry& t);
         bool intersects(const triangle& t);
         bool intersects(const plane& t);
         bool intersects(const sphere& t);
 
-        vector intersection(const quad& t);
+        vector intersection(const geometry& t);
         vector intersection(const triangle& t);
         vector intersection(const plane& t);
     };

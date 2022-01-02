@@ -16,10 +16,9 @@ namespace platform {
             UP,
             DOUBLE,
             MOVE,
+            PINCH,
             DRAG,
             WHEEL,
-            PINCH,
-            ROTATE,
             SELECT,
             UNSELECT
         };
@@ -28,12 +27,13 @@ namespace platform {
             type input;
             action gesture;
             int identifier;
-            spatial::vector point;
             time_t delta;
+            float travel;
+            spatial::vector point;
+            std::vector<spatial::vector> points;
         };
 
         typedef void(*callback)(const event &);
-
 
         typedef struct pointer {
             time_t pressed;
@@ -84,6 +84,12 @@ namespace platform {
 
     protected:
         std::map<type, std::map<action, std::map<int, callback>>> callbacks;
+
+        int threshold_time = 1;
+        float threshold_travel = 1.0;
+
+        float last_distance;
+        spatial::vector last_position;
 
         std::vector<pointer *> active_pointers;
         std::vector<key *> active_keys;

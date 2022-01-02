@@ -19,15 +19,16 @@ namespace platform {
         public:
             typedef void(*callback)(const platform::input::event&);
 
-            enum type {
+            enum spec {
                 button,
                 textbox,
-                tabbed
+                tabbed,
+                progress
             };
 
-            widget(interface* owner, type spec) {
+            widget(interface* owner, spec selection) {
                 this->owner = owner;
-                this->spec = spec;
+                this->specification = selection;
             }
             ~widget() {}
 
@@ -92,8 +93,10 @@ namespace platform {
                 return *this;
             }
 
-            ::type::object background;
-            spatial::quad bounds;
+            type::object background;
+            type::object edge;
+
+            spatial::geometry bounds;
 
             int x;
             int y;
@@ -101,7 +104,7 @@ namespace platform {
             std::string label;
 
             int id;
-            type spec;
+            spec specification;
 
             bool selectable = false;
 
@@ -117,7 +120,7 @@ namespace platform {
 
         class button : public widget {
         public:
-            button(interface* owner, int id) : widget(owner, widget::type::button) { this->id = id; }
+            button(interface* owner, int id) : widget(owner, widget::spec::button) { this->id = id; }
 
             std::string label;
 
@@ -126,7 +129,7 @@ namespace platform {
 
         class textbox : public widget {
         public:
-            textbox(interface* owner, int id) : widget(owner, widget::type::textbox) { this->id = id; }
+            textbox(interface* owner, int id) : widget(owner, widget::spec::textbox) { this->id = id; }
 
             utilities::text content;
 
@@ -135,9 +138,18 @@ namespace platform {
             bool multiline = true;
         };
 
+        class progress : public widget {
+        public:
+            progress(interface* owner, int id) : widget(owner, widget::spec::progress) { this->id = id; }
+
+            int percentage;
+
+            positioning alignment = positioning::hcenter;
+        };
+
         class tabbed : public widget {
         public:
-            tabbed(interface* owner, int id) : widget(owner, widget::type::tabbed) { this->id = id; }
+            tabbed(interface* owner, int id) : widget(owner, widget::spec::tabbed) { this->id = id; }
 
             int add(interface::widget& button, interface::widget& content) {
                 children.push_back(button);
@@ -164,8 +176,8 @@ namespace platform {
 
         virtual void draw() = 0;
 
-        virtual widget& create(widget::type t, int w, int h, const std::string& resource) = 0;
-        virtual widget& create(widget::type t, int w, int h, int r, int g, int b, int a) = 0;
+        virtual widget& create(widget::spec t, int w, int h, const std::string& resource) = 0;
+        virtual widget& create(widget::spec t, int w, int h, int r, int g, int b, int a) = 0;
 
         virtual void print(int x, int y, const std::string& text) = 0;
 
@@ -176,6 +188,10 @@ namespace platform {
 
         template<class t> t& cast(widget& instance) {
             return dynamic_cast<t&>(instance);
+        }
+
+        virtual bool active() {
+            return selected != NULL;
         }
 
     protected:

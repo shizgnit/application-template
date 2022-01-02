@@ -29,6 +29,11 @@ namespace type {
         void create(int width, int height, char r, char g, char b, char a) {
             memset(&properties, 0, sizeof(properties));
 
+            r = r > 255 ? 255 : r;
+            g = g > 255 ? 255 : g;
+            b = b > 255 ? 255 : b;
+            a = a > 255 ? 255 : a;
+
             properties.width = width;
             properties.height = height;
             properties.bpp = 32;

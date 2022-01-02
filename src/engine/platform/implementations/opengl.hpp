@@ -61,7 +61,7 @@ namespace implementation {
             fbo(type::material& mat): texture(mat) { }
 
             bool init(bool depth = false);
-            void enable();
+            void enable(bool clear = false);
             void disable();
 
             private:
@@ -88,12 +88,16 @@ namespace implementation {
             void compile(type::object& object);
             void compile(type::font& font);
 
-            void draw(type::object& object, type::program& shader, const spatial::matrix& model, const spatial::matrix& view, const spatial::matrix& projection);
-            void draw(std::string text, type::font& font, type::program& shader, const spatial::matrix& model, const spatial::matrix& view, const spatial::matrix& projection);
+            void recompile(type::object& object);
+
+            void draw(type::object& object, type::program& shader, const spatial::matrix& model, const spatial::matrix& view, const spatial::matrix& projection, unsigned int options=0x00);
+            void draw(std::string text, type::font& font, type::program& shader, const spatial::matrix& model, const spatial::matrix& view, const spatial::matrix& projection, unsigned int options = 0x00);
 
             void ontarget(type::object& object) {
-                if(fx == NULL) fx = new fbo(object.texture);
-                fx->init(true);
+                if (fx == NULL) {
+                    fx = new fbo(object.texture);
+                    fx->init();
+                }
                 fx->enable();
             }
 
@@ -103,6 +107,8 @@ namespace implementation {
             }
 
             fbo* fx = NULL;
+
+            type::object ray;
         };
 
     }

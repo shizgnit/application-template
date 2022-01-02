@@ -1,5 +1,7 @@
 #pragma once
 
+//TODO cleanup how the 32/64 bit architecture is defined
+
 #if defined WIN32
 #define __PLATFORM_WINDOWS 1
 #define __PLATFORM_64BIT 1
@@ -12,7 +14,12 @@
 
 #if defined __linux__
 #define __PLATFORM_LINUX 1
-#define __PLATFORM_64BIT 1
+//#define __PLATFORM_64BIT 1
+#endif
+
+#if defined _M_ARM
+#undef __PLATFORM_64BIT
+#define __PLATFORM_32BIT 1
 #endif
 
 

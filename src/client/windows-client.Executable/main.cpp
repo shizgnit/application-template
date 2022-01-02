@@ -151,12 +151,10 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    int width = 1600;
    int height = 1200;
 
-   HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
-       CW_USEDEFAULT, 0, width, height + 60, nullptr, nullptr, hInstance, nullptr);
-
+   HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, 0, width, height + 60, nullptr, nullptr, hInstance, nullptr);
    if (!hWnd)
    {
-      return FALSE;
+      return false;
    }
 
    auto HDC = GetDC(hWnd);
@@ -171,11 +169,11 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
    auto pf = ChoosePixelFormat(HDC, &pfd);
    if (pf == 0) {
-       return 0;
+       return false;
    }
 
    if (SetPixelFormat(HDC, pf, &pfd) == FALSE) {
-       return 0;
+       return false;
    }
 
    DescribePixelFormat(HDC, pf, sizeof(PIXELFORMATDESCRIPTOR), &pfd);
@@ -186,7 +184,9 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    // TODO: Move to the graphics abstraction
    GLenum err = glewInit();
 
-   //if (err != GLEW_OK)
+   if (err != GLEW_OK) {
+       return false;
+   }
    //    exit(1); // or handle the error in a nicer way
    //if (!GLEW_VERSION_2_1)  // check that the machine supports the 2.1 API.
    //    exit(1); // or handle the error in a nicer wa
@@ -329,16 +329,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
         if (controllers[0].GetKeystroke()) {
             if (controllers[0].keystroke.Flags == XINPUT_KEYSTROKE_KEYDOWN) {
-                input->raise({ platform::input::GAMEPAD, platform::input::DOWN, controllers[0].keystroke.VirtualKey ^ 0x5800, { 0.0f, 0.0f, 0.0f }, 1 });
-                gui->raise({ platform::input::GAMEPAD, platform::input::DOWN, controllers[0].keystroke.VirtualKey ^ 0x5800, { 0.0f, 0.0f, 0.0f }, 0 }, 0, 0);
+                input->raise({ platform::input::GAMEPAD, platform::input::DOWN, controllers[0].keystroke.VirtualKey ^ 0x5800, 1, 0.0f, { 0.0f, 0.0f, 0.0f } });
+                gui->raise({ platform::input::GAMEPAD, platform::input::DOWN, controllers[0].keystroke.VirtualKey ^ 0x5800, 0, 0.0f, { 0.0f, 0.0f, 0.0f } }, 0, 0);
             }
             if (controllers[0].keystroke.Flags == XINPUT_KEYSTROKE_REPEAT) {
-                input->raise({ platform::input::GAMEPAD, platform::input::HELD, controllers[0].keystroke.VirtualKey ^ 0x5800, { 0.0f, 0.0f, 0.0f }, 1 });
-                gui->raise({ platform::input::GAMEPAD, platform::input::HELD, controllers[0].keystroke.VirtualKey ^ 0x5800, { 0.0f, 0.0f, 0.0f }, 0 }, 0, 0);
+                input->raise({ platform::input::GAMEPAD, platform::input::HELD, controllers[0].keystroke.VirtualKey ^ 0x5800, 1, 0.0f, { 0.0f, 0.0f, 0.0f } });
+                gui->raise({ platform::input::GAMEPAD, platform::input::HELD, controllers[0].keystroke.VirtualKey ^ 0x5800, 0, 0.0f, { 0.0f, 0.0f, 0.0f } }, 0, 0);
             }
             if (controllers[0].keystroke.Flags == XINPUT_KEYSTROKE_KEYUP) {
-                input->raise({ platform::input::GAMEPAD, platform::input::UP, controllers[0].keystroke.VirtualKey ^ 0x5800, { 0.0f, 0.0f, 0.0f }, 1 });
-                gui->raise({ platform::input::GAMEPAD, platform::input::UP, controllers[0].keystroke.VirtualKey ^ 0x5800, { 0.0f, 0.0f, 0.0f }, 0 }, 0, 0);
+                input->raise({ platform::input::GAMEPAD, platform::input::UP, controllers[0].keystroke.VirtualKey ^ 0x5800, 1, 0.0f, { 0.0f, 0.0f, 0.0f } });
+                gui->raise({ platform::input::GAMEPAD, platform::input::UP, controllers[0].keystroke.VirtualKey ^ 0x5800, 0, 0.0f, { 0.0f, 0.0f, 0.0f } }, 0, 0);
             }
         }
 
@@ -381,21 +381,21 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
         if (rawinput.header.dwType == RIM_TYPEKEYBOARD && (rawinput.data.keyboard.Flags == 0 || rawinput.data.keyboard.Flags == 2))
         {
-            input->raise({ platform::input::KEY, platform::input::DOWN, rawinput.data.keyboard.VKey, { 0.0f, 0.0f, 0.0f }, 1 });
-            gui->raise({ platform::input::KEY, platform::input::DOWN, rawinput.data.keyboard.VKey, { 0.0f, 0.0f, 0.0f }, 0 }, 0, 0);
+            input->raise({ platform::input::KEY, platform::input::DOWN, rawinput.data.keyboard.VKey, 1, 0.0f, { 0.0f, 0.0f, 0.0f } });
+            gui->raise({ platform::input::KEY, platform::input::DOWN, rawinput.data.keyboard.VKey, 0, 0.0f, { 0.0f, 0.0f, 0.0f } }, 0, 0);
         }
         if (rawinput.header.dwType == RIM_TYPEKEYBOARD && (rawinput.data.keyboard.Flags == 1 || rawinput.data.keyboard.Flags == 3))
         {
-            input->raise({ platform::input::KEY, platform::input::UP, rawinput.data.keyboard.VKey, { 0.0f, 0.0f, 0.0f }, 1 });
-            gui->raise({ platform::input::KEY, platform::input::UP, rawinput.data.keyboard.VKey, { 0.0f, 0.0f, 0.0f }, 0 }, 0, 0);
+            input->raise({ platform::input::KEY, platform::input::UP, rawinput.data.keyboard.VKey, 1, 0.0f, { 0.0f, 0.0f, 0.0f } });
+            gui->raise({ platform::input::KEY, platform::input::UP, rawinput.data.keyboard.VKey, 0, 0.0f, { 0.0f, 0.0f, 0.0f } }, 0, 0);
         }
 
         if (rawinput.header.dwType == RIM_TYPEMOUSE && rawinput.data.mouse.ulButtons == 0)
         {
             GetCursorPos(&p);
             ScreenToClient(hWnd, &p);
-            input->raise({ platform::input::POINTER, platform::input::MOVE, 0, { (float)p.x, (float)p.y, 0.0f }, 1 });
-            gui->raise({ platform::input::POINTER, platform::input::MOVE, 1, { (float)p.x, (float)p.y, 0.0f }, 0 }, p.x, p.y);
+            input->raise({ platform::input::POINTER, platform::input::MOVE, 0, 1, 0.0f, { (float)p.x, (float)p.y, 0.0f } });
+            gui->raise({ platform::input::POINTER, platform::input::MOVE, 1, 0, 0.0f, { (float)p.x, (float)p.y, 0.0f } }, p.x, p.y);
         }
         if (rawinput.header.dwType == RIM_TYPEMOUSE && rawinput.data.mouse.ulButtons != 0)
         {
@@ -404,27 +404,29 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
             switch (rawinput.data.mouse.usButtonFlags) {
             case(RI_MOUSE_LEFT_BUTTON_DOWN):
-                input->raise({ platform::input::POINTER, platform::input::DOWN, 1, { (float)p.x, (float)p.y, 0.0f }, 0 });
-                gui->raise({ platform::input::POINTER, platform::input::DOWN, 1, { (float)p.x, (float)p.y, 0.0f }, 0 }, p.x, p.y);
+                input->raise({ platform::input::POINTER, platform::input::DOWN, 1, 0, 0.0f, { (float)p.x, (float)p.y, 0.0f } });
+                gui->raise({ platform::input::POINTER, platform::input::DOWN, 1, 0, 0.0f, { (float)p.x, (float)p.y, 0.0f } }, p.x, p.y);
                 break;
             case(RI_MOUSE_RIGHT_BUTTON_DOWN):
-                input->raise({ platform::input::POINTER, platform::input::DOWN, 2, { (float)p.x, (float)p.y, 0.0f }, 0 });
-                gui->raise({ platform::input::POINTER, platform::input::DOWN, 2, { (float)p.x, (float)p.y, 0.0f }, 0 }, p.x, p.y);
+                input->raise({ platform::input::POINTER, platform::input::DOWN, 2, 0, 0.0f, { (float)p.x, (float)p.y, 0.0f } });
+                gui->raise({ platform::input::POINTER, platform::input::DOWN, 2, 0, 0.0f, { (float)p.x, (float)p.y, 0.0f } }, p.x, p.y);
                 break;
             case(RI_MOUSE_MIDDLE_BUTTON_DOWN):
-                input->raise({ platform::input::POINTER, platform::input::DOWN, 3, { (float)p.x, (float)p.y, 0.0f }, 0 });
+                input->raise({ platform::input::POINTER, platform::input::DOWN, 3, 0, 0.0f, { (float)p.x, (float)p.y, 0.0f } });
                 break;
             case(RI_MOUSE_LEFT_BUTTON_UP):
-                input->raise({ platform::input::POINTER, platform::input::UP, 1, { (float)p.x, (float)p.y, 0.0f }, 0 });
+                input->raise({ platform::input::POINTER, platform::input::UP, 1, 0, 0.0f, { (float)p.x, (float)p.y, 0.0f } });
                 break;
             case(RI_MOUSE_RIGHT_BUTTON_UP):
-                input->raise({ platform::input::POINTER, platform::input::UP, 2, { (float)p.x, (float)p.y, 0.0f }, 0 });
+                input->raise({ platform::input::POINTER, platform::input::UP, 2, 0, 0.0f, { (float)p.x, (float)p.y, 0.0f } });
                 break;
             case(RI_MOUSE_MIDDLE_BUTTON_UP):
-                input->raise({ platform::input::POINTER, platform::input::UP, 3, { (float)p.x, (float)p.y, 0.0f }, 0 });
+                input->raise({ platform::input::POINTER, platform::input::UP, 3, 0, 0.0f, { (float)p.x, (float)p.y, 0.0f } });
                 break;
             case(RI_MOUSE_WHEEL):
-                input->raise({ platform::input::POINTER, platform::input::WHEEL, 3, { 0.0, (float)rawinput.data.mouse.usButtonData == 0xFF88 ? 0.1f : -0.1f, 0.0f }, 0 });
+                //(float)rawinput.data.mouse.usButtonData == 0xFF88 ? 0.1f : -0.1f
+                short travel = rawinput.data.mouse.usButtonData;
+                input->raise({ platform::input::POINTER, platform::input::WHEEL, 3, 0, (float)travel, { 0.0, 0.0f, 0.0f } });
                 break;
             };
         }

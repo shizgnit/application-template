@@ -23,7 +23,7 @@ void implementation::universal::input::raise(const event& ev) {
             on_move(ev);
         }
         if (ev.gesture == WHEEL) {
-            platform::input::raise({ POINTER, WHEEL, ev.identifier, ev.point, time(NULL) - pointers[ev.identifier].pressed });
+            platform::input::raise({ POINTER, WHEEL, ev.identifier, time(NULL) - pointers[ev.identifier].pressed, ev.travel, ev.point });
         }
     }
     if (ev.input == KEY) {
@@ -50,10 +50,10 @@ void implementation::universal::input::on_press(const event& ev) {
 
     // TODO: make the thresholds configurable
     if (delta <= 1 && distance < 1.0) {
-        platform::input::raise({ POINTER, DOUBLE, ev.identifier, ev.point, delta });
+        platform::input::raise({ POINTER, DOUBLE, ev.identifier, delta, 0.0f, ev.point });
     }
     else {
-        platform::input::raise({ POINTER, DOWN, ev.identifier, ev.point, delta });
+        platform::input::raise({ POINTER, DOWN, ev.identifier, delta, 0.0f, ev.point });
     }
 }
 
@@ -64,27 +64,57 @@ void implementation::universal::input::on_release(const event& ev) {
                                 return p->code == ev.identifier;
                               });
     active_pointers.erase(end, active_pointers.end());
-    platform::input::raise({ POINTER, UP, ev.identifier, ev.point, time(NULL) - pointers[ev.identifier].pressed });
+    platform::input::raise({ POINTER, UP, ev.identifier, time(NULL) - pointers[ev.identifier].pressed, 0.0f, ev.point });
+}
+
+void averages(const implementation::universal::input::event& ev, float& distance, spatial::vector& point) {
+    float total_distance = 0.0f;
+    if (ev.points.empty()) {
+        point = ev.point;
+        return;
+    }
+
+    point = ev.points[0];
+    std::for_each(std::begin(ev.points) + 1, std::end(ev.points), [ev, &total_distance, &point](const spatial::vector p) {
+        total_distance += ev.points[0].distance(p);
+        point.x += p.x;
+        point.y += p.y;
+        point.z += p.z;
+        });
+
+    distance = total_distance / ev.points.size();
+    point.x /= ev.points.size();
+    point.y /= ev.points.size();
+    point.z /= ev.points.size();
 }
 
 void implementation::universal::input::on_move(const event& ev) {
     if (active_pointers.size()) {
-        if (active_pointers.size() > 1) { 
-            // Note, this does not take into all permutations as it should
-            // TODO: Add support for rotational gestures
-            float total_distance = 0.0f;
-            std::for_each(std::begin(active_pointers) + 1, std::end(active_pointers), [this, &total_distance](const pointer *p) {
-                total_distance += active_pointers[0]->point.distance(p->point);
-            });
-            float average_distance = total_distance / (active_pointers.size() - 1);
-            platform::input::raise({ POINTER, PINCH, ev.identifier, { average_distance, average_distance, 0.0f }, time(NULL) - pointers[ev.identifier].pressed });
+        if (ev.points.size() > 1) {
+            drag = false; // Don't allow trailing input to drag the view
+            float current_distance;
+            spatial::vector current_position;
+
+            averages(ev, current_distance, current_position);
+
+            if (abs(current_distance - last_distance) > threshold_travel) {
+                platform::input::raise({ POINTER, PINCH, ev.identifier, time(NULL) - pointers[ev.identifier].pressed, current_distance - last_distance, current_position, ev.points });
+            }
+            else {
+                platform::input::raise({ POINTER, WHEEL, ev.identifier, time(NULL) - pointers[ev.identifier].pressed, last_position.distance(current_position), current_position, ev.points});
+            }
+
+            last_distance = current_distance;
+            last_position = current_position;
         }
-        else {
-            platform::input::raise({ POINTER, DRAG, ev.identifier, ev.point, time(NULL) - pointers[ev.identifier].pressed });
+        else if(drag) {
+            platform::input::raise({ POINTER, DRAG, ev.identifier, time(NULL) - pointers[ev.identifier].pressed, 0.0f, ev.point });
         }
     }
     else {
-        platform::input::raise({ POINTER, MOVE, ev.identifier, ev.point, time(NULL) - pointers[ev.identifier].pressed });
+        drag = true;
+        averages(ev, last_distance, last_position);
+        platform::input::raise({ POINTER, MOVE, ev.identifier, time(NULL) - pointers[ev.identifier].pressed, 0.0f, ev.point });
     }
 }
 
@@ -100,7 +130,7 @@ void implementation::universal::input::on_key_down(const event& ev) {
     active_keys.push_back(&keys[ev.identifier]);
     tracking.unlock();
 
-    platform::input::raise({ KEY, DOWN, ev.identifier, { 0.0f, 0.0f, 0.0f }, delta });
+    platform::input::raise({ KEY, DOWN, ev.identifier, delta, 0.0f, { 0.0f, 0.0f, 0.0f } });
 }
 
 void implementation::universal::input::on_key_up(const event& ev) {
@@ -116,7 +146,7 @@ void implementation::universal::input::on_key_up(const event& ev) {
     }
 
     keys[ev.identifier].pressed = 0;
-    platform::input::raise({ KEY, UP, ev.identifier, { 0.0f, 0.0f, 0.0f }, time(NULL) - keys[ev.identifier].pressed });
+    platform::input::raise({ KEY, UP, ev.identifier, time(NULL) - keys[ev.identifier].pressed, 0.0f, { 0.0f, 0.0f, 0.0f } });
 }
 
 void implementation::universal::input::on_button_down(const event& ev) {
@@ -131,7 +161,7 @@ void implementation::universal::input::on_button_down(const event& ev) {
     active_buttons.push_back(&buttons[ev.identifier]);
     tracking.unlock();
 
-    platform::input::raise({ GAMEPAD, DOWN, ev.identifier, { 0.0f, 0.0f, 0.0f }, delta });
+    platform::input::raise({ GAMEPAD, DOWN, ev.identifier, delta, 0.0f, { 0.0f, 0.0f, 0.0f } });
 }
 
 void implementation::universal::input::on_button_up(const event& ev) {
@@ -147,50 +177,56 @@ void implementation::universal::input::on_button_up(const event& ev) {
     }
 
     keys[ev.identifier].pressed = 0;
-    platform::input::raise({ GAMEPAD, UP, ev.identifier, { 0.0f, 0.0f, 0.0f }, time(NULL) - buttons[ev.identifier].pressed });
+    platform::input::raise({ GAMEPAD, UP, ev.identifier, time(NULL) - buttons[ev.identifier].pressed, 0.0f, { 0.0f, 0.0f, 0.0f } });
 }
 
 void implementation::universal::input::emit() {
     for (auto active : active_pointers) {
         time_t delta = time(NULL) - active->pressed;
-        platform::input::raise({ POINTER, HELD, active->code, active->point, delta });
+        platform::input::raise({ POINTER, HELD, active->code, delta, 0.0f, active->point });
     }
     for (auto active : active_keys) {
         time_t delta = time(NULL) - active->pressed;
-        platform::input::raise({ KEY, HELD, active->code, { 0.0f, 0.0f, 0.0f }, delta });
+        platform::input::raise({ KEY, HELD, active->code, delta, 0.0f, { 0.0f, 0.0f, 0.0f } });
     }
 }
 
 void implementation::universal::interface::raise(const input::event& ev, int x, int y) {
     spatial::vector relative = { (float)x, (float)(graphics->height() - y), 0.0f };
     spatial::vector position = relative.project(spatial::matrix(), spatial::matrix(), spatial::matrix());
-
     spatial::ray ray(position - spatial::vector(0,0,100), position - spatial::vector(0,0,-100));
 
-    for (auto instance : instances) {
-        // TODO: currently filtering by intersection, this will not be adequate for keyboard/key input
-        if (ev.input == input::POINTER && ev.gesture == platform::input::DOWN) {
-            if (selected && selected != instance) { // just wait to see if they are re-selecting the same instance
-                input::event select = ev;
-                select.gesture = platform::input::UNSELECT;
-                if (selected != NULL) {
-                    instance->raise(select);
-                }
-                selected = NULL;
-            }
+    widget* target = NULL;
+    if (ev.input == input::POINTER && ev.gesture == platform::input::DOWN) {
+        // See is any widgets were selected
+        for (auto instance : instances) {
             if (ray.intersects(instance->bounds)) {
-                if (selected != instance && instance->selectable) {
-                    selected = instance;
-                    input::event select = ev;
-                    select.gesture = platform::input::SELECT;
-                    instance->raise(select);
-                }
-                instance->raise(ev);
+                target = instance;
             }
         }
-        if (ev.input == input::KEY && selected == instance) {
-            instance->raise(ev);
+        // Unselect the current selected
+        if (target == NULL || selected != target) {
+            input::event select = ev;
+            select.gesture = platform::input::UNSELECT;
+            if (selected != NULL) {
+                selected->raise(select);
+            }
+            selected = NULL;
         }
+        // Track and pass along the events
+        if (target) {
+            if (target->selectable) {
+                selected = target;
+                input::event select = ev;
+                select.gesture = platform::input::SELECT;
+                selected->raise(select);
+            }
+            target->raise(ev);
+        }
+    }
+
+    if (ev.input == input::KEY && selected) {
+        selected->raise(ev);
     }
 }
 
@@ -204,13 +240,16 @@ void implementation::universal::interface::draw() {
     }
 }
 
-platform::interface::widget& implementation::universal::interface::create(platform::interface::widget::type t, int w, int h, const std::string& texture) {
+platform::interface::widget& implementation::universal::interface::create(platform::interface::widget::spec t, int w, int h, const std::string& texture) {
     switch (t) {
-    case(widget::type::button):
+    case(widget::spec::button):
         instances.push_back(new button(this, instances.size()));
         break;
-    case(widget::type::textbox):
+    case(widget::spec::textbox):
         instances.push_back(new textbox(this, instances.size()));
+        break;
+    case(widget::spec::progress):
+        instances.push_back(new progress(this, instances.size()));
         break;
     }
 
@@ -219,31 +258,44 @@ platform::interface::widget& implementation::universal::interface::create(platfo
 
     instances.back()->background = spatial::quad(w, h);
     instances.back()->background.xy_projection(0, 0, w, h);
+    graphics->compile(instances.back()->background);
+
+    instances.back()->edge = spatial::quad::edges(w, h);
+    instances.back()->edge.texture.map.create(1, 1, 255, 255, 255, 255);
+    instances.back()->edge.xy_projection(0, 0, 1, 1);
+    graphics->compile(instances.back()->edge);
 
     instances.back()->bounds = instances.back()->background.vertices;
-
-    graphics->compile(instances.back()->background);
 
     return *instances.back();
 }
 
-platform::interface::widget& implementation::universal::interface::create(platform::interface::widget::type t, int w, int h, int r, int g, int b, int a) {
+platform::interface::widget& implementation::universal::interface::create(platform::interface::widget::spec t, int w, int h, int r, int g, int b, int a) {
     switch (t) {
-    case(widget::type::button):
+    case(widget::spec::button):
         instances.push_back(new button(this, instances.size()));
         break;
-    case(widget::type::textbox):
+    case(widget::spec::textbox):
         instances.push_back(new textbox(this, instances.size()));
+        break;
+    case(widget::spec::progress):
+        instances.push_back(new progress(this, instances.size()));
         break;
     }
 
     instances.back()->background = spatial::quad(w, h);
     instances.back()->background.texture.map.create(1, 1, r, g, b, a); // Single pixel is good enough
     instances.back()->background.xy_projection(0, 0, w, h);
+    graphics->compile(instances.back()->background);
+
+    int l = 100;
+
+    instances.back()->edge = spatial::quad::edges(w, h);
+    instances.back()->edge.texture.map.create(1, 1, r+l, g+l, b+l, a+l);
+    instances.back()->edge.xy_projection(0, 0, 1, 1);
+    graphics->compile(instances.back()->edge);
 
     instances.back()->bounds = spatial::quad(instances.back()->background.vertices).project(spatial::matrix(), spatial::matrix(), projection);
-
-    graphics->compile(instances.back()->background);
 
     return *instances.back();
 }
@@ -263,17 +315,32 @@ void implementation::universal::interface::draw(widget& instance) {
     spatial::matrix position;
     position.translate(instance.x, (graphics->height() - instance.background.height()) - instance.y, 0);
 
-    graphics->draw(instance.background, shader, position, spatial::matrix(), projection);
+    int left_margin = 10;
 
-    switch (instance.spec) {
-    case(widget::type::button):
-        break;
-    case(widget::type::textbox):
+    spatial::matrix edge = position; // Save off the scaling to keep proportions
+
+    if (instance.specification == widget::spec::progress) {
+        platform::interface::progress& progress = gui->cast<platform::interface::progress>(instance);
+        position.scale_x(progress.percentage / 100.0f);
+    }
+
+    graphics->draw(instance.background, shader, position, spatial::matrix(), projection);
+    if (instance.edge.vertices.size()) {
+        graphics->draw(instance.edge, shader, edge, spatial::matrix(), projection, platform::graphics::render::WIREFRAME);
+    }
+
+    if (instance.specification == widget::spec::progress) {
+        platform::interface::progress& progress = gui->cast<platform::interface::progress>(instance);
+        std::stringstream ss;
+        ss << progress.percentage << "%";
+        print(progress.x + left_margin, progress.y, ss.str());
+    }
+    if (instance.specification == widget::spec::textbox) {
         platform::interface::textbox& textbox = gui->cast<platform::interface::textbox>(instance);
         auto contents = textbox.content.get();
 
-        int x = textbox.x + 20;
-        int y = textbox.alignment == widget::positioning::bottom ? textbox.y + textbox.background.height() - (contents.size() * font.leading()) : textbox.y + 20;
+        int x = textbox.x + left_margin;
+        int y = textbox.alignment == widget::positioning::bottom ? textbox.y + textbox.background.height() - (contents.size() * font.leading()) : textbox.y;
 
         std::string line;
         for (auto &message : contents) {
@@ -290,8 +357,6 @@ void implementation::universal::interface::draw(widget& instance) {
         if (line.empty() == false) {
             print(x, y, line);
         }
-
-        break;
     }
 
     graphics->noclip();
@@ -300,8 +365,7 @@ void implementation::universal::interface::draw(widget& instance) {
 void implementation::universal::interface::reposition(widget& instance) {
     spatial::matrix position;
     position.translate(instance.x, (graphics->height() - instance.background.height()) - instance.y, 0);
-
-    instance.bounds = spatial::quad(instances.back()->background.vertices).project(position, spatial::matrix(), spatial::matrix());
+    instance.bounds = position.interpolate(spatial::quad(instances.back()->background.vertices));
 }
 
 #endif

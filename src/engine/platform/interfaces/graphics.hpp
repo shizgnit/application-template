@@ -3,6 +3,14 @@
 namespace platform {
     class graphics {
     public:
+        enum render {
+            UNDEFINED = 0x00,
+            TEXTURE   = (1u << 0),
+            WIREFRAME = (1u << 1),
+            BOUNDS    = (1u << 2),
+            NORMALS   = (1u << 3)
+        };
+
         virtual void geometry(int width, int height) = 0;
 
         virtual void init(void) = 0;
@@ -14,8 +22,10 @@ namespace platform {
         virtual void compile(type::object& object) = 0;
         virtual void compile(type::font& font) = 0;
 
-        virtual void draw(type::object& object, type::program& shader, const spatial::matrix& model, const spatial::matrix& view, const spatial::matrix& projection) = 0;
-        virtual void draw(std::string text, type::font& font, type::program& shader, const spatial::matrix& model, const spatial::matrix& view, const spatial::matrix& projection) = 0;
+        virtual void recompile(type::object& object) = 0;
+
+        virtual void draw(type::object& object, type::program& shader, const spatial::matrix& model, const spatial::matrix& view, const spatial::matrix& projection, unsigned int options=0x00) = 0;
+        virtual void draw(std::string text, type::font& font, type::program& shader, const spatial::matrix& model, const spatial::matrix& view, const spatial::matrix& projection, unsigned int options = 0x00) = 0;
 
         virtual void ontarget(type::object& object) {}
         virtual void untarget() {}
@@ -64,5 +74,17 @@ namespace platform {
 
         int display_width;
         int display_height;
+
+        time_t timestamp;
+        struct stats {
+            void clear() { memset(this, 0, sizeof(frame)); }
+            int vertices = 0;
+            int lines = 0;
+            int triangles = 0;
+            int frames = 0;
+        } frame;
+
+        std::vector<stats> frames;
+        std::list<stats> activity;
     };
 }

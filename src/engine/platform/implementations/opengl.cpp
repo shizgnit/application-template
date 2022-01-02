@@ -9,7 +9,10 @@ bool implementation::opengl::fbo::init(bool depth) {
     glGenFramebuffers(1, &context.frame);
     glBindFramebuffer(GL_FRAMEBUFFER, context.frame);
 
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture.context, 0);
+
     if (0) {
+        // Currently using existing textures... but there's an issue if they're mipmapped, this might be eventually necessary
         glGenTextures(1, &texture.context);
         glBindTexture(GL_TEXTURE_2D, texture.context);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture.map.properties.width, texture.map.properties.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
@@ -20,7 +23,8 @@ bool implementation::opengl::fbo::init(bool depth) {
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture.context, 0);
     }
 
-    if (depth) {
+    if (0 && depth) {
+        // TODO: this doesn't look right... currently not in use
         glGenRenderbuffers(1, &context.depth);
         glBindRenderbuffer(GL_RENDERBUFFER, context.depth);
         glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, texture.map.properties.width, texture.map.properties.height);
@@ -28,10 +32,8 @@ bool implementation::opengl::fbo::init(bool depth) {
 
         glBindTexture(GL_TEXTURE_2D, 0);
         glBindRenderbuffer(GL_RENDERBUFFER, 0);
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glGenBuffers(1, &context.render);
 
     glBindRenderbuffer(GL_RENDERBUFFER, context.render);
@@ -42,24 +44,26 @@ bool implementation::opengl::fbo::init(bool depth) {
     if (status != GL_FRAMEBUFFER_COMPLETE) {
         throw("failed to initialize frame buffer");
     }
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
     return true;
 }
 
-void implementation::opengl::fbo::enable() {
+void implementation::opengl::fbo::enable(bool clear) {
     glBindFramebuffer(GL_FRAMEBUFFER, context.frame);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture.context, 0);
-    //glPushAttrib(GL_VIEWPORT_BIT | GL_COLOR_BUFFER_BIT);
     glViewport(0, 0, texture.map.properties.width, texture.map.properties.height);
-    //glDrawBuffer(allocation);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    if (clear) {
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    }
 }
 
 void implementation::opengl::fbo::disable() {
-    //glPopAttrib();
+    // Currently all rendering is done to the mipmap level 0... copy it out after every render
+    glBindTexture(GL_TEXTURE_2D, texture.context);
+    glGenerateMipmap(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, 0);
-    glBindRenderbuffer(GL_RENDERBUFFER, 0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    //glViewport(0, 0, prior, prior);
 }
 
 void implementation::opengl::graphics::geometry(int width, int height) {
@@ -69,16 +73,26 @@ void implementation::opengl::graphics::geometry(int width, int height) {
 }
 
 void implementation::opengl::graphics::init(void) {
-    //glDisable(GL_DEPTH_TEST);
-
+    // Depth test
+    glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL);
 
-    glEnable(GL_DEPTH_TEST);
-    //glEnable(GL_CULL_FACE); // off for now, but should be toggled based on render options
+    // Alpha blending
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+    // Backface culling, makes GLES rendering of objects easier since they don't need to be drawn back to front
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+    glFrontFace(GL_CCW);
+
     auto str = utilities::tokenize((const char*)glGetString(GL_EXTENSIONS), " ");
+
+    // Setup the ray used for drawing normals
+    ray = spatial::ray(spatial::vector(0.0, 0.0, 0.0), spatial::vector(2.0, 0.0, 0.0));
+    ray.texture.map.create(1, 1, 255, 255, 255, 255);
+    ray.xy_projection(0, 0, 1, 1);
+    compile(ray);
 }
 
 void implementation::opengl::graphics::clear(void) {
@@ -88,6 +102,23 @@ void implementation::opengl::graphics::clear(void) {
 
 void implementation::opengl::graphics::flush(void) {
     glFlush();
+    frames.push_back(frame);
+    time_t now = time(NULL);
+    if (timestamp != now) {
+        stats total;
+        for (auto frame : frames) {
+            total.lines += frame.lines;
+            total.triangles += frame.triangles;
+            total.vertices += frame.vertices;
+        }
+        total.frames = frames.size();
+        activity.push_back(total);
+        if (activity.size() > 60) { // TODO: make this configurable
+            activity.pop_front();
+        }
+        frames.clear();
+    }
+    frame.clear();
 }
 
 void implementation::opengl::graphics::compile(type::shader& shader) {
@@ -134,7 +165,6 @@ void implementation::opengl::graphics::compile(type::program& program) {
     }
 
     glAttachShader(program.context, program.vertex.context);
-
     glAttachShader(program.context, program.fragment.context);
 
     glLinkProgram(program.context);
@@ -152,6 +182,8 @@ void implementation::opengl::graphics::compile(type::program& program) {
         glDeleteProgram(program.context);
         program.context = 0;
     }
+
+    glUseProgram(program.context);
 
     program.a_Vertex = glGetAttribLocation(program.context, "a_Vertex");
     program.a_Texture = glGetAttribLocation(program.context, "a_Texture");
@@ -173,7 +205,7 @@ void implementation::opengl::graphics::compile(type::program& program) {
 void implementation::opengl::graphics::compile(type::object& object) {
     glGenBuffers(1, &object.context);
     glBindBuffer(GL_ARRAY_BUFFER, object.context);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(spatial::vertex) * object.vertices.size(), object.vertices.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(spatial::vertex) * object.vertices.size(), object.vertices.data(), GL_DYNAMIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     glGenTextures(1, &object.texture.context);
@@ -185,6 +217,13 @@ void implementation::opengl::graphics::compile(type::object& object) {
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
+void implementation::opengl::graphics::recompile(type::object& object) {
+    glBindBuffer(GL_ARRAY_BUFFER, object.context);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(spatial::vertex) * object.vertices.size(), object.vertices.data());
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
+
 void implementation::opengl::graphics::compile(type::font& font) {
     for (auto &glyph : font.glyphs) {
         if (glyph.identifier) {
@@ -193,14 +232,25 @@ void implementation::opengl::graphics::compile(type::font& font) {
     }
 }
 
+void implementation::opengl::graphics::draw(type::object& object, type::program& shader, const spatial::matrix& model, const spatial::matrix& view, const spatial::matrix& projection, unsigned int options) {
+    // Look for the first object with vertices, just at the top level for now
+    auto &target = object;
+    for (auto iterator = target.children.begin(); iterator != target.children.end() && target.vertices.size() == 0; iterator++) {
+        if (iterator->vertices.size()) {
+            target = *iterator;
+            break;
+        }
+    }
+    if (target.vertices.size() == 0) {
+        return;
+    }
 
-void implementation::opengl::graphics::draw(type::object& object, type::program& shader, const spatial::matrix& model, const spatial::matrix& view, const spatial::matrix& projection) {
     glUseProgram(shader.context);
 
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // GL_FILL
 
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, object.texture.context);
+    glBindTexture(GL_TEXTURE_2D, target.texture.context);
 
     glUniformMatrix4fv(shader.u_ModelMatrix, 1, GL_FALSE, (GLfloat*)model.data());
     glUniformMatrix4fv(shader.u_ViewMatrix, 1, GL_FALSE, (GLfloat*)view.data());
@@ -216,12 +266,12 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
     glUniform4f(shader.u_Clipping, clip_top[clip_top.size()-1], clip_bottom[clip_bottom.size() - 1], clip_left[clip_left.size() - 1], clip_right[clip_right.size() - 1]);
 
 #ifdef __PLATFORM_64BIT
-    size_t offset = 8; // TODO: necessary to offset object overhead, this could/should be dynamic.  if this is enabled for android it will not work.    
+    size_t offset = 8; // TODO: necessary to offset target overhead, this could/should be dynamic.  if this is enabled for android it will not work.
 #else
     size_t offset = 4;
 #endif
 
-    glBindBuffer(GL_ARRAY_BUFFER, object.context);
+    glBindBuffer(GL_ARRAY_BUFFER, target.context);
     glVertexAttribPointer(shader.a_Vertex, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::vertex), BUFFER_OFFSET(offset));
     glVertexAttribPointer(shader.a_Texture, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::vertex), BUFFER_OFFSET(offset+sizeof(spatial::vector)));
     glVertexAttribPointer(shader.a_Normal, 4, GL_FLOAT, GL_TRUE, sizeof(spatial::vertex), BUFFER_OFFSET(offset+(sizeof(spatial::vector) * 2)));
@@ -230,19 +280,30 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
     glEnableVertexAttribArray(shader.a_Texture);
     glEnableVertexAttribArray(shader.a_Normal);
 
-    //glDrawArrays(GL_TRIANGLE_FAN, 0, object.vertices.size());
-    if (object.type == spatial::geometry::primitive::LINE) {
-        glDrawArrays(GL_LINES, 0, object.vertices.size());
+    // Draw either the solids or wireframes
+    if (target.vertices.size() == 2 || options & render::WIREFRAME) {
+        glDrawArrays(GL_LINES, 0, target.vertices.size());
+        frame.lines += target.vertices.size() / 2;
     }
-    else { // TODO: force all geometry to be explicit
-    //if (object.type == spatial::geometry::primitive::POLYGON) {
-        glDrawArrays(GL_TRIANGLES, 0, object.vertices.size());
+    else {
+        glDrawArrays(GL_TRIANGLES, 0, target.vertices.size());
+        frame.triangles += target.vertices.size() / 3;
     }
+    frame.vertices += target.vertices.size();
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    // Primary object has been drawn, draw out the normals if requested.  Mostly for debugging.
+    if (options & render::NORMALS) {
+        for (auto vertex : target.vertices) {
+            ray = spatial::ray(vertex.coordinate, vertex.normal + vertex.coordinate);
+            recompile(ray);
+            draw(ray, shader, model, view, projection);
+        }
+    }
 }
 
-void implementation::opengl::graphics::draw(std::string text, type::font& font, type::program& shader, const spatial::matrix& model, const spatial::matrix& view, const spatial::matrix& projection) {
+void implementation::opengl::graphics::draw(std::string text, type::font& font, type::program& shader, const spatial::matrix& model, const spatial::matrix& view, const spatial::matrix& projection, unsigned int options) {
     int prior = 0;
     spatial::matrix position = model;
     for (unsigned int i = 0; i < text.length(); i++) {

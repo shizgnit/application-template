@@ -21,7 +21,7 @@ TEST_F(InputTest, PointerDirect) {
         events.push_back(ev);
     }, 1);
 
-    input->raise({ platform::input::POINTER, platform::input::MOVE, 1, { 1.0f, 1.0f, 1.0f }, 2 });
+    input->raise({ platform::input::POINTER, platform::input::MOVE, 1, 2, 0.0f, { 1.0f, 1.0f, 1.0f } });
 
     EXPECT_EQ(events.size(), 1);
     delete input;
@@ -40,13 +40,13 @@ TEST_F(InputTest, PointerDrag) {
         events.push_back(ev);
         }, 1);
 
-    input->raise({ platform::input::POINTER, platform::input::DOWN, 1, { 0.0f, 0.0f, 0.0f }, 2 });
-    input->raise({ platform::input::POINTER, platform::input::MOVE, 1, { 1.0f, 1.0f, 1.0f }, 3 });
-    input->raise({ platform::input::POINTER, platform::input::MOVE, 1, { 1.0f, 1.0f, 1.0f }, 4 });
-    input->raise({ platform::input::POINTER, platform::input::UP, 1, { 0.0f, 0.0f, 0.0f }, 2 });
+    input->raise({ platform::input::POINTER, platform::input::DOWN, 1, 2, 0.0f, { 0.0f, 0.0f, 0.0f } });
+    input->raise({ platform::input::POINTER, platform::input::MOVE, 1, 3, 0.0f, { 1.0f, 1.0f, 1.0f } });
+    input->raise({ platform::input::POINTER, platform::input::MOVE, 1, 4, 0.0f, { 1.0f, 1.0f, 1.0f } });
+    input->raise({ platform::input::POINTER, platform::input::UP, 1, 2, 0.0f, { 0.0f, 0.0f, 0.0f } });
 
     // Should not be a DRAG action without a index
-    input->raise({ platform::input::POINTER, platform::input::MOVE, 1, { 1.0f, 1.0f, 1.0f }, 4 });
+    input->raise({ platform::input::POINTER, platform::input::MOVE, 1, 4, 0.0f, { 1.0f, 1.0f, 1.0f } });
 
     EXPECT_EQ(events.size(), 3);
     delete input;
@@ -65,11 +65,11 @@ TEST_F(InputTest, PointerDoubleTap) {
         events.push_back(ev);
         }, 1);
 
-    input->raise({ platform::input::POINTER, platform::input::DOWN, 1, { 0.0f, 0.0f, 0.0f }, 2 });
-    input->raise({ platform::input::POINTER, platform::input::UP, 1, { 0.0f, 0.0f, 0.0f }, 2 });
+    input->raise({ platform::input::POINTER, platform::input::DOWN, 1, 2, 0.0f, { 0.0f, 0.0f, 0.0f } });
+    input->raise({ platform::input::POINTER, platform::input::UP, 1, 2, 0.0f, { 0.0f, 0.0f, 0.0f } });
 
-    input->raise({ platform::input::POINTER, platform::input::DOWN, 1, { 0.0f, 0.1f, 0.0f }, 3 });
-    input->raise({ platform::input::POINTER, platform::input::UP, 1, { 0.0f, 0.1f, 0.0f }, 3 });
+    input->raise({ platform::input::POINTER, platform::input::DOWN, 1, 3, 0.0f, { 0.0f, 0.1f, 0.0f } });
+    input->raise({ platform::input::POINTER, platform::input::UP, 1, 3, 0.0f, { 0.0f, 0.1f, 0.0f } });
 
     EXPECT_EQ(events.size(), 2);
     delete input;

@@ -26,6 +26,8 @@ namespace implementation {
             void on_button_up(const event& ev);
             void on_button_down(const event& ev);
 
+            bool drag;
+
             std::mutex tracking; 
         };
 
@@ -36,8 +38,8 @@ namespace implementation {
 
             void draw();
 
-            widget& create(widget::type t, int w, int h, const std::string& texture);
-            widget& create(widget::type t, int w, int h, int r, int g, int b, int a);
+            widget& create(widget::spec t, int w, int h, const std::string& texture);
+            widget& create(widget::spec t, int w, int h, int r, int g, int b, int a);
 
             void print(int x, int y, const std::string& text);
 

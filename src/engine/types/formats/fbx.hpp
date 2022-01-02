@@ -1,7 +1,6 @@
 #pragma once
 
-#include "deps/fbx-master/src/fbxdocument.h"
-
+//#include "deps/fbx-master/src/fbxdocument.h"
 
 #include <variant>
 #include <deps/miniz-2.2.0/miniz.h>
@@ -150,9 +149,9 @@ namespace format {
 
         fbx(std::string filename) : fbx() {
 #ifdef _WIN32
-            ::fbx::FBXDocument doc;
-            doc.read(filename);
-            doc.print();
+            //::fbx::FBXDocument doc;
+            //doc.read(filename);
+            //doc.print();
 #endif
             std::ifstream file(filename, std::ios::binary);
             if (file.is_open()) {
@@ -198,6 +197,7 @@ namespace format {
 
         friend type::object& operator>>(std::istream& input, format::fbx& instance) {
             instance.read(input);
+            return instance;
         }
     };
 

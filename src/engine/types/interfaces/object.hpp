@@ -4,6 +4,11 @@ namespace type {
 
     class object : virtual public type::info {
     public:
+        object() {}
+        object(const spatial::geometry& ref) {
+            *this = ref;
+        }
+
         typedef spatial::vector::type_t type_t;
 
         void xy_projection(unsigned int x, unsigned int y, unsigned int width, unsigned int height) {
@@ -32,7 +37,6 @@ namespace type {
 
                 vertices[i].texture(tx, ty, 0.0f, 0.0f);
             }
-
         }
 
         object* flat_normals() {
@@ -58,15 +62,48 @@ namespace type {
                     vertices[j].normal.z = u[0] * v[1] - u[1] * v[0];
                     vertices[j].normal.w = 0.0f;
                 }
-
             }
 
             return(NULL);
         }
 
+        int width() {
+            if (constraint.calculated == false) {
+                calculate_constraints();
+            }
+            return constraint.max.x - constraint.min.x;
+        }
+
+        int height() {
+            if (constraint.calculated == false) {
+                calculate_constraints();
+            }
+            return constraint.max.y - constraint.min.y;
+        }
+
+        spatial::vector& min() {
+            if (constraint.calculated == false) {
+                calculate_constraints();
+            }
+            return constraint.min;
+        }
+
+        spatial::vector& max() {
+            if (constraint.calculated == false) {
+                calculate_constraints();
+            }
+            return constraint.max;
+        }
+
+        spatial::vector& center() {
+            if (constraint.calculated == false) {
+                calculate_constraints();
+            }
+            return constraint.center;
+        }
+
         //std::vector<std::vector<spatial::vertex>> faces;
 
-        spatial::geometry::primitive type;
         std::vector<spatial::vertex> vertices;
 
         type::material texture;
@@ -75,23 +112,9 @@ namespace type {
 
         unsigned int context;
 
-        // TODO: this needs to be replaced by bounding, either spheres or cubes
-        int width() {
-            return boundary_width;
-        }
-        int boundary_width;
-
-        int height() {
-            return boundary_height;
-        }
-        int boundary_height;
-
         object& operator = (const spatial::geometry& ref) {
-            //TODO: this is making a really bad assumption based on the spatial::quad coordinate organization.
-            boundary_width = ref.vertices[0].x;
-            boundary_height = ref.vertices[0].y;
+            this->vertices.clear();
             std::copy(ref.vertices.begin(), ref.vertices.end(), std::back_inserter(this->vertices));
-            type = ref.type;
             return *this;
         }
 
@@ -106,6 +129,40 @@ namespace type {
         }
 
         std::vector<object> children;
+
+    protected:
+        void calculate_constraints() {
+            for (auto vertex : vertices) {
+                if (vertex.coordinate.x > constraint.max.x) {
+                    constraint.max.x = vertex.coordinate.x;
+                }
+                if (vertex.coordinate.y > constraint.max.y) {
+                    constraint.max.y = vertex.coordinate.y;
+                }
+                if (vertex.coordinate.z > constraint.max.z) {
+                    constraint.max.z = vertex.coordinate.z;
+                }
+                if (vertex.coordinate.x < constraint.min.x) {
+                    constraint.min.x = vertex.coordinate.x;
+                }
+                if (vertex.coordinate.y < constraint.min.y) {
+                    constraint.min.y = vertex.coordinate.y;
+                }
+                if (vertex.coordinate.z < constraint.min.z) {
+                    constraint.min.z = vertex.coordinate.z;
+                }
+            }
+            constraint.center.x = constraint.min.x + ((constraint.max.x - constraint.min.x) / 2);
+            constraint.center.y = constraint.min.y + ((constraint.max.y - constraint.min.y) / 2);
+            constraint.center.z = constraint.min.z + ((constraint.max.z - constraint.min.z) / 2);
+        }
+
+        struct {
+            bool calculated = false;
+            spatial::vector min;
+            spatial::vector max;
+            spatial::vector center;
+        } constraint;
     };
 
 }
