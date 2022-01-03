@@ -200,17 +200,15 @@ void implementation::universal::interface::raise(const input::event& ev, int x, 
     if (ev.input == input::POINTER && ev.gesture == platform::input::DOWN) {
         // See is any widgets were selected
         for (auto instance : instances) {
-            if (ray.intersects(instance->bounds)) {
-                target = instance;
+            if (instance.second->enabled && instance.second->visible && ray.intersects(instance.second->bounds)) {
+                target = instance.second;
             }
         }
         // Unselect the current selected
-        if (target == NULL || selected != target) {
+        if (selected != NULL && ( target == NULL || selected != target )) {
             input::event select = ev;
             select.gesture = platform::input::UNSELECT;
-            if (selected != NULL) {
-                selected->raise(select);
-            }
+            selected->raise(select);
             selected = NULL;
         }
         // Track and pass along the events
@@ -236,68 +234,78 @@ void implementation::universal::interface::emit() {
 
 void implementation::universal::interface::draw() {
     for (auto instance : instances) {
-        draw(*instance);
+        draw(*instance.second);
     }
 }
 
 platform::interface::widget& implementation::universal::interface::create(platform::interface::widget::spec t, int w, int h, const std::string& texture) {
+    widget* instance = NULL;
+    int id = platform::interface::next();
+
     switch (t) {
     case(widget::spec::button):
-        instances.push_back(new button(this, instances.size()));
+        instance = new button(this, instances.size());
         break;
     case(widget::spec::textbox):
-        instances.push_back(new textbox(this, instances.size()));
+        instance = new textbox(this, instances.size());
         break;
     case(widget::spec::progress):
-        instances.push_back(new progress(this, instances.size()));
+        instance = new progress(this, instances.size());
         break;
     }
 
     // TODO Always assuming a png is being specified for now, fix this
-    assets->retrieve(texture) >> format::parser::png >> instances.back()->background.texture.map;
+    assets->retrieve(texture) >> format::parser::png >> instance->background.texture.map;
 
-    instances.back()->background = spatial::quad(w, h);
-    instances.back()->background.xy_projection(0, 0, w, h);
-    graphics->compile(instances.back()->background);
+    instance->background = spatial::quad(w, h);
+    instance->background.xy_projection(0, 0, w, h);
+    graphics->compile(instance->background);
 
-    instances.back()->edge = spatial::quad::edges(w, h);
-    instances.back()->edge.texture.map.create(1, 1, 255, 255, 255, 255);
-    instances.back()->edge.xy_projection(0, 0, 1, 1);
-    graphics->compile(instances.back()->edge);
+    instance->edge = spatial::quad::edges(w, h);
+    instance->edge.texture.map.create(1, 1, 255, 255, 255, 255);
+    instance->edge.xy_projection(0, 0, 1, 1);
+    graphics->compile(instance->edge);
 
-    instances.back()->bounds = instances.back()->background.vertices;
+    instance->bounds = instance->background.vertices;
 
-    return *instances.back();
+    instances[id] = instance;
+
+    return *instance;
 }
 
 platform::interface::widget& implementation::universal::interface::create(platform::interface::widget::spec t, int w, int h, int r, int g, int b, int a) {
+    widget* instance = NULL;
+    int id = platform::interface::next();
+
     switch (t) {
     case(widget::spec::button):
-        instances.push_back(new button(this, instances.size()));
+        instance = new button(this, id);
         break;
     case(widget::spec::textbox):
-        instances.push_back(new textbox(this, instances.size()));
+        instance = new textbox(this, id);
         break;
     case(widget::spec::progress):
-        instances.push_back(new progress(this, instances.size()));
+        instance = new progress(this, id);
         break;
     }
 
-    instances.back()->background = spatial::quad(w, h);
-    instances.back()->background.texture.map.create(1, 1, r, g, b, a); // Single pixel is good enough
-    instances.back()->background.xy_projection(0, 0, w, h);
-    graphics->compile(instances.back()->background);
+    instance->background = spatial::quad(w, h);
+    instance->background.texture.map.create(1, 1, r, g, b, a); // Single pixel is good enough
+    instance->background.xy_projection(0, 0, w, h);
+    graphics->compile(instance->background);
 
     int l = 100;
 
-    instances.back()->edge = spatial::quad::edges(w, h);
-    instances.back()->edge.texture.map.create(1, 1, r+l, g+l, b+l, a+l);
-    instances.back()->edge.xy_projection(0, 0, 1, 1);
-    graphics->compile(instances.back()->edge);
+    instance->edge = spatial::quad::edges(w, h);
+    instance->edge.texture.map.create(1, 1, r+l, g+l, b+l, a+l);
+    instance->edge.xy_projection(0, 0, 1, 1);
+    graphics->compile(instance->edge);
 
-    instances.back()->bounds = spatial::quad(instances.back()->background.vertices).project(spatial::matrix(), spatial::matrix(), projection);
+    instance->bounds = spatial::quad(instance->background.vertices).project(spatial::matrix(), spatial::matrix(), projection);
 
-    return *instances.back();
+    instances[id] = instance;
+
+    return *instance;
 }
 
 void implementation::universal::interface::print(int x, int y, const std::string& text) {
@@ -310,6 +318,10 @@ void implementation::universal::interface::print(int x, int y, const std::string
 }
 
 void implementation::universal::interface::draw(widget& instance) {
+    if (instance.visible == false) {
+        return;
+    }
+
     graphics->clip(graphics->height() - instance.y, -((graphics->height() - instance.background.height()) - instance.y), -instance.x, instance.x + instance.background.width());
 
     spatial::matrix position;
@@ -365,7 +377,7 @@ void implementation::universal::interface::draw(widget& instance) {
 void implementation::universal::interface::reposition(widget& instance) {
     spatial::matrix position;
     position.translate(instance.x, (graphics->height() - instance.background.height()) - instance.y, 0);
-    instance.bounds = position.interpolate(spatial::quad(instances.back()->background.vertices));
+    instance.bounds = position.interpolate(spatial::quad(instance.background.vertices));
 }
 
 #endif
