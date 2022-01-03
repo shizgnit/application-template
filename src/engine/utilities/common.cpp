@@ -69,6 +69,10 @@ std::string utilities::uc(std::string in) {
     return(std::string(translated.data(), translated.size()));
 }
 
+bool utilities::numeric(std::string in) {
+    return in.find_first_not_of("0123456789.") == std::string::npos;
+}
+
 /*
 std::string utilities::format(std::string str, ...) {
     std::string result;

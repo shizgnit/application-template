@@ -47,6 +47,8 @@ namespace utilities {
     std::string lc(std::string in);
     std::string uc(std::string in);
 
+    bool numeric(std::string in);
+
 //    std::string format(std::string str, ...);
 
     std::string dirname(const std::string& in);
