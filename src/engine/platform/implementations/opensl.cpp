@@ -276,42 +276,6 @@ void implementation::opensl::audio::compile(type::audio &sound) { //DEBUG_SCOPE;
 	
 }
 
-void implementation::opensl::audio::play(type::audio &sound) { //DEBUG_SCOPE;
-    SLresult result;
-	
-	//DEBUG_TRACE << "selecting" << std::endl;
-	int header = sizeof(sound.properties);
-	
-	for(int i=0; i<bgPlayers; i++) {
-		if(bgPlayerPlaying[i]) {
-			//DEBUG_TRACE << "Player " << i << " is busy" << std::endl;
-			continue;
-		}
-		//DEBUG_TRACE << "Player " << i << " selected" << std::endl;
-		//DEBUG_TRACE << "buffer: " << sound.size - header << " bytes, " << sound.size << " bytes total" << std::endl;
-		//DEBUG_TRACE << "channels: " << sound.properties.channels << std::endl;
-		//DEBUG_TRACE << "bits_per_sample: " << sound.properties.bits_per_sample << std::endl;
-		//DEBUG_TRACE << "sample_rate: " << sound.properties.sample_rate << std::endl;
-	
-		result = (*bqPlayerBufferQueues[i])->Enqueue(bqPlayerBufferQueues[i], reinterpret_cast<short *>(sound.buffer.data() + header), sound.size - header);
-		//result = (*bqPlayerBufferQueues[i])->Enqueue(bqPlayerBufferQueues[i], reinterpret_cast<short *>(*sound.data + header), sound.size - header);
-		if(result != SL_RESULT_SUCCESS) {
-			//DEBUG_TRACE << "failed" << std::endl;
-		}
-		
-		//DEBUG_TRACE << "audio play" << std::endl;
-		result = (*bqPlayerPlays[i])->SetPlayState(bqPlayerPlays[i], SL_PLAYSTATE_PLAYING);
-		if(result != SL_RESULT_SUCCESS) {
-			//DEBUG_TRACE << "failed" << std::endl;
-		}
-		
-		bgPlayerPlaying[i] = 1;
-		
-		break;
-	}
-    //assert(SL_RESULT_SUCCESS == result);
-}
-
 void implementation::opensl::audio::shutdown(void) { //DEBUG_SCOPE;
 	//DEBUG_TRACE << "audio shutdown" << std::endl;
 
@@ -369,6 +333,52 @@ void implementation::opensl::audio::shutdown(void) { //DEBUG_SCOPE;
         engineEngine = NULL;
     }
 
+}
+
+int implementation::opensl::audio::start(type::audio& sound) { //DEBUG_SCOPE;
+	SLresult result;
+
+	//DEBUG_TRACE << "selecting" << std::endl;
+	int header = sizeof(sound.properties);
+
+	for (int i = 0; i < bgPlayers; i++) {
+		if (bgPlayerPlaying[i]) {
+			//DEBUG_TRACE << "Player " << i << " is busy" << std::endl;
+			continue;
+		}
+		//DEBUG_TRACE << "Player " << i << " selected" << std::endl;
+		//DEBUG_TRACE << "buffer: " << sound.size - header << " bytes, " << sound.size << " bytes total" << std::endl;
+		//DEBUG_TRACE << "channels: " << sound.properties.channels << std::endl;
+		//DEBUG_TRACE << "bits_per_sample: " << sound.properties.bits_per_sample << std::endl;
+		//DEBUG_TRACE << "sample_rate: " << sound.properties.sample_rate << std::endl;
+
+		result = (*bqPlayerBufferQueues[i])->Enqueue(bqPlayerBufferQueues[i], reinterpret_cast<short*>(sound.buffer.data() + header), sound.size - header);
+		//result = (*bqPlayerBufferQueues[i])->Enqueue(bqPlayerBufferQueues[i], reinterpret_cast<short *>(*sound.data + header), sound.size - header);
+		if (result != SL_RESULT_SUCCESS) {
+			//DEBUG_TRACE << "failed" << std::endl;
+		}
+
+		//DEBUG_TRACE << "audio play" << std::endl;
+		result = (*bqPlayerPlays[i])->SetPlayState(bqPlayerPlays[i], SL_PLAYSTATE_PLAYING);
+		if (result != SL_RESULT_SUCCESS) {
+			//DEBUG_TRACE << "failed" << std::endl;
+		}
+
+		bgPlayerPlaying[i] = 1;
+
+		return i;
+	}
+	//assert(SL_RESULT_SUCCESS == result);
+}
+
+void implementation::opensl::audio::stop(int id) {
+	SLresult result;
+	if (bgPlayerPlaying[id]) {
+		result = (*bqPlayerPlays[id])->SetPlayState(bqPlayerPlays[id], SL_PLAYSTATE_STOPPED);
+		if (result != SL_RESULT_SUCCESS) {
+			//DEBUG_TRACE << "failed" << std::endl;
+		}
+	}
 }
 
 /*

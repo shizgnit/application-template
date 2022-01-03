@@ -11,9 +11,11 @@ namespace platform {
 
         virtual void compile(type::audio& sound) = 0;
 
-        virtual void play(type::audio& sound) = 0;
-
         virtual void shutdown(void) = 0;
+
+        virtual int start(type::audio& sound) = 0;
+        virtual void stop(int id) = 0;
+
     };
 
 }

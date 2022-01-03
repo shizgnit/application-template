@@ -29,7 +29,14 @@ void implementation::openal::audio::compile(type::audio& sound) {
     //alBufferData(sound.context, AL_FORMAT_MONO8, (const ALvoid *)sound.buffer.data(), sound.size, 11000);
 }
 
-void implementation::openal::audio::play(type::audio& sound) {
+void implementation::openal::audio::shutdown(void) {
+    //alDeleteSources(1, &sound.source);
+    //alDeleteBuffers(1, &sound.context);
+    //alcDestroyContext(context);
+    //alcCloseDevice(device);
+}
+
+int implementation::openal::audio::start(type::audio& sound) {
     unsigned int selection;
     for (selection = 0; selection < this->sources; selection++) {
         ALenum state;
@@ -51,13 +58,11 @@ void implementation::openal::audio::play(type::audio& sound) {
     alSourcePlay(id);
     alSource3f(id, AL_POSITION, 0.0f, 0.0f, -1.0f);
     //alSource3f(id, AL_VELOCITY, 0.0f, 0.0f, -1.0f);
+
+    return id;
 }
 
-void implementation::openal::audio::shutdown(void) {
-    //alDeleteSources(1, &sound.source);
-    //alDeleteBuffers(1, &sound.context);
-    //alcDestroyContext(context);
-    //alcCloseDevice(device);
+void implementation::openal::audio::stop(int id) {
+    alSourceStop(id);
 }
-
 #endif

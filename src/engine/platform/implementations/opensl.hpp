@@ -13,8 +13,10 @@ namespace implementation {
         public:
             void init(int sources);
             void compile(type::audio& sound);
-            void play(type::audio& sound);
             void shutdown(void);
+
+            int start(type::audio& sound);
+            void stop(int id);
 
         protected:
             int sources;
