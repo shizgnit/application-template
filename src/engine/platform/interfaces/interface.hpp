@@ -4,6 +4,11 @@ namespace platform {
 
     class interface {
     public:
+        static int next() {
+            static int id = 0;
+            return id++;
+        }
+
         type::program shader;
         type::font font;
         spatial::matrix projection;
@@ -107,6 +112,8 @@ namespace platform {
             spec specification;
 
             bool selectable = false;
+            bool enabled = true;
+            bool visible = true;
 
         protected:
             bool floating = false;
@@ -155,7 +162,6 @@ namespace platform {
                 children.push_back(button);
                 crossreference[" "] = children.size();
                 children.push_back(content);
-
                 return 0;
             }
 
@@ -198,7 +204,7 @@ namespace platform {
         virtual void draw(widget& instance) = 0;
         virtual void reposition(widget& instance) = 0;
 
-        std::vector<widget *> instances;
+        std::map<int, widget *> instances;
 
         widget* selected = NULL;
     };
