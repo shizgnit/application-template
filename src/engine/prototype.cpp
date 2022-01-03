@@ -5,8 +5,10 @@ int textbox;
 int progress;
 
 void text_event(const std::string& text) {
-    std::string output = text + "\n";
-    gui->get<platform::interface::textbox>(events).content.add(output);
+    for (auto line : utilities::tokenize(text)) {
+        std::string output = line + "\n";
+        gui->get<platform::interface::textbox>(events).content.add(output);
+    }
 }
 
 void progress_percentage() {
@@ -28,6 +30,18 @@ cell shader
 /// Represents visual components of the current scene.
 /// </summary>
 class entity {
+public:
+    class definition {
+    public:
+        enum type_t {
+            AUDIO  = 0x01,
+            SHADER = 0x02,
+            FONT   = 0x04,
+            OBJECT = 0x08
+        } type;
+        std::string resource;
+    };
+
     class movement {
         /*
         Velocity calculation
@@ -42,7 +56,20 @@ class entity {
         float gravity;
     };
 
-    type::object object;
+    enum parameter {
+        TARGET = 0x01,
+        POSITION = 0x02
+    };
+
+    void set(parameter p, spatial::vector v) {
+        switch (p) {
+        case(TARGET):
+            break;
+        };
+    }
+
+    type::object *object;
+
     spatial::position target;
     spatial::position position;
 };
@@ -54,8 +81,47 @@ class entity {
 /// - Configuration
 /// - Results
 /// </summary>
-class scene {
+class scenes {
+    static scenes& instance() {
+        static scenes singleton;
+        return singleton;
+    }
 
+    class scene {
+        std::map<int, entity> entities;
+        std::vector<int> widgets;
+    };
+
+    void load(entity::definition::type_t type, std::string name) {
+        switch (type) {
+        case(entity::definition::type_t::AUDIO):
+            //assets->retrieve("raw/glados.wav") >> format::parser::wav >> sound;
+            break;
+
+        case(entity::definition::type_t::SHADER):
+            //assets->retrieve("shaders/shader_basic.vert") >> format::parser::vert >> shader.vertex;
+            //assets->retrieve("shaders/shader_basic.frag") >> format::parser::frag >> shader.fragment;
+            //graphics->compile(shader);
+            break;
+
+        case(entity::definition::type_t::FONT):
+            //assets->retrieve("fonts/consolas-22.fnt") >> format::parser::fnt >> gui->font;
+            //graphics->compile(gui->font);
+            break;
+
+        case(entity::definition::type_t::OBJECT):
+            //assets->retrieve("objects/skybox.obj") >> format::parser::obj >> skybox;
+            //graphics->compile(skybox.children[0]);
+            break;
+        };
+    }
+
+    std::map<std::string, type::font> fonts;
+    std::map<std::string, type::program> shaders;
+    std::map<std::string, type::audio> sounds;
+    std::map<std::string, type::object> objects;
+
+    std::map<std::string, scene> instances;
 };
 
 /// <summary>
@@ -63,18 +129,27 @@ class scene {
 /// </summary>
 class actions {
   public:
+    typedef std::string label_t;
+    typedef std::variant<double, int, std::string, spatial::vector> value_t;
+    typedef std::vector<value_t> parameters_t;
+    typedef value_t(*callback_t)(parameters_t);
+
     static actions& instance() {
         static actions singleton;
         return singleton;
     }
 
-    void call(const std::string& input) {
-        text_event(input);
-
+    value_t call(const std::string& input) {
         auto tokens = utilities::tokenize(input, " ");
         if (tokens.empty() || commands.find(tokens[0]) == commands.end()) {
-            text_event("failed to find command");
-            return;
+            std::vector<std::string> list;
+            for (auto command : commands) {
+                list.push_back(command.first);
+            }
+            std::stringstream ss;
+            ss << "commands: " << utilities::join(", ", list);
+            text_event(ss.str());
+            return 0;
         }
         parameters_t params;
 
@@ -109,6 +184,19 @@ class actions {
                     buffer = token;
                 }
             }
+            // Spatial vector data
+            else if (token.front() == '(' && token.back() == ')') {
+                token.erase(0, 1);
+                token.erase(token.size() - 1);
+                auto axis = utilities::tokenize(token, ",");
+                spatial::vector vector = {
+                    axis.size() > 0 ? utilities::type_cast<double>(axis[0]) : 0.0f,
+                    axis.size() > 1 ? utilities::type_cast<double>(axis[1]) : 0.0f,
+                    axis.size() > 2 ? utilities::type_cast<double>(axis[2]) : 0.0f,
+                    axis.size() > 3 ? utilities::type_cast<double>(axis[3]) : 0.0f
+                };
+                params.push_back(vector);
+            }
             // Numeric parameters can be integer or doubles
             else if (utilities::numeric(token)) {
                 if (token.find(".") != std::string::npos) {
@@ -125,33 +213,45 @@ class actions {
         }
         
         // Call the command
-        commands[command].second(params);
+        return commands[command].second(params);
     }
 
 private:
-    typedef std::string label_t;
-    typedef std::variant<double, int, std::string > value_t;
-    typedef std::vector<value_t> parameters_t;
-    typedef void(*callback_t)(parameters_t);
-
     std::map<label_t, value_t> variables;
     std::map<std::string, std::pair<std::string, callback_t>> commands = {
-        { "set",  { "set [label] [value]", &set } },
-        { "show", { "show [type]", &show } },
-        { "exit", { "exit", &exit } },
+        { "set",     { "set [label] [value]\nset [entity] [label] [value]", &set } },
+        { "create",  { "create [type]", &create } },
+        { "show",    { "show [type]", &show } },
+        { "exit",    { "exit", &exit } },
     };
     std::map<int, callback_t> keybinds;
 
-    static void set(parameters_t p) {
+    static value_t set(parameters_t p) {
         if (p.size() < 2) {
             text_event(instance().commands["set"].first);
-            return;
+            return 0;
         }
-        actions::instance().variables[std::get<label_t>(p[0])] = p[1];
+        if (p.size() == 2) {
+            actions::instance().variables[std::get<label_t>(p[0])] = p[1];
+        }
+        if (p.size() == 3) {
+            actions::instance().variables[std::get<label_t>(p[0])] = p[1];
+        }
+        return p[1];
     }
 
-    static void show(parameters_t p) {
-        if (p.size() && std::get<label_t>(p[0]) == "variables") {
+    static value_t create(parameters_t p) {
+        return 0;
+    }
+
+    static value_t show(parameters_t p) {
+        if (p.size() == 0) {
+            text_event("show [commands|variables|assets]");
+            return 0;
+        }
+
+        auto type = std::get<std::string>(p[0]);
+        if (type == "variables") {
             for (auto variable : actions::instance().variables) {
                 std::stringstream ss;
                 if (std::holds_alternative<int>(variable.second)) {
@@ -165,20 +265,31 @@ private:
                 }
                 text_event(ss.str());
             }
-            return;
         }
-        if (p.size() && std::get<label_t>(p[0]) == "commands") {
+        if (type == "commands") {
             for (auto command : actions::instance().commands) {
                 text_event(command.second.first);
             }
-            return;
         }
-        text_event("types: commands, variables");
+        if (type == "assets") {
+            if (p.size() >= 2) {
+                auto path = std::get<std::string>(p[1]);
+                for (auto asset : assets->list(path)) {
+                    text_event(asset);
+                }
+            }
+            else {
+                text_event("show assets [path]");
+            }
+        }
+
+        return 0;
     }
 
-    static void exit(parameters_t p) {
+    static value_t exit(parameters_t p) {
         text_event("goodbye");
         exit;
+        return 0; // exit doesn't actually exit in debug mode
     }
 };
 
