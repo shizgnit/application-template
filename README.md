@@ -10,7 +10,7 @@ Removing those limitations allows for modern solutions to be experimented with. 
 
 ## Build
 
-Use Microsoft Visual Studio 2019 and the build.sln solution file.
+Use Microsoft Visual Studio 2022 and the build.sln solution file.
 
 ## Dependencies
 
@@ -23,6 +23,10 @@ The following projects need to be installed on the client PC running the IDE.
 
     https://nodejs.org/
     https://developer.android.com/studio
+
+Prebuilt package of deps/miniz-2.2.0 installed.  Currently requires manual download and install.
+
+    https://github.com/richgel999/miniz/releases
 
 Bitmat fonts are created with the BMFont tool.
 
