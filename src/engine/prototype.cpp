@@ -1,5 +1,19 @@
 #include "engine.hpp"
 
+int events;
+int textbox;
+int progress;
+
+void text_event(const std::string& text) {
+    std::string output = text + "\n";
+    gui->get<platform::interface::textbox>(events).content.add(output);
+}
+
+void progress_percentage() {
+    static int count = 0;
+    gui->get<platform::interface::progress>(progress).percentage = ++count > 100 ? 100 : count;
+}
+
 /*
 TODO
 scene object and gui management
@@ -9,13 +23,6 @@ input abstraction for user specified keybinds
 network communication updated for HTTPS
 cell shader
 */
-
-/// <summary>
-/// The input actions that are current active.  Allows for the abstraction of inputs to actions taken.
-/// </summary>
-class actions {
-
-};
 
 /// <summary>
 /// Represents visual components of the current scene.
@@ -49,6 +56,130 @@ class entity {
 /// </summary>
 class scene {
 
+};
+
+/// <summary>
+/// The input actions that are current active.  Allows for the abstraction of inputs to actions taken.
+/// </summary>
+class actions {
+  public:
+    static actions& instance() {
+        static actions singleton;
+        return singleton;
+    }
+
+    void call(const std::string& input) {
+        text_event(input);
+
+        auto tokens = utilities::tokenize(input, " ");
+        if (tokens.empty() || commands.find(tokens[0]) == commands.end()) {
+            text_event("failed to find command");
+            return;
+        }
+        parameters_t params;
+
+        std::string command;
+        std::string buffer;
+
+        for (auto token : tokens) {
+            // First token is always the command to execute
+            if (command.empty()) {
+                command = token;
+            }
+            // String processing in quotes can span multiple tokens
+            else if (buffer.empty() == false) {
+                buffer.append(" ");
+                if (token.back() == '\"') {
+                    token.erase(token.size() - 1);
+                    buffer.append(token);
+                    params.push_back(buffer);
+                    buffer.clear();
+                }
+                else {
+                    buffer.append(token);
+                }
+            }
+            else if (token.front() == '\"') {
+                token.erase(0, 1);
+                if (token.back() == '\"') {
+                    token.erase(token.size() - 1);
+                    params.push_back(token);
+                }
+                else {
+                    buffer = token;
+                }
+            }
+            // Numeric parameters can be integer or doubles
+            else if (utilities::numeric(token)) {
+                if (token.find(".") != std::string::npos) {
+                    params.push_back(utilities::type_cast<double>(token));
+                }
+                else {
+                    params.push_back(utilities::type_cast<int>(token));
+                }
+            }
+            // Just add the token as-is
+            else {
+                params.push_back(token);
+            }
+        }
+        
+        // Call the command
+        commands[command].second(params);
+    }
+
+private:
+    typedef std::string label_t;
+    typedef std::variant<double, int, std::string > value_t;
+    typedef std::vector<value_t> parameters_t;
+    typedef void(*callback_t)(parameters_t);
+
+    std::map<label_t, value_t> variables;
+    std::map<std::string, std::pair<std::string, callback_t>> commands = {
+        { "set",  { "set [label] [value]", &set } },
+        { "show", { "show [type]", &show } },
+        { "exit", { "exit", &exit } },
+    };
+    std::map<int, callback_t> keybinds;
+
+    static void set(parameters_t p) {
+        if (p.size() < 2) {
+            text_event(instance().commands["set"].first);
+            return;
+        }
+        actions::instance().variables[std::get<label_t>(p[0])] = p[1];
+    }
+
+    static void show(parameters_t p) {
+        if (p.size() && std::get<label_t>(p[0]) == "variables") {
+            for (auto variable : actions::instance().variables) {
+                std::stringstream ss;
+                if (std::holds_alternative<int>(variable.second)) {
+                    ss << variable.first << ": " << std::get<int>(variable.second);
+                }
+                if (std::holds_alternative<double>(variable.second)) {
+                    ss << variable.first << ": " << std::get<double>(variable.second);
+                }
+                if (std::holds_alternative<std::string>(variable.second)) {
+                    ss << variable.first << ": " << std::get<std::string>(variable.second);
+                }
+                text_event(ss.str());
+            }
+            return;
+        }
+        if (p.size() && std::get<label_t>(p[0]) == "commands") {
+            for (auto command : actions::instance().commands) {
+                text_event(command.second.first);
+            }
+            return;
+        }
+        text_event("types: commands, variables");
+    }
+
+    static void exit(parameters_t p) {
+        text_event("goodbye");
+        exit;
+    }
 };
 
 //=====================================================================================================
@@ -95,10 +226,6 @@ glm::mat4 Projection;
 glm::mat4 View;
 glm::mat4 Model;
 
-int events;
-int textbox;
-int progress;
-
 void print(int x, int y, spatial::vector vector) {
     for (int row = 0; row < 4; row++) {
         std::stringstream ss;
@@ -121,16 +248,6 @@ void print(int x, int y, spatial::matrix matrix) {
         ss << (row == 3 ? "] ]" : "]");
         gui->print(x, y + (gui->font.leading() * row), ss.str());
     }
-}
-
-void text_event(const std::string& text) {
-    std::string output = text + "\n";
-    gui->get<platform::interface::textbox>(events).content.add(output);
-}
-
-void progress_percentage() {
-    static int count = 0;
-    gui->get<platform::interface::progress>(progress).percentage = ++count > 100 ? 100 : count;
 }
 
 inline float prior_x;
@@ -385,7 +502,7 @@ void prototype::on_startup() {
         std::stringstream ss;
         ss << "button_down(" << ev.point.x << ", " << ev.point.y << ")";
         text_event(ss.str());
-        audio->play(sound);
+        audio->start(sound);
         client->connect();
     }, 1);
 
@@ -395,7 +512,7 @@ void prototype::on_startup() {
     textbox = gui->create(platform::interface::widget::spec::textbox, 512, 20, 0, 0, 0, 80).position(graphics->width() - 512 - 20, 750).id;
     gui->get<platform::interface::textbox>(textbox).selectable = true;
     gui->get<platform::interface::textbox>(textbox).handler(platform::input::KEY, platform::input::DOWN, [](const platform::input::event& ev) {
-        std::stringstream ss;
+        //std::stringstream ss;
         std::vector<std::string> content;
         switch (ev.identifier) {
         case(8): // Backspace to remove a character
@@ -404,9 +521,10 @@ void prototype::on_startup() {
         case(13): // Enter to submit
             content = gui->get<platform::interface::textbox>(textbox).content.get();
             if (content.size()) {
-                ss << "text_submit(" << content[0] << ")";
-                text_event(ss.str());
+                //ss << "text_submit(" << content[0] << ")";
+                //text_event(ss.str());
                 gui->get<platform::interface::textbox>(textbox).content.remove(-1);
+                actions::instance().call(content[0]);
             }
             break;
         default: // Every other printable gets added to the contents
@@ -421,7 +539,7 @@ void prototype::on_startup() {
         std::string input(caller->input.begin(), caller->input.end());
         ss << "client_message(" << input << ")";
         text_event(ss.str());
-        audio->play(sound);
+        audio->start(sound);
     });
 
     server->start();
