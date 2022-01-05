@@ -1,5 +1,15 @@
 #include "engine.hpp"
 
+/*
+TODO
+scene object and gui management
+time based animation and object manipulation
+object automated motion and movement/camera constraints
+input abstraction for user specified keybinds
+network communication updated for HTTPS
+cell shader
+*/
+
 int events;
 int textbox;
 int progress;
@@ -15,16 +25,6 @@ void progress_percentage() {
     static int count = 0;
     gui->get<platform::interface::progress>(progress).percentage = ++count > 100 ? 100 : count;
 }
-
-/*
-TODO
-scene object and gui management
-time based animation and object manipulation
-object automated motion and movement/camera constraints
-input abstraction for user specified keybinds
-network communication updated for HTTPS
-cell shader
-*/
 
 typedef std::string label_t;
 typedef std::variant<double, int, std::string, spatial::vector> value_t;
@@ -79,11 +79,21 @@ public:
 
         std::map<label_t, value_t> variables;
         std::map<int, entity> entities;
-        std::vector<int> widgets;
+        std::vector<platform::interface::widget> widgets;
 
-        virtual void load() {};
-        virtual void run() {};
-        virtual void stop() {};
+        virtual void load() {}
+        virtual void run() {}
+        virtual void stop() {}
+
+        /// <summary>
+        /// Scene specific event handlers
+        /// </summary>
+        virtual void freelook_start(const platform::input::event& ev) {}
+        virtual void freelook_move(const platform::input::event& ev) {}
+        virtual void freelook_zoom(const platform::input::event& ev) {}
+        virtual void mouse_move(const platform::input::event& ev) {}
+        virtual void keyboard_input(const platform::input::event& ev) {}
+        virtual void gamepad_input(const platform::input::event& ev) {}
 
         void set(std::string entity, label_t label, value_t value) {
 
@@ -165,6 +175,13 @@ public:
             graphics->compile(objects[name]);
         }
     }
+
+    static void freelook_start(const platform::input::event& ev) { scenes::current().freelook_start(ev); }
+    static void freelook_move(const platform::input::event& ev) { scenes::current().freelook_move(ev); }
+    static void freelook_zoom(const platform::input::event& ev) { scenes::current().freelook_zoom(ev); }
+    static void mouse_move(const platform::input::event& ev) { scenes::current().mouse_move(ev); }
+    static void keyboard_input(const platform::input::event& ev) { scenes::current().keyboard_input(ev); }
+    static void gamepad_input(const platform::input::event& ev) { scenes::current().gamepad_input(ev); }
 
     std::map<std::string, type::font> fonts;
     std::map<std::string, type::program> shaders;
@@ -269,11 +286,11 @@ class actions {
 
 private:
     std::map<std::string, std::pair<std::string, callback_t>> commands = {
-        { "set",     { "set [label] [value]\nset [entity] [label] [value]", &set } },
-        { "load",    { "load [type] [name]", &load } },
-        { "create",  { "create [type]", &create } },
-        { "show",    { "show [type]", &show } },
-        { "exit",    { "exit", &exit } },
+        { "/set",     { "/set [label] [value]\nset [entity] [label] [value]", &set } },
+        { "/load",    { "/load [type] [name]", &load } },
+        { "/create",  { "/create [type]", &create } },
+        { "/show",    { "/show [type]", &show } },
+        { "/exit",    { "/exit", &exit } },
     };
     std::map<int, callback_t> keybinds;
 
@@ -306,7 +323,7 @@ private:
 
     static value_t show(parameters_t p) {
         if (p.size() == 0) {
-            text_event("show [commands|variables|assets]");
+            text_event("show [commands|variables|assets|loaded]");
             return 0;
         }
 
@@ -315,6 +332,11 @@ private:
             for (auto entry : scenes::global().fonts) {
                 std::stringstream ss;
                 ss << "font(" << entry.first << ")";
+                text_event(ss.str());
+            }
+            for (auto entry : scenes::global().sounds) {
+                std::stringstream ss;
+                ss << "audio(" << entry.first << ")";
                 text_event(ss.str());
             }
             for (auto entry : scenes::global().shaders) {
@@ -407,6 +429,155 @@ public:
 
     void run() {
 
+    }
+
+    float prior_x;
+    float prior_y;
+
+    void freelook_start(const platform::input::event& ev) {
+        prior_x = ev.point.x;
+        prior_y = ev.point.y;
+        if (scenes::global().flag("debug.input")) {
+            std::stringstream ss;
+            ss << "freelook_start(" << ev.point.x << ", " << ev.point.y << ")";
+            text_event(ss.str());
+        }
+    }
+
+    void freelook_move(const platform::input::event& ev) {
+        if (scenes::global().flag("debug.input")) {
+            std::stringstream ss;
+            ss << "freelook_move(" << ev.identifier << ")(" << ev.point.x << ", " << ev.point.y << ")";
+            text_event(ss.str());
+        }
+        camera.pitch(ev.point.y - prior_y);
+        camera.spin(prior_x - ev.point.x);
+        prior_x = ev.point.x;
+        prior_y = ev.point.y;
+    }
+
+    void freelook_zoom(const platform::input::event& ev) {
+        if (scenes::global().flag("debug.input")) {
+            std::stringstream ss;
+            ss << "on_zoom(" << ev.travel << ")(" << ev.point.x << ", " << ev.point.y << ")";
+            text_event(ss.str());
+        }
+        camera.move(ev.travel > 0 ? 0.1 : -0.1);
+    }
+
+    void mouse_move(const platform::input::event& ev) {
+        if (scenes::global().flag("debug.input")) {
+            std::stringstream ss;
+            ss << "mouse_move(" << ev.point.x << ", " << ev.point.y << ")";
+            text_event(ss.str());
+        }
+        mouse = ev.point;
+        prior_x = ev.point.x;
+        prior_y = ev.point.y;
+    }
+
+    bool camera_moving[4] = { false, false, false, false };
+    bool object_moving[6] = { false, false, false, false, false, false };
+    void keyboard_input(const platform::input::event& ev) {
+        if (scenes::global().flag("debug.input")) {
+            std::stringstream ss;
+            ss << "key(" << ev.identifier << ")";
+            text_event(ss.str());
+        }
+        if (ev.gesture == platform::input::DOWN && gui->active() == false) {
+            switch (ev.identifier) {
+            case(37):
+                object_moving[0] = true;
+                break;
+            case(38):
+                object_moving[1] = true;
+                break;
+            case(39):
+                object_moving[2] = true;
+                break;
+            case(40):
+                object_moving[3] = true;
+                break;
+            case(188):
+                object_moving[4] = true;
+                break;
+            case(190):
+                object_moving[5] = true;
+                break;
+            case(83):
+                camera_moving[0] = true;
+                break;
+            case(87):
+                camera_moving[1] = true;
+                break;
+            case(65):
+                camera_moving[2] = true;
+                break;
+            case(68):
+                camera_moving[3] = true;
+                break;
+            }
+        }
+
+        if (ev.gesture == platform::input::UP && gui->active() == false) {
+            switch (ev.identifier) {
+            case(32):
+                progress_percentage();
+                projectiles.push_back(pos);
+                if (projectiles.size() > 10) {
+                    projectiles.pop_front();
+                }
+                break;
+            }
+        }
+
+        if (ev.gesture == platform::input::UP) {
+            switch (ev.identifier) {
+            case(37):
+                object_moving[0] = false;
+                break;
+            case(38):
+                object_moving[1] = false;
+                break;
+            case(39):
+                object_moving[2] = false;
+                break;
+            case(40):
+                object_moving[3] = false;
+                break;
+            case(188):
+                object_moving[4] = false;
+                break;
+            case(190):
+                object_moving[5] = false;
+                break;
+            case(83):
+                camera_moving[0] = false;
+                break;
+            case(87):
+                camera_moving[1] = false;
+                break;
+            case(65):
+                camera_moving[2] = false;
+                break;
+            case(68):
+                camera_moving[3] = false;
+                break;
+            }
+        }
+    }
+
+    void gamepad_input(const platform::input::event& ev) {
+        if (scenes::global().flag("debug.input")) {
+            std::stringstream ss;
+            if (ev.gesture == platform::input::DOWN || ev.gesture == platform::input::HELD) {
+                ss << "button_down(" << ev.identifier << ")";
+            }
+            if (ev.gesture == platform::input::UP) {
+                ss << "button_up(" << ev.identifier << ")";
+            }
+            text_event(ss.str());
+        }
     }
 };
 
@@ -646,6 +817,9 @@ void prototype::on_startup() {
     audio->init();
 
     bounds = spatial::quad(1, 1);
+
+    actions::instance().call("load shader shader_basic");
+    actions::instance().call("load audio glados");
 
     //assets->retrieve("objects/wiggle.fbx") >> format::parser::fbx >> wiggle;
     //graphics->compile(wiggle.children[0]);
