@@ -177,7 +177,7 @@ void implementation::windows::assets::init(void* ref) {
 }
 
 std::vector<std::string> implementation::windows::assets::list(std::string path) {
-    return filesystem().read_directory(utilities::join("\\", std::vector<std::string>({ base, path })));
+    return filesystem().read_directory(utilities::join("\\", std::vector<std::string>({ base, path, "\\*"})));
 }
 
 std::istream& implementation::windows::assets::retrieve(std::string path) {
