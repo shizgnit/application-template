@@ -66,6 +66,8 @@ namespace utilities {
 
     std::string uuid();
 
+    void sleep(time_t milliseconds);
+
     template<class T> T read(std::istream& input, size_t bytes = sizeof(T)) {
         char buffer[8];
         input.read(buffer, bytes);

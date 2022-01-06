@@ -340,6 +340,10 @@ std::string utilities::uuid() {
     return(output);
 }
 
+void utilities::sleep(time_t milliseconds) {
+    Sleep(milliseconds);
+}
+
 #endif
 
 #if defined __PLATFORM_POSIX
@@ -348,6 +352,10 @@ std::string utilities::uuid() {
     // TODO: pull from /proc/sys/kernel/random/uuid
 
     return "";
+}
+
+void sleep(time_t milliseconds) {
+    sleep(milliseconds);
 }
 
 #endif

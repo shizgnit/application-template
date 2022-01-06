@@ -82,6 +82,7 @@ public:
         std::vector<platform::interface::widget> widgets;
 
         virtual void load() {}
+        virtual void start() {}
         virtual void run() {}
         virtual void stop() {}
 
@@ -101,6 +102,8 @@ public:
 
         bool loaded = false;
         bool displayed = false;
+
+        spatial::position camera;
     };
 
     static scenes& global() {
@@ -115,6 +118,26 @@ public:
             return empty;
         }
         return *global().instances[active];
+    }
+
+    void transition(std::string name) {
+        std::thread([] {
+            
+        }).detach();
+
+        if (instances.find(name) != instances.end()) {
+
+        }
+        if (instances[name]->loaded == false) {
+            instances[name]->load();
+        }
+        std::string current = active;
+        active = name;
+        instances[current]->stop();
+        instances[name]->start();
+        instances[name]->run();
+        instances[current]->start();
+        active = current;
     }
 
     value_t get(label_t label) {
@@ -405,7 +428,7 @@ public:
     }
 
     void run() {
-
+        utilities::sleep(10000);
     }
 };
 
@@ -433,6 +456,8 @@ public:
 
     float prior_x;
     float prior_y;
+
+    spatial::vector mouse;
 
     void freelook_start(const platform::input::event& ev) {
         prior_x = ev.point.x;
@@ -523,10 +548,10 @@ public:
             switch (ev.identifier) {
             case(32):
                 progress_percentage();
-                projectiles.push_back(pos);
-                if (projectiles.size() > 10) {
-                    projectiles.pop_front();
-                }
+                //projectiles.push_back(pos);
+                //if (projectiles.size() > 10) {
+                //    projectiles.pop_front();
+                //}
                 break;
             }
         }
