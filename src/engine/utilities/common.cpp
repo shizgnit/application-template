@@ -354,8 +354,8 @@ std::string utilities::uuid() {
     return "";
 }
 
-void sleep(time_t milliseconds) {
-    sleep(milliseconds);
+void utilities::sleep(time_t milliseconds) {
+    ::sleep(milliseconds/1000);
 }
 
 #endif

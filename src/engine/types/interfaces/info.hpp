@@ -26,6 +26,8 @@ namespace type {
         std::vector<std::string> _extensions;
         format _type;
 
+        bool _compiled = false;
+
     public:
         info(std::vector<std::string> extensions, format type) {
             _extensions = extensions;
@@ -34,6 +36,16 @@ namespace type {
 
         type::format type() {
             return _type;
+        }
+
+        bool compile() {
+            bool needed = _compiled == false;
+            _compiled = true;
+            return needed;
+        }
+
+        bool compiled() {
+            return _compiled;
         }
     };
 

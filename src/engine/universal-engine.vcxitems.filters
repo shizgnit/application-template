@@ -16,7 +16,6 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)platform\implementations\opensl.cpp">
       <Filter>platform\implementations</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)prototype.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)platform\implementations\android.cpp">
       <Filter>platform\implementations</Filter>
     </ClCompile>
@@ -38,6 +37,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\deps\miniz-2.2.0\miniz.c">
       <Filter>deps\miniz</Filter>
     </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)prototype.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\deps\lodepng\lodepng.h">
@@ -116,7 +116,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\deps\zstream-cpp\ozstream_impl.hpp">
       <Filter>deps\zstream</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)prototype.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)types\formats\fnt.hpp">
       <Filter>types\formats</Filter>
     </ClInclude>
@@ -177,6 +176,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\deps\miniz-2.2.0\miniz.h">
       <Filter>deps\miniz</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)prototype.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="deps">

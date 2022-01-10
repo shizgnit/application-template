@@ -76,6 +76,29 @@ namespace utilities {
 
     template<> std::string read<std::string>(std::istream& input, size_t bytes);
 
+    class percentage {
+    public:
+        void set(int current) {
+            if (current > 100) {
+                current = 100;
+            }
+            if (current < 0) {
+                current = 0;
+            }
+            std::lock_guard<std::mutex> scoped(lock);
+            value = current;
+        }
+
+        int get() {
+            std::lock_guard<std::mutex> scoped(lock);
+            return value;
+        }
+
+    private:
+        int value;
+        std::mutex lock;
+    };
+
     class text {
     public:
         text(int entries = 40) {
@@ -84,9 +107,12 @@ namespace utilities {
 
         void add(std::string message) {
             std::lock_guard<std::mutex> scoped(lock);
-            data.push_back(message);
-            if (data.size() > limit) {
-                data.pop_front();
+            for (auto line : utilities::tokenize(message)) {
+                std::string output = line + "\n";
+                data.push_back(output);
+                if (data.size() > limit) {
+                    data.pop_front();
+                }
             }
         }
 

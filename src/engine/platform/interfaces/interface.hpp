@@ -17,12 +17,11 @@ namespace platform {
         class widget {
         friend class platform::interface;
         private:
-            interface* owner;
-
             widget() {} // hide the default constructor
 
         public:
-            typedef void(*callback)(const platform::input::event&);
+            //typedef void(*callback)(const platform::input::event&);
+            typedef std::function<void(const platform::input::event&)> callback;
 
             enum spec {
                 button,
@@ -31,8 +30,7 @@ namespace platform {
                 progress
             };
 
-            widget(interface* owner, spec selection) {
-                this->owner = owner;
+            widget(spec selection) {
                 this->specification = selection;
             }
             ~widget() {}
@@ -70,10 +68,8 @@ namespace platform {
                     vertical = positioning::vcenter;
                 }
                 if (relativity & positioning::bottom) {
-                    vertical = positioning::top;
+                    vertical = positioning::bottom;
                 }
-
-                owner->reposition(*this);
 
                 return *this;
             }
@@ -127,7 +123,9 @@ namespace platform {
 
         class button : public widget {
         public:
-            button(interface* owner, int id) : widget(owner, widget::spec::button) { this->id = id; }
+            button() : widget(widget::spec::button) { 
+                this->id = platform::interface::next();
+            }
 
             std::string label;
 
@@ -136,7 +134,9 @@ namespace platform {
 
         class textbox : public widget {
         public:
-            textbox(interface* owner, int id) : widget(owner, widget::spec::textbox) { this->id = id; }
+            textbox() : widget(widget::spec::textbox) {
+                this->id = platform::interface::next();
+            }
 
             utilities::text content;
 
@@ -147,16 +147,20 @@ namespace platform {
 
         class progress : public widget {
         public:
-            progress(interface* owner, int id) : widget(owner, widget::spec::progress) { this->id = id; }
+            progress() : widget(widget::spec::progress) { 
+                this->id = platform::interface::next();
+            }
 
-            int percentage;
+            utilities::percentage value;
 
             positioning alignment = positioning::hcenter;
         };
 
         class tabbed : public widget {
         public:
-            tabbed(interface* owner, int id) : widget(owner, widget::spec::tabbed) { this->id = id; }
+            tabbed() : widget(widget::spec::tabbed) {
+                this->id = platform::interface::next();
+            }
 
             int add(interface::widget& button, interface::widget& content) {
                 children.push_back(button);
@@ -180,10 +184,11 @@ namespace platform {
         virtual void raise(const input::event& ev, int x, int y) = 0;
         virtual void emit() = 0;
 
+        virtual void position() = 0;
         virtual void draw() = 0;
 
-        virtual widget& create(widget::spec t, int w, int h, const std::string& resource) = 0;
         virtual widget& create(widget::spec t, int w, int h, int r, int g, int b, int a) = 0;
+        virtual widget& create(widget* instance, int w, int h, int r, int g, int b, int a) = 0;
 
         virtual void print(int x, int y, const std::string& text) = 0;
 
@@ -201,8 +206,8 @@ namespace platform {
         }
 
     protected:
+        virtual void position(widget& instance) = 0;
         virtual void draw(widget& instance) = 0;
-        virtual void reposition(widget& instance) = 0;
 
         std::map<int, widget *> instances;
 

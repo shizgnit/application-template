@@ -122,6 +122,10 @@ void implementation::opengl::graphics::flush(void) {
 }
 
 void implementation::opengl::graphics::compile(type::shader& shader) {
+    if (shader.compile() == false) {
+        return;
+    }
+
     switch (shader.type()) {
     case(type::format::FORMAT_VERT):
         shader.context = glCreateShader(GL_VERTEX_SHADER);
@@ -156,6 +160,10 @@ void implementation::opengl::graphics::compile(type::shader& shader) {
 }
 
 void implementation::opengl::graphics::compile(type::program& program) {
+    if (program.compile() == false) {
+        return;
+    }
+
     compile(program.vertex);
     compile(program.fragment);
 
@@ -203,6 +211,13 @@ void implementation::opengl::graphics::compile(type::program& program) {
 }
 
 void implementation::opengl::graphics::compile(type::object& object) {
+    for (auto &child : object.children) {
+        compile(child);
+    }
+    if (object.compile() == false || object.vertices.size() == 0) {
+        return;
+    }
+
     glGenBuffers(1, &object.context);
     glBindBuffer(GL_ARRAY_BUFFER, object.context);
     glBufferData(GL_ARRAY_BUFFER, sizeof(spatial::vertex) * object.vertices.size(), object.vertices.data(), GL_DYNAMIC_DRAW);
@@ -225,6 +240,10 @@ void implementation::opengl::graphics::recompile(type::object& object) {
 
 
 void implementation::opengl::graphics::compile(type::font& font) {
+    if (font.compile() == false) {
+        return;
+    }
+
     for (auto &glyph : font.glyphs) {
         if (glyph.identifier) {
             compile(glyph.quad);

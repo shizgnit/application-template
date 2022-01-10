@@ -90,6 +90,7 @@
 #include <fstream>
 #include <random>
 #include <thread>
+#include <functional>
 
 #include <pthread.h>
 
@@ -115,11 +116,11 @@
 #include "platform/interfaces/audio.hpp"
 #include "platform/interfaces/filesystem.hpp"
 #include "platform/interfaces/assets.hpp"
+#include "platform/interfaces/input.hpp"
+#include "platform/interfaces/interface.hpp"
 #include "platform/interfaces/graphics.hpp"
 #include "platform/interfaces/network.hpp"
-#include "platform/interfaces/input.hpp"
 #include "platform/interfaces/application.hpp"
-#include "platform/interfaces/interface.hpp"
 
 
 /// Linux platform 

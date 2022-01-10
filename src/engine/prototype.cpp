@@ -2,29 +2,12 @@
 
 /*
 TODO
-scene object and gui management
 time based animation and object manipulation
 object automated motion and movement/camera constraints
 input abstraction for user specified keybinds
 network communication updated for HTTPS
 cell shader
 */
-
-int events;
-int textbox;
-int progress;
-
-void text_event(const std::string& text) {
-    for (auto line : utilities::tokenize(text)) {
-        std::string output = line + "\n";
-        gui->get<platform::interface::textbox>(events).content.add(output);
-    }
-}
-
-void progress_percentage() {
-    static int count = 0;
-    gui->get<platform::interface::progress>(progress).percentage = ++count > 100 ? 100 : count;
-}
 
 typedef std::string label_t;
 typedef std::variant<double, int, std::string, spatial::vector> value_t;
@@ -70,7 +53,7 @@ public:
 /// - Configuration
 /// - Results
 /// </summary>
-class scenes {
+class main {
 public:
     class scene {
     public:
@@ -79,16 +62,12 @@ public:
 
         std::map<label_t, value_t> variables;
         std::map<int, entity> entities;
-        std::vector<platform::interface::widget> widgets;
 
-        virtual void load() {}
+        virtual bool load() { return true; }
         virtual void start() {}
         virtual void run() {}
         virtual void stop() {}
 
-        /// <summary>
-        /// Scene specific event handlers
-        /// </summary>
         virtual void freelook_start(const platform::input::event& ev) {}
         virtual void freelook_move(const platform::input::event& ev) {}
         virtual void freelook_zoom(const platform::input::event& ev) {}
@@ -100,111 +79,160 @@ public:
 
         }
 
+        void geometry(int width, int height) {
+
+        }
+
         bool loaded = false;
         bool displayed = false;
 
         spatial::position camera;
     };
 
-    static scenes& global() {
-        static scenes singleton;
+    static platform::interface::textbox& debug() {
+        static platform::interface::textbox instance;
+        return instance;
+    }
+
+    static platform::interface::progress& progress() {
+        static platform::interface::progress instance;
+        return instance;
+    }
+
+    static main& global() {
+        static main singleton;
         return singleton;
     }
 
-    static scene& current() {
-        static scene empty;
-        std::string active = global().active;
-        if (active.empty() || global().instances.find(active) == global().instances.end()) {
-            return empty;
-        }
-        return *global().instances[active];
+    /// <summary>
+    /// Scene management methods
+    /// </summary>
+
+    void add(std::string name, scene* instance) {
+        std::lock_guard<std::mutex> scoped(lock);
+        scenes[name] = instance;
     }
 
-    void transition(std::string name) {
-        std::thread([] {
-            
-        }).detach();
-
-        if (instances.find(name) != instances.end()) {
-
+    bool toggle(std::string name) {
+        bool isactive = false;
+        {
+            std::lock_guard<std::mutex> scoped(lock);
+            if (name.empty() || scenes.find(name) == scenes.end()) {
+                return false;
+            }
+            isactive = (active.find(name) != active.end());
         }
-        if (instances[name]->loaded == false) {
-            instances[name]->load();
+        if (isactive) {
+            deactivate(name);
         }
-        std::string current = active;
-        active = name;
-        instances[current]->stop();
-        instances[name]->start();
-        instances[name]->run();
-        instances[current]->start();
-        active = current;
+        else {
+            activate(name);
+        }
     }
 
-    value_t get(label_t label) {
-        return variables[label];
-    }
-
-    bool flag(label_t label) {
-        if (variables.find(label) == variables.end()) {
+    bool activate(std::string name) {
+        std::lock_guard<std::mutex> scoped(lock);
+        if (name.empty() || scenes.find(name) == scenes.end()) {
             return false;
         }
-        auto variable = variables[label];
-        if (std::holds_alternative<int>(variable)) {
-            return std::get<int>(variable) != 0;
+        while (scenes[name]->loaded == false && scenes[name]->load() == false) {
+            scenes[name]->loaded = true;
         }
-        if (std::holds_alternative<double>(variable)) {
-            return std::get<double>(variable) > 0.0f;
-        }
-        if (std::holds_alternative<std::string>(variable)) {
-            return std::get<std::string>(variable).empty();
-        }
-        if (std::holds_alternative<spatial::vector>(variable)) {
-            return std::get<spatial::vector>(variable).value();
-        }
-        return false;
+        scenes[name]->start();
+        active[name] = scenes[name];
+        return true;
     }
 
-    void set(label_t label, value_t value) {
-        variables[label] = value;
+    bool deactivate(std::string name) {
+        std::lock_guard<std::mutex> scoped(lock);
+        if (name.empty() || active.find(name) == active.end()) {
+            return false;
+        }
+        auto reference = active[name];
+        active.erase(name);
+        reference->stop();
+        return true;
     }
 
-    void load(std::string type, std::string name) {
-        if (type == "audio") {
-            assets->retrieve("raw/" + name + ".wav") >> format::parser::wav >> sounds[name];
+    bool transition(std::string from, std::string to) {
+        transitions.clear();
+        if (to.empty() || scenes.find(to) == scenes.end()) {
+            return false;
         }
-        if (type == "shader") {
-            assets->retrieve("shaders/" + name + ".vert") >> format::parser::vert >> shaders[name].vertex;
-            assets->retrieve("shaders/" + name + ".frag") >> format::parser::frag >> shaders[name].fragment;
-            graphics->compile(shaders[name]);
+        if (scenes[to]->loaded == false && scenes[to]->load() == false) {
+            transitions.push_back({ from, to });
+            return false;
         }
-        if (type == "font") {
-            assets->retrieve("fonts/" + name + ".fnt") >> format::parser::fnt >> fonts[name];
-            graphics->compile(fonts[name]);
+        scenes[to]->loaded = true;
+        deactivate(from);
+        activate(to);
+        return true;
+    }
+
+    void run() {
+        if (transitions.size()) {
+            transition(transitions.front().first, transitions.front().second);
         }
-        if (type == "object") {
-            if (name.substr(name.size() - 4, 4) == ".fbx") {
-                assets->retrieve("objects/" + name) >> format::parser::fbx >> objects[name];
-            }
-            else if (name.substr(name.size() - 4, 4) == ".obj") {
-                assets->retrieve("objects/" + name) >> format::parser::obj >> objects[name];
-            }
-            else {
-                assets->retrieve("objects/" + name + ".obj") >> format::parser::obj >> objects[name];
-            }
-            graphics->compile(objects[name]);
-        }
-        if (type == "entity") {
-            assets->retrieve("objects/" + name + ".obj") >> format::parser::obj >> objects[name];
-            graphics->compile(objects[name]);
+        auto list = active;
+        for (auto scene : list) {
+            scene.second->run();
         }
     }
 
-    static void freelook_start(const platform::input::event& ev) { scenes::current().freelook_start(ev); }
-    static void freelook_move(const platform::input::event& ev) { scenes::current().freelook_move(ev); }
-    static void freelook_zoom(const platform::input::event& ev) { scenes::current().freelook_zoom(ev); }
-    static void mouse_move(const platform::input::event& ev) { scenes::current().mouse_move(ev); }
-    static void keyboard_input(const platform::input::event& ev) { scenes::current().keyboard_input(ev); }
-    static void gamepad_input(const platform::input::event& ev) { scenes::current().gamepad_input(ev); }
+    std::map<std::string, scene*> current() {
+        return active;
+    }
+
+    /// <summary>
+    /// Event propagation to the active scenes
+    /// </summary>
+
+    void freelook_start(const platform::input::event& ev) {
+        for (auto scene : active) {
+           scene.second->freelook_start(ev);
+        }        
+    }
+    void freelook_move(const platform::input::event& ev) {
+        for (auto scene : active) {
+            scene.second->freelook_move(ev);
+        }
+    }
+    void freelook_zoom(const platform::input::event& ev) {
+        for (auto scene : active) {
+            scene.second->freelook_zoom(ev);
+        }
+    }
+    void mouse_move(const platform::input::event& ev) {
+        for (auto scene : active) {
+            scene.second->mouse_move(ev);
+        }
+    }
+    void keyboard_input(const platform::input::event& ev) {
+        if (ev.gesture == platform::input::UP && ev.identifier == 192) {
+            toggle("debug");
+        }
+        for (auto scene : current()) {
+            scene.second->keyboard_input(ev);
+        }
+    }
+    void gamepad_input(const platform::input::event& ev) {
+        for (auto scene : active) {
+            scene.second->gamepad_input(ev);
+        }
+    }
+
+    void geometry(int width, int height) {
+        ortho.ortho(0, width, 0, height);
+        perspective.perspective(90 * (float)M_PI / 180.0f, (float)width / (float)height, -1.0f, 1.0f);
+
+        std::lock_guard<std::mutex> scoped(lock);
+        for (auto scene : current()) {
+            scene.second->geometry(width, height);
+        }
+    }
+
+    spatial::matrix ortho;
+    spatial::matrix perspective;
 
     std::map<std::string, type::font> fonts;
     std::map<std::string, type::program> shaders;
@@ -213,22 +241,16 @@ public:
 
     std::map<label_t, value_t> variables;
 
-    std::map<std::string, scene*> instances;
-    std::string active;
-};
+    std::map<std::string, scene*> scenes;
+    std::map<std::string, scene*> active;
 
-/// <summary>
-/// The input actions that are current active.  Allows for the abstraction of inputs to actions taken.
-/// </summary>
-class actions {
+    std::mutex lock;
+
+    std::list<std::pair<std::string, std::string>> transitions;
+
   public:
     typedef std::vector<value_t> parameters_t;
-    typedef value_t(*callback_t)(parameters_t);
-
-    static actions& instance() {
-        static actions singleton;
-        return singleton;
-    }
+    typedef std::function<value_t(parameters_t)> callback_t;
 
     value_t call(const std::string& input) {
         auto tokens = utilities::tokenize(input, " ");
@@ -239,7 +261,7 @@ class actions {
             }
             std::stringstream ss;
             ss << "commands: " << utilities::join(", ", list);
-            text_event(ss.str());
+            main::debug().content.add(ss.str());
             return 0;
         }
         parameters_t params;
@@ -307,74 +329,143 @@ class actions {
         return commands[command].second(params);
     }
 
+    bool flag(label_t label) {
+        if (variables.find(label) == variables.end()) {
+            return false;
+        }
+        auto variable = variables[label];
+        if (std::holds_alternative<int>(variable)) {
+            return std::get<int>(variable) != 0;
+        }
+        if (std::holds_alternative<double>(variable)) {
+            return std::get<double>(variable) > 0.0f;
+        }
+        if (std::holds_alternative<std::string>(variable)) {
+            return std::get<std::string>(variable).empty();
+        }
+        if (std::holds_alternative<spatial::vector>(variable)) {
+            return std::get<spatial::vector>(variable).value();
+        }
+        return false;
+    }
+
+    value_t get(label_t label) {
+        return variables[label];
+    }
+
+    value_t set(label_t label, value_t value) {
+        variables[label] = value;
+        return value;
+    }
+
 private:
     std::map<std::string, std::pair<std::string, callback_t>> commands = {
-        { "/set",     { "/set [label] [value]\nset [entity] [label] [value]", &set } },
-        { "/load",    { "/load [type] [name]", &load } },
-        { "/create",  { "/create [type]", &create } },
-        { "/show",    { "/show [type]", &show } },
-        { "/exit",    { "/exit", &exit } },
+        { "/get",     { "/get [label]\n/get [entity] [label]", [](parameters_t p)->value_t { return main::global().get(p); } } },
+        { "/set",     { "/set [label] [value]\n/set [entity] [label] [value]", [] (parameters_t p)->value_t { return main::global().set(p); } } },
+        { "/load",    { "/load [type] [name]", [](parameters_t p)->value_t { return main::global().load(p); } } },
+        { "/create",  { "/create [type]", [](parameters_t p)->value_t { return main::global().create(p); } } },
+        { "/show",    { "/show [type]", [](parameters_t p)->value_t { return main::global().show(p); } } },
+        { "/exit",    { "/exit", [](parameters_t p)->value_t { return main::global().exit(p); } } },
     };
     std::map<int, callback_t> keybinds;
 
-    static value_t set(parameters_t p) {
+    value_t get(parameters_t p) {
+        if (p.size() < 1) {
+            main::debug().content.add(commands["get"].first);
+            return 0;
+        }
+        return get(std::get<label_t>(p[0]));
+    }
+
+    value_t set(parameters_t p) {
         if (p.size() < 2) {
-            text_event(instance().commands["set"].first);
+            main::debug().content.add(commands["set"].first);
             return 0;
         }
         if (p.size() == 2) {
-            scenes::global().set(std::get<label_t>(p[0]), p[1]);
+            set(std::get<label_t>(p[0]), p[1]);
         }
         if (p.size() == 3) {
-            scenes::current().set(std::get<label_t>(p[0]), std::get<label_t>(p[1]), p[2]);
+            std::lock_guard<std::mutex> scoped(lock);
+            for (auto scene : active) {
+                scene.second->set(std::get<label_t>(p[0]), std::get<label_t>(p[1]), p[2]);
+            }
         }
         return p[1];
     }
 
-    static value_t load(parameters_t p) {
+    value_t load(parameters_t p) {
         if (p.size() == 2) {
             auto type = std::get<std::string>(p[0]);
             auto name = std::get<std::string>(p[1]);
-            scenes::global().load(type, name);
+            if (type == "audio") {
+                assets->retrieve("raw/" + name + ".wav") >> format::parser::wav >> sounds[name];
+                audio->compile(sounds[name]);
+            }
+            if (type == "shader") {
+                assets->retrieve("shaders/" + name + ".vert") >> format::parser::vert >> shaders[name].vertex;
+                assets->retrieve("shaders/" + name + ".frag") >> format::parser::frag >> shaders[name].fragment;
+                graphics->compile(shaders[name]);
+            }
+            if (type == "font") {
+                assets->retrieve("fonts/" + name + ".fnt") >> format::parser::fnt >> fonts[name];
+                graphics->compile(fonts[name]);
+            }
+            if (type == "object") {
+                if (name.substr(name.size() - 4, 4) == ".fbx") {
+                    assets->retrieve("objects/" + name) >> format::parser::fbx >> objects[name];
+                }
+                else if (name.substr(name.size() - 4, 4) == ".obj") {
+                    assets->retrieve("objects/" + name) >> format::parser::obj >> objects[name];
+                }
+                else {
+                    assets->retrieve("objects/" + name + ".obj") >> format::parser::obj >> objects[name];
+                }
+                graphics->compile(objects[name]);
+            }
+            if (type == "entity") {
+                assets->retrieve("objects/" + name + ".obj") >> format::parser::obj >> objects[name];
+                graphics->compile(objects[name]);
+            }
         }
         return 0;
     }
 
-    static value_t create(parameters_t p) {
+    value_t create(parameters_t p) {
         return 0;
     }
 
-    static value_t show(parameters_t p) {
+    value_t show(parameters_t p) {
         if (p.size() == 0) {
-            text_event("show [commands|variables|assets|loaded]");
+            main::debug().content.add("/show [commands|variables|assets|loaded]");
             return 0;
         }
 
         auto type = std::get<std::string>(p[0]);
         if (type == "loaded") {
-            for (auto entry : scenes::global().fonts) {
+            for (auto entry : fonts) {
                 std::stringstream ss;
                 ss << "font(" << entry.first << ")";
-                text_event(ss.str());
+                main::debug().content.add(ss.str());
             }
-            for (auto entry : scenes::global().sounds) {
+            for (auto entry : sounds) {
                 std::stringstream ss;
                 ss << "audio(" << entry.first << ")";
-                text_event(ss.str());
+                main::debug().content.add(ss.str());
             }
-            for (auto entry : scenes::global().shaders) {
+            for (auto entry : shaders) {
                 std::stringstream ss;
                 ss << "shader(" << entry.first << ")";
-                text_event(ss.str());
+                main::debug().content.add(ss.str());
             }
-            for (auto entry : scenes::global().objects) {
+            for (auto entry : objects) {
                 std::stringstream ss;
                 ss << "object(" << entry.first << ")";
-                text_event(ss.str());
+                main::debug().content.add(ss.str());
             }
         }
         if (type == "variables") {
-            for (auto variable : scenes::global().variables) {
+            for (auto variable : variables) {
                 std::stringstream ss;
                 if (std::holds_alternative<int>(variable.second)) {
                     ss << variable.first << ": " << std::get<int>(variable.second);
@@ -389,23 +480,23 @@ private:
                     auto v = std::get<spatial::vector>(variable.second);
                     ss << variable.first << ": (" << v.x << "," << v.y << "," << v.z << "," << v.w << ")";
                 }
-                text_event(ss.str());
+                main::debug().content.add(ss.str());
             }
         }
         if (type == "commands") {
-            for (auto command : actions::instance().commands) {
-                text_event(command.second.first);
+            for (auto command : commands) {
+                main::debug().content.add(command.second.first);
             }
         }
         if (type == "assets") {
             if (p.size() == 2) {
                 auto path = std::get<std::string>(p[1]);
                 for (auto asset : assets->list(path)) {
-                    text_event(asset);
+                    main::debug().content.add(asset);
                 }
             }
             else {
-                text_event("show assets [path]");
+                main::debug().content.add("/show assets [path]");
             }
         }
 
@@ -413,7 +504,7 @@ private:
     }
 
     static value_t exit(parameters_t p) {
-        text_event("goodbye");
+        main::debug().content.add("goodbye");
         exit;
         return 0; // exit doesn't actually exit in debug mode
     }
@@ -421,37 +512,299 @@ private:
 
 //=====================================================================================================
 
-class splash : public scenes::scene {
+class console : public main::scene {
 public:
-    void load() {
-        actions::instance().call("load shader shader_basic");
+    bool load() {
+        gui->create(&main::debug(), 512, 720, 0, 0, 0, 80).position(graphics->width() - 512 - 20, 20);
+        main::debug().alignment = platform::interface::widget::positioning::bottom;
+
+        gui->create(&commandline, 512, 20, 0, 0, 0, 80).position(graphics->width() - 512 - 20, 750);
+        commandline.selectable = true;
+        commandline.handler(platform::input::KEY, platform::input::DOWN, [this](const platform::input::event& ev) {
+            std::vector<std::string> content;
+            switch (ev.identifier) {
+            case(8): // Backspace to remove a character
+                this->commandline.content.remove(1);
+                break;
+            case(13): // Enter to submit
+                content = this->commandline.content.get();
+                if (content.size()) {
+                    this->commandline.content.remove(-1);
+                    main::global().call(content[0]);
+                }
+                break;
+            default: // Every other printable gets added to the contents
+                this->commandline.content.append(input->printable(ev.identifier));
+            };
+        });
+        return true;
     }
 
-    void run() {
-        utilities::sleep(10000);
+    void start() {
+        main::debug().visible = true;
+        commandline.visible = true;
+        gui->position();
     }
+
+    void stop() {
+        main::debug().visible = false;
+        commandline.visible = false;
+    }
+
+    platform::interface::textbox commandline;
 };
 
-class title : public scenes::scene {
+class splash : public main::scene {
 public:
-    void load() {
-        actions::instance().call("load sound glados");
-        actions::instance().call("load font consolas-22");
-    }
-
     void run() {
-
+        if (start == 0) {
+            start = time(NULL);
+        }
+        if (time(NULL) - start > 10) {
+            main::global().transition("splash", "title");
+        }
     }
+
+    time_t start = 0;
 };
 
-class game : public scenes::scene {
+class title : public main::scene {
 public:
-    void load() {
-        
+    bool load() {
+        main::global().call("/load sound glados");
+        main::global().call("/load shader shader_basic");
+        main::global().call("/load font consolas-22");
+
+        icon = spatial::quad(256, 256);
+        assets->retrieve("drawable/marvin.png") >> format::parser::png >> icon.texture.map;
+        icon.xy_projection(0, 0, 256, 256);
+        graphics->compile(icon);
+
+        gui->create(&main::global().progress(), graphics->width() / 2, 20, 0, 0, 0, 80).position(graphics->width() / 2 / 2, graphics->height() - 80);
+
+        gui->create(&enter, 256, 256, 0, 0, 0, 80).position(20, 20).handler(platform::input::POINTER, platform::input::MOVE, [](const platform::input::event& ev) {
+            if (main::global().flag("debug.input")) {
+                std::stringstream ss;
+                ss << "hover_over(" << ev.point.x << ", " << ev.point.y << ")";
+                main::debug().content.add(ss.str());
+            }
+            gui->print(210, 210, "HelloWorld"); // TODO: this won't draw... likely before or after the frame buffer swap, don't intend to ever do this anyway
+        }, 1).handler(platform::input::POINTER, platform::input::DOWN, [](const platform::input::event& ev) {
+            if (main::global().flag("debug.input")) {
+                std::stringstream ss;
+                ss << "button_down(" << ev.point.x << ", " << ev.point.y << ")";
+                main::debug().content.add(ss.str());
+            }
+            client->connect();
+            //audio->start(main::global().sounds["glados"]);
+            main::global().progress().visible = true;
+            main::global().transition("title", "game");
+        }, 1);
+
+        return true;
+    }
+
+    void start() {
+        enter.visible = true;
+        enter.enabled = true;
+
+        main::global().progress().visible = false;
+
+        gui->position();
+
+    }
+    void run() {
+        spatial::matrix frame;
+        frame.identity();
+        frame.translate(20, graphics->height() - 20 - 256, 0);
+
+        graphics->draw(icon,main::global().shaders["shader_basic"], frame, spatial::matrix(), main::global().ortho);
+    }
+    void stop() {
+        enter.visible = false;
+        enter.enabled = false;
+
+        main::global().progress().visible = false;
+    }
+
+    type::audio sound;
+    type::object icon;
+    platform::interface::button enter;
+};
+
+class game : public main::scene {
+public:
+    type::object xAxis;
+    type::object yAxis;
+    type::object zAxis;
+
+    type::object skybox;
+    type::object poly;
+    type::object ground;
+
+    bool load() {
+        if (main::global().progress().value.get() == 0) {
+            main::global().progress().value.set(1);
+            std::thread([this]{
+                xAxis = spatial::ray(spatial::vector(0.0, 0.0, 0.0), spatial::vector(2.0, 0.0, 0.0));
+                xAxis.texture.map.create(1, 1, 255, 0, 0, 255);
+                xAxis.xy_projection(0, 0, 1, 1);
+
+                main::global().progress().value.set(10);
+
+                yAxis = spatial::ray(spatial::vector(0.0, 0.0, 0.0), spatial::vector(0.0, 2.0, 0.0));
+                yAxis.texture.map.create(1, 1, 0, 255, 0, 255);
+                yAxis.xy_projection(0, 0, 1, 1);
+
+                main::global().progress().value.set(20);
+
+                zAxis = spatial::ray(spatial::vector(0.0, 0.0, 0.0), spatial::vector(0.0, 0.0, 2.0));
+                zAxis.texture.map.create(1, 1, 0, 0, 255, 255);
+                zAxis.xy_projection(0, 0, 1, 1);
+
+                main::global().progress().value.set(30);
+                assets->retrieve("objects/skybox.obj") >> format::parser::obj >> skybox;
+
+                main::global().progress().value.set(40);
+                assets->retrieve("objects/untitled.obj") >> format::parser::obj >> poly;
+
+                main::global().progress().value.set(50);
+                assets->retrieve("objects/ground/ground.obj") >> format::parser::obj >> ground;
+
+                // Just for fun
+                utilities::sleep(1000);
+                main::global().progress().value.set(50);
+                utilities::sleep(1000);
+                main::global().progress().value.set(60);
+                utilities::sleep(1000);
+                main::global().progress().value.set(70);
+                utilities::sleep(1000);
+                main::global().progress().value.set(80);
+                utilities::sleep(1000);
+                main::global().progress().value.set(90);
+                utilities::sleep(1000);
+                main::global().progress().value.set(100);
+             }).detach();
+        }
+        if (main::global().progress().value.get() < 100) {
+            return false;
+        }
+
+        graphics->compile(xAxis);
+        graphics->compile(yAxis);
+        graphics->compile(zAxis);
+        graphics->compile(skybox);
+        graphics->compile(poly);
+        graphics->compile(ground);
+
+        /*
+        /// <summary>
+        /// Just some random objects to play around with
+        /// </summary>
+        ray = spatial::ray(spatial::vector(0.0, 0.0, -0.2), spatial::vector(0.0, 0.0, 0.2));
+        ray.texture.map.create(1, 1, 255, 255, 0, 255);
+        ray.xy_projection(0, 0, 1, 1);
+        graphics->compile(ray);
+
+        trail = spatial::ray(spatial::vector(0.0, 0.0, -0.2), spatial::vector(0.0, 0.0, 0.2));
+        trail.texture.map.create(1, 1, 255, 0, 0, 255);
+        trail.xy_projection(0, 0, 1, 1);
+        graphics->compile(trail);
+
+        sphere = spatial::sphere(30, 30);
+        sphere.texture.map.create(1, 1, 255, 255, 255, 255);
+        sphere.xy_projection(0, 0, 1, 1);
+        graphics->compile(sphere);
+
+        visualized_bounds = bounds;
+        visualized_bounds.texture.map.create(1, 1, 255, 255, 255, 255);
+        visualized_bounds.xy_projection(0, 0, 1, 1);
+        graphics->compile(visualized_bounds);
+        */
+
+        return true;
     }
 
     void run() {
+        auto& shader = main::global().shaders["shader_basic"];
+        auto& perspective = main::global().perspective;
 
+        spatial::matrix view = spatial::matrix().lookat(camera.eye, camera.center, camera.up);
+        spatial::matrix box = spatial::matrix().translate(5, 10, 0);
+
+        graphics->draw(skybox, shader, spatial::matrix(), view, perspective);
+
+        graphics->draw(ground, shader, spatial::matrix(), view, perspective, platform::graphics::render::NORMALS);
+
+        graphics->draw(poly, shader, box, view, perspective, platform::graphics::render::NORMALS);
+
+        graphics->draw(xAxis, shader, spatial::matrix(), view, perspective);
+        graphics->draw(yAxis, shader, spatial::matrix(), view, perspective);
+        graphics->draw(zAxis, shader, spatial::matrix(), view, perspective);
+
+        /*
+        if (object_moving[0]) {
+            pos.spin(1.0f);
+        }
+        if (object_moving[1]) {
+            pos.move(0.1f);
+        }
+        if (object_moving[2]) {
+            pos.spin(-1.0f);
+        }
+        if (object_moving[3]) {
+            pos.move(-0.1f);
+        }
+        if (object_moving[4]) {
+            pos.pitch(-1.0f);
+        }
+        if (object_moving[5]) {
+            pos.pitch(1.0f);
+        }
+
+        if (camera_moving[0]) {
+            camera.move(1);
+        }
+        if (camera_moving[1]) {
+            camera.move(-1);
+        }
+        if (camera_moving[2]) {
+            camera.strafe(1);
+        }
+        if (camera_moving[3]) {
+            camera.strafe(-1);
+        }
+
+        spatial::matrix model = spatial::matrix().translate(pos.eye, pos.center, pos.up);
+        {
+            // This entire scope will render to the poly texture, every frame... which is unnecessary, just testing for performance, etc.
+            auto scoped = graphics->target(poly);
+
+            // just moving it a bit to move away from the edges
+            spatial::matrix rendertotex;
+            rendertotex.identity();
+            rendertotex.translate(20, 20, 0);
+
+            // orthographic view matrix relative to the target
+            spatial::matrix ortho;
+            ortho.ortho(0, poly.texture.map.properties.width, 0, poly.texture.map.properties.height);
+
+            graphics->draw(icon, shader, rendertotex, spatial::matrix(), ortho);
+        }
+
+        for (auto &projectile : projectiles) {
+            spatial::matrix position = spatial::matrix().translate(projectile.eye, projectile.center, projectile.up);
+            trail = position.interpolate(spatial::ray(spatial::vector(0.0, 0.0, -0.2), spatial::vector(0.0, 0.0, 0.2)));
+            graphics->recompile(trail);
+
+            graphics->draw(trail, shader, spatial::matrix(), view, perspective);
+
+            projectile.move(0.4);
+
+            spatial::matrix model = spatial::matrix().translate(projectile.eye, projectile.center, projectile.up);
+            graphics->draw(ray, shader, model, view, perspective);
+        }
+        */
     }
 
     float prior_x;
@@ -462,18 +815,18 @@ public:
     void freelook_start(const platform::input::event& ev) {
         prior_x = ev.point.x;
         prior_y = ev.point.y;
-        if (scenes::global().flag("debug.input")) {
+        if (main::global().flag("debug.input")) {
             std::stringstream ss;
             ss << "freelook_start(" << ev.point.x << ", " << ev.point.y << ")";
-            text_event(ss.str());
+            main::debug().content.add(ss.str());
         }
     }
 
     void freelook_move(const platform::input::event& ev) {
-        if (scenes::global().flag("debug.input")) {
+        if (main::global().flag("debug.input")) {
             std::stringstream ss;
             ss << "freelook_move(" << ev.identifier << ")(" << ev.point.x << ", " << ev.point.y << ")";
-            text_event(ss.str());
+            main::debug().content.add(ss.str());
         }
         camera.pitch(ev.point.y - prior_y);
         camera.spin(prior_x - ev.point.x);
@@ -482,19 +835,19 @@ public:
     }
 
     void freelook_zoom(const platform::input::event& ev) {
-        if (scenes::global().flag("debug.input")) {
+        if (main::global().flag("debug.input")) {
             std::stringstream ss;
             ss << "on_zoom(" << ev.travel << ")(" << ev.point.x << ", " << ev.point.y << ")";
-            text_event(ss.str());
+            main::debug().content.add(ss.str());
         }
         camera.move(ev.travel > 0 ? 0.1 : -0.1);
     }
 
     void mouse_move(const platform::input::event& ev) {
-        if (scenes::global().flag("debug.input")) {
+        if (main::global().flag("debug.input")) {
             std::stringstream ss;
             ss << "mouse_move(" << ev.point.x << ", " << ev.point.y << ")";
-            text_event(ss.str());
+            main::debug().content.add(ss.str());
         }
         mouse = ev.point;
         prior_x = ev.point.x;
@@ -504,13 +857,17 @@ public:
     bool camera_moving[4] = { false, false, false, false };
     bool object_moving[6] = { false, false, false, false, false, false };
     void keyboard_input(const platform::input::event& ev) {
-        if (scenes::global().flag("debug.input")) {
+        if (main::global().flag("debug.input")) {
             std::stringstream ss;
             ss << "key(" << ev.identifier << ")";
-            text_event(ss.str());
+            main::debug().content.add(ss.str());
         }
+
         if (ev.gesture == platform::input::DOWN && gui->active() == false) {
             switch (ev.identifier) {
+            case(27):
+                main::global().transition("game", "title");
+                break;
             case(37):
                 object_moving[0] = true;
                 break;
@@ -547,7 +904,6 @@ public:
         if (ev.gesture == platform::input::UP && gui->active() == false) {
             switch (ev.identifier) {
             case(32):
-                progress_percentage();
                 //projectiles.push_back(pos);
                 //if (projectiles.size() > 10) {
                 //    projectiles.pop_front();
@@ -593,7 +949,7 @@ public:
     }
 
     void gamepad_input(const platform::input::event& ev) {
-        if (scenes::global().flag("debug.input")) {
+        if (main::global().flag("debug.input")) {
             std::stringstream ss;
             if (ev.gesture == platform::input::DOWN || ev.gesture == platform::input::HELD) {
                 ss << "button_down(" << ev.identifier << ")";
@@ -601,266 +957,29 @@ public:
             if (ev.gesture == platform::input::UP) {
                 ss << "button_up(" << ev.identifier << ")";
             }
-            text_event(ss.str());
+            main::debug().content.add(ss.str());
         }
     }
 };
 
-class debug : public scenes::scene {
-public:
-    void load() {
-
-    }
-
-    void run() {
-
-    }
-
-    void stop() {
-
-    }
-};
-
-
-inline type::audio sound;
-
-inline type::object icon;
-inline type::object poly;
-inline type::object skybox;
-inline type::object wiggle;
-
-inline type::object xAxis;
-inline type::object yAxis;
-inline type::object zAxis;
-
-inline type::object ray;
-inline type::object trail;
-
-inline type::object sphere;
-inline type::object visualized_bounds;
-inline type::object ground;
-
-inline spatial::quad bounds;
-
-inline type::program shader;
-
-inline spatial::matrix ortho;
-inline spatial::matrix perspective;
-
-inline spatial::position pos;
-inline spatial::position camera;
-
-inline std::list<spatial::position> projectiles;
-
-inline spatial::vector mouse;
-
-bool init = false;
-
-time_t timestamp = time(NULL);
-int frames = 0;
-float fps = 0.0f;
-
-glm::mat4 Projection;
-glm::mat4 View;
-glm::mat4 Model;
-
-void print(int x, int y, spatial::vector vector) {
-    for (int row = 0; row < 4; row++) {
-        std::stringstream ss;
-        ss << "[ ";
-        for (int col = 0; col < 4; col++) {
-            ss << vector.l[col] << (col < 3 ? ", " : " ");
-        }
-        ss << "]";
-        gui->print(x, y, ss.str());
-    }
-}
-
-void print(int x, int y, spatial::matrix matrix) {
-    for (int row = 0; row < 4; row++) {
-        std::stringstream ss;
-        ss << (row == 0 ? "[ [ " : "  [ ");
-        for (int col = 0; col < 4; col++) {
-            ss << matrix[col][row] << (col < 3 ? ", " : " ");
-        }
-        ss << (row == 3 ? "] ]" : "]");
-        gui->print(x, y + (gui->font.leading() * row), ss.str());
-    }
-}
-
-inline float prior_x;
-inline float prior_y;
-
-void freelook_start(const platform::input::event& ev) {
-    prior_x = ev.point.x;
-    prior_y = ev.point.y;
-    if (scenes::global().flag("debug.input")) {
-        std::stringstream ss;
-        ss << "freelook_start(" << ev.point.x << ", " << ev.point.y << ")";
-        text_event(ss.str());
-    }
-}
-
-void freelook_move(const platform::input::event& ev) {
-    if (scenes::global().flag("debug.input")) {
-        std::stringstream ss;
-        ss << "freelook_move(" << ev.identifier << ")(" << ev.point.x << ", " << ev.point.y << ")";
-        text_event(ss.str());
-    }
-    camera.pitch(ev.point.y - prior_y);
-    camera.spin(prior_x - ev.point.x);
-    prior_x = ev.point.x;
-    prior_y = ev.point.y;
-}
-
-void freelook_zoom(const platform::input::event& ev) {
-    if (scenes::global().flag("debug.input")) {
-        std::stringstream ss;
-        ss << "on_zoom(" << ev.travel << ")(" << ev.point.x << ", " << ev.point.y << ")";
-        text_event(ss.str());
-    }
-    camera.move(ev.travel > 0 ? 0.1 : -0.1);
-}
-
-void mouse_move(const platform::input::event& ev) {
-    if (scenes::global().flag("debug.input")) {
-        std::stringstream ss;
-        ss << "mouse_move(" << ev.point.x << ", " << ev.point.y << ")";
-        text_event(ss.str());
-    }
-    mouse = ev.point;
-    prior_x = ev.point.x;
-    prior_y = ev.point.y;
-}
-
-bool camera_moving[4] = { false, false, false, false };
-bool object_moving[6] = { false, false, false, false, false, false };
-void keyboard_input(const platform::input::event& ev) {
-    if (scenes::global().flag("debug.input")) {
-        std::stringstream ss;
-        ss << "key(" << ev.identifier << ")";
-        text_event(ss.str());
-    }
-    if (ev.gesture == platform::input::DOWN && gui->active() == false) {
-        switch (ev.identifier) {
-        case(37):
-            object_moving[0] = true;
-            break;
-        case(38):
-            object_moving[1] = true;
-            break;
-        case(39):
-            object_moving[2] = true;
-            break;
-        case(40):
-            object_moving[3] = true;
-            break;
-        case(188):
-            object_moving[4] = true;
-            break;
-        case(190):
-            object_moving[5] = true;
-            break;
-        case(83):
-            camera_moving[0] = true;
-            break;
-        case(87):
-            camera_moving[1] = true;
-            break;
-        case(65):
-            camera_moving[2] = true;
-            break;
-        case(68):
-            camera_moving[3] = true;
-            break;
-        }
-    }
-
-    if (ev.gesture == platform::input::UP && gui->active() == false) {
-        switch (ev.identifier) {
-        case(32):
-            progress_percentage();
-            projectiles.push_back(pos);
-            if (projectiles.size() > 10) {
-                projectiles.pop_front();
-            }
-            break;
-        }
-    }
-
-    if (ev.gesture == platform::input::UP) {
-        switch (ev.identifier) {
-        case(37):
-            object_moving[0] = false;
-            break;
-        case(38):
-            object_moving[1] = false;
-            break;
-        case(39):
-            object_moving[2] = false;
-            break;
-        case(40):
-            object_moving[3] = false;
-            break;
-        case(188):
-            object_moving[4] = false;
-            break;
-        case(190):
-            object_moving[5] = false;
-            break;
-        case(83):
-            camera_moving[0] = false;
-            break;
-        case(87):
-            camera_moving[1] = false;
-            break;
-        case(65):
-            camera_moving[2] = false;
-            break;
-        case(68):
-            camera_moving[3] = false;
-            break;
-        }
-    }
-}
-
-void gamepad_input(const platform::input::event& ev) {
-    if (scenes::global().flag("debug.input")) {
-        std::stringstream ss;
-        if (ev.gesture == platform::input::DOWN || ev.gesture == platform::input::HELD) {
-            ss << "button_down(" << ev.identifier << ")";
-        }
-        if (ev.gesture == platform::input::UP) {
-            ss << "button_up(" << ev.identifier << ")";
-        }
-        text_event(ss.str());
-    }
-}
+//=====================================================================================================
 
 void prototype::on_startup() {
     graphics->init();
     audio->init();
 
-    bounds = spatial::quad(1, 1);
+    /*
+    server->handler([](platform::network::client* caller) {
+        std::string input(caller->input.begin(), caller->input.end());
+        if (main::global().flag("debug.input")) {
+            std::stringstream ss;
+            ss << "client_message(" << input << ")";
+            main::debug().content.add(ss.str());
+        }
+        audio->start(sound);
+    });
+    */
 
-    actions::instance().call("load shader shader_basic");
-    actions::instance().call("load audio glados");
-
-    //assets->retrieve("objects/wiggle.fbx") >> format::parser::fbx >> wiggle;
-    //graphics->compile(wiggle.children[0]);
-
-    assets->retrieve("raw/glados.wav") >> format::parser::wav >> sound;
-
-    /// Load up the shaders
-    assets->retrieve("shaders/shader_basic.vert") >> format::parser::vert >> shader.vertex;
-    assets->retrieve("shaders/shader_basic.frag") >> format::parser::frag >> shader.fragment;
-    graphics->compile(shader);
-
-    //const char* vertex = shader.vertex.text.c_str();
-    //const char* fragment = shader.fragment.text.c_str();
-
-    /// Load up the gui dependencies
-    // TODO move these into the interface implementation
     assets->retrieve("shaders/shader_basic.vert") >> format::parser::vert >> gui->shader.vertex;
     assets->retrieve("shaders/shader_basic.frag") >> format::parser::frag >> gui->shader.fragment;
     graphics->compile(gui->shader);
@@ -868,310 +987,53 @@ void prototype::on_startup() {
     assets->retrieve("fonts/consolas-22.fnt") >> format::parser::fnt >> gui->font;
     graphics->compile(gui->font);
 
-    /// Get the icon ready for drawing
-    icon = spatial::quad(256, 256);
-    assets->retrieve("drawable/marvin.png") >> format::parser::png >> icon.texture.map;
-    icon.xy_projection(0, 0, 256, 256);
-    graphics->compile(icon);
-
-    /// Setup the axis
-    xAxis = spatial::ray(spatial::vector(0.0, 0.0, 0.0), spatial::vector(2.0, 0.0, 0.0));
-    xAxis.texture.map.create(1, 1, 255, 0, 0, 255);
-    xAxis.xy_projection(0, 0, 1, 1);
-    graphics->compile(xAxis);
-
-    yAxis = spatial::ray(spatial::vector(0.0, 0.0, 0.0), spatial::vector(0.0, 2.0, 0.0));
-    yAxis.texture.map.create(1, 1, 0, 255, 0, 255);
-    yAxis.xy_projection(0, 0, 1, 1);
-    graphics->compile(yAxis);
-
-    zAxis = spatial::ray(spatial::vector(0.0, 0.0, 0.0), spatial::vector(0.0, 0.0, 2.0));
-    zAxis.texture.map.create(1, 1, 0, 0, 255, 255);
-    zAxis.xy_projection(0, 0, 1, 1);
-    graphics->compile(zAxis);
-
-    /// <summary>
-    /// Just some random objects to play around with
-    /// </summary>
-    ray = spatial::ray(spatial::vector(0.0, 0.0, -0.2), spatial::vector(0.0, 0.0, 0.2));
-    ray.texture.map.create(1, 1, 255, 255, 0, 255);
-    ray.xy_projection(0, 0, 1, 1);
-    graphics->compile(ray);
-
-    trail = spatial::ray(spatial::vector(0.0, 0.0, -0.2), spatial::vector(0.0, 0.0, 0.2));
-    trail.texture.map.create(1, 1, 255, 0, 0, 255);
-    trail.xy_projection(0, 0, 1, 1);
-    graphics->compile(trail);
-
-    sphere = spatial::sphere(30, 30);
-    sphere.texture.map.create(1, 1, 255, 255, 255, 255);
-    sphere.xy_projection(0, 0, 1, 1);
-    graphics->compile(sphere);
-
-    visualized_bounds = bounds;
-    visualized_bounds.texture.map.create(1, 1, 255, 255, 255, 255);
-    visualized_bounds.xy_projection(0, 0, 1, 1);
-    graphics->compile(visualized_bounds);
-
-    // TODO: find the bug that causes faults loading the same resources twice on android
-    //assets->retrieve("fonts/consolas-22.fnt") >> format::parser::fnt >> font;
-    //graphics->compile(font);
-
-    assets->retrieve("objects/skybox.obj") >> format::parser::obj >> skybox;
-    graphics->compile(skybox.children[0]);
-
-    assets->retrieve("objects/untitled.obj") >> format::parser::obj >> poly;
-    graphics->compile(poly.children[0]);
-
-    assets->retrieve("objects/ground/ground.obj") >> format::parser::obj >> ground;
-    graphics->compile(ground.children[0]);
-
-    audio->compile(sound);
-
     // Hook up the input handlers
-    input->handler(platform::input::POINTER, platform::input::DOWN, &freelook_start, 2);
-    input->handler(platform::input::POINTER, platform::input::DRAG, &freelook_move, 0);
+    input->handler(platform::input::POINTER, platform::input::DOWN, [](const platform::input::event& ev) { main::global().freelook_start(ev); }, 2);
+    input->handler(platform::input::POINTER, platform::input::DRAG, [](const platform::input::event& ev) { main::global().freelook_move(ev); }, 0);
 
-    input->handler(platform::input::POINTER, platform::input::WHEEL, &freelook_zoom, 0);
-    input->handler(platform::input::POINTER, platform::input::PINCH, &freelook_zoom, 0);
+    input->handler(platform::input::POINTER, platform::input::WHEEL, [](const platform::input::event& ev) { main::global().freelook_zoom(ev); }, 0);
+    input->handler(platform::input::POINTER, platform::input::PINCH, [](const platform::input::event& ev) { main::global().freelook_zoom(ev); }, 0);
 
-    input->handler(platform::input::POINTER, platform::input::MOVE, &mouse_move, 0);
+    input->handler(platform::input::POINTER, platform::input::MOVE, [](const platform::input::event& ev) { main::global().mouse_move(ev); }, 0);
 
-    input->handler(platform::input::KEY, platform::input::DOWN, &keyboard_input, 0);
-    input->handler(platform::input::KEY, platform::input::UP, &keyboard_input, 0);
+    input->handler(platform::input::KEY, platform::input::DOWN, [](const platform::input::event& ev) { main::global().keyboard_input(ev); }, 0);
+    input->handler(platform::input::KEY, platform::input::UP, [](const platform::input::event& ev) { main::global().keyboard_input(ev); }, 0);
 
-    input->handler(platform::input::GAMEPAD, platform::input::DOWN, &gamepad_input, 0);
-    input->handler(platform::input::GAMEPAD, platform::input::HELD, &gamepad_input, 0);
-    input->handler(platform::input::GAMEPAD, platform::input::UP, &gamepad_input, 0);
+    input->handler(platform::input::GAMEPAD, platform::input::DOWN, [](const platform::input::event& ev) { main::global().gamepad_input(ev); }, 0);
+    input->handler(platform::input::GAMEPAD, platform::input::HELD, [](const platform::input::event& ev) { main::global().gamepad_input(ev); }, 0);
+    input->handler(platform::input::GAMEPAD, platform::input::UP, [](const platform::input::event& ev) { main::global().gamepad_input(ev); }, 0);
 
-    // Create some gui elements
-    auto btn = gui->cast<platform::interface::button>(gui->create(platform::interface::widget::spec::button, 256, 256, 0, 0, 0, 80).position(20, 20).handler(platform::input::POINTER, platform::input::MOVE, [](const platform::input::event& ev) {
-        if (scenes::global().flag("debug.input")) {
-            std::stringstream ss;
-            ss << "hover_over(" << ev.point.x << ", " << ev.point.y << ")";
-            text_event(ss.str());
-        }
-        gui->print(210, 210, "HelloWorld"); // TODO: this won't draw... likely before or after the frame buffer swap, don't intend to ever do this anyway
-    }, 1)).handler(platform::input::POINTER, platform::input::DOWN, [](const platform::input::event& ev) {
-        if (scenes::global().flag("debug.input")) {
-            std::stringstream ss;
-            ss << "button_down(" << ev.point.x << ", " << ev.point.y << ")";
-            text_event(ss.str());
-        }
-        //audio->start(sound);
-        client->connect();
-        actions::instance().call("show assets objects");
-        actions::instance().call("show assets objects/ground");
-        }, 1);
+    main::global().add("debug", new console());
+    main::global().add("splash", new splash());
+    main::global().add("title", new title());
+    main::global().add("game", new game());
 
-    events = gui->create(platform::interface::widget::spec::textbox, 512, 720, 0, 0, 0, 80).position(graphics->width() - 512 - 20, 20).id;
-    gui->get<platform::interface::textbox>(events).alignment = platform::interface::widget::positioning::bottom;
+    main::global().activate("splash");
 
-    textbox = gui->create(platform::interface::widget::spec::textbox, 512, 20, 0, 0, 0, 80).position(graphics->width() - 512 - 20, 750).id;
-    gui->get<platform::interface::textbox>(textbox).selectable = true;
-    gui->get<platform::interface::textbox>(textbox).handler(platform::input::KEY, platform::input::DOWN, [](const platform::input::event& ev) {
-        //std::stringstream ss;
-        std::vector<std::string> content;
-        switch (ev.identifier) {
-        case(8): // Backspace to remove a character
-            gui->get<platform::interface::textbox>(textbox).content.remove(1);
-            break;
-        case(13): // Enter to submit
-            content = gui->get<platform::interface::textbox>(textbox).content.get();
-            if (content.size()) {
-                //ss << "text_submit(" << content[0] << ")";
-                //text_event(ss.str());
-                gui->get<platform::interface::textbox>(textbox).content.remove(-1);
-                actions::instance().call(content[0]);
-            }
-            break;
-        default: // Every other printable gets added to the contents
-            gui->get<platform::interface::textbox>(textbox).content.append(input->printable(ev.identifier));
-        };
-    });
+    gui->position();
 
-    progress = gui->create(platform::interface::widget::spec::progress, 512, 20, 0, 0, 0, 80).position(graphics->width() - 512 - 20, 780).id;
-
-    server->handler([](platform::network::client* caller) {
-        std::string input(caller->input.begin(), caller->input.end());
-        if (scenes::global().flag("debug.input")) {
-            std::stringstream ss;
-            ss << "client_message(" << input << ")";
-            text_event(ss.str());
-        }
-        audio->start(sound);
-    });
-
-    server->start();
-
-    init = true;
+    //server->start();
 }
 
 void prototype::on_resize() {
     graphics->geometry(width, height);
 
-    ortho.ortho(0, width, 0, height);
-    perspective.perspective(90 * (float)M_PI / 180.0f, (float)width / (float)height, -1.0f, 1.0f);
+    main::global().geometry(width, height);
 
-    Projection = glm::perspective(glm::pi<float>() * 0.25f, (float)width / (float)height, 1.0f, 100.0f);
+    gui->projection = main::global().ortho;
 
-    gui->projection = ortho;
-
-    if (init) { // only adjust these after the initialization has occurred
-        gui->get<platform::interface::textbox>(events).position(width - 512 - 20, 20);
-        gui->get<platform::interface::textbox>(textbox).position(width - 512 - 20, 750);
-        gui->get<platform::interface::progress>(progress).position(width - 512 - 20, 780);
-    }
+    gui->position();
 }
 
 void prototype::on_draw() {
     graphics->clear();
 
-    spatial::ray physical(pos.eye, spatial::vector(pos.eye.x, pos.eye.y - 1.0f, pos.eye.z));
-    spatial::vector intersection = physical.intersection(ground.vertices);
-
-    if (object_moving[0]) {
-        pos.spin(1.0f);
-    }
-    if (object_moving[1]) {
-        pos.move(0.1f);
-    }
-    if (object_moving[2]) {
-        pos.spin(-1.0f);
-    }
-    if (object_moving[3]) {
-        pos.move(-0.1f);
-    }
-    if (object_moving[4]) {
-        pos.pitch(-1.0f);
-    }
-    if (object_moving[5]) {
-        pos.pitch(1.0f);
-    }
-
-    if (camera_moving[0]) {
-        camera.move(1);
-    }
-    if (camera_moving[1]) {
-        camera.move(-1);
-    }
-    if (camera_moving[2]) {
-        camera.strafe(1);
-    }
-    if (camera_moving[3]) {
-        camera.strafe(-1);
-    }
-
-    spatial::matrix model = spatial::matrix().translate(pos.eye, pos.center, pos.up);
-    spatial::matrix view = spatial::matrix().lookat(camera.eye, camera.center, camera.up);
-    spatial::matrix box = spatial::matrix().translate(5, 10, 0);
-
-    for (auto &projectile : projectiles) {
-        spatial::matrix position = spatial::matrix().translate(projectile.eye, projectile.center, projectile.up);
-        trail = position.interpolate(spatial::ray(spatial::vector(0.0, 0.0, -0.2), spatial::vector(0.0, 0.0, 0.2)));
-        graphics->recompile(trail);
-        
-        graphics->draw(trail, shader, spatial::matrix(), view, perspective);
-
-        projectile.move(0.4);
-
-        spatial::matrix model = spatial::matrix().translate(projectile.eye, projectile.center, projectile.up);
-        graphics->draw(ray, shader, model, view, perspective);
-    }
-
-    {
-        visualized_bounds = spatial::matrix().translate(pos.eye, pos.center, pos.up).interpolate(bounds);
-        graphics->recompile(visualized_bounds);
-        graphics->draw(visualized_bounds, shader, spatial::matrix(), view, perspective, platform::graphics::render::WIREFRAME);
-    }
-
-    graphics->draw(skybox, shader, spatial::matrix(), view, perspective);
-
-    graphics->draw(ground, shader, spatial::matrix(), view, perspective, platform::graphics::render::NORMALS);
-
-    graphics->draw(poly, shader, box, view, perspective, platform::graphics::render::NORMALS);
-
-    graphics->draw(xAxis, shader, spatial::matrix(), view, perspective);
-    graphics->draw(yAxis, shader, spatial::matrix(), view, perspective);
-    graphics->draw(zAxis, shader, spatial::matrix(), view, perspective);
-
-    graphics->draw(ray, shader, model, view, perspective);
-
-    graphics->draw(sphere, shader, spatial::matrix(), view, perspective, platform::graphics::render::WIREFRAME);
-
-    //print(100, 400, "ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz");
-    //print(100, 450, "0123456789 !@#$%^&*()_-=+<>,./?{[]}\|");
-
-    gui->print(30, 330, "MODEL");
-    print(30, 330 + gui->font.leading(), model);
-
-    gui->print(30, 460, "VIEW");
-    print(30, 460 + gui->font.leading(), view);
-
-    gui->print(30, 590, "MOUSE");
-    print(30, 590 + gui->font.leading(), mouse);
-
-    //textbox(600, 10, box_events, text_events);
-    //gui->get<platform::interface::textbox>(textbox).content.add(utilities::type_cast<std::string>(time(NULL)));
-
-    std::string value = utilities::type_cast<std::string>(fps);
-    gui->print(30, 300, std::string("FPS: ") + value);
-
-    int pos_report = 630;
-    int value_offset = 160;
-    int entry = 1;
-
-    gui->print(30, pos_report + gui->font.leading() * entry,   "POS EYE:");
-    print(value_offset, pos_report + gui->font.leading() * entry++, pos.eye);
-    gui->print(30, pos_report + (gui->font.leading() * entry), "POS CENTER:");
-    print(value_offset, pos_report + (gui->font.leading() * entry++), pos.center);
-    gui->print(30, pos_report + (gui->font.leading() * entry), "POS UP:");
-    print(value_offset, pos_report + (gui->font.leading() * entry++), pos.up);
-    gui->print(30, pos_report + (gui->font.leading() * entry), "PHY CENTER:");
-    print(value_offset, pos_report + (gui->font.leading() * entry++), physical.vertices[0]);
-    gui->print(30, pos_report + (gui->font.leading() * entry), "PHY EYE:");
-    print(value_offset, pos_report + (gui->font.leading() * entry++), physical.vertices[1]);
-    gui->print(30, pos_report + (gui->font.leading() * entry), "INTERSECTION:");
-    print(value_offset, pos_report + (gui->font.leading() * entry++), intersection);
-    gui->print(30, pos_report + (gui->font.leading() * entry), "BOUNDS MAX:");
-    print(value_offset, pos_report + (gui->font.leading() * entry++), ground.max());
-    gui->print(30, pos_report + (gui->font.leading() * entry), "BOUNDS MIN:");
-    print(value_offset, pos_report + (gui->font.leading() * entry++), ground.min());
-
-    spatial::matrix frame;
-    frame.identity();
-    frame.translate(20, graphics->height() - 20 - 256, 0);
-
-    graphics->draw(icon, shader, frame, spatial::matrix(), ortho);
-
-    {
-        // This entire scope will render to the poly texture, every frame... which is unnecessary, just testing for performance, etc.
-        auto scoped = graphics->target(poly);
-
-        // just moving it a bit to move away from the edges
-        spatial::matrix rendertotex;
-        rendertotex.identity();
-        rendertotex.translate(20, 20, 0);
-        
-        // orthographic view matrix relative to the target
-        spatial::matrix ortho;
-        ortho.ortho(0, poly.texture.map.properties.width, 0, poly.texture.map.properties.height);
-
-        graphics->draw(icon, shader, rendertotex, spatial::matrix(), ortho);
-    }
-
-    frames += 1;
-    time_t now = time(NULL);
-    if (timestamp != now) {
-        timestamp = now;
-        fps = frames;
-        frames = 0;
-    }
+    main::global().run();
 
     gui->draw();
     graphics->flush();
 }
 
 void prototype::on_interval() {
-    text_event("on_proc");
+    main::debug().content.add("on_proc");
 }

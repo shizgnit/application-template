@@ -36,16 +36,17 @@ namespace implementation {
             void raise(const input::event& ev, int x, int y);
             void emit();
 
+            void position();
             void draw();
 
-            widget& create(widget::spec t, int w, int h, const std::string& texture);
             widget& create(widget::spec t, int w, int h, int r, int g, int b, int a);
+            widget& create(widget* instance, int w, int h, int r, int g, int b, int a);
 
             void print(int x, int y, const std::string& text);
 
         protected:
             void draw(widget& instance);
-            void reposition(widget& instance);
+            void position(widget& instance);
         };
 
     }

@@ -33,7 +33,7 @@ namespace platform {
             std::vector<spatial::vector> points;
         };
 
-        typedef void(*callback)(const event &);
+        typedef std::function<void(const event &)> callback_t;
 
         typedef struct pointer {
             time_t pressed;
@@ -60,7 +60,7 @@ namespace platform {
             const char* description;
         };
 
-        virtual void handler(type t, action a, callback c, int identifier = 0) {
+        virtual void handler(type t, action a, callback_t c, int identifier = 0) {
             callbacks[t][a][identifier] = c;
         }
 
@@ -83,7 +83,7 @@ namespace platform {
         virtual std::string printable(int vkey) { return ""; }
 
     protected:
-        std::map<type, std::map<action, std::map<int, callback>>> callbacks;
+        std::map<type, std::map<action, std::map<int, callback_t>>> callbacks;
 
         int threshold_time = 1;
         float threshold_travel = 1.0;
