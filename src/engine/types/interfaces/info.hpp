@@ -47,6 +47,10 @@ namespace type {
         bool compiled() {
             return _compiled;
         }
+
+        bool compiled(bool flag) {
+            return _compiled = flag;
+        }
     };
 
 }

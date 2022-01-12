@@ -17,18 +17,31 @@ namespace platform {
         virtual void clear(void) = 0;
         virtual void flush(void) = 0;
 
-        virtual void compile(type::shader& shader) = 0;
-        virtual void compile(type::program& program) = 0;
-        virtual void compile(type::object& object) = 0;
-        virtual void compile(type::font& font) = 0;
+        virtual bool compile(type::shader& shader) = 0;
+        virtual bool compile(type::program& program) = 0;
+        virtual bool compile(type::object& object) = 0;
+        virtual bool compile(type::font& font) = 0;
 
-        virtual void recompile(type::object& object) = 0;
+        virtual bool recompile(type::object& object) = 0;
 
         virtual void draw(type::object& object, type::program& shader, const spatial::matrix& model, const spatial::matrix& view, const spatial::matrix& projection, unsigned int options=0x00) = 0;
         virtual void draw(std::string text, type::font& font, type::program& shader, const spatial::matrix& model, const spatial::matrix& view, const spatial::matrix& projection, unsigned int options = 0x00) = 0;
 
         virtual void ontarget(type::object& object) {}
         virtual void untarget() {}
+
+        virtual int messages() {
+            return errors.size();
+        }
+
+        virtual std::string message() {
+            if (errors.size() == 0) {
+                return "";
+            }
+            std::string status = errors.front();
+            errors.pop_front();
+            return status;
+        }
 
         typedef void (graphics::*callback)();
         utilities::scoped<graphics*, callback> target(type::object& object) {
@@ -67,6 +80,8 @@ namespace platform {
         }
 
     protected:
+        std::list<std::string> errors;
+
         std::vector<float> clip_top = { 10000.0f };
         std::vector<float> clip_bottom = { 10000.0f };
         std::vector<float> clip_left = { 10000.0f };

@@ -128,15 +128,13 @@ namespace utilities {
             else while(count-- && data.size() && data.back().empty() == false) data.back().pop_back();
         }
 
-        std::vector<std::string> &get() {
+        std::vector<std::string> get() {
             std::lock_guard<std::mutex> scoped(lock);
-            //std::vector<std::string> list;
-            contents.clear();
+            std::vector<std::string> contents;
             for (auto &message : data) {
                 contents.push_back(message);
             }
-            //return list;
-            return contents; // TODO: fix this, making a copy is creating a leak for some reason
+            return contents;
         }
 
         void clear() {
@@ -145,9 +143,8 @@ namespace utilities {
         }
 
         int limit;
-    private:
 
-        std::vector<std::string> contents;
+    private:
         std::list<std::string> data;
         std::mutex lock;
     };

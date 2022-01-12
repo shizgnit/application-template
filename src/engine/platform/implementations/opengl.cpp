@@ -121,9 +121,9 @@ void implementation::opengl::graphics::flush(void) {
     frame.clear();
 }
 
-void implementation::opengl::graphics::compile(type::shader& shader) {
+bool implementation::opengl::graphics::compile(type::shader& shader) {
     if (shader.compile() == false) {
-        return;
+        return false;
     }
 
     switch (shader.type()) {
@@ -135,7 +135,7 @@ void implementation::opengl::graphics::compile(type::shader& shader) {
         break;
     }
     if (!shader.context) {
-        return;
+        return false;
     }
 
     GLchar* text = (GLchar*)shader.text.c_str();
@@ -151,25 +151,32 @@ void implementation::opengl::graphics::compile(type::shader& shader) {
         if (length) {
             char* info = (char*)malloc(length);
             glGetShaderInfoLog(shader.context, length, NULL, info);
-
+            errors.push_back(info);
             free(info);
             glDeleteShader(shader.context);
             shader.context = 0;
+            return false;
         }
     }
+
+    return true;
 }
 
-void implementation::opengl::graphics::compile(type::program& program) {
+bool implementation::opengl::graphics::compile(type::program& program) {
     if (program.compile() == false) {
-        return;
+        return false;
     }
 
-    compile(program.vertex);
-    compile(program.fragment);
+    if (compile(program.vertex) == false) {
+        return false;
+    }
+    if (compile(program.fragment) == false) {
+        return false;
+    }
 
     program.context = glCreateProgram();
     if (!program.context) {
-        return;
+        return false;
     }
 
     glAttachShader(program.context, program.vertex.context);
@@ -185,6 +192,7 @@ void implementation::opengl::graphics::compile(type::program& program) {
         if (length) {
             char* info = (char*)malloc(length);
             glGetProgramInfoLog(program.context, length, NULL, info);
+            errors.push_back(info);
             free(info);
         }
         glDeleteProgram(program.context);
@@ -208,14 +216,16 @@ void implementation::opengl::graphics::compile(type::program& program) {
     program.u_AmbientLight = glGetUniformLocation(program.context, "u_AmbientLight");
     program.u_DirectionalLight = glGetUniformLocation(program.context, "u_DirectionalLight");
     program.u_DirectionalLightPosition = glGetUniformLocation(program.context, "u_DirectionalLightPosition");
+
+    return true;
 }
 
-void implementation::opengl::graphics::compile(type::object& object) {
+bool implementation::opengl::graphics::compile(type::object& object) {
     for (auto &child : object.children) {
         compile(child);
     }
     if (object.compile() == false || object.vertices.size() == 0) {
-        return;
+        return false;
     }
 
     glGenBuffers(1, &object.context);
@@ -230,18 +240,21 @@ void implementation::opengl::graphics::compile(type::object& object) {
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, object.texture.map.properties.width, object.texture.map.properties.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, object.texture.map.raster.data());
     glGenerateMipmap(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, 0);
+
+    return true;
 }
 
-void implementation::opengl::graphics::recompile(type::object& object) {
+bool implementation::opengl::graphics::recompile(type::object& object) {
     glBindBuffer(GL_ARRAY_BUFFER, object.context);
     glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(spatial::vertex) * object.vertices.size(), object.vertices.data());
     glBindBuffer(GL_ARRAY_BUFFER, 0);
+    return true;
 }
 
 
-void implementation::opengl::graphics::compile(type::font& font) {
+bool implementation::opengl::graphics::compile(type::font& font) {
     if (font.compile() == false) {
-        return;
+        return false;
     }
 
     for (auto &glyph : font.glyphs) {
@@ -249,6 +262,8 @@ void implementation::opengl::graphics::compile(type::font& font) {
             compile(glyph.quad);
         }
     }
+
+    return true;
 }
 
 void implementation::opengl::graphics::draw(type::object& object, type::program& shader, const spatial::matrix& model, const spatial::matrix& view, const spatial::matrix& projection, unsigned int options) {

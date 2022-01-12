@@ -83,12 +83,12 @@ namespace implementation {
             void clear(void);
             void flush(void);
 
-            void compile(type::shader& shader);
-            void compile(type::program& program);
-            void compile(type::object& object);
-            void compile(type::font& font);
+            bool compile(type::shader& shader);
+            bool compile(type::program& program);
+            bool compile(type::object& object);
+            bool compile(type::font& font);
 
-            void recompile(type::object& object);
+            bool recompile(type::object& object);
 
             void draw(type::object& object, type::program& shader, const spatial::matrix& model, const spatial::matrix& view, const spatial::matrix& projection, unsigned int options=0x00);
             void draw(std::string text, type::font& font, type::program& shader, const spatial::matrix& model, const spatial::matrix& view, const spatial::matrix& projection, unsigned int options = 0x00);

@@ -108,6 +108,7 @@ namespace platform {
             spec specification;
 
             bool selectable = false;
+            bool input = false;
             bool enabled = true;
             bool visible = true;
 

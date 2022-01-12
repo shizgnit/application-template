@@ -2,6 +2,9 @@
 
 /*
 TODO
+history on textbox 
+disable input on focus loss
+
 time based animation and object manipulation
 object automated motion and movement/camera constraints
 input abstraction for user specified keybinds
@@ -42,7 +45,7 @@ public:
 
     type::object *object;
 
-    spatial::position target;
+    std::list<spatial::position> targets;
     spatial::position position;
 };
 
@@ -360,11 +363,11 @@ public:
 
 private:
     std::map<std::string, std::pair<std::string, callback_t>> commands = {
-        { "/get",     { "/get [label]\n/get [entity] [label]", [](parameters_t p)->value_t { return main::global().get(p); } } },
-        { "/set",     { "/set [label] [value]\n/set [entity] [label] [value]", [] (parameters_t p)->value_t { return main::global().set(p); } } },
-        { "/load",    { "/load [type] [name]", [](parameters_t p)->value_t { return main::global().load(p); } } },
-        { "/create",  { "/create [type]", [](parameters_t p)->value_t { return main::global().create(p); } } },
-        { "/show",    { "/show [type]", [](parameters_t p)->value_t { return main::global().show(p); } } },
+        { "/get",     { "/get <label>\n/get <entity> <label>", [](parameters_t p)->value_t { return main::global().get(p); } } },
+        { "/set",     { "/set <label> <value>\n/set <entity> <label> <value>", [] (parameters_t p)->value_t { return main::global().set(p); } } },
+        { "/load",    { "/load <type> <source> [target]", [](parameters_t p)->value_t { return main::global().load(p); } } },
+        { "/create",  { "/create <type>", [](parameters_t p)->value_t { return main::global().create(p); } } },
+        { "/show",    { "/show <type>", [](parameters_t p)->value_t { return main::global().show(p); } } },
         { "/exit",    { "/exit", [](parameters_t p)->value_t { return main::global().exit(p); } } },
     };
     std::map<int, callback_t> keybinds;
@@ -395,37 +398,46 @@ private:
     }
 
     value_t load(parameters_t p) {
-        if (p.size() == 2) {
+        if (p.size() >= 2) {
             auto type = std::get<std::string>(p[0]);
-            auto name = std::get<std::string>(p[1]);
+            auto source = std::get<std::string>(p[1]);
+            auto target = p.size() == 3 ? std::get<std::string>(p[2]) : source;
+
             if (type == "audio") {
-                assets->retrieve("raw/" + name + ".wav") >> format::parser::wav >> sounds[name];
-                audio->compile(sounds[name]);
+                assets->retrieve("raw/" + source + ".wav") >> format::parser::wav >> sounds[target];
+                audio->compile(sounds[target]);
             }
             if (type == "shader") {
-                assets->retrieve("shaders/" + name + ".vert") >> format::parser::vert >> shaders[name].vertex;
-                assets->retrieve("shaders/" + name + ".frag") >> format::parser::frag >> shaders[name].fragment;
-                graphics->compile(shaders[name]);
+                assets->retrieve("shaders/" + source + ".vert") >> format::parser::vert >> shaders[target].vertex;
+                assets->retrieve("shaders/" + source + ".frag") >> format::parser::frag >> shaders[target].fragment;
+                shaders[target].compiled(false);
+                if (graphics->compile(shaders[target]) == false) {
+                    while (graphics->messages()) {
+                        main::debug().content.add(graphics->message()); 
+                    }
+                }
             }
             if (type == "font") {
-                assets->retrieve("fonts/" + name + ".fnt") >> format::parser::fnt >> fonts[name];
-                graphics->compile(fonts[name]);
+                assets->retrieve("fonts/" + source + ".fnt") >> format::parser::fnt >> fonts[target];
+                graphics->compile(fonts[target]);
             }
             if (type == "object") {
-                if (name.substr(name.size() - 4, 4) == ".fbx") {
-                    assets->retrieve("objects/" + name) >> format::parser::fbx >> objects[name];
+                if (source.substr(source.size() - 4, 4) == ".fbx") {
+                    target = source.substr(0, source.size() - 4);
+                    assets->retrieve("objects/" + source) >> format::parser::fbx >> objects[target];
                 }
-                else if (name.substr(name.size() - 4, 4) == ".obj") {
-                    assets->retrieve("objects/" + name) >> format::parser::obj >> objects[name];
+                else if (source.substr(source.size() - 4, 4) == ".obj") {
+                    target = source.substr(0, source.size() - 4);
+                    assets->retrieve("objects/" + source) >> format::parser::obj >> objects[target];
                 }
                 else {
-                    assets->retrieve("objects/" + name + ".obj") >> format::parser::obj >> objects[name];
+                    assets->retrieve("objects/" + source + ".obj") >> format::parser::obj >> objects[target];
                 }
-                graphics->compile(objects[name]);
+                graphics->compile(objects[target]);
             }
             if (type == "entity") {
-                assets->retrieve("objects/" + name + ".obj") >> format::parser::obj >> objects[name];
-                graphics->compile(objects[name]);
+                assets->retrieve("objects/" + source + ".obj") >> format::parser::obj >> objects[target];
+                graphics->compile(objects[target]);
             }
         }
         return 0;
@@ -516,10 +528,12 @@ class console : public main::scene {
 public:
     bool load() {
         gui->create(&main::debug(), 512, 720, 0, 0, 0, 80).position(graphics->width() - 512 - 20, 20);
+        main::debug().selectable = true;
         main::debug().alignment = platform::interface::widget::positioning::bottom;
 
         gui->create(&commandline, 512, 20, 0, 0, 0, 80).position(graphics->width() - 512 - 20, 750);
         commandline.selectable = true;
+        commandline.input = true;
         commandline.handler(platform::input::KEY, platform::input::DOWN, [this](const platform::input::event& ev) {
             std::vector<std::string> content;
             switch (ev.identifier) {
@@ -529,7 +543,7 @@ public:
             case(13): // Enter to submit
                 content = this->commandline.content.get();
                 if (content.size()) {
-                    this->commandline.content.remove(-1);
+                    this->commandline.content.remove();
                     main::global().call(content[0]);
                 }
                 break;
@@ -560,7 +574,7 @@ public:
         if (start == 0) {
             start = time(NULL);
         }
-        if (time(NULL) - start > 10) {
+        if (time(NULL) - start > 1) {
             main::global().transition("splash", "title");
         }
     }
@@ -572,7 +586,8 @@ class title : public main::scene {
 public:
     bool load() {
         main::global().call("/load sound glados");
-        main::global().call("/load shader shader_basic");
+        main::global().call("/load shader shader_basic scene");
+        main::global().call("/load shader shader_basic gui");
         main::global().call("/load font consolas-22");
 
         icon = spatial::quad(256, 256);
@@ -618,7 +633,7 @@ public:
         frame.identity();
         frame.translate(20, graphics->height() - 20 - 256, 0);
 
-        graphics->draw(icon,main::global().shaders["shader_basic"], frame, spatial::matrix(), main::global().ortho);
+        graphics->draw(icon,main::global().shaders["scene"], frame, spatial::matrix(), main::global().ortho);
     }
     void stop() {
         enter.visible = false;
@@ -642,7 +657,10 @@ public:
     type::object poly;
     type::object ground;
 
+    type::object monkey;
+
     bool load() {
+        // TODO: don't use the progress bar to determine thread completion
         if (main::global().progress().value.get() == 0) {
             main::global().progress().value.set(1);
             std::thread([this]{
@@ -671,11 +689,10 @@ public:
                 main::global().progress().value.set(50);
                 assets->retrieve("objects/ground/ground.obj") >> format::parser::obj >> ground;
 
-                // Just for fun
-                utilities::sleep(1000);
-                main::global().progress().value.set(50);
-                utilities::sleep(1000);
                 main::global().progress().value.set(60);
+                assets->retrieve("objects/monkey.obj") >> format::parser::obj >> monkey;
+
+                // Just to simulate when more resources are required
                 utilities::sleep(1000);
                 main::global().progress().value.set(70);
                 utilities::sleep(1000);
@@ -696,6 +713,7 @@ public:
         graphics->compile(skybox);
         graphics->compile(poly);
         graphics->compile(ground);
+        graphics->compile(monkey);
 
         /*
         /// <summary>
@@ -726,7 +744,7 @@ public:
     }
 
     void run() {
-        auto& shader = main::global().shaders["shader_basic"];
+        auto& shader = main::global().shaders["scene"];
         auto& perspective = main::global().perspective;
 
         spatial::matrix view = spatial::matrix().lookat(camera.eye, camera.center, camera.up);
@@ -741,6 +759,8 @@ public:
         graphics->draw(xAxis, shader, spatial::matrix(), view, perspective);
         graphics->draw(yAxis, shader, spatial::matrix(), view, perspective);
         graphics->draw(zAxis, shader, spatial::matrix(), view, perspective);
+
+        graphics->draw(monkey, shader, spatial::matrix(), view, perspective);
 
         /*
         if (object_moving[0]) {
@@ -761,6 +781,7 @@ public:
         if (object_moving[5]) {
             pos.pitch(1.0f);
         }
+        */
 
         if (camera_moving[0]) {
             camera.move(1);
@@ -775,6 +796,7 @@ public:
             camera.strafe(-1);
         }
 
+        /*
         spatial::matrix model = spatial::matrix().translate(pos.eye, pos.center, pos.up);
         {
             // This entire scope will render to the poly texture, every frame... which is unnecessary, just testing for performance, etc.

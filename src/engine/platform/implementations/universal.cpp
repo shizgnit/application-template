@@ -337,7 +337,7 @@ void implementation::universal::interface::draw(widget& instance) {
                 line.clear();
             }
         }
-        if (selected == &instance && time(NULL) % 2 == 0) {
+        if (instance.input && selected == &instance && time(NULL) % 2 == 0) {
             line += "|";
         }
         if (line.empty() == false) {
