@@ -206,6 +206,25 @@ namespace platform {
             return selected != NULL;
         }
 
+        virtual void select(widget* target) {
+            // Unselect the current selected
+            if (selected != NULL && (target == NULL || selected != target)) {
+                input::event select;
+                select.gesture = platform::input::UNSELECT;
+                selected->raise(select);
+                selected = NULL;
+            }
+            // Track and pass along the events
+            if (target) {
+                if (target->selectable) {
+                    selected = target;
+                    input::event select;
+                    select.gesture = platform::input::SELECT;
+                    selected->raise(select);
+                }
+            }
+        }
+
     protected:
         virtual void position(widget& instance) = 0;
         virtual void draw(widget& instance) = 0;

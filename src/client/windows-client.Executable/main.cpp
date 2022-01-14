@@ -229,12 +229,23 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
     static bool sizing = false;
 
+    static bool active = true;
+
     RAWINPUT rawinput;
     UINT szData = sizeof(rawinput), szHeader = sizeof(RAWINPUTHEADER);
     HRAWINPUT handle;
 
     switch (message)
     {
+    case WM_ACTIVATEAPP:
+        if (wParam) {
+            active = true;
+        }
+        else {
+            active = false;
+        }
+        break;
+
     case WM_CREATE:
         AllocConsole();
 
@@ -325,6 +336,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         break;
 
     case WM_INPUT:
+        if (active == false) {
+            break;
+        }
+
         // https://msdn.microsoft.com/en-us/library/windows/desktop/ms645546(v=vs.85).aspx
 
         if (controllers[0].GetKeystroke()) {

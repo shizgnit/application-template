@@ -204,21 +204,9 @@ void implementation::universal::interface::raise(const input::event& ev, int x, 
                 target = instance.second;
             }
         }
-        // Unselect the current selected
-        if (selected != NULL && ( target == NULL || selected != target )) {
-            input::event select = ev;
-            select.gesture = platform::input::UNSELECT;
-            selected->raise(select);
-            selected = NULL;
-        }
-        // Track and pass along the events
+        select(target);
+        // Pass along the events
         if (target) {
-            if (target->selectable) {
-                selected = target;
-                input::event select = ev;
-                select.gesture = platform::input::SELECT;
-                selected->raise(select);
-            }
             target->raise(ev);
         }
     }
@@ -328,21 +316,21 @@ void implementation::universal::interface::draw(widget& instance) {
         int x = textbox.x + left_margin;
         int y = textbox.alignment == widget::positioning::bottom ? textbox.y + textbox.background.height() - (contents.size() * font.leading()) : textbox.y;
 
-        std::string line;
-        for (auto &message : contents) {
-            line += message;
-            if (line.empty() == false && line[line.size()-1] == '\n') {
-                print(x, y, line);
+        //std::string line;
+        for (auto message : contents) {
+            //line += message;
+            if (instance.input && selected == &instance && time(NULL) % 2 == 0) {
+                message += "|";
+            }
+            if (message.empty() == false) { //&& line[line.size() - 1] == '\n') {
+                print(x, y, message);
                 y += font.leading();
-                line.clear();
+                //line.clear();
             }
         }
-        if (instance.input && selected == &instance && time(NULL) % 2 == 0) {
-            line += "|";
-        }
-        if (line.empty() == false) {
-            print(x, y, line);
-        }
+        //if (line.empty() == false) {
+        //    print(x, y, line);
+        //}
     }
 
     graphics->noclip();

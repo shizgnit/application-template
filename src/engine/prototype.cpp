@@ -2,14 +2,13 @@
 
 /*
 TODO
-history on textbox 
-disable input on focus loss
-
 time based animation and object manipulation
 object automated motion and movement/camera constraints
 input abstraction for user specified keybinds
 network communication updated for HTTPS
 cell shader
+particle system
+shadows
 */
 
 typedef std::string label_t;
@@ -534,33 +533,53 @@ public:
         gui->create(&commandline, 512, 20, 0, 0, 0, 80).position(graphics->width() - 512 - 20, 750);
         commandline.selectable = true;
         commandline.input = true;
+        commandline.multiline = false;
+        commandline.content.limit = 1; // TODO: This should be covered by the multiline flag, but currently isn't.
         commandline.handler(platform::input::KEY, platform::input::DOWN, [this](const platform::input::event& ev) {
             std::vector<std::string> content;
             switch (ev.identifier) {
+            case(38):
+                commandline.content.position(1);
+                break;
+            case(40):
+                commandline.content.position(-1);
+                break;
             case(8): // Backspace to remove a character
-                this->commandline.content.remove(1);
+                commandline.content.truncate(1);
                 break;
             case(13): // Enter to submit
-                content = this->commandline.content.get();
-                if (content.size()) {
-                    this->commandline.content.remove();
-                    main::global().call(content[0]);
+                content = commandline.content.get();
+                if (content.size() && content.back().size() && content.back()[0] == '/') {
+                    main::global().call(content.back());
                 }
+                else {
+                    main::debug().content.add(content.back());
+                }
+                if (commandline.content.position() == 0) {
+                    commandline.content.add();
+                }
+                commandline.content.position(commandline.content.size() * -1);
                 break;
             default: // Every other printable gets added to the contents
-                this->commandline.content.append(input->printable(ev.identifier));
+                commandline.content.append(input->printable(ev.identifier));
             };
         });
+
+        // Start off with an empty command
+        commandline.content.add();
+
         return true;
     }
 
     void start() {
         main::debug().visible = true;
+        gui->select(&commandline);
         commandline.visible = true;
         gui->position();
     }
 
     void stop() {
+        gui->select(NULL);
         main::debug().visible = false;
         commandline.visible = false;
     }

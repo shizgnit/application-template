@@ -102,39 +102,74 @@ namespace utilities {
     class text {
     public:
         text(int entries = 40) {
-            limit = entries;
+            buffer = entries;
         }
 
-        void add(std::string message) {
+        void add(std::string message="") {
             std::lock_guard<std::mutex> scoped(lock);
             for (auto line : utilities::tokenize(message)) {
-                std::string output = line + "\n";
-                data.push_back(output);
-                if (data.size() > limit) {
+                data.push_back(line);
+                if (data.size() > buffer) {
                     data.pop_front();
+                }
+            }
+        }
+
+        void remove(int count = -1) {
+            std::lock_guard<std::mutex> scoped(lock);
+            if (count == -1 && data.size()) {
+                data.pop_back();
+            }
+            else {
+                while (count-- && data.size() && data.back().empty() == false) {
+                    data.back().pop_back();
                 }
             }
         }
 
         void append(std::string message) {
             std::lock_guard<std::mutex> scoped(lock);
-            if (data.size()) data.back().append(message);
-            else data.push_back(message);
+            if (data.size()) {
+                std::next(data.begin(), index)->append(message);
+            }
+            else {
+                data.push_back(message);
+            }
         }
 
-        void remove(int count=-1) {
+        void truncate(int count) {
             std::lock_guard<std::mutex> scoped(lock);
-            if (count == -1 && data.size()) data.pop_back();
-            else while(count-- && data.size() && data.back().empty() == false) data.back().pop_back();
+            if (data.size() == 0) {
+                return;
+            }
+            auto current = std::next(data.begin(), index);
+            if (count >= current->size()) {
+                remove();
+            }
+            else {
+                current->erase(current->size() - count, count);
+            }
         }
 
         std::vector<std::string> get() {
             std::lock_guard<std::mutex> scoped(lock);
             std::vector<std::string> contents;
-            for (auto &message : data) {
+            int iteration = 0;
+            int count = 0;
+            for (auto &message: data) {
+                if (iteration++ < index) {
+                    continue;
+                }
                 contents.push_back(message);
+                if (limit && ++count >= limit) {
+                    break;
+                }
             }
             return contents;
+        }
+
+        int size() {
+            return data.size();
         }
 
         void clear() {
@@ -142,7 +177,26 @@ namespace utilities {
             data.clear();
         }
 
-        int limit;
+        int position(int amount=0) {
+            offset += amount;
+
+            if (offset < 0) {
+                offset = 0;
+            }
+            if (offset >= data.size()) {
+                offset = data.size() - 1;
+            }
+
+            index = (data.size() - 1) - offset;
+
+            return offset;
+        }
+
+        int buffer;
+
+        int index = 0;
+        int offset = 0;
+        int limit = 0;
 
     private:
         std::list<std::string> data;
