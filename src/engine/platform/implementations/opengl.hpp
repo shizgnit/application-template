@@ -36,27 +36,32 @@ namespace implementation {
                 attachment() {
                     int supported;
                     glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS, &supported);
-                    if (supported > 0) {
-                        inuse.resize(supported, false);
+                    for (int i = 0; i < supported; i++) {
+                        inuse[GL_COLOR_ATTACHMENT0 + i] = false;
                     }
                 }
 
                 GLenum allocate() {
-                    for (int index = 0; index < inuse.size(); index++) {
-                        if (inuse[index] == false) {
-                            inuse[index] = true;
-                            return(index & GL_COLOR_ATTACHMENT0);
+                    for (auto entry: inuse) {
+                        if (entry.second == false) {
+                            entry.second = true;
+                            return(entry.first);
                         }
                     }
                     return(0);
                 }
 
                 void release(GLenum allocation) {
-                    inuse[allocation ^ GL_COLOR_ATTACHMENT0] = false;
+                    inuse[allocation] = false;
                 }
 
-                std::vector<bool> inuse;
+                std::map<GLenum, bool> inuse;
             };
+
+            static attachment& attachments() {
+                static attachment instance;
+                return instance;
+            }
 
             fbo(type::material& mat): texture(mat) { }
 

@@ -402,13 +402,19 @@ private:
             auto source = std::get<std::string>(p[1]);
             auto target = p.size() == 3 ? std::get<std::string>(p[2]) : source;
 
+            auto tokens = utilities::tokenize(source, "/");
+
+            std::string resource = tokens.size() == 2 ? tokens[1] : tokens[0];
+
             if (type == "audio") {
-                assets->retrieve("raw/" + source + ".wav") >> format::parser::wav >> sounds[target];
+                std::string path = tokens.size() == 2 ? tokens[0] : "raw";
+                assets->retrieve(path + "/" + resource + ".wav") >> format::parser::wav >> sounds[target];
                 audio->compile(sounds[target]);
             }
             if (type == "shader") {
-                assets->retrieve("shaders/" + source + ".vert") >> format::parser::vert >> shaders[target].vertex;
-                assets->retrieve("shaders/" + source + ".frag") >> format::parser::frag >> shaders[target].fragment;
+                std::string path = tokens.size() == 2 ? tokens[0] : "shaders";
+                assets->retrieve(path + "/" + resource + ".vert") >> format::parser::vert >> shaders[target].vertex;
+                assets->retrieve(path + "/" + resource + ".frag") >> format::parser::frag >> shaders[target].fragment;
                 shaders[target].compiled(false);
                 if (graphics->compile(shaders[target]) == false) {
                     while (graphics->messages()) {
@@ -417,32 +423,33 @@ private:
                 }
             }
             if (type == "font") {
-                assets->retrieve("fonts/" + source + ".fnt") >> format::parser::fnt >> fonts[target];
+                std::string path = tokens.size() == 2 ? tokens[0] : "fonts";
+                assets->retrieve(path + "/" + resource + ".fnt") >> format::parser::fnt >> fonts[target];
                 graphics->compile(fonts[target]);
             }
             if (type == "object") {
-                if (source.substr(source.size() - 4, 4) == ".fbx") {
-                    target = target == source ? source.substr(0, source.size() - 4) : target;
-                    assets->retrieve("objects/" + source) >> format::parser::fbx >> objects[target];
+                std::string path = tokens.size() == 2 ? tokens[0] : "objects";
+                if (resource.substr(resource.size() - 4, 4) == ".fbx") {
+                    target = target == resource ? resource.substr(0, resource.size() - 4) : target;
+                    assets->retrieve(path + "/" + resource) >> format::parser::fbx >> objects[target];
                 }
-                else if (source.substr(source.size() - 4, 4) == ".obj") {
-                    target = target == source ? source.substr(0, source.size() - 4) : target;
-                    assets->retrieve("objects/" + source) >> format::parser::obj >> objects[target];
+                else if (resource.substr(resource.size() - 4, 4) == ".obj") {
+                    target = target == resource ? resource.substr(0, resource.size() - 4) : target;
+                    assets->retrieve(path + "/" + resource) >> format::parser::obj >> objects[target];
                 }
-                else if (source.substr(source.size() - 4, 4) == ".png") { // TODO: reconsider where they are
-                    target = target == source ? source.substr(0, source.size() - 4) : target;
+                else if (resource.substr(resource.size() - 4, 4) == ".png") {
+                    target = target == resource ? resource.substr(0, resource.size() - 4) : target;
                     objects[target] = spatial::quad(256, 256);
-                    assets->retrieve(source) >> format::parser::png >> objects[target].texture.map;
+                    assets->retrieve(path + "/" + resource) >> format::parser::png >> objects[target].texture.map;
                     objects[target].xy_projection(0, 0, objects[target].texture.map.properties.width, objects[target].texture.map.properties.height);
                 }
                 else {
-                    assets->retrieve("objects/" + source + ".obj") >> format::parser::obj >> objects[target];
+                    assets->retrieve(path + "/" + resource + ".obj") >> format::parser::obj >> objects[target];
                 }
                 graphics->compile(objects[target]);
             }
             if (type == "entity") {
-                assets->retrieve("objects/" + source + ".obj") >> format::parser::obj >> objects[target];
-                graphics->compile(objects[target]);
+                // TODO
             }
         }
         return 0;

@@ -3,8 +3,10 @@
 #if defined __PLATFORM_SUPPORTS_OPENGL
 
 bool implementation::opengl::fbo::init(bool depth) {
-    static attachment attachments;
-    allocation = attachments.allocate();
+    allocation = attachments().allocate();
+    if (allocation == 0) {
+        return false;
+    }
 
     glGenFramebuffers(1, &context.frame);
     glBindFramebuffer(GL_FRAMEBUFFER, context.frame);
@@ -21,7 +23,7 @@ bool implementation::opengl::fbo::init(bool depth) {
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture.context, 0);
     }
 
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture.context, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, allocation, GL_TEXTURE_2D, texture.context, 0);
 
     if (0 && depth) {
         // TODO: this doesn't look right... currently not in use
