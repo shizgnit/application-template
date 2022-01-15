@@ -422,12 +422,18 @@ private:
             }
             if (type == "object") {
                 if (source.substr(source.size() - 4, 4) == ".fbx") {
-                    target = source.substr(0, source.size() - 4);
+                    target = target == source ? source.substr(0, source.size() - 4) : target;
                     assets->retrieve("objects/" + source) >> format::parser::fbx >> objects[target];
                 }
                 else if (source.substr(source.size() - 4, 4) == ".obj") {
-                    target = source.substr(0, source.size() - 4);
+                    target = target == source ? source.substr(0, source.size() - 4) : target;
                     assets->retrieve("objects/" + source) >> format::parser::obj >> objects[target];
+                }
+                else if (source.substr(source.size() - 4, 4) == ".png") { // TODO: reconsider where they are
+                    target = target == source ? source.substr(0, source.size() - 4) : target;
+                    objects[target] = spatial::quad(256, 256);
+                    assets->retrieve(source) >> format::parser::png >> objects[target].texture.map;
+                    objects[target].xy_projection(0, 0, objects[target].texture.map.properties.width, objects[target].texture.map.properties.height);
                 }
                 else {
                     assets->retrieve("objects/" + source + ".obj") >> format::parser::obj >> objects[target];
@@ -609,10 +615,7 @@ public:
         main::global().call("/load shader shader_basic gui");
         main::global().call("/load font consolas-22");
 
-        icon = spatial::quad(256, 256);
-        assets->retrieve("drawable/marvin.png") >> format::parser::png >> icon.texture.map;
-        icon.xy_projection(0, 0, 256, 256);
-        graphics->compile(icon);
+        main::global().call("/load object drawable/marvin.png icon");
 
         gui->create(&main::global().progress(), graphics->width() / 2, 20, 0, 0, 0, 80).position(graphics->width() / 2 / 2, graphics->height() - 80);
 
@@ -652,7 +655,7 @@ public:
         frame.identity();
         frame.translate(20, graphics->height() - 20 - 256, 0);
 
-        graphics->draw(icon,main::global().shaders["scene"], frame, spatial::matrix(), main::global().ortho);
+        graphics->draw(main::global().objects["icon"], main::global().shaders["scene"], frame, spatial::matrix(), main::global().ortho);
     }
     void stop() {
         enter.visible = false;
@@ -661,8 +664,6 @@ public:
         main::global().progress().visible = false;
     }
 
-    type::audio sound;
-    type::object icon;
     platform::interface::button enter;
 };
 
@@ -767,19 +768,19 @@ public:
         auto& perspective = main::global().perspective;
 
         spatial::matrix view = spatial::matrix().lookat(camera.eye, camera.center, camera.up);
-        spatial::matrix box = spatial::matrix().translate(5, 10, 0);
 
         graphics->draw(skybox, shader, spatial::matrix(), view, perspective);
 
-        graphics->draw(ground, shader, spatial::matrix(), view, perspective, platform::graphics::render::NORMALS);
+        graphics->draw(ground, shader, spatial::matrix().scale(2.0f), view, perspective, platform::graphics::render::NORMALS);
 
-        graphics->draw(poly, shader, box, view, perspective, platform::graphics::render::NORMALS);
+        graphics->draw(poly, shader, spatial::matrix().scale(0.5f), view, perspective, platform::graphics::render::NORMALS);
+        graphics->draw(poly, shader, spatial::matrix().translate(5, 1, 0), view, perspective, platform::graphics::render::NORMALS);
 
         graphics->draw(xAxis, shader, spatial::matrix(), view, perspective);
         graphics->draw(yAxis, shader, spatial::matrix(), view, perspective);
         graphics->draw(zAxis, shader, spatial::matrix(), view, perspective);
 
-        graphics->draw(monkey, shader, spatial::matrix(), view, perspective);
+        graphics->draw(monkey, shader, spatial::matrix().translate(0, 5, -10).scale(5.0f), view, perspective);
 
         /*
         if (object_moving[0]) {
@@ -815,8 +816,7 @@ public:
             camera.strafe(-1);
         }
 
-        /*
-        spatial::matrix model = spatial::matrix().translate(pos.eye, pos.center, pos.up);
+        //spatial::matrix model = spatial::matrix().translate(pos.eye, pos.center, pos.up);
         {
             // This entire scope will render to the poly texture, every frame... which is unnecessary, just testing for performance, etc.
             auto scoped = graphics->target(poly);
@@ -830,9 +830,10 @@ public:
             spatial::matrix ortho;
             ortho.ortho(0, poly.texture.map.properties.width, 0, poly.texture.map.properties.height);
 
-            graphics->draw(icon, shader, rendertotex, spatial::matrix(), ortho);
+            graphics->draw(main::global().objects["icon"], shader, rendertotex, spatial::matrix(), ortho);
         }
 
+        /*
         for (auto &projectile : projectiles) {
             spatial::matrix position = spatial::matrix().translate(projectile.eye, projectile.center, projectile.up);
             trail = position.interpolate(spatial::ray(spatial::vector(0.0, 0.0, -0.2), spatial::vector(0.0, 0.0, 0.2)));

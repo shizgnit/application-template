@@ -9,8 +9,6 @@ bool implementation::opengl::fbo::init(bool depth) {
     glGenFramebuffers(1, &context.frame);
     glBindFramebuffer(GL_FRAMEBUFFER, context.frame);
 
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture.context, 0);
-
     if (0) {
         // Currently using existing textures... but there's an issue if they're mipmapped, this might be eventually necessary
         glGenTextures(1, &texture.context);
@@ -22,6 +20,8 @@ bool implementation::opengl::fbo::init(bool depth) {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture.context, 0);
     }
+
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture.context, 0);
 
     if (0 && depth) {
         // TODO: this doesn't look right... currently not in use
@@ -73,6 +73,9 @@ void implementation::opengl::graphics::geometry(int width, int height) {
 }
 
 void implementation::opengl::graphics::init(void) {
+    //glEnable(GL_SHADE_MODEL, GL_SMOOTH);
+    glShadeModel(GL_SMOOTH);
+
     // Depth test
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL);
