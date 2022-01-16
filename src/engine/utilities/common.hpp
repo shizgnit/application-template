@@ -3,7 +3,6 @@ namespace utilities {
     template <class type, class method>
     class scoped {
     public:
-        //typedef void(*callback)();
         scoped();
         scoped(type instance, method callback) {
             this->instance = std::make_unique<type>(instance);

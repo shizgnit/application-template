@@ -63,21 +63,22 @@ namespace implementation {
                 return instance;
             }
 
-            fbo(type::material& mat): texture(mat) { }
+            fbo() { }
 
-            bool init(bool depth = false);
+            bool init(type::object& object, bool depth = false);
             void enable(bool clear = false);
             void disable();
 
-            private:
-                struct {
-                    GLuint frame;
-                    GLuint render;
-                    GLuint depth;
-                } context;
+        private:
+            struct {
+                GLuint frame;
+                GLuint render;
+                GLuint depth;
+            } context;
 
-                GLenum allocation;
-                type::material &texture;
+            GLenum allocation;
+
+            type::object* target = NULL;
         };
 
         class graphics : public platform::graphics {
@@ -98,20 +99,30 @@ namespace implementation {
             void draw(type::object& object, type::program& shader, const spatial::matrix& model, const spatial::matrix& view, const spatial::matrix& projection, unsigned int options=0x00);
             void draw(std::string text, type::font& font, type::program& shader, const spatial::matrix& model, const spatial::matrix& view, const spatial::matrix& projection, unsigned int options = 0x00);
 
-            void ontarget(type::object& object) {
-                if (fx == NULL) {
-                    fx = new fbo(object.texture);
-                    fx->init();
+            void ontarget(type::object* object) {
+                if (fbos.find(object) == fbos.end()) {
+                    fbos[object].init(*object);
                 }
-                fx->enable();
+                fbos[object].enable();
+                target.push_back(object);
             }
 
             void untarget() {
-                fx->disable();
+                if (target.size()) {
+                    return;
+                }
+                fbos[target.back()].disable();
+                target.pop_back();
                 geometry(display_width, display_height);
             }
 
-            fbo* fx = NULL;
+            void release(type::object* object) {
+                fbos.erase(object);
+            }
+
+            std::vector<type::object*> target;
+
+            std::map<type::object*, fbo> fbos;
 
             type::object ray;
         };

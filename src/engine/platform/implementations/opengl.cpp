@@ -2,7 +2,7 @@
 
 #if defined __PLATFORM_SUPPORTS_OPENGL
 
-bool implementation::opengl::fbo::init(bool depth) {
+bool implementation::opengl::fbo::init(type::object& object, bool depth) {
     allocation = attachments().allocate();
     if (allocation == 0) {
         return false;
@@ -13,23 +13,23 @@ bool implementation::opengl::fbo::init(bool depth) {
 
     if (0) {
         // Currently using existing textures... but there's an issue if they're mipmapped, this might be eventually necessary
-        glGenTextures(1, &texture.context);
-        glBindTexture(GL_TEXTURE_2D, texture.context);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture.map.properties.width, texture.map.properties.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+        glGenTextures(1, &object.texture.context);
+        glBindTexture(GL_TEXTURE_2D, object.texture.context);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, object.texture.map.properties.width, object.texture.map.properties.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture.context, 0);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, object.texture.context, 0);
     }
 
-    glFramebufferTexture2D(GL_FRAMEBUFFER, allocation, GL_TEXTURE_2D, texture.context, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, allocation, GL_TEXTURE_2D, object.texture.context, 0);
 
     if (0 && depth) {
         // TODO: this doesn't look right... currently not in use
         glGenRenderbuffers(1, &context.depth);
         glBindRenderbuffer(GL_RENDERBUFFER, context.depth);
-        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, texture.map.properties.width, texture.map.properties.height);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, object.texture.map.properties.width, object.texture.map.properties.height);
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, context.depth);
 
         glBindTexture(GL_TEXTURE_2D, 0);
@@ -39,7 +39,7 @@ bool implementation::opengl::fbo::init(bool depth) {
     glGenBuffers(1, &context.render);
 
     glBindRenderbuffer(GL_RENDERBUFFER, context.render);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, texture.map.properties.width, texture.map.properties.height);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, object.texture.map.properties.width, object.texture.map.properties.height);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, context.render);
 
     int status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
@@ -49,20 +49,28 @@ bool implementation::opengl::fbo::init(bool depth) {
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+    target = &object;
+
     return true;
 }
 
 void implementation::opengl::fbo::enable(bool clear) {
+    if (target == NULL) {
+        return;
+    }
     glBindFramebuffer(GL_FRAMEBUFFER, context.frame);
-    glViewport(0, 0, texture.map.properties.width, texture.map.properties.height);
+    glViewport(0, 0, target->texture.map.properties.width, target->texture.map.properties.height);
     if (clear) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
 }
 
 void implementation::opengl::fbo::disable() {
+    if (target == NULL) {
+        return;
+    }
     // Currently all rendering is done to the mipmap level 0... copy it out after every render
-    glBindTexture(GL_TEXTURE_2D, texture.context);
+    glBindTexture(GL_TEXTURE_2D, target->texture.context);
     glGenerateMipmap(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, 0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -285,8 +293,6 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
     }
 
     glUseProgram(shader.context);
-
-    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // GL_FILL
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, target.texture.context);
