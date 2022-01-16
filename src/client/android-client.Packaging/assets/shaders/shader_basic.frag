@@ -6,9 +6,8 @@ uniform mat4 u_ProjectionMatrix;
 
 uniform vec4 u_Clipping;
 
-uniform vec4 u_AmbientLight;
-uniform vec4 u_DirectionalLight;
-uniform vec4 u_DirectionalLightPosition;
+uniform vec4 u_AmbientLightPosition;
+uniform vec4 u_AmbientLightColor;
 
 varying vec4 v_Vertex;
 varying vec4 v_Texture;

@@ -3,7 +3,7 @@
 #if defined __PLATFORM_SUPPORTS_OPENGL
 
 bool implementation::opengl::fbo::init(type::object& object, bool depth) {
-    allocation = attachments().allocate();
+    allocation = object.texture.depth ? GL_DEPTH_ATTACHMENT : attachments().allocate();
     if (allocation == 0) {
         return false;
     }
@@ -11,30 +11,7 @@ bool implementation::opengl::fbo::init(type::object& object, bool depth) {
     glGenFramebuffers(1, &context.frame);
     glBindFramebuffer(GL_FRAMEBUFFER, context.frame);
 
-    if (0) {
-        // Currently using existing textures... but there's an issue if they're mipmapped, this might be eventually necessary
-        glGenTextures(1, &object.texture.context);
-        glBindTexture(GL_TEXTURE_2D, object.texture.context);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, object.texture.map.properties.width, object.texture.map.properties.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, object.texture.context, 0);
-    }
-
     glFramebufferTexture2D(GL_FRAMEBUFFER, allocation, GL_TEXTURE_2D, object.texture.context, 0);
-
-    if (0 && depth) {
-        // TODO: this doesn't look right... currently not in use
-        glGenRenderbuffers(1, &context.depth);
-        glBindRenderbuffer(GL_RENDERBUFFER, context.depth);
-        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, object.texture.map.properties.width, object.texture.map.properties.height);
-        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, context.depth);
-
-        glBindTexture(GL_TEXTURE_2D, 0);
-        glBindRenderbuffer(GL_RENDERBUFFER, 0);
-    }
 
     glGenBuffers(1, &context.render);
 
@@ -226,9 +203,8 @@ bool implementation::opengl::graphics::compile(type::program& program) {
 
     program.u_Clipping = glGetUniformLocation(program.context, "u_Clipping");
 
-    program.u_AmbientLight = glGetUniformLocation(program.context, "u_AmbientLight");
-    program.u_DirectionalLight = glGetUniformLocation(program.context, "u_DirectionalLight");
-    program.u_DirectionalLightPosition = glGetUniformLocation(program.context, "u_DirectionalLightPosition");
+    program.u_AmbientLightPosition = glGetUniformLocation(program.context, "u_AmbientLightPosition");
+    program.u_AmbientLightColor = glGetUniformLocation(program.context, "u_AmbientLightColor");
 
     return true;
 }
@@ -246,13 +222,24 @@ bool implementation::opengl::graphics::compile(type::object& object) {
     glBufferData(GL_ARRAY_BUFFER, sizeof(spatial::vertex) * object.vertices.size(), object.vertices.data(), GL_DYNAMIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-    glGenTextures(1, &object.texture.context);
-    glBindTexture(GL_TEXTURE_2D, object.texture.context);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, object.texture.map.properties.width, object.texture.map.properties.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, object.texture.map.raster.data());
-    glGenerateMipmap(GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D, 0);
+    if (object.texture.depth) {
+        glGenTextures(1, &object.texture.context);
+        glBindTexture(GL_TEXTURE_2D, object.texture.context);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, object.texture.map.properties.width, object.texture.map.properties.height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    }
+    else {
+        glGenTextures(1, &object.texture.context);
+        glBindTexture(GL_TEXTURE_2D, object.texture.context);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, object.texture.map.properties.width, object.texture.map.properties.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, object.texture.map.raster.data());
+        glGenerateMipmap(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D, 0);
+    }
 
     return true;
 }
@@ -303,10 +290,8 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
 
     glUniform1i(shader.u_SurfaceTextureUnit, 0);
 
-    glUniform4f(shader.u_AmbientLight, 0.0f, 0.0f, 0.0f, 1.0f);
-
-    glUniform4f(shader.u_DirectionalLight, 0.0f, 0.0f, 0.0f, 1.0f);
-    glUniform4f(shader.u_DirectionalLightPosition, 1.0f, 1.0f, 0.1f, 1.0f);
+    glUniform4f(shader.u_AmbientLightPosition, ambient.position.x, ambient.position.y, ambient.position.z, ambient.position.w);
+    glUniform4f(shader.u_AmbientLightColor, ambient.color.x, ambient.color.y, ambient.color.z, ambient.color.w);
 
     glUniform4f(shader.u_Clipping, clip_top[clip_top.size()-1], clip_bottom[clip_bottom.size() - 1], clip_left[clip_left.size() - 1], clip_right[clip_right.size() - 1]);
 

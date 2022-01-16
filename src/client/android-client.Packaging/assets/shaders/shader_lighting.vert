@@ -2,10 +2,8 @@ uniform mat4 u_ModelMatrix;
 uniform mat4 u_ViewMatrix;
 uniform mat4 u_ProjectionMatrix;
 
-uniform vec4 u_AmbientLight;
-
-uniform vec4 u_DirectionalLight;
-uniform vec4 u_DirectionalLightPosition;
+uniform vec4 u_AmbientLightPosition;
+uniform vec4 u_AmbientLightColor;
 
 attribute vec4 a_Vertex;
 attribute vec4 a_Texture;
@@ -25,6 +23,4 @@ void main()
   
   gl_Position = v_Vertex;
   gl_Position.z = -1.0 + (gl_Position.z / 10.0);
-  
-  // gl_Normal = v_Normal;
 }

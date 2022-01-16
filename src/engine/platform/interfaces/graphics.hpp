@@ -78,6 +78,15 @@ namespace platform {
         int width() {
             return display_width;
         }
+        
+        struct {
+            spatial::vector position;
+            spatial::vector color;
+        } ambient;
+
+        struct {
+            spatial::position directional;
+        } light;
 
     protected:
         std::list<std::string> errors;

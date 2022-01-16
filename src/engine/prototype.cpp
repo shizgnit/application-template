@@ -224,8 +224,10 @@ public:
     }
 
     void geometry(int width, int height) {
+        int fov = has("perspective.fov") ? std::get<int>(main::global().get("perspective.fov")) : 90;
+
         ortho.ortho(0, width, 0, height);
-        perspective.perspective(90 * (float)M_PI / 180.0f, (float)width / (float)height, -1.0f, 1.0f);
+        perspective.perspective(fov * (float)M_PI / 180.0f, (float)width / (float)height, -1.0f, 1.0f);
 
         std::lock_guard<std::mutex> scoped(lock);
         for (auto scene : current()) {
@@ -308,7 +310,7 @@ public:
                     axis.size() > 0 ? utilities::type_cast<double>(axis[0]) : 0.0f,
                     axis.size() > 1 ? utilities::type_cast<double>(axis[1]) : 0.0f,
                     axis.size() > 2 ? utilities::type_cast<double>(axis[2]) : 0.0f,
-                    axis.size() > 3 ? utilities::type_cast<double>(axis[3]) : 0.0f
+                    axis.size() > 3 ? utilities::type_cast<double>(axis[3]) : 1.0f
                 };
                 params.push_back(vector);
             }
@@ -351,12 +353,20 @@ public:
         return false;
     }
 
+    bool has(label_t label) {
+        return variables.find(label) != variables.end();
+    }
+
     value_t get(label_t label) {
         return variables[label];
     }
 
     value_t set(label_t label, value_t value) {
         variables[label] = value;
+        if (label == "perspective.fov") {
+            geometry(graphics->width(), graphics->height());
+        }
+
         return value;
     }
 
@@ -617,6 +627,13 @@ public:
 class title : public main::scene {
 public:
     bool load() {
+        main::global().call("/set debug.input 0");
+
+        main::global().call("/set ambient.position (1.0,1.0,1.0)");
+        main::global().call("/set ambient.color (0.4,0.4,0.4)");
+
+        main::global().call("/set perspective.fov 90");
+
         main::global().call("/load sound glados");
         main::global().call("/load shader shader_basic scene");
         main::global().call("/load shader shader_basic gui");
@@ -774,20 +791,23 @@ public:
         auto& shader = main::global().shaders["scene"];
         auto& perspective = main::global().perspective;
 
+        graphics->ambient.position = std::get<spatial::vector>(main::global().get("ambient.position"));
+        graphics->ambient.color = std::get<spatial::vector>(main::global().get("ambient.color"));
+
         spatial::matrix view = spatial::matrix().lookat(camera.eye, camera.center, camera.up);
 
         graphics->draw(skybox, shader, spatial::matrix(), view, perspective);
 
-        graphics->draw(ground, shader, spatial::matrix().scale(2.0f), view, perspective, platform::graphics::render::NORMALS);
+        graphics->draw(ground, shader, spatial::matrix().scale(4.0f), view, perspective, platform::graphics::render::NORMALS);
 
-        graphics->draw(poly, shader, spatial::matrix().scale(0.5f), view, perspective, platform::graphics::render::NORMALS);
-        graphics->draw(poly, shader, spatial::matrix().translate(5, 1, 0), view, perspective, platform::graphics::render::NORMALS);
+        graphics->draw(poly, shader, spatial::matrix().translate(0, -7, 0).scale(0.5f), view, perspective, platform::graphics::render::NORMALS);
+        graphics->draw(poly, shader, spatial::matrix().translate(5, -5, 0), view, perspective, platform::graphics::render::NORMALS);
 
         graphics->draw(xAxis, shader, spatial::matrix(), view, perspective);
         graphics->draw(yAxis, shader, spatial::matrix(), view, perspective);
         graphics->draw(zAxis, shader, spatial::matrix(), view, perspective);
 
-        graphics->draw(monkey, shader, spatial::matrix().translate(0, 5, -10).scale(5.0f), view, perspective);
+        graphics->draw(monkey, shader, spatial::matrix().translate(0, -2, -10).scale(5.0f), view, perspective);
 
         /*
         if (object_moving[0]) {

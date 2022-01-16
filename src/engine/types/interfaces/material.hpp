@@ -18,6 +18,8 @@ namespace type {
         type::image map;
         unsigned int context;
 
+        bool depth = false;
+
         friend type::material& operator>>(type::material& input, type::material& instance) {
             instance = input;
             return instance;

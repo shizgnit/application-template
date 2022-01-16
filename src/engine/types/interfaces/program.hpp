@@ -21,9 +21,8 @@ namespace type {
 
         int u_SurfaceTextureUnit;
 
-        int u_AmbientLight;
-        int u_DirectionalLight;
-        int u_DirectionalLightPosition;
+        int u_AmbientLightPosition;
+        int u_AmbientLightColor;
     };
 
 }

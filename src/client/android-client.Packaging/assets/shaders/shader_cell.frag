@@ -2,9 +2,8 @@ precision mediump float;
 
 uniform sampler2D u_SurfaceTextureUnit;
 
-uniform vec4 u_AmbientLight;
-uniform vec4 u_DirectionalLight;
-uniform vec4 u_DirectionalLightPosition;
+uniform vec4 u_AmbientLightPosition;
+uniform vec4 u_AmbientLightColor;
 
 varying vec2 v_Texture;
 varying vec4 v_Vertex;
@@ -12,14 +11,9 @@ varying vec4 v_Normal;
 
 void main()
 {
-   vec4 AmbientLight = vec4(0.4);
-   vec4 DirectionalLightPosition = vec4(1.0, 1.0, 1.0, 1.0);
-
-   vec4 L = normalize(DirectionalLightPosition - v_Vertex);
+   vec4 L = normalize(u_AmbientLightPosition - v_Vertex);
    vec4 E = normalize(-v_Vertex);
    vec4 R = normalize(-reflect(L,v_Normal));
-   
-   vec4 Iamb = AmbientLight;
    
    float d = max(dot(v_Normal, L), 0.0);
    float c = 0.4;
