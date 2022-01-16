@@ -824,7 +824,7 @@ public:
         }
 
         //spatial::matrix model = spatial::matrix().translate(pos.eye, pos.center, pos.up);
-        if(0) {
+        {
             // This entire scope will render to the poly texture, every frame... which is unnecessary, just testing for performance, etc.
             auto scoped = graphics->target(poly);
 

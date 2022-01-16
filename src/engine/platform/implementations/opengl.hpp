@@ -108,7 +108,7 @@ namespace implementation {
             }
 
             void untarget() {
-                if (target.size()) {
+                if (target.size() == 0) {
                     return;
                 }
                 fbos[target.back()].disable();
