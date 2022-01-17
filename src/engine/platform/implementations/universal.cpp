@@ -316,21 +316,15 @@ void implementation::universal::interface::draw(widget& instance) {
         int x = textbox.x + left_margin;
         int y = textbox.alignment == widget::positioning::bottom ? textbox.y + textbox.background.height() - (contents.size() * font.leading()) : textbox.y;
 
-        //std::string line;
         for (auto message : contents) {
-            //line += message;
             if (instance.input && selected == &instance && time(NULL) % 2 == 0) {
                 message += "|";
             }
-            if (message.empty() == false) { //&& line[line.size() - 1] == '\n') {
+            if (message.empty() == false) {
                 print(x, y, message);
                 y += font.leading();
-                //line.clear();
             }
         }
-        //if (line.empty() == false) {
-        //    print(x, y, line);
-        //}
     }
 
     graphics->noclip();

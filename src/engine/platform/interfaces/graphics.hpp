@@ -80,13 +80,16 @@ namespace platform {
         }
         
         struct {
-            spatial::vector position;
+            spatial::position position;
             spatial::vector color;
         } ambient;
 
         struct {
             spatial::position directional;
         } light;
+
+        type::object ray;
+        type::object shadow;
 
     protected:
         std::list<std::string> errors;

@@ -825,6 +825,23 @@ void spatial::position::project(const vector& offset, const vector& projection) 
     diff.z = (cross.z - center.z) * offset.z;
 }
 
+spatial::position& spatial::position::reposition(const vector& offset) {
+    eye += offset - center;
+    center = offset;
+    return *this;
+}
+
+spatial::position& spatial::position::lookat(const vector& offset) {
+    auto forward = (offset - center).unit();
+    auto right = vector(0, 1, 0) % forward;
+
+    eye = forward + center;
+    up = forward % right;
+
+    return *this;
+}
+
+
 spatial::sphere::sphere(int horizontal, int vertical) : sphere() {
     interpolate(horizontal, vertical);
 }

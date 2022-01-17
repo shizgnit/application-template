@@ -31,5 +31,6 @@ void main()
   if ( v_Clipping.w < 0.0 )
     discard;
 
-  gl_FragColor = texture2D(u_SurfaceTextureUnit, v_Texture.xy);
+  //gl_FragColor = texture2D(u_SurfaceTextureUnit, v_Texture.xy);
+  gl_FragColor = vec4(texture2D(u_ShadowTextureUnit, v_Texture.xy).r);
 }

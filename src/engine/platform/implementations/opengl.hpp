@@ -123,8 +123,6 @@ namespace implementation {
             std::vector<type::object*> target;
 
             std::map<type::object*, fbo> fbos;
-
-            type::object ray;
         };
 
     }

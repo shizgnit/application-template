@@ -14,7 +14,6 @@ bool implementation::opengl::fbo::init(type::object& object, bool depth) {
     glFramebufferTexture2D(GL_FRAMEBUFFER, allocation, GL_TEXTURE_2D, object.texture.context, 0);
 
     glGenBuffers(1, &context.render);
-
     glBindRenderbuffer(GL_RENDERBUFFER, context.render);
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, object.texture.map.properties.width, object.texture.map.properties.height);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, context.render);
@@ -37,7 +36,7 @@ void implementation::opengl::fbo::enable(bool clear) {
     }
     glBindFramebuffer(GL_FRAMEBUFFER, context.frame);
     glViewport(0, 0, target->texture.map.properties.width, target->texture.map.properties.height);
-    if (clear) {
+    if (clear || target->texture.depth) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
 }
@@ -47,9 +46,11 @@ void implementation::opengl::fbo::disable() {
         return;
     }
     // Currently all rendering is done to the mipmap level 0... copy it out after every render
-    glBindTexture(GL_TEXTURE_2D, target->texture.context);
-    glGenerateMipmap(GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D, 0);
+    if (target->texture.depth == false) {
+        glBindTexture(GL_TEXTURE_2D, target->texture.context);
+        glGenerateMipmap(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D, 0);
+    }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
@@ -83,6 +84,14 @@ void implementation::opengl::graphics::init(void) {
     ray.texture.map.create(1, 1, 255, 255, 255, 255);
     ray.xy_projection(0, 0, 1, 1);
     compile(ray);
+
+    // Setup the shadow depth map
+    shadow = spatial::quad(256, 256);
+    shadow.texture.depth = true;
+    shadow.texture.map.properties.width = 1024;
+    shadow.texture.map.properties.height = 1024;
+    shadow.xy_projection(0, 0, shadow.texture.map.properties.width, shadow.texture.map.properties.height);
+    compile(shadow);
 }
 
 void implementation::opengl::graphics::clear(void) {
@@ -200,6 +209,7 @@ bool implementation::opengl::graphics::compile(type::program& program) {
     program.u_ProjectionMatrix = glGetUniformLocation(program.context, "u_ProjectionMatrix");
 
     program.u_SurfaceTextureUnit = glGetUniformLocation(program.context, "u_SurfaceTextureUnit");
+    program.u_ShadowTextureUnit = glGetUniformLocation(program.context, "u_ShadowTextureUnit");
 
     program.u_Clipping = glGetUniformLocation(program.context, "u_Clipping");
 
@@ -238,8 +248,8 @@ bool implementation::opengl::graphics::compile(type::object& object) {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, object.texture.map.properties.width, object.texture.map.properties.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, object.texture.map.raster.data());
         glGenerateMipmap(GL_TEXTURE_2D);
-        glBindTexture(GL_TEXTURE_2D, 0);
     }
+    glBindTexture(GL_TEXTURE_2D, 0);
 
     return true;
 }
@@ -283,14 +293,19 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, target.texture.context);
+    if (shadow.texture.depth) {
+        glActiveTexture(GL_TEXTURE0 + 1);
+        glBindTexture(GL_TEXTURE_2D, shadow.texture.context);
+    }
 
     glUniformMatrix4fv(shader.u_ModelMatrix, 1, GL_FALSE, (GLfloat*)model.data());
     glUniformMatrix4fv(shader.u_ViewMatrix, 1, GL_FALSE, (GLfloat*)view.data());
     glUniformMatrix4fv(shader.u_ProjectionMatrix, 1, GL_FALSE, (GLfloat*)projection.data());
 
     glUniform1i(shader.u_SurfaceTextureUnit, 0);
+    glUniform1i(shader.u_ShadowTextureUnit, 1);
 
-    glUniform4f(shader.u_AmbientLightPosition, ambient.position.x, ambient.position.y, ambient.position.z, ambient.position.w);
+    glUniform4f(shader.u_AmbientLightPosition, ambient.position.center.x, ambient.position.center.y, ambient.position.center.z, ambient.position.center.w);
     glUniform4f(shader.u_AmbientLightColor, ambient.color.x, ambient.color.y, ambient.color.z, ambient.color.w);
 
     glUniform4f(shader.u_Clipping, clip_top[clip_top.size()-1], clip_bottom[clip_bottom.size() - 1], clip_left[clip_left.size() - 1], clip_right[clip_right.size() - 1]);

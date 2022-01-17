@@ -20,6 +20,7 @@ namespace type {
         int u_ProjectionMatrix;
 
         int u_SurfaceTextureUnit;
+        int u_ShadowTextureUnit;
 
         int u_AmbientLightPosition;
         int u_AmbientLightColor;

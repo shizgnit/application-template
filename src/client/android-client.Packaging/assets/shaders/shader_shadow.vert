@@ -17,12 +17,5 @@ varying vec4 v_Normal;
 
 void main()
 {
-  mat4 MVP = u_ProjectionMatrix * u_ViewMatrix * u_ModelMatrix;
-
-  v_Texture = a_Texture.xy;
-  v_Vertex = MVP * a_Vertex;
-  v_Normal = normalize(MVP * a_Normal);
-  
-  gl_Position = v_Vertex;
-  gl_Position.z = -1.0 + (gl_Position.z / 10.0);
+  gl_Position = (u_ProjectionMatrix * u_ViewMatrix * u_ModelMatrix) * a_Vertex;
 }

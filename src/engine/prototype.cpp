@@ -330,7 +330,27 @@ public:
         }
         
         // Call the command
-        return commands[command].second(params);
+        value_t result = commands[command].second(params);
+
+        // Debug the call and result
+        std::stringstream ss;
+        ss << input << " = ";
+        if (std::holds_alternative<int>(result)) {
+            ss << std::get<int>(result);
+        }
+        if (std::holds_alternative<double>(result)) {
+            ss << std::get<double>(result);
+        }
+        if (std::holds_alternative<std::string>(result)) {
+            ss << std::get<std::string>(result);
+        }
+        if (std::holds_alternative<spatial::vector>(result)) {
+            auto& v = std::get<spatial::vector>(result);
+            ss << "(" << v.x << "," << v.x << "," << v.x << "," << v.x << ")";
+        }
+        main::debug().content.add(ss.str());
+
+        return result;
     }
 
     bool flag(label_t label) {
@@ -630,13 +650,21 @@ public:
         main::global().call("/set debug.input 0");
 
         main::global().call("/set ambient.position (1.0,1.0,1.0)");
+        main::global().call("/set ambient.lookat (0,0,0)");
         main::global().call("/set ambient.color (0.4,0.4,0.4)");
 
         main::global().call("/set perspective.fov 90");
 
         main::global().call("/load sound glados");
-        main::global().call("/load shader shader_basic scene");
+        main::global().call("/load shader shader_basic basic");
+        main::global().call("/load shader shader_cell cell");
+        main::global().call("/load shader shader_lighting lighting");
+        main::global().call("/load shader shader_shadow shadow");
+        main::global().call("/load shader shader_depth depth");
         main::global().call("/load shader shader_basic gui");
+        main::global().call("/load shader shader_basic skybox");
+        main::global().call("/load shader shader_cell objects");
+        main::global().call("/load shader shader_lighting scenery");
         main::global().call("/load font consolas-22");
 
         main::global().call("/load object drawable/marvin.png icon");
@@ -679,7 +707,7 @@ public:
         frame.identity();
         frame.translate(20, graphics->height() - 20 - 256, 0);
 
-        graphics->draw(main::global().objects["icon"], main::global().shaders["scene"], frame, spatial::matrix(), main::global().ortho);
+        graphics->draw(main::global().objects["icon"], main::global().shaders["gui"], frame, spatial::matrix(), main::global().ortho);
     }
     void stop() {
         enter.visible = false;
@@ -698,10 +726,12 @@ public:
     type::object zAxis;
 
     type::object skybox;
-    type::object poly;
+    type::object box;
     type::object ground;
 
     type::object monkey;
+
+    type::object light;
 
     bool load() {
         // TODO: don't use the progress bar to determine thread completion
@@ -728,7 +758,7 @@ public:
                 assets->retrieve("objects/skybox.obj") >> format::parser::obj >> skybox;
 
                 main::global().progress().value.set(40);
-                assets->retrieve("objects/untitled.obj") >> format::parser::obj >> poly;
+                assets->retrieve("objects/untitled.obj") >> format::parser::obj >> box;
 
                 main::global().progress().value.set(50);
                 assets->retrieve("objects/ground/ground.obj") >> format::parser::obj >> ground;
@@ -755,9 +785,15 @@ public:
         graphics->compile(yAxis);
         graphics->compile(zAxis);
         graphics->compile(skybox);
-        graphics->compile(poly);
+        graphics->compile(box);
         graphics->compile(ground);
         graphics->compile(monkey);
+
+        light = spatial::ray(spatial::vector(0.0, 0.0, -0.2), spatial::vector(0.0, 0.0, 0.2));
+        light.texture.map.create(1, 1, 255, 255, 0, 255);
+        light.xy_projection(0, 0, 1, 1);
+        graphics->compile(light);
+
 
         /*
         /// <summary>
@@ -788,26 +824,64 @@ public:
     }
 
     void run() {
-        auto& shader = main::global().shaders["scene"];
+        auto& shader_basic = main::global().shaders["basic"];
+        auto& shader_shadow = main::global().shaders["shadow"];
+        auto& shader_skybox = main::global().shaders["skybox"];
+        auto& shader_objects = main::global().shaders["objects"];
+        auto& shader_scenery = main::global().shaders["scenery"];
+
+
         auto& perspective = main::global().perspective;
 
-        graphics->ambient.position = std::get<spatial::vector>(main::global().get("ambient.position"));
+        auto position = std::get<spatial::vector>(main::global().get("ambient.position"));
+        auto lookat = std::get<spatial::vector>(main::global().get("ambient.lookat"));
+
+        light = spatial::ray(position, lookat);
+        graphics->recompile(light);
+
+        graphics->ambient.position.reposition(position);
+        graphics->ambient.position.lookat(lookat);
+
         graphics->ambient.color = std::get<spatial::vector>(main::global().get("ambient.color"));
 
+        {
+            auto scoped = graphics->target(graphics->shadow);
+
+            // orthographic view matrix relative to the target
+            spatial::matrix ortho;
+            ortho.ortho(0, graphics->shadow.texture.map.properties.width, 0, graphics->shadow.texture.map.properties.height);
+
+            // light matrix
+            spatial::matrix view = spatial::matrix().lookat(graphics->ambient.position.eye, graphics->ambient.position.center, graphics->ambient.position.up);
+
+            graphics->draw(box, shader_shadow, spatial::matrix().translate(0, -7, 0).scale(0.5f), view, ortho);
+            graphics->draw(box, shader_shadow, spatial::matrix().translate(5, -5, 0), view, ortho);
+            graphics->draw(monkey, shader_shadow, spatial::matrix().translate(0, -2, -10).scale(5.0f), view, ortho);
+        }
+
+        // View based on the camera
         spatial::matrix view = spatial::matrix().lookat(camera.eye, camera.center, camera.up);
 
-        graphics->draw(skybox, shader, spatial::matrix(), view, perspective);
+        graphics->draw(skybox, shader_skybox, spatial::matrix(), view, perspective);
 
-        graphics->draw(ground, shader, spatial::matrix().scale(4.0f), view, perspective, platform::graphics::render::NORMALS);
+        graphics->draw(ground, shader_scenery, spatial::matrix().scale(4.0f), view, perspective, platform::graphics::render::NORMALS);
 
-        graphics->draw(poly, shader, spatial::matrix().translate(0, -7, 0).scale(0.5f), view, perspective, platform::graphics::render::NORMALS);
-        graphics->draw(poly, shader, spatial::matrix().translate(5, -5, 0), view, perspective, platform::graphics::render::NORMALS);
+        graphics->draw(box, shader_scenery, spatial::matrix().translate(0, -7, 0).scale(0.5f), view, perspective, platform::graphics::render::NORMALS);
+        graphics->draw(box, shader_scenery, spatial::matrix().translate(5, -5, 0), view, perspective, platform::graphics::render::NORMALS);
 
-        graphics->draw(xAxis, shader, spatial::matrix(), view, perspective);
-        graphics->draw(yAxis, shader, spatial::matrix(), view, perspective);
-        graphics->draw(zAxis, shader, spatial::matrix(), view, perspective);
+        graphics->draw(xAxis, shader_basic, spatial::matrix(), view, perspective);
+        graphics->draw(yAxis, shader_basic, spatial::matrix(), view, perspective);
+        graphics->draw(zAxis, shader_basic, spatial::matrix(), view, perspective);
 
-        graphics->draw(monkey, shader, spatial::matrix().translate(0, -2, -10).scale(5.0f), view, perspective);
+        graphics->draw(monkey, shader_objects, spatial::matrix().translate(0, -2, -10).scale(5.0f), view, perspective);
+
+        graphics->draw(light, shader_basic, spatial::matrix(), view, perspective);
+
+        spatial::matrix frame;
+        frame.identity();
+        frame.translate(20, graphics->height() - 20 - 256, 0);
+
+        graphics->draw(main::global().objects["icon"], main::global().shaders["depth"], frame, spatial::matrix(), main::global().ortho);
 
         /*
         if (object_moving[0]) {
@@ -846,7 +920,7 @@ public:
         //spatial::matrix model = spatial::matrix().translate(pos.eye, pos.center, pos.up);
         {
             // This entire scope will render to the poly texture, every frame... which is unnecessary, just testing for performance, etc.
-            auto scoped = graphics->target(poly);
+            auto scoped = graphics->target(box);
 
             // just moving it a bit to move away from the edges
             spatial::matrix rendertotex;
@@ -855,9 +929,9 @@ public:
 
             // orthographic view matrix relative to the target
             spatial::matrix ortho;
-            ortho.ortho(0, poly.texture.map.properties.width, 0, poly.texture.map.properties.height);
+            ortho.ortho(0, box.texture.map.properties.width, 0, box.texture.map.properties.height);
 
-            graphics->draw(main::global().objects["icon"], shader, rendertotex, spatial::matrix(), ortho);
+            graphics->draw(main::global().objects["icon"], shader_basic, rendertotex, spatial::matrix(), ortho);
         }
 
         /*

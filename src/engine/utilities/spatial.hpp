@@ -237,6 +237,9 @@ namespace spatial {
 
         void project(const vector& offset, const vector& projection);
 
+        position& reposition(const vector& offset);
+        position& lookat(const vector& offset);
+
     public:
         bool view;
 
