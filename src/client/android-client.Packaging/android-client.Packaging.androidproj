@@ -162,8 +162,12 @@
     <Content Include="assets\shaders\pick_shader.vert" />
     <Content Include="assets\shaders\shader_basic.frag" />
     <Content Include="assets\shaders\shader_basic.vert" />
+    <Content Include="assets\shaders\shader_depth.frag" />
+    <Content Include="assets\shaders\shader_depth.vert" />
     <Content Include="assets\shaders\shader_lighting.frag" />
     <Content Include="assets\shaders\shader_lighting.vert" />
+    <Content Include="assets\shaders\shader_shadow.frag" />
+    <Content Include="assets\shaders\shader_shadow.vert" />
     <Content Include="assets\shaders\texture_alpha_shader.frag" />
     <Content Include="assets\shaders\texture_alpha_shader.vert" />
     <Content Include="assets\shaders\texture_alpha_shader_defuse_lighting.frag" />

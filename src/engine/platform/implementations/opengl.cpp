@@ -279,12 +279,6 @@ bool implementation::opengl::graphics::compile(type::font& font) {
 void implementation::opengl::graphics::draw(type::object& object, type::program& shader, const spatial::matrix& model, const spatial::matrix& view, const spatial::matrix& projection, unsigned int options) {
     // Look for the first object with vertices, just at the top level for now
     auto &target = object;
-    for (auto iterator = target.children.begin(); iterator != target.children.end() && target.vertices.size() == 0; iterator++) {
-        if (iterator->vertices.size()) {
-            target = *iterator;
-            break;
-        }
-    }
     if (target.vertices.size() == 0) {
         return;
     }

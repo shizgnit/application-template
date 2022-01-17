@@ -119,7 +119,16 @@ namespace type {
         }
 
         friend type::object& operator>>(type::object& input, type::object& instance) {
-            instance = input;
+            // Only copy over a single object
+            if (input.vertices.size()) {
+                instance = input;
+            }
+            else {
+                for (auto child : input.children) {
+                    instance = child;
+                    break;
+                }
+            }
             return instance;
         }
 

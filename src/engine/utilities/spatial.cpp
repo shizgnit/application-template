@@ -836,7 +836,7 @@ spatial::position& spatial::position::lookat(const vector& offset) {
     auto right = vector(0, 1, 0) % forward;
 
     eye = forward + center;
-    up = forward % right;
+    up = (forward % right).unit();
 
     return *this;
 }

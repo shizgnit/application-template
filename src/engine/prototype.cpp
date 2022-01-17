@@ -830,7 +830,6 @@ public:
         auto& shader_objects = main::global().shaders["objects"];
         auto& shader_scenery = main::global().shaders["scenery"];
 
-
         auto& perspective = main::global().perspective;
 
         auto position = std::get<spatial::vector>(main::global().get("ambient.position"));
@@ -844,7 +843,7 @@ public:
 
         graphics->ambient.color = std::get<spatial::vector>(main::global().get("ambient.color"));
 
-        {
+        if(0) {
             auto scoped = graphics->target(graphics->shadow);
 
             // orthographic view matrix relative to the target
@@ -859,6 +858,20 @@ public:
             graphics->draw(monkey, shader_shadow, spatial::matrix().translate(0, -2, -10).scale(5.0f), view, ortho);
         }
 
+        {
+            auto scoped = graphics->target(ground);
+
+            // orthographic view matrix relative to the target
+            spatial::matrix ortho;
+            ortho.ortho(0, ground.texture.map.properties.width, 0, ground.texture.map.properties.height);
+
+            // light matrix
+            spatial::matrix view = spatial::matrix().lookat(graphics->ambient.position.eye, graphics->ambient.position.center, graphics->ambient.position.up);
+
+            graphics->draw(box, shader_basic, spatial::matrix().translate(0, -7, 0).scale(0.5f), view, ortho);
+            graphics->draw(box, shader_basic, spatial::matrix().translate(5, -5, 0), view, ortho);
+            graphics->draw(monkey, shader_basic, spatial::matrix().translate(0, -2, -10).scale(5.0f), view, ortho);
+        }
         // View based on the camera
         spatial::matrix view = spatial::matrix().lookat(camera.eye, camera.center, camera.up);
 
