@@ -96,8 +96,8 @@ namespace implementation {
 
             bool recompile(type::object& object);
 
-            void draw(type::object& object, type::program& shader, const spatial::matrix& model, const spatial::matrix& view, const spatial::matrix& projection, unsigned int options=0x00);
-            void draw(std::string text, type::font& font, type::program& shader, const spatial::matrix& model, const spatial::matrix& view, const spatial::matrix& projection, unsigned int options = 0x00);
+            void draw(type::object& object, type::program& shader, const spatial::matrix& model, const spatial::matrix& view, const spatial::matrix& projection, const spatial::matrix& lighting=spatial::matrix(), unsigned int options=0x00);
+            void draw(std::string text, type::font& font, type::program& shader, const spatial::matrix& model, const spatial::matrix& view, const spatial::matrix& projection, const spatial::matrix& lighting=spatial::matrix(), unsigned int options = 0x00);
 
             void ontarget(type::object* object) {
                 if (fbos.find(object) == fbos.end()) {

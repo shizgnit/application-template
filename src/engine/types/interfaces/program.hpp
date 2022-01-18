@@ -18,6 +18,7 @@ namespace type {
         int u_ModelMatrix;
         int u_ViewMatrix;
         int u_ProjectionMatrix;
+        int u_LightingMatrix;
 
         int u_SurfaceTextureUnit;
         int u_ShadowTextureUnit;

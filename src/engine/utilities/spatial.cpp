@@ -472,13 +472,13 @@ spatial::matrix& spatial::matrix::perspective(type_t fov, type_t aspect, type_t 
     return *this;
 }
 
-spatial::matrix& spatial::matrix::ortho(type_t left, type_t right, type_t bottom, type_t top, bool flip) {
+spatial::matrix& spatial::matrix::ortho(type_t left, type_t right, type_t bottom, type_t top) {
     r[0][0] = 2.0f / (right - left);
     r[1][1] = 2.0f / (top - bottom);
     r[2][2] = -1.0f;
     r[3][0] = -(right + left) / (right - left);
     r[3][1] = -(top + bottom) / (top - bottom);
-    r[3][3] = flip ? -1.0f : 1.0f;
+    r[3][3] = 1.0f;
     return *this;
 }
 

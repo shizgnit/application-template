@@ -94,8 +94,10 @@ void implementation::opengl::graphics::init(void) {
     // Setup the shadow depth map
     shadow = spatial::quad(256, 256);
     shadow.texture.depth = true;
-    shadow.texture.map.properties.width = 1024;
-    shadow.texture.map.properties.height = 1024;
+
+    shadow.texture.map.create(1024, 1024, 0, 0, 0, 0);
+    //shadow.texture.map.properties.width = 1024;
+    //shadow.texture.map.properties.height = 1024;
     shadow.xy_projection(0, 0, shadow.texture.map.properties.width, shadow.texture.map.properties.height);
     compile(shadow);
 }
@@ -213,6 +215,7 @@ bool implementation::opengl::graphics::compile(type::program& program) {
     program.u_ModelMatrix = glGetUniformLocation(program.context, "u_ModelMatrix");
     program.u_ViewMatrix = glGetUniformLocation(program.context, "u_ViewMatrix");
     program.u_ProjectionMatrix = glGetUniformLocation(program.context, "u_ProjectionMatrix");
+    program.u_LightingMatrix = glGetUniformLocation(program.context, "u_LightingMatrix");
 
     program.u_SurfaceTextureUnit = glGetUniformLocation(program.context, "u_SurfaceTextureUnit");
     program.u_ShadowTextureUnit = glGetUniformLocation(program.context, "u_ShadowTextureUnit");
@@ -282,7 +285,7 @@ bool implementation::opengl::graphics::compile(type::font& font) {
     return true;
 }
 
-void implementation::opengl::graphics::draw(type::object& object, type::program& shader, const spatial::matrix& model, const spatial::matrix& view, const spatial::matrix& projection, unsigned int options) {
+void implementation::opengl::graphics::draw(type::object& object, type::program& shader, const spatial::matrix& model, const spatial::matrix& view, const spatial::matrix& projection, const spatial::matrix& lighting, unsigned int options) {
     // Look for the first object with vertices, just at the top level for now
     auto &target = object;
     if (target.vertices.size() == 0) {
@@ -301,6 +304,7 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
     glUniformMatrix4fv(shader.u_ModelMatrix, 1, GL_FALSE, (GLfloat*)model.data());
     glUniformMatrix4fv(shader.u_ViewMatrix, 1, GL_FALSE, (GLfloat*)view.data());
     glUniformMatrix4fv(shader.u_ProjectionMatrix, 1, GL_FALSE, (GLfloat*)projection.data());
+    glUniformMatrix4fv(shader.u_LightingMatrix, 1, GL_FALSE, (GLfloat*)lighting.data());
 
     glUniform1i(shader.u_SurfaceTextureUnit, 0);
     glUniform1i(shader.u_ShadowTextureUnit, 1);
@@ -348,7 +352,7 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
     }
 }
 
-void implementation::opengl::graphics::draw(std::string text, type::font& font, type::program& shader, const spatial::matrix& model, const spatial::matrix& view, const spatial::matrix& projection, unsigned int options) {
+void implementation::opengl::graphics::draw(std::string text, type::font& font, type::program& shader, const spatial::matrix& model, const spatial::matrix& view, const spatial::matrix& projection, const spatial::matrix& lighting, unsigned int options) {
     int prior = 0;
     spatial::matrix position = model;
     for (unsigned int i = 0; i < text.length(); i++) {

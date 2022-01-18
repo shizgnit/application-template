@@ -19,18 +19,5 @@ varying vec4 v_Clipping;
 
 void main()
 {
-  if ( v_Clipping.x < 0.0 )
-    discard;
-
-  if ( v_Clipping.y < 0.0 )
-    discard;
-
-  if ( v_Clipping.z < 0.0 )
-    discard;
-
-  if ( v_Clipping.w < 0.0 )
-    discard;
-
-  //gl_FragColor = texture2D(u_SurfaceTextureUnit, v_Texture.xy);
   gl_FragColor = vec4(texture2D(u_ShadowTextureUnit, v_Texture.xy).r);
 }

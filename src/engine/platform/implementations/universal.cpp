@@ -300,7 +300,7 @@ void implementation::universal::interface::draw(widget& instance) {
 
     graphics->draw(instance.background, shader, position, spatial::matrix(), projection);
     if (instance.edge.vertices.size()) {
-        graphics->draw(instance.edge, shader, edge, spatial::matrix(), projection, platform::graphics::render::WIREFRAME);
+        graphics->draw(instance.edge, shader, edge, spatial::matrix(), projection, spatial::matrix(), platform::graphics::render::WIREFRAME);
     }
 
     if (instance.specification == widget::spec::progress) {

@@ -19,7 +19,6 @@ void main()
 {
   mat4 MVP = u_ProjectionMatrix * u_ViewMatrix * u_ModelMatrix;
 
-  v_Texture = a_Texture.xy;
   v_Vertex = MVP * a_Vertex;
   v_Normal = normalize(MVP * a_Normal);
   
