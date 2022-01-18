@@ -34,7 +34,6 @@ namespace implementation {
             class attachment {
             public:
                 attachment() {
-                    int supported;
                     glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS, &supported);
                     for (int i = 0; i < supported; i++) {
                         inuse[GL_COLOR_ATTACHMENT0 + i] = false;
@@ -55,6 +54,7 @@ namespace implementation {
                     inuse[allocation] = false;
                 }
 
+                int supported = 0;
                 std::map<GLenum, bool> inuse;
             };
 

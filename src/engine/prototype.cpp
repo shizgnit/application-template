@@ -655,6 +655,8 @@ public:
 
         main::global().call("/set perspective.fov 90");
 
+        main::global().call("/set shadow.scale 42");
+
         main::global().call("/load sound glados");
         main::global().call("/load shader shader_basic basic");
         main::global().call("/load shader shader_cell cell");
@@ -731,7 +733,7 @@ public:
 
     type::object monkey;
 
-    type::object light;
+    type::object ray;
 
     bool load() {
         // TODO: don't use the progress bar to determine thread completion
@@ -789,10 +791,10 @@ public:
         graphics->compile(ground);
         graphics->compile(monkey);
 
-        light = spatial::ray(spatial::vector(0.0, 0.0, -0.2), spatial::vector(0.0, 0.0, 0.2));
-        light.texture.map.create(1, 1, 255, 255, 0, 255);
-        light.xy_projection(0, 0, 1, 1);
-        graphics->compile(light);
+        ray = spatial::ray(spatial::vector(0.0, 0.0, -0.2), spatial::vector(0.0, 0.0, 0.2));
+        ray.texture.map.create(1, 1, 255, 255, 255, 255);
+        ray.xy_projection(0, 0, 1, 1);
+        graphics->compile(ray);
 
 
         /*
@@ -823,6 +825,20 @@ public:
         return true;
     }
 
+    void draw(spatial::position pos, type::program& shader, const spatial::matrix& model, const spatial::matrix& view, const spatial::matrix& projection, unsigned int options = 0x00) {
+        
+        ray = spatial::ray(pos.center, pos.eye);
+        ray.texture.map.create(1, 1, 255, 0, 0, 255);
+        graphics->recompile(ray);
+        graphics->draw(ray, shader, model, view, projection, options);
+
+        ray = spatial::ray(pos.center, pos.up + pos.center);
+        ray.texture.map.create(1, 1, 0, 255, 0, 255);
+        graphics->recompile(ray);
+        graphics->draw(ray, shader, model, view, projection, options);
+
+    }
+
     void run() {
         auto& shader_basic = main::global().shaders["basic"];
         auto& shader_shadow = main::global().shaders["shadow"];
@@ -835,8 +851,6 @@ public:
         auto position = std::get<spatial::vector>(main::global().get("ambient.position"));
         auto lookat = std::get<spatial::vector>(main::global().get("ambient.lookat"));
 
-        light = spatial::ray(position, lookat);
-        graphics->recompile(light);
 
         graphics->ambient.position.reposition(position);
         graphics->ambient.position.lookat(lookat);
@@ -863,15 +877,19 @@ public:
 
             // orthographic view matrix relative to the target
             spatial::matrix ortho;
-            ortho.ortho(0, ground.texture.map.properties.width, 0, ground.texture.map.properties.height);
+
+            auto scale = std::get<int>(main::global().get("shadow.scale"));
+            ortho.ortho(scale, scale * -1.0f, scale, scale * -1.0f);
 
             // light matrix
             spatial::matrix view = spatial::matrix().lookat(graphics->ambient.position.eye, graphics->ambient.position.center, graphics->ambient.position.up);
+            //spatial::matrix view = spatial::matrix().lookat(camera.eye, camera.center, camera.up);
 
             graphics->draw(box, shader_basic, spatial::matrix().translate(0, -7, 0).scale(0.5f), view, ortho);
             graphics->draw(box, shader_basic, spatial::matrix().translate(5, -5, 0), view, ortho);
             graphics->draw(monkey, shader_basic, spatial::matrix().translate(0, -2, -10).scale(5.0f), view, ortho);
         }
+
         // View based on the camera
         spatial::matrix view = spatial::matrix().lookat(camera.eye, camera.center, camera.up);
 
@@ -888,7 +906,7 @@ public:
 
         graphics->draw(monkey, shader_objects, spatial::matrix().translate(0, -2, -10).scale(5.0f), view, perspective);
 
-        graphics->draw(light, shader_basic, spatial::matrix(), view, perspective);
+        draw(graphics->ambient.position, shader_basic, spatial::matrix(), view, perspective);
 
         spatial::matrix frame;
         frame.identity();

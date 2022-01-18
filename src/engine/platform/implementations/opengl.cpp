@@ -39,6 +39,9 @@ void implementation::opengl::fbo::enable(bool clear) {
     if (clear || target->texture.depth) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
+    else {
+        glClear(GL_DEPTH_BUFFER_BIT);
+    }
 }
 
 void implementation::opengl::fbo::disable() {
@@ -67,6 +70,9 @@ void implementation::opengl::graphics::init(void) {
     // Depth test
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL);
+    glDepthMask(GL_TRUE);
+    glClearDepthf(1.0f);
+    glDepthRangef(0.1f, 1.0f);
 
     // Alpha blending
     glEnable(GL_BLEND);

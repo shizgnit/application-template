@@ -472,13 +472,13 @@ spatial::matrix& spatial::matrix::perspective(type_t fov, type_t aspect, type_t 
     return *this;
 }
 
-spatial::matrix& spatial::matrix::ortho(type_t left, type_t right, type_t bottom, type_t top) {
+spatial::matrix& spatial::matrix::ortho(type_t left, type_t right, type_t bottom, type_t top, bool flip) {
     r[0][0] = 2.0f / (right - left);
     r[1][1] = 2.0f / (top - bottom);
     r[2][2] = -1.0f;
     r[3][0] = -(right + left) / (right - left);
     r[3][1] = -(top + bottom) / (top - bottom);
-    r[3][3] = 1.0f;
+    r[3][3] = flip ? -1.0f : 1.0f;
     return *this;
 }
 
@@ -826,16 +826,16 @@ void spatial::position::project(const vector& offset, const vector& projection) 
 }
 
 spatial::position& spatial::position::reposition(const vector& offset) {
-    eye += offset - center;
-    center = offset;
+    center += offset - eye;
+    eye = offset;
     return *this;
 }
 
 spatial::position& spatial::position::lookat(const vector& offset) {
-    auto forward = (offset - center).unit();
+    auto forward = (offset - eye).unit();
     auto right = vector(0, 1, 0) % forward;
 
-    eye = forward + center;
+    center = forward + eye;
     up = (forward % right).unit();
 
     return *this;

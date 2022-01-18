@@ -147,6 +147,10 @@
     <Content Include="assets\objects\ground.obj" />
     <Content Include="assets\objects\ground\ground.mtl" />
     <Content Include="assets\objects\ground\ground.obj" />
+    <Content Include="assets\objects\ground\ground.png" />
+    <Content Include="assets\objects\monkey.mtl" />
+    <Content Include="assets\objects\monkey.obj" />
+    <Content Include="assets\objects\monkey.png" />
     <Content Include="assets\objects\poly.mtl" />
     <Content Include="assets\objects\poly.obj" />
     <Content Include="assets\objects\poly.png" />
@@ -162,6 +166,8 @@
     <Content Include="assets\shaders\pick_shader.vert" />
     <Content Include="assets\shaders\shader_basic.frag" />
     <Content Include="assets\shaders\shader_basic.vert" />
+    <Content Include="assets\shaders\shader_cell.frag" />
+    <Content Include="assets\shaders\shader_cell.vert" />
     <Content Include="assets\shaders\shader_depth.frag" />
     <Content Include="assets\shaders\shader_depth.vert" />
     <Content Include="assets\shaders\shader_lighting.frag" />
