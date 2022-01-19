@@ -1,6 +1,7 @@
 uniform mat4 u_ModelMatrix;
 uniform mat4 u_ViewMatrix;
 uniform mat4 u_ProjectionMatrix;
+uniform mat4 u_LightingMatrix;
 
 uniform vec4 u_Clipping;
 
@@ -14,6 +15,7 @@ attribute vec4 a_Normal;
 varying vec4 v_Vertex;
 varying vec2 v_Texture;
 varying vec4 v_Normal;
+varying vec4 v_Lighting;
 
 void main()
 {
@@ -24,4 +26,6 @@ void main()
   
   gl_Position = v_Vertex;
   gl_Position.z = -1.0 + (gl_Position.z / 10.0);
+
+  v_Lighting = (u_LightingMatrix * u_ModelMatrix) * a_Vertex;
 }

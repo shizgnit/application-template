@@ -663,7 +663,7 @@ public:
         main::global().call("/load sound glados");
         main::global().call("/load shader basic basic");
         main::global().call("/load shader cell cell");
-        main::global().call("/load shader defuse lighting");
+        main::global().call("/load shader defuse defuse");
         main::global().call("/load shader shadowmap shadowmap");
         main::global().call("/load shader depth_to_color depth");
         main::global().call("/load shader basic gui");
@@ -850,10 +850,10 @@ public:
     void run() {
         auto& shader_basic = main::global().shaders["basic"];
         auto& shader_shadowmap = main::global().shaders["shadowmap"];
+        auto& shader_defuse = main::global().shaders["defuse"];
         auto& shader_skybox = main::global().shaders["skybox"];
         auto& shader_objects = main::global().shaders["objects"];
         auto& shader_scenery = main::global().shaders["scenery"];
-        auto& shader_lighting = main::global().shaders["lighting"];
 
         auto& perspective = main::global().perspective;
 
@@ -880,9 +880,9 @@ public:
         {
             auto scoped = graphics->target(graphics->shadow);
 
-            graphics->draw(box, shader_shadowmap, box1_matrix, lighting, ortho);
-            graphics->draw(box, shader_shadowmap, box2_matrix, lighting, ortho);
-            graphics->draw(monkey, shader_shadowmap, spatial::matrix().translate(0, -2, -10).scale(5.0f), lighting, ortho);
+            graphics->draw(box, shader_shadowmap, box1_matrix, lighting, ortho, ortho * lighting);
+            graphics->draw(box, shader_shadowmap, box2_matrix, lighting, ortho, ortho * lighting);
+            graphics->draw(monkey, shader_shadowmap, spatial::matrix().translate(0, -2, -10).scale(5.0f), lighting, ortho, ortho * lighting);
         }
 
         if(0) {
@@ -902,8 +902,8 @@ public:
 
         graphics->draw(ground, shader_scenery, spatial::matrix().scale(4.0f), view, perspective, ortho * lighting, platform::graphics::render::NORMALS);
 
-        graphics->draw(box, shader_lighting, box1_matrix, view, perspective, ortho * lighting, platform::graphics::render::NORMALS);
-        graphics->draw(box, shader_lighting, box2_matrix, view, perspective, ortho * lighting, platform::graphics::render::NORMALS);
+        graphics->draw(box, shader_defuse, box1_matrix, view, perspective, ortho * lighting, platform::graphics::render::NORMALS);
+        graphics->draw(box, shader_defuse, box2_matrix, view, perspective, ortho * lighting, platform::graphics::render::NORMALS);
 
         graphics->draw(xAxis, shader_basic, spatial::matrix(), view, perspective);
         graphics->draw(yAxis, shader_basic, spatial::matrix(), view, perspective);
@@ -917,7 +917,7 @@ public:
         frame.identity();
         frame.translate(20, graphics->height() - 20 - 256, 0);
 
-        graphics->draw(graphics->shadow, main::global().shaders["depth"], frame, spatial::matrix(), main::global().ortho);
+        graphics->draw(graphics->shadow, graphics->shadow.texture.depth ? main::global().shaders["depth"] : shader_basic, frame, spatial::matrix(), main::global().ortho);
 
         /*
         if (object_moving[0]) {

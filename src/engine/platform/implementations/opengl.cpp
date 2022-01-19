@@ -93,11 +93,8 @@ void implementation::opengl::graphics::init(void) {
 
     // Setup the shadow depth map
     shadow = spatial::quad(256, 256);
-    shadow.texture.depth = true;
-
     shadow.texture.map.create(1024, 1024, 0, 0, 0, 0);
-    //shadow.texture.map.properties.width = 1024;
-    //shadow.texture.map.properties.height = 1024;
+    //shadow.texture.depth = true;
     shadow.xy_projection(0, 0, shadow.texture.map.properties.width, shadow.texture.map.properties.height);
     compile(shadow);
 }
@@ -244,7 +241,7 @@ bool implementation::opengl::graphics::compile(type::object& object) {
     if (object.texture.depth) {
         glGenTextures(1, &object.texture.context);
         glBindTexture(GL_TEXTURE_2D, object.texture.context);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, object.texture.map.properties.width, object.texture.map.properties.height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, object.texture.map.properties.width, object.texture.map.properties.height, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, NULL);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -296,7 +293,7 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, target.texture.context);
-    if (shadow.texture.depth) {
+    if (shadow.texture.context) {
         glActiveTexture(GL_TEXTURE0 + 1);
         glBindTexture(GL_TEXTURE_2D, shadow.texture.context);
     }

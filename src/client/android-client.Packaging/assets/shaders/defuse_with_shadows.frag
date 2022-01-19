@@ -13,6 +13,13 @@ varying vec4 v_Lighting;
 
 // https://learnopengl.com/Advanced-Lighting/Shadows/Shadow-Mapping
 // https://stackoverflow.com/questions/6652253/getting-the-true-z-value-from-the-depth-buffer
+// https://stackoverflow.com/questions/48288154/pack-depth-information-in-a-rgba-texture-using-mediump-precison
+
+float UnpackDepth16( in vec2 pack )
+{
+    float depth = dot( pack, 1.0 / vec2(1.0, 256.0) );
+    return depth * (256.0*256.0) / (256.0*256.0 - 1.0);
+}
 
 void main()
 {
@@ -28,19 +35,15 @@ void main()
    vec3 Projection = v_Lighting.xyz / v_Lighting.w;
    Projection = Projection * 0.5 + 0.5;
 
-   //float depth = texture2D(u_ShadowTextureUnit, Projection.xy).r;
-   //float shadow = depth != 1.0 ? 0.5 : 1.0;
-   //float shadow = Projection.z >= 10.0 ? 0.5 : 1.0;
-
    float shadow = 0.0;
    vec2 texelSize = vec2(1.0 / 1024.0f);
-   //vec2 texelSize = 1.0 / textureSize(u_ShadowTextureUnit, 0);   
+   //vec2 texelSize = 1.0 / textureSize(u_ShadowTextureUnit, 0);
    for(int x = -1; x <= 1; ++x)
    {
       for(int y = -1; y <= 1; ++y)
       {
-         float depth = texture2D(u_ShadowTextureUnit, Projection.xy + vec2(x, y) * texelSize).r; 
-         shadow += depth != 1.0 ? 1.0 : 0.0;
+         float depth = texture2D(u_ShadowTextureUnit, Projection.xy + vec2(x, y) * texelSize).z;
+         shadow += depth > 0.0 ? 1.0 : 0.0;
       }
    }
    shadow /= 9.0;
