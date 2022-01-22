@@ -44,7 +44,7 @@ public:
 
     type::object *object;
 
-    std::list<spatial::position> targets;
+    std::list<spatial::position> path;
     spatial::position position;
 };
 
@@ -885,19 +885,6 @@ public:
             graphics->draw(monkey, shader_shadowmap, spatial::matrix().translate(0, -2, -10).scale(5.0f), lighting, ortho, ortho * lighting);
         }
 
-        if(0) {
-            auto scoped = graphics->target(ground);
-
-            // orthographic view matrix relative to the target
-            spatial::matrix ortho;
-            auto scale = std::get<int>(main::global().get("shadow.scale"));
-            ortho.ortho(scale, scale * -1.0f, scale, scale * -1.0f);
-
-            graphics->draw(box, shader_basic, box1_matrix, lighting, ortho);
-            graphics->draw(box, shader_basic, box2_matrix, lighting, ortho);
-            graphics->draw(monkey, shader_basic, spatial::matrix().translate(0, -2, -10).scale(5.0f), lighting, ortho);
-        }
-
         graphics->draw(skybox, shader_skybox, spatial::matrix(), view, perspective);
 
         graphics->draw(ground, shader_scenery, spatial::matrix().scale(4.0f), view, perspective, ortho * lighting, platform::graphics::render::NORMALS);
@@ -1019,7 +1006,7 @@ public:
             ss << "on_zoom(" << ev.travel << ")(" << ev.point.x << ", " << ev.point.y << ")";
             main::debug().content.add(ss.str());
         }
-        camera.move(ev.travel > 0 ? 0.1 : -0.1);
+        camera.move(ev.travel > 0 ? 1.0 : -1.0);
     }
 
     void mouse_move(const platform::input::event& ev) {

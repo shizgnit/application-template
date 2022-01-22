@@ -166,6 +166,9 @@
     <Link>
       <LibraryDependencies>%(LibraryDependencies);;GLESv2;EGL;OpenSLES;m;GLESv1_CM;EGL;</LibraryDependencies>
     </Link>
+    <PreBuildEvent>
+      <Command>if not exist $(SolutionDir)\src\client\android-client.Packaging\assets mklink /J $(SolutionDir)\src\client\android-client.Packaging\assets $(SolutionDir)\assets </Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
     <ClCompile>
@@ -176,6 +179,9 @@
     <Link>
       <LibraryDependencies>%(LibraryDependencies);GLESv1_CM;EGL;</LibraryDependencies>
     </Link>
+    <PreBuildEvent>
+      <Command>if not exist $(SolutionDir)\src\client\android-client.Packaging\assets mklink /J $(SolutionDir)\src\client\android-client.Packaging\assets $(SolutionDir)\assets </Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
