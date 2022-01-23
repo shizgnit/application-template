@@ -55,7 +55,7 @@ namespace utilities {
     std::string join(std::string, std::vector<std::string> arguments);
 //    std::vector<std::string> split(std::string expression, std::string buffer, int limit = 0);
 
-    std::vector<std::string> tokenize(std::string input, std::string delimiter = "");
+    std::vector<std::string> tokenize(std::string input, std::string delimiter = "", int tokens=0);
 
 //    std::string substitute(std::string input, std::string expression, std::string replacement, bool global = true);
 //    std::string substitute(std::string input, std::vector<std::string>& replacement);

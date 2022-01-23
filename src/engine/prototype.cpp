@@ -15,19 +15,14 @@ typedef std::string label_t;
 typedef std::variant<double, int, std::string, spatial::vector> value_t;
 
 /// <summary>
-/// Represents visual components of the current scene.
+/// Organizes the resources, interface and actions that are currently active
+/// as well as transations between them.
+/// - Title
+/// - Configuration
+/// - Results
 /// </summary>
-class entity {
+class main {
 public:
-    static int id() {
-        static int count = 0;
-        return count++;
-    }
-
-    entity(type::object* instance) {
-        object = instance;
-    }
-
     class movement {
         /*
         Velocity calculation
@@ -42,21 +37,42 @@ public:
         float gravity;
     };
 
-    type::object *object;
+    /// <summary>
+    /// Represents visual components of the current scene.
+    /// </summary>
+    class entity {
+    public:
+        void load(std::string path, std::string id) {
+            path += "/" + id;
+            for (auto state : assets->list(path)) {
+                auto resources = assets->list(path + "/" + state);
+                animations[state].frames.resize(resources.size());
 
-    std::list<spatial::position> path;
-    spatial::position position;
-};
+                std::sort(resources.begin(), resources.end());
 
-/// <summary>
-/// Organizes the resources, interface and actions that are currently active
-/// as well as transations between them.
-/// - Title
-/// - Configuration
-/// - Results
-/// </summary>
-class main {
-public:
+                int i = 0;
+                for (auto resource : resources) {
+                    assets->retrieve(path + "/" + state + "/" + resource) >> format::parser::obj >> animations[state].frames[i];
+                    graphics->compile(animations[state].frames[i]);
+                    i++;
+                }
+            }
+        }
+
+        spatial::position position;
+
+    protected:
+        class animation {
+            friend class entity;
+            int frame = 0;
+            std::vector<type::object> frames;
+        };
+
+        std::map<std::string, animation> animations;
+
+        std::list<spatial::position> path;
+    };
+
     class scene {
     public:
         scene() {}
@@ -242,6 +258,7 @@ public:
     std::map<std::string, type::program> shaders;
     std::map<std::string, type::audio> sounds;
     std::map<std::string, type::object> objects;
+    std::map<std::string, entity> entities;
 
     std::map<label_t, value_t> variables;
 
@@ -432,7 +449,7 @@ private:
             auto source = std::get<std::string>(p[1]);
             auto target = p.size() == 3 ? std::get<std::string>(p[2]) : source;
 
-            auto tokens = utilities::tokenize(source, "/");
+            auto tokens = utilities::tokenize(source, "/", 2);
 
             std::string resource = tokens.size() == 2 ? tokens[1] : tokens[0];
 
@@ -479,7 +496,8 @@ private:
                 graphics->compile(objects[target]);
             }
             if (type == "entity") {
-                // TODO
+                std::string path = tokens.size() == 2 ? tokens[0] : "objects";                
+                entities[target].load(path, resource);
             }
         }
         return 0;
@@ -515,6 +533,11 @@ private:
             for (auto entry : objects) {
                 std::stringstream ss;
                 ss << "object(" << entry.first << ")";
+                main::debug().content.add(ss.str());
+            }
+            for (auto entry : entities) {
+                std::stringstream ss;
+                ss << "entity(" << entry.first << ")";
                 main::debug().content.add(ss.str());
             }
         }
