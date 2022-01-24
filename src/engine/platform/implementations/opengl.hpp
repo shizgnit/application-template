@@ -91,6 +91,7 @@ namespace implementation {
 
             bool compile(type::shader& shader);
             bool compile(type::program& program);
+            bool compile(type::material& material);
             bool compile(type::object& object);
             bool compile(type::font& font);
 

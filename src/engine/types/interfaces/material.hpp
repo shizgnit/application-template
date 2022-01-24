@@ -30,6 +30,10 @@ namespace type {
             return instance;
         }
 
+        bool empty() {
+            return children.empty();
+        }
+
     protected:
         std::vector<material> children;
     };

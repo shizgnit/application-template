@@ -19,6 +19,7 @@ namespace platform {
 
         virtual bool compile(type::shader& shader) = 0;
         virtual bool compile(type::program& program) = 0;
+        virtual bool compile(type::material& material) = 0;
         virtual bool compile(type::object& object) = 0;
         virtual bool compile(type::font& font) = 0;
 

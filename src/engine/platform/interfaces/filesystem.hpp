@@ -22,7 +22,7 @@ namespace platform {
 
         virtual std::pair<int, std::string> error() = 0;
 
-        virtual std::vector<std::string> read_directory(std::string path) = 0;
+        virtual std::vector<std::string> read_directory(std::string path, bool hidden=false) = 0;
 
         virtual bool is_directory(std::string path) = 0;
     };

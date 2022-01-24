@@ -340,7 +340,7 @@ std::string utilities::uuid() {
     return(output);
 }
 
-void utilities::sleep(time_t milliseconds) {
+void utilities::sleep(::time_t milliseconds) {
     Sleep(milliseconds);
 }
 
@@ -354,7 +354,7 @@ std::string utilities::uuid() {
     return "";
 }
 
-void utilities::sleep(time_t milliseconds) {
+void utilities::sleep(::time_t milliseconds) {
     ::sleep(milliseconds/1000);
 }
 

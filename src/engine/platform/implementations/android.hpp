@@ -16,6 +16,8 @@ namespace implementation {
 
             void release();
 
+            bool load(std::string type, std::string resource, std::string id);
+
         private:
             AAssetManager* assetManager;
         };

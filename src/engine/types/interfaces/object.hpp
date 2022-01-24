@@ -139,6 +139,10 @@ namespace type {
 
         std::vector<object> children;
 
+        bool empty() {
+            return vertices.empty() && children.empty();
+        }
+
     protected:
         void calculate_constraints() {
             for (auto vertex : vertices) {

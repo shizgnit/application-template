@@ -65,7 +65,7 @@ namespace utilities {
 
     std::string uuid();
 
-    void sleep(time_t milliseconds);
+    void sleep(time_t milliseconds); // TODO: move this over to std::chrono types
 
     template<class T> T read(std::istream& input, size_t bytes = sizeof(T)) {
         char buffer[8];
@@ -204,5 +204,17 @@ namespace utilities {
         std::mutex lock;
     };
 
+    // https://philippegroarke.com/posts/2018/chrono_for_humans/
+
+    using time_t = std::chrono::high_resolution_clock::time_point;
+
+    using milliseconds_t = std::chrono::duration<double, std::milli>;
+    using seconds_t = std::chrono::duration<double>;
+    using minutes_t = std::chrono::duration<double, std::ratio<60>>;
+    using hours_t = std::chrono::duration<double, std::ratio<3600>>;
+    using days_t = std::chrono::duration<double, std::ratio<86400>>;
+    using weeks_t = std::chrono::duration<double, std::ratio<604800>>;
+    using months_t = std::chrono::duration<double, std::ratio<2629746>>;
+    using years_t = std::chrono::duration<double, std::ratio<31556952>>;
 
 }

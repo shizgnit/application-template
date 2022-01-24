@@ -146,7 +146,7 @@ std::pair<int, std::string> implementation::windows::filesystem::error() {
     return std::pair<int, std::string>(dw, utilities::type_cast<std::string>((LPTSTR)lpMsgBuf));
 }
 
-std::vector<std::string> implementation::windows::filesystem::read_directory(std::string path) {
+std::vector<std::string> implementation::windows::filesystem::read_directory(std::string path, bool hidden) {
     std::vector<std::string> results;
 
     if (path[path.length() - 1] == '\\') {
@@ -162,7 +162,9 @@ std::vector<std::string> implementation::windows::filesystem::read_directory(std
     }
     do
     {
-        results.push_back(utilities::type_cast<std::string>(last->cFileName));
+        if (hidden == true || last->cFileName[0] != '.') {
+            results.push_back(utilities::type_cast<std::string>(last->cFileName));
+        }
     } while (FindNextFile(handle, last) != 0);
 
     return results;
@@ -217,6 +219,13 @@ void implementation::windows::assets::release() {
         delete ref;
     }
     stack.pop_back();
+}
+
+bool implementation::windows::assets::load(std::string type, std::string resource, std::string id) {
+    if (loader == NULL) {
+        loader = new implementation::universal::assets();
+    }
+    return loader->load(this, type, resource, id);
 }
 
 std::string implementation::windows::network::hostname() {

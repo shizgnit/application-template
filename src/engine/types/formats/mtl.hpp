@@ -79,7 +79,8 @@ namespace format {
                 }
                 if (command == "map_Kd") {
                     type::image texture;
-                    assets->retrieve(arguments[1]) >> format::parser::png >> texture;
+                    std::string file = arguments[1] == "." ? "untitled.png" : arguments[1];
+                    assets->retrieve(file) >> format::parser::png >> texture;
                     instance.children.back().map = texture;
                 }
             }

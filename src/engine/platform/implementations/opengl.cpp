@@ -225,6 +225,34 @@ bool implementation::opengl::graphics::compile(type::program& program) {
     return true;
 }
 
+bool implementation::opengl::graphics::compile(type::material& material) {
+    if (material.compile() == false) {
+        return false;
+    }
+
+    if (material.depth) {
+        glGenTextures(1, &material.context);
+        glBindTexture(GL_TEXTURE_2D, material.context);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, material.map.properties.width, material.map.properties.height, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, NULL);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    }
+    else {
+        glGenTextures(1, &material.context);
+        glBindTexture(GL_TEXTURE_2D, material.context);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, material.map.properties.width, material.map.properties.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, material.map.raster.data());
+        glGenerateMipmap(GL_TEXTURE_2D);
+    }
+    
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    return true;
+}
+
 bool implementation::opengl::graphics::compile(type::object& object) {
     for (auto &child : object.children) {
         compile(child);
@@ -238,24 +266,7 @@ bool implementation::opengl::graphics::compile(type::object& object) {
     glBufferData(GL_ARRAY_BUFFER, sizeof(spatial::vertex) * object.vertices.size(), object.vertices.data(), GL_DYNAMIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-    if (object.texture.depth) {
-        glGenTextures(1, &object.texture.context);
-        glBindTexture(GL_TEXTURE_2D, object.texture.context);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, object.texture.map.properties.width, object.texture.map.properties.height, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, NULL);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    }
-    else {
-        glGenTextures(1, &object.texture.context);
-        glBindTexture(GL_TEXTURE_2D, object.texture.context);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, object.texture.map.properties.width, object.texture.map.properties.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, object.texture.map.raster.data());
-        glGenerateMipmap(GL_TEXTURE_2D);
-    }
-    glBindTexture(GL_TEXTURE_2D, 0);
+    compile(object.texture);
 
     return true;
 }

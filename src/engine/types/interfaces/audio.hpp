@@ -21,6 +21,10 @@ namespace type {
             instance = input;
             return instance;
         }
+
+        bool empty() {
+            return buffer.empty();
+        }
     };
 
 }

@@ -336,4 +336,69 @@ void implementation::universal::interface::position(widget& instance) {
     instance.bounds = position.interpolate(spatial::quad(instance.background.vertices));
 }
 
+bool implementation::universal::assets::load(platform::assets* instance, std::string type, std::string resource, std::string id) {
+    auto tokens = utilities::tokenize(resource, "/", 2);
+
+    std::string source = tokens.size() == 2 ? tokens[1] : tokens[0];
+
+    if (type == "audio") {
+        std::string path = tokens.size() == 2 ? tokens[0] : "raw";
+        instance->retrieve(path + "/" + resource + ".wav") >> format::parser::wav >> instance->sounds[id];
+    }
+    if (type == "shader") {
+        std::string path = tokens.size() == 2 ? tokens[0] : "shaders";
+        instance->retrieve(path + "/" + resource + ".vert") >> format::parser::vert >> instance->shaders[id].vertex;
+        instance->retrieve(path + "/" + resource + ".frag") >> format::parser::frag >> instance->shaders[id].fragment;
+    }
+    if (type == "font") {
+        std::string path = tokens.size() == 2 ? tokens[0] : "fonts";
+        instance->retrieve(path + "/" + resource + ".fnt") >> format::parser::fnt >> instance->fonts[id];
+    }
+    if (type == "object") {
+        std::string path = tokens.size() == 2 ? tokens[0] : "objects";
+        if (resource.substr(resource.size() - 4, 4) == ".fbx") {
+            id = id == resource ? resource.substr(0, resource.size() - 4) : id;
+            instance->retrieve(path + "/" + resource) >> format::parser::fbx >> instance->objects[id];
+        }
+        else if (resource.substr(resource.size() - 4, 4) == ".obj") {
+            id = id == resource ? resource.substr(0, resource.size() - 4) : id;
+            instance->retrieve(path + "/" + resource) >> format::parser::obj >> instance->objects[id];
+        }
+        else if (resource.substr(resource.size() - 4, 4) == ".png") {
+            id = id == resource ? resource.substr(0, resource.size() - 4) : id;
+            instance->objects[id] = spatial::quad(256, 256);
+            instance->retrieve(path + "/" + resource) >> format::parser::png >> instance->objects[id].texture.map;
+            instance->objects[id].xy_projection(0, 0, instance->objects[id].texture.map.properties.width, instance->objects[id].texture.map.properties.height);
+        }
+        else {
+            instance->retrieve(path + "/" + resource + ".obj") >> format::parser::obj >> instance->objects[id];
+        }
+    }
+    if (type == "entity") {
+        std::string path = tokens.size() == 2 ? tokens[0] : "objects";
+        path += "/" + id;
+        for (auto state : instance->list(path)) {
+            auto resources = instance->list(path + "/" + state);
+            std::sort(resources.begin(), resources.end());
+
+            std::vector<std::string> objects;
+            for (auto resource : resources) {
+                if (resource.substr(resource.size() - 4, 4) == ".obj") {
+                    objects.push_back(resource);
+                }
+            }
+
+            instance->entities[id].animations[state].frames.resize(objects.size());
+
+            int frame = 0;
+            for (auto resource : objects) {
+                instance->retrieve(path + "/" + state + "/" + resource) >> format::parser::obj >> instance->entities[id].animations[state].frames[frame];
+                frame++;
+            }
+        }
+    }
+
+    return false;
+}
+
 #endif

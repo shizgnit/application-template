@@ -91,6 +91,7 @@
 #include <random>
 #include <thread>
 #include <functional>
+#include <chrono>
 
 #include <pthread.h>
 
@@ -108,6 +109,7 @@
 #include "types/interfaces/material.hpp"
 #include "types/interfaces/object.hpp"
 #include "types/interfaces/font.hpp"
+#include "types/interfaces/entity.hpp"
 
 
 #undef interface // Thanks Microsoft

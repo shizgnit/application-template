@@ -26,7 +26,7 @@ namespace implementation {
 
             std::pair<int, std::string> error();
 
-            std::vector<std::string> read_directory(std::string path);
+            std::vector<std::string> read_directory(std::string path, bool hidden=false);
 
             bool is_directory(std::string path);
         };
@@ -40,6 +40,8 @@ namespace implementation {
             std::istream& retrieve(std::string path);
 
             void release();
+
+            bool load(std::string type, std::string resource, std::string id);
 
             std::string base;
         };

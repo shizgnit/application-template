@@ -50,8 +50,11 @@ namespace type {
                     raster[index++] = b;
                     raster[index++] = a;
                 }
-            }
+            }        
+        }
 
+        bool empty() {
+            return raster.empty();
         }
     };
 

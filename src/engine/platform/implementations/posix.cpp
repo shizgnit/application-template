@@ -213,7 +213,7 @@ std::pair<int, std::string> implementation::posix::filesystem::error() {
     return std::pair<int, std::string>(0, "");
 }
 
-std::vector<std::string> implementation::posix::filesystem::read_directory(std::string path) {
+std::vector<std::string> implementation::posix::filesystem::read_directory(std::string path, bool hidden) {
     std::vector<std::string> results;
 
     auto handle = opendir(path.c_str());
@@ -221,7 +221,9 @@ std::vector<std::string> implementation::posix::filesystem::read_directory(std::
         return results;
     }
     while(auto last = readdir(handle)) {
-        results.push_back(last->d_name);
+        if (hidden == true || last->d_name[0] != '.') {
+            results.push_back(last->d_name);
+        }
     }
     closedir(handle);
 

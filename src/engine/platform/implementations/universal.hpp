@@ -49,5 +49,10 @@ namespace implementation {
             void position(widget& instance);
         };
 
+        class assets : public platform::assets::common {
+        public:
+            bool load(platform::assets*, std::string type, std::string resource, std::string id);
+        };
+
     }
 }

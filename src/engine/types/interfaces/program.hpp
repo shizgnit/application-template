@@ -25,6 +25,10 @@ namespace type {
 
         int u_AmbientLightPosition;
         int u_AmbientLightColor;
+
+        bool empty() {
+            return fragment.empty() || vertex.empty();
+        }
     };
 
 }

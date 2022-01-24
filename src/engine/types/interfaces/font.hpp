@@ -65,6 +65,10 @@ namespace type {
             return size;
         }
 
+        bool empty() {
+            return glyphs.empty();
+        }
+
     protected:
 
         int identifier;

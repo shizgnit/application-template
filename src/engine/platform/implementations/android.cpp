@@ -81,4 +81,13 @@ void implementation::android::assets::release() {
     stack.pop_back();
 }
 
+
+bool implementation::android::assets::load(std::string type, std::string resource, std::string id) {
+    if (loader == NULL) {
+        loader = new implementation::universal::assets();
+    }
+    return loader->load(this, type, resource, id);
+}
+
+
 #endif

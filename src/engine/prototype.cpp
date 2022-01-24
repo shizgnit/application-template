@@ -2,13 +2,10 @@
 
 /*
 TODO
-time based animation and object manipulation
 object automated motion and movement/camera constraints
 input abstraction for user specified keybinds
 network communication updated for HTTPS
-cell shader
 particle system
-shadows
 */
 
 typedef std::string label_t;
@@ -41,36 +38,95 @@ public:
     /// Represents visual components of the current scene.
     /// </summary>
     class entity {
+        class animation {
+        public:
+            int frame = 0;
+            utilities::time_t start;
+            utilities::seconds_t elapsed;
+
+            std::vector<utilities::seconds_t> duration;
+            std::vector<type::object> frames;
+        };
+        std::string state;
+        std::map<std::string, animation> animations;
+
+        std::list<spatial::position> path;
+
+        //std::mutex lock;
+
     public:
         void load(std::string path, std::string id) {
+            //std::lock_guard<std::mutex> scoped(lock);
             path += "/" + id;
             for (auto state : assets->list(path)) {
                 auto resources = assets->list(path + "/" + state);
-                animations[state].frames.resize(resources.size());
-
                 std::sort(resources.begin(), resources.end());
 
-                int i = 0;
+                std::vector<std::string> objects;
                 for (auto resource : resources) {
-                    assets->retrieve(path + "/" + state + "/" + resource) >> format::parser::obj >> animations[state].frames[i];
-                    graphics->compile(animations[state].frames[i]);
-                    i++;
+                    if (resource.substr(resource.size() - 4, 4) == ".obj") {
+                        objects.push_back(resource);
+                    }
+                }
+
+                animations[state].frames.resize(objects.size());
+
+                int frame = 0;
+                for (auto resource : objects) {
+                    assets->retrieve(path + "/" + state + "/" + resource) >> format::parser::obj >> animations[state].frames[frame];
+                    graphics->compile(animations[state].frames[frame]);
+                    frame++;
                 }
             }
         }
 
         spatial::position position;
 
-    protected:
-        class animation {
-            friend class entity;
-            int frame = 0;
-            std::vector<type::object> frames;
-        };
+        void play(std::string animation, int seconds = 2) {
+            //std::lock_guard<std::mutex> scoped(lock);
+            animations[animation].start = std::chrono::high_resolution_clock::now();
+            animations[animation].elapsed = animations[animation].start.time_since_epoch();
+            if (animations[animation].duration.size() == 0) {
+                int frames = animations[animation].frames.size();
+                utilities::seconds_t duration = utilities::seconds_t{ seconds / (double)frames };
+                animations[animation].duration.resize(frames);
+                for (int i = 0; i < frames; i++) {
+                    animations[animation].duration[i] = duration;
+                }
+            }
+            state = animation;
+        }
 
-        std::map<std::string, animation> animations;
+        void animate() {
+            if (state.empty()) {
+                return;
+            }
 
-        std::list<spatial::position> path;
+            utilities::seconds_t now = std::chrono::high_resolution_clock::now().time_since_epoch();
+
+            int current = animations[state].frame;
+            int step = 0;
+
+            while ((animations[state].elapsed + animations[state].duration[current + step]) < now) {
+                animations[state].elapsed += animations[state].duration[current + step];
+                step += 1;
+                if ((current + step) >= animations[state].frames.size()) {
+                    current = 0;
+                    step = 0;
+                }
+            }
+
+            animations[state].frame = current + step;
+        }
+
+        operator type::object& () {
+            //std::lock_guard<std::mutex> scoped(lock);
+            static type::object empty;
+            if (state.empty()) {
+                return empty;
+            }
+            return animations[state].frames[animations[state].frame];
+        }
     };
 
     class scene {
@@ -254,11 +310,53 @@ public:
     spatial::matrix ortho;
     spatial::matrix perspective;
 
-    std::map<std::string, type::font> fonts;
-    std::map<std::string, type::program> shaders;
-    std::map<std::string, type::audio> sounds;
-    std::map<std::string, type::object> objects;
-    std::map<std::string, entity> entities;
+    struct {
+        type::font& font(std::string label) {
+            static type::font empty;
+            if (fonts.find(label) == fonts.end()) {
+                return empty;
+            }
+            return(fonts[label]);
+        }
+
+        type::program& shader(std::string label) {
+            static type::program empty;
+            if (shaders.find(label) == shaders.end()) {
+                return empty;
+            }
+            return(shaders[label]);
+        }
+
+        type::audio& sound(std::string label) {
+            static type::audio empty;
+            if (sounds.find(label) == sounds.end()) {
+                return empty;
+            }
+            return(sounds[label]);
+        }
+
+        type::object& object(std::string label) {
+            static type::object empty;
+            if (objects.find(label) == objects.end()) {
+                return empty;
+            }
+            return(objects[label]);
+        }
+
+        main::entity& entity(std::string label) {
+            static main::entity empty;
+            if (entities.find(label) == entities.end()) {
+                return empty;
+            }
+            return(entities[label]);
+        }
+
+        std::map<std::string, type::font> fonts;
+        std::map<std::string, type::program> shaders;
+        std::map<std::string, type::audio> sounds;
+        std::map<std::string, type::object> objects;
+        std::map<std::string, main::entity> entities;
+    } resources;
 
     std::map<label_t, value_t> variables;
 
@@ -412,6 +510,7 @@ private:
         { "/get",     { "/get <label>\n/get <entity> <label>", [](parameters_t p)->value_t { return main::global().get(p); } } },
         { "/set",     { "/set <label> <value>\n/set <entity> <label> <value>", [] (parameters_t p)->value_t { return main::global().set(p); } } },
         { "/load",    { "/load <type> <source> [target]", [](parameters_t p)->value_t { return main::global().load(p); } } },
+        { "/play",    { "/play <entity> <state>", [](parameters_t p)->value_t { return main::global().play(p); } } },
         { "/create",  { "/create <type>", [](parameters_t p)->value_t { return main::global().create(p); } } },
         { "/show",    { "/show <type>", [](parameters_t p)->value_t { return main::global().show(p); } } },
         { "/exit",    { "/exit", [](parameters_t p)->value_t { return main::global().exit(p); } } },
@@ -455,50 +554,62 @@ private:
 
             if (type == "audio") {
                 std::string path = tokens.size() == 2 ? tokens[0] : "raw";
-                assets->retrieve(path + "/" + resource + ".wav") >> format::parser::wav >> sounds[target];
-                audio->compile(sounds[target]);
+                assets->retrieve(path + "/" + resource + ".wav") >> format::parser::wav >> resources.sounds[target];
+                audio->compile(resources.sounds[target]);
             }
             if (type == "shader") {
                 std::string path = tokens.size() == 2 ? tokens[0] : "shaders";
-                assets->retrieve(path + "/" + resource + ".vert") >> format::parser::vert >> shaders[target].vertex;
-                assets->retrieve(path + "/" + resource + ".frag") >> format::parser::frag >> shaders[target].fragment;
-                shaders[target].compiled(false);
-                if (graphics->compile(shaders[target]) == false) {
+                assets->retrieve(path + "/" + resource + ".vert") >> format::parser::vert >> resources.shaders[target].vertex;
+                assets->retrieve(path + "/" + resource + ".frag") >> format::parser::frag >> resources.shaders[target].fragment;
+                resources.shaders[target].compiled(false);
+                if (graphics->compile(resources.shaders[target]) == false) {
                     while (graphics->messages()) {
-                        main::debug().content.add(graphics->message()); 
+                        main::debug().content.add(graphics->message());
                     }
                 }
             }
             if (type == "font") {
                 std::string path = tokens.size() == 2 ? tokens[0] : "fonts";
-                assets->retrieve(path + "/" + resource + ".fnt") >> format::parser::fnt >> fonts[target];
-                graphics->compile(fonts[target]);
+                assets->retrieve(path + "/" + resource + ".fnt") >> format::parser::fnt >> resources.fonts[target];
+                graphics->compile(resources.fonts[target]);
             }
             if (type == "object") {
                 std::string path = tokens.size() == 2 ? tokens[0] : "objects";
                 if (resource.substr(resource.size() - 4, 4) == ".fbx") {
                     target = target == resource ? resource.substr(0, resource.size() - 4) : target;
-                    assets->retrieve(path + "/" + resource) >> format::parser::fbx >> objects[target];
+                    assets->retrieve(path + "/" + resource) >> format::parser::fbx >> resources.objects[target];
                 }
                 else if (resource.substr(resource.size() - 4, 4) == ".obj") {
                     target = target == resource ? resource.substr(0, resource.size() - 4) : target;
-                    assets->retrieve(path + "/" + resource) >> format::parser::obj >> objects[target];
+                    assets->retrieve(path + "/" + resource) >> format::parser::obj >> resources.objects[target];
                 }
                 else if (resource.substr(resource.size() - 4, 4) == ".png") {
                     target = target == resource ? resource.substr(0, resource.size() - 4) : target;
-                    objects[target] = spatial::quad(256, 256);
-                    assets->retrieve(path + "/" + resource) >> format::parser::png >> objects[target].texture.map;
-                    objects[target].xy_projection(0, 0, objects[target].texture.map.properties.width, objects[target].texture.map.properties.height);
+                    resources.objects[target] = spatial::quad(256, 256);
+                    assets->retrieve(path + "/" + resource) >> format::parser::png >> resources.objects[target].texture.map;
+                    resources.objects[target].xy_projection(0, 0, resources.objects[target].texture.map.properties.width, resources.objects[target].texture.map.properties.height);
                 }
                 else {
-                    assets->retrieve(path + "/" + resource + ".obj") >> format::parser::obj >> objects[target];
+                    assets->retrieve(path + "/" + resource + ".obj") >> format::parser::obj >> resources.objects[target];
                 }
-                graphics->compile(objects[target]);
+                graphics->compile(resources.objects[target]);
             }
             if (type == "entity") {
-                std::string path = tokens.size() == 2 ? tokens[0] : "objects";                
-                entities[target].load(path, resource);
+                std::string path = tokens.size() == 2 ? tokens[0] : "objects";
+                resources.entities[target].load(path, resource);
             }
+        }
+        return 0;
+    }
+
+    value_t play(parameters_t p) {
+        if (p.size() == 2) {
+            auto name = std::get<label_t>(p[0]);
+            if (resources.entities.find(name) == resources.entities.end()) {
+                return 0;
+            }
+            resources.entities[name].play(std::get<std::string>(p[1]));
+            return 1;
         }
         return 0;
     }
@@ -515,27 +626,27 @@ private:
 
         auto type = std::get<std::string>(p[0]);
         if (type == "loaded") {
-            for (auto entry : fonts) {
+            for (auto entry : resources.fonts) {
                 std::stringstream ss;
                 ss << "font(" << entry.first << ")";
                 main::debug().content.add(ss.str());
             }
-            for (auto entry : sounds) {
+            for (auto entry : resources.sounds) {
                 std::stringstream ss;
                 ss << "audio(" << entry.first << ")";
                 main::debug().content.add(ss.str());
             }
-            for (auto entry : shaders) {
+            for (auto entry : resources.shaders) {
                 std::stringstream ss;
                 ss << "shader(" << entry.first << ")";
                 main::debug().content.add(ss.str());
             }
-            for (auto entry : objects) {
+            for (auto entry : resources.objects) {
                 std::stringstream ss;
                 ss << "object(" << entry.first << ")";
                 main::debug().content.add(ss.str());
             }
-            for (auto entry : entities) {
+            for (auto entry : resources.entities) {
                 std::stringstream ss;
                 ss << "entity(" << entry.first << ")";
                 main::debug().content.add(ss.str());
@@ -679,6 +790,8 @@ public:
         main::global().call("/set box1.position (0,-8,0)");
         main::global().call("/set box2.position (5,-7.7,0)");
 
+        main::global().call("/set wiggle.position (-5,-7,0)");
+
         main::global().call("/set perspective.fov 90");
 
         main::global().call("/set shadow.scale 42");
@@ -697,8 +810,8 @@ public:
 
         main::global().call("/load object drawable/marvin.png icon");
 
-        gui->shader = main::global().shaders["gui"];
-        gui->font = main::global().fonts["consolas-22"];
+        gui->shader = main::global().resources.shaders["gui"];
+        gui->font = main::global().resources.fonts["consolas-22"];
 
         gui->create(&main::global().progress(), graphics->width() / 2, 20, 0, 0, 0, 80).position(graphics->width() / 2 / 2, graphics->height() - 80);
 
@@ -740,7 +853,7 @@ public:
         frame.identity();
         frame.translate(20, graphics->height() - 20 - 256, 0);
 
-        graphics->draw(main::global().objects["icon"], main::global().shaders["gui"], frame, spatial::matrix(), main::global().ortho);
+        graphics->draw(main::global().resources.object("icon"), main::global().resources.shader("gui"), frame, spatial::matrix(), main::global().ortho);
     }
     void stop() {
         enter.visible = false;
@@ -871,12 +984,12 @@ public:
     }
 
     void run() {
-        auto& shader_basic = main::global().shaders["basic"];
-        auto& shader_shadowmap = main::global().shaders["shadowmap"];
-        auto& shader_defuse = main::global().shaders["defuse"];
-        auto& shader_skybox = main::global().shaders["skybox"];
-        auto& shader_objects = main::global().shaders["objects"];
-        auto& shader_scenery = main::global().shaders["scenery"];
+        auto& shader_basic = main::global().resources.shader("basic");
+        auto& shader_shadowmap = main::global().resources.shader("shadowmap");
+        auto& shader_defuse = main::global().resources.shader("defuse");
+        auto& shader_skybox = main::global().resources.shader("skybox");
+        auto& shader_objects = main::global().resources.shader("objects");
+        auto& shader_scenery = main::global().resources.shader("scenery");
 
         auto& perspective = main::global().perspective;
 
@@ -900,12 +1013,17 @@ public:
         auto box1_matrix = spatial::matrix().translate(std::get<spatial::vector>(main::global().get("box1.position")));
         auto box2_matrix = spatial::matrix().translate(std::get<spatial::vector>(main::global().get("box2.position"))).scale(2.0f);
 
+        auto wiggle_matrix = spatial::matrix().translate(std::get<spatial::vector>(main::global().get("wiggle.position")));
+
+        main::global().resources.entity("wiggle").animate();
+
         {
             auto scoped = graphics->target(graphics->shadow);
-
+            graphics->clear();
             graphics->draw(box, shader_shadowmap, box1_matrix, lighting, ortho, ortho * lighting);
             graphics->draw(box, shader_shadowmap, box2_matrix, lighting, ortho, ortho * lighting);
             graphics->draw(monkey, shader_shadowmap, spatial::matrix().translate(0, -2, -10).scale(5.0f), lighting, ortho, ortho * lighting);
+            graphics->draw(main::global().resources.entity("wiggle"), shader_shadowmap, wiggle_matrix, lighting, ortho, ortho * lighting);
         }
 
         graphics->draw(skybox, shader_skybox, spatial::matrix(), view, perspective);
@@ -927,7 +1045,9 @@ public:
         frame.identity();
         frame.translate(20, graphics->height() - 20 - 256, 0);
 
-        graphics->draw(graphics->shadow, graphics->shadow.texture.depth ? main::global().shaders["depth"] : shader_basic, frame, spatial::matrix(), main::global().ortho);
+        graphics->draw(graphics->shadow, graphics->shadow.texture.depth ? main::global().resources.shader("depth") : shader_basic, frame, spatial::matrix(), main::global().ortho);
+
+        graphics->draw(main::global().resources.entity("wiggle"), shader_objects, wiggle_matrix, view, perspective);
 
         /*
         if (object_moving[0]) {
@@ -977,7 +1097,7 @@ public:
             spatial::matrix ortho;
             ortho.ortho(0, box.texture.map.properties.width, 0, box.texture.map.properties.height);
 
-            graphics->draw(main::global().objects["icon"], shader_basic, rendertotex, spatial::matrix(), ortho);
+            graphics->draw(main::global().resources.object("icon"), shader_basic, rendertotex, spatial::matrix(), ortho);
         }
 
         /*

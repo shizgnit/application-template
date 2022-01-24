@@ -51,6 +51,10 @@ namespace type {
         bool compiled(bool flag) {
             return _compiled = flag;
         }
+
+        virtual bool empty() {
+            return true;
+        };
     };
 
 }
