@@ -3,6 +3,7 @@
 namespace format {
 
     class obj : virtual public type::object {
+        std::string decorator;
     public:
         typedef spatial::vector::type_t type_t;
 
@@ -19,6 +20,11 @@ namespace format {
 
         operator type::object& () {
             return(*this);
+        }
+
+        format::obj& decoration(const std::string& value) {
+            decorator = value;
+            return *this;
         }
 
         friend type::object& operator>>(std::istream& input, format::obj& instance) {
@@ -50,7 +56,9 @@ namespace format {
             std::vector<std::vector<float>> textures;
             std::vector<std::vector<float>> normals;
 
-            std::vector<type::material> mats;
+            std::string mtllib;
+
+            bool parse = false;
 
             std::string line;
             while (std::getline(input, line)) {
@@ -58,12 +66,21 @@ namespace format {
                 auto command = arguments[0];
 
                 if (command == "mtllib") { //material
-                    assets->retrieve(arguments[1]) >> format::parser::mtl >> mats;
+                    mtllib = assets->load("material", arguments[1]);
                 }
                 if (command == "o") { //entity
-                    instance.children.push_back(type::object());
-                    instance.children.back().id = arguments[1];
+                    std::string id = assets->resolve(instance.decorator + arguments[1]);
+                    parse = assets->has<type::object>(id) == false;
+                    instance.children.push_back(assets->get<type::object>(id));
+                    coordinates.clear();
+                    textures.clear();
+                    normals.clear();
                 }
+
+                if (parse == false) {
+                    continue;
+                }
+
                 if (command == "v") { //vertex
                     coordinates.push_back({
                         (float)atof(arguments[1].c_str()),
@@ -87,11 +104,8 @@ namespace format {
                 if (command == "g") { //group
                 }
                 if (command == "usemtl") { //material
-                    for (auto mat : mats) {
-                        if (mat.id == arguments[1]) {
-                            instance.children.back().texture = mat;
-                        }
-                    }
+                    std::string id = assets->resolve(arguments[1]);
+                    instance.children.back().texture = assets->get<type::material>(id);
                 }
                 if (command == "f") { //faces
                     if (arguments.size() >= 4) {

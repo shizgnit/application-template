@@ -37,51 +37,59 @@ namespace format {
             map_Kd meat.tga
             */
 
+            bool parse = false;
+            type::material* material = NULL;
+
             std::string line;
             while (std::getline(input, line)) {
                 auto arguments = utilities::tokenize(line, " ");
                 auto command = arguments[0];
 
                 if (command == "newmtl") {
-                    instance.children.push_back(type::material());
-                    instance.children.back().id = arguments[1];
+                    std::string id = assets->resolve(arguments[1]);
+                    parse = assets->has<type::material>(id) == false;
+                    material = &assets->get<type::material>(id);
+                    instance.children.push_back(assets->get<type::material>(id));
                 }
+
+                if (parse == false) {
+                    continue;
+                }
+
                 if (command == "Ka") {
-                    instance.children.back().ambient[0] = atof(arguments[1].c_str());
-                    instance.children.back().ambient[1] = atof(arguments[2].c_str());
-                    instance.children.back().ambient[2] = atof(arguments[3].c_str());
-                    instance.children.back().ambient[3] = 1.0f;
-                    instance.children.back().specular[0] = atof(arguments[1].c_str());
-                    instance.children.back().specular[1] = atof(arguments[2].c_str());
-                    instance.children.back().specular[2] = atof(arguments[3].c_str());
-                    instance.children.back().specular[3] = 1.0f;
+                    material->ambient[0] = atof(arguments[1].c_str());
+                    material->ambient[1] = atof(arguments[2].c_str());
+                    material->ambient[2] = atof(arguments[3].c_str());
+                    material->ambient[3] = 1.0f;
+                    material->specular[0] = atof(arguments[1].c_str());
+                    material->specular[1] = atof(arguments[2].c_str());
+                    material->specular[2] = atof(arguments[3].c_str());
+                    material->specular[3] = 1.0f;
                 }
                 if (command == "Kd") {
-                    instance.children.back().diffuse[0] = atof(arguments[1].c_str());
-                    instance.children.back().diffuse[1] = atof(arguments[2].c_str());
-                    instance.children.back().diffuse[2] = atof(arguments[3].c_str());
-                    instance.children.back().diffuse[3] = 1.0f;
+                    material->diffuse[0] = atof(arguments[1].c_str());
+                    material->diffuse[1] = atof(arguments[2].c_str());
+                    material->diffuse[2] = atof(arguments[3].c_str());
+                    material->diffuse[3] = 1.0f;
                 }
                 if (command == "Ke") {
-                    instance.children.back().emission[0] = atof(arguments[1].c_str());
-                    instance.children.back().emission[1] = atof(arguments[2].c_str());
-                    instance.children.back().emission[2] = atof(arguments[3].c_str());
-                    instance.children.back().emission[3] = 1.0f;
+                    material->emission[0] = atof(arguments[1].c_str());
+                    material->emission[1] = atof(arguments[2].c_str());
+                    material->emission[2] = atof(arguments[3].c_str());
+                    material->emission[3] = 1.0f;
                 }
                 if (command == "Ns") {
-                    instance.children.back().shininess = atof(arguments[1].c_str());
+                    material->shininess = atof(arguments[1].c_str());
                 }
                 if (command == "d") {
-                    instance.children.back().opacity = atof(arguments[1].c_str());
+                    material->opacity = atof(arguments[1].c_str());
                 }
                 if (command == "illum") {
-                    instance.children.back().illumination = atof(arguments[1].c_str());
+                    material->illumination = atof(arguments[1].c_str());
                 }
                 if (command == "map_Kd") {
-                    type::image texture;
-                    std::string file = arguments[1] == "." ? "untitled.png" : arguments[1];
-                    assets->retrieve(file) >> format::parser::png >> texture;
-                    instance.children.back().map = texture;
+                    auto texture = assets->load("texture", arguments[1] == "." ? "untitled.png" : arguments[1]);
+                    material->map = &assets->get<type::image>(texture);
                 }
             }
 

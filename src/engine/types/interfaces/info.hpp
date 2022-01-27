@@ -24,18 +24,31 @@ namespace type {
         }
 
         std::vector<std::string> _extensions;
-        format _type;
+        format _format;
 
         bool _compiled = false;
 
+        std::string _id;
+
     public:
-        info(std::vector<std::string> extensions, format type) {
+        info(std::vector<std::string> extensions, format spec) {
             _extensions = extensions;
-            _type = type;
+            _format = spec;
         }
 
-        type::format type() {
-            return _type;
+        std::string id(std::string id = "") {
+            if (id.empty() == false) {
+                _id = id;
+            }
+            return _id;
+        }
+
+        virtual std::string type() {
+            return "type::undefined";
+        }
+
+        type::format format() {
+            return _format;
         }
 
         bool compile() {

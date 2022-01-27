@@ -2,6 +2,10 @@
 
 #if defined __PLATFORM_POSIX
 
+std::string implementation::posix::filesystem::seperator() {
+    return "/";
+}
+
 bool implementation::posix::filesystem::cp(std::string src, std::string dest) {
     long fdin, fdout;
     void* sbuf, * dbuf;

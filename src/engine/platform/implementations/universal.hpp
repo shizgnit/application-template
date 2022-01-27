@@ -51,7 +51,7 @@ namespace implementation {
 
         class assets : public platform::assets::common {
         public:
-            bool load(platform::assets*, std::string type, std::string resource, std::string id);
+            std::string load(platform::assets*, const std::string& type, const std::string& resource, const std::string& id);
         };
 
     }

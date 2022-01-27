@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-	<ItemGroup Label="ProjectConfigurations">
+  <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|ARM">
       <Configuration>Debug</Configuration>
       <Platform>ARM</Platform>
@@ -81,7 +81,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
     <AntPackage>
       <AndroidAppLibName>$(RootNamespace)</AndroidAppLibName>
-	</AntPackage>
+    </AntPackage>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
     <AntPackage>
@@ -158,6 +158,107 @@
     <Content Include="assets\objects\untitled.mtl" />
     <Content Include="assets\objects\untitled.obj" />
     <Content Include="assets\objects\Untitled.png" />
+    <Content Include="assets\objects\wiggle\idle\untitled.png" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000001.mtl" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000001.obj" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000002.mtl" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000002.obj" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000003.mtl" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000003.obj" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000004.mtl" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000004.obj" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000005.mtl" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000005.obj" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000006.mtl" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000006.obj" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000007.mtl" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000007.obj" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000008.mtl" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000008.obj" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000009.mtl" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000009.obj" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000010.mtl" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000010.obj" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000011.mtl" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000011.obj" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000012.mtl" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000012.obj" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000013.mtl" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000013.obj" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000014.mtl" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000014.obj" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000015.mtl" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000015.obj" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000016.mtl" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000016.obj" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000017.mtl" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000017.obj" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000018.mtl" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000018.obj" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000019.mtl" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000019.obj" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000020.mtl" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000020.obj" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000021.mtl" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000021.obj" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000022.mtl" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000022.obj" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000023.mtl" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000023.obj" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000024.mtl" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000024.obj" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000025.mtl" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000025.obj" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000026.mtl" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000026.obj" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000027.mtl" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000027.obj" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000028.mtl" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000028.obj" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000029.mtl" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000029.obj" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000030.mtl" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000030.obj" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000031.mtl" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000031.obj" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000032.mtl" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000032.obj" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000033.mtl" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000033.obj" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000034.mtl" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000034.obj" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000035.mtl" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000035.obj" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000036.mtl" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000036.obj" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000037.mtl" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000037.obj" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000038.mtl" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000038.obj" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000039.mtl" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000039.obj" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000040.mtl" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000040.obj" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000041.mtl" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000041.obj" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000042.mtl" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000042.obj" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000043.mtl" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000043.obj" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000044.mtl" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000044.obj" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000045.mtl" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000045.obj" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000046.mtl" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000046.obj" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000047.mtl" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000047.obj" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000048.mtl" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000048.obj" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000049.mtl" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000049.obj" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000050.mtl" />
+    <Content Include="assets\objects\wiggle\idle\wiggle_000050.obj" />
     <Content Include="assets\raw\glados.wav" />
     <Content Include="assets\raw\test.txt" />
     <Content Include="assets\shaders\basic.frag" />

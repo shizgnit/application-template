@@ -65,6 +65,10 @@ namespace type {
             return size;
         }
 
+        std::string type() {
+            return "type::font";
+        }
+
         bool empty() {
             return glyphs.empty();
         }

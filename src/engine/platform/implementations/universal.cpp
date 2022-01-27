@@ -252,14 +252,14 @@ platform::interface::widget& implementation::universal::interface::create(platfo
 
 platform::interface::widget& implementation::universal::interface::create(widget* instance, int w, int h, int r, int g, int b, int a) {
     instance->background = spatial::quad(w, h);
-    instance->background.texture.map.create(1, 1, r, g, b, a); // Single pixel is good enough
+    instance->background.texture.create(1, 1, r, g, b, a); // Single pixel is good enough
     instance->background.xy_projection(0, 0, w, h);
     graphics->compile(instance->background);
 
     int l = 100;
 
     instance->edge = spatial::quad::edges(w, h);
-    instance->edge.texture.map.create(1, 1, r+l, g+l, b+l, a+l);
+    instance->edge.texture.create(1, 1, r+l, g+l, b+l, a+l);
     instance->edge.xy_projection(0, 0, 1, 1);
     graphics->compile(instance->edge);
 
@@ -336,47 +336,57 @@ void implementation::universal::interface::position(widget& instance) {
     instance.bounds = position.interpolate(spatial::quad(instance.background.vertices));
 }
 
-bool implementation::universal::assets::load(platform::assets* instance, std::string type, std::string resource, std::string id) {
-    auto tokens = utilities::tokenize(resource, "/", 2);
+std::string implementation::universal::assets::load(platform::assets* instance, const std::string& type, const std::string& resource, const std::string& id) {
+    auto path = resource;
 
-    std::string source = tokens.size() == 2 ? tokens[1] : tokens[0];
+    int dot = path.find_last_of(".");
+    int slash = path.find_last_of("/");
 
+    std::string ext = "";
+    if (dot != std::string::npos) {
+        int len = path.length() - dot;
+        ext = path.substr(dot, len);
+        path = path.substr(0, path.length() - len);
+    }
+
+    std::string cache = id.empty() ? path : id;
+
+    if (type == "material") {
+        instance->retrieve(path + (ext.empty() ? ".mtl" : ext)) >> format::parser::mtl >> instance->get<type::material>(cache);
+    }
+    if (type == "texture") {
+        instance->retrieve(path + (ext.empty() ? ".png" : ext)) >> format::parser::png >> instance->get<type::image>(cache);
+    }
     if (type == "audio") {
-        std::string path = tokens.size() == 2 ? tokens[0] : "raw";
-        instance->retrieve(path + "/" + resource + ".wav") >> format::parser::wav >> instance->sounds[id];
+        instance->retrieve(path + (ext.empty() ? ".wav" : ext)) >> format::parser::wav >> instance->get<type::audio>(cache);
     }
     if (type == "shader") {
-        std::string path = tokens.size() == 2 ? tokens[0] : "shaders";
-        instance->retrieve(path + "/" + resource + ".vert") >> format::parser::vert >> instance->shaders[id].vertex;
-        instance->retrieve(path + "/" + resource + ".frag") >> format::parser::frag >> instance->shaders[id].fragment;
+        auto& shader = instance->get<type::program>(cache);
+        instance->retrieve(path + ".vert") >> format::parser::vert >> instance->get<type::program>(cache).vertex;
+        instance->retrieve(path + ".frag") >> format::parser::frag >> instance->get<type::program>(cache).fragment;
     }
     if (type == "font") {
-        std::string path = tokens.size() == 2 ? tokens[0] : "fonts";
-        instance->retrieve(path + "/" + resource + ".fnt") >> format::parser::fnt >> instance->fonts[id];
+        instance->retrieve(path + (ext.empty() ? ".fnt" : ext)) >> format::parser::fnt >> instance->get<type::font>(cache);
     }
     if (type == "object") {
-        std::string path = tokens.size() == 2 ? tokens[0] : "objects";
-        if (resource.substr(resource.size() - 4, 4) == ".fbx") {
-            id = id == resource ? resource.substr(0, resource.size() - 4) : id;
-            instance->retrieve(path + "/" + resource) >> format::parser::fbx >> instance->objects[id];
+        if (ext == ".fbx") {
+            instance->retrieve(path + ext) >> format::parser::fbx >> instance->get<type::object>(cache);
         }
-        else if (resource.substr(resource.size() - 4, 4) == ".obj") {
-            id = id == resource ? resource.substr(0, resource.size() - 4) : id;
-            instance->retrieve(path + "/" + resource) >> format::parser::obj >> instance->objects[id];
+        else if (ext == ".obj") {
+            instance->retrieve(path + ext) >> format::parser::obj >> instance->get<type::object>(cache);
         }
-        else if (resource.substr(resource.size() - 4, 4) == ".png") {
-            id = id == resource ? resource.substr(0, resource.size() - 4) : id;
-            instance->objects[id] = spatial::quad(256, 256);
-            instance->retrieve(path + "/" + resource) >> format::parser::png >> instance->objects[id].texture.map;
-            instance->objects[id].xy_projection(0, 0, instance->objects[id].texture.map.properties.width, instance->objects[id].texture.map.properties.height);
+        else if (ext == ".png") {
+            auto& object = instance->get<type::object>(cache);
+            object = spatial::quad(256, 256);
+            object.texture.map = &instance->get<type::image>(cache);
+            instance->retrieve(path + ext) >> format::parser::png >> *object.texture.map;
+            object.xy_projection(0, 0, object.texture.map->properties.width, object.texture.map->properties.height);
         }
         else {
-            instance->retrieve(path + "/" + resource + ".obj") >> format::parser::obj >> instance->objects[id];
+            instance->retrieve(path + (ext.empty() ? ".obj" : ext)) >> format::parser::obj >> instance->get<type::object>(cache);
         }
     }
     if (type == "entity") {
-        std::string path = tokens.size() == 2 ? tokens[0] : "objects";
-        path += "/" + id;
         for (auto state : instance->list(path)) {
             auto resources = instance->list(path + "/" + state);
             std::sort(resources.begin(), resources.end());
@@ -388,17 +398,19 @@ bool implementation::universal::assets::load(platform::assets* instance, std::st
                 }
             }
 
-            instance->entities[id].animations[state].frames.resize(objects.size());
+            auto& entity = instance->get<type::entity>(cache);
+
+            entity.animations[state].frames.resize(objects.size());
 
             int frame = 0;
             for (auto resource : objects) {
-                instance->retrieve(path + "/" + state + "/" + resource) >> format::parser::obj >> instance->entities[id].animations[state].frames[frame];
+                instance->retrieve(path + "/" + state + "/" + resource) >> format::parser::obj.decoration(resource + ".") >> entity.animations[state].frames[frame];
                 frame++;
             }
         }
     }
 
-    return false;
+    return cache;
 }
 
 #endif

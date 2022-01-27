@@ -8,6 +8,8 @@ namespace implementation {
 
         class filesystem : public platform::filesystem {
         public:
+            std::string seperator();
+
             bool rm(std::string filename);
             bool mv(std::string src, std::string dest);
             bool cp(std::string src, std::string dest);
@@ -35,13 +37,13 @@ namespace implementation {
         public:
             void init(void* ref);
 
-            std::vector<std::string> list(std::string path);
+            std::vector<std::string> list(const std::string& path);
 
-            std::istream& retrieve(std::string path);
+            std::istream& retrieve(const std::string& path);
 
             void release();
 
-            bool load(std::string type, std::string resource, std::string id);
+            std::string load(const std::string& type, const std::string& resource, const std::string& id = "");
 
             std::string base;
         };

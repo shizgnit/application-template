@@ -49,7 +49,7 @@ TEST_F(FormatTest, MTL) {
     test >> mats;
 
     EXPECT_EQ(mats.size(), 1);
-    EXPECT_EQ(mats[0].map.raster.size(), 33554432);
+    EXPECT_EQ(mats[0].map->raster.size(), 33554432);
 }
 
 TEST_F(FormatTest, OBJ) {
@@ -60,7 +60,7 @@ TEST_F(FormatTest, OBJ) {
     test >> objs;
 
     EXPECT_EQ(objs.size(), 1);
-    EXPECT_EQ(objs[0].texture.map.raster.size(), 33554432);
+    EXPECT_EQ(objs[0].texture.map->raster.size(), 33554432);
 }
 
 TEST_F(FormatTest, FBX) {

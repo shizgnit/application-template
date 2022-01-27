@@ -4,6 +4,8 @@ namespace platform {
 
     class filesystem {
     public:
+        virtual std::string seperator() = 0;
+
         virtual bool rm(std::string filename) = 0;
         virtual bool mv(std::string src, std::string dest) = 0;
         virtual bool cp(std::string src, std::string dest) = 0;

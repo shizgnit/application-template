@@ -94,6 +94,9 @@ namespace implementation {
             bool compile(type::material& material);
             bool compile(type::object& object);
             bool compile(type::font& font);
+            bool compile(type::entity& entity);
+
+            bool compile(platform::assets* assets);
 
             bool recompile(type::object& object);
 

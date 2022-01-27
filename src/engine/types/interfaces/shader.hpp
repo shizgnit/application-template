@@ -12,6 +12,10 @@ namespace type {
             return instance;
         }
 
+        std::string type() {
+            return "type::shader";
+        }
+
         bool empty() {
             return text.empty();
         }

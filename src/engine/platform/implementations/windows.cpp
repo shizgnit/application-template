@@ -2,6 +2,10 @@
 
 #if defined __PLATFORM_WINDOWS
 
+std::string implementation::windows::filesystem::seperator() {
+    return "\\";
+}
+
 bool implementation::windows::filesystem::cp(std::string srcfile, std::string dest) {
     DWORD dwAttrs;
 
@@ -178,27 +182,21 @@ void implementation::windows::assets::init(void* ref) {
     base = (char*)ref;
 }
 
-std::vector<std::string> implementation::windows::assets::list(std::string path) {
+std::vector<std::string> implementation::windows::assets::list(const std::string& path) {
     return filesystem().read_directory(utilities::join("\\", std::vector<std::string>({ base, path, "\\*"})));
 }
 
-std::istream& implementation::windows::assets::retrieve(std::string path) {
+std::istream& implementation::windows::assets::retrieve(const std::string& path) {
     auto file = new std::ifstream();
     if (file == NULL) {
         // TODO : care about this
     }
 
     std::vector<std::string> directories = { base };
-    for (auto entry : stack) {
-        if (entry.path.empty() == false) {
-            directories.push_back(entry.path);
-        }
-    }
-    for (auto path : utilities::tokenize(path, "/")) {
+    for (auto path : utilities::tokenize(resolve(path), "/")) {
         directories.push_back(path);
     }
-
-    std::string asset = utilities::join("\\", directories);
+    auto asset = utilities::join("\\", directories);
 
     file->open(asset.c_str(), std::ios::in | std::ios::binary);
 
@@ -221,7 +219,7 @@ void implementation::windows::assets::release() {
     stack.pop_back();
 }
 
-bool implementation::windows::assets::load(std::string type, std::string resource, std::string id) {
+std::string implementation::windows::assets::load(const std::string& type, const std::string& resource, const std::string& id) {
     if (loader == NULL) {
         loader = new implementation::universal::assets();
     }

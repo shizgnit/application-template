@@ -4,8 +4,6 @@ namespace type {
 
     class material : virtual public type::info {
     public:
-        std::string id;
-
         float ambient[4];
         float diffuse[4];
         float specular[4];
@@ -15,10 +13,16 @@ namespace type {
         float opacity;
         float illumination;
 
-        type::image map;
+        type::image* allocation = NULL;
+        type::image* map = NULL;
         unsigned int context;
 
         bool depth = false;
+
+        void create(int width, int height, char r, char g, char b, char a) {
+            map = allocation = new type::image;
+            map->create(width, height, r, g, b, a);
+        }
 
         friend type::material& operator>>(type::material& input, type::material& instance) {
             instance = input;
@@ -28,6 +32,10 @@ namespace type {
         friend std::vector<type::material>& operator>>(type::material& input, std::vector<type::material>& instance) {
             instance = input.children;
             return instance;
+        }
+
+        std::string type() {
+            return "type::material";
         }
 
         bool empty() {

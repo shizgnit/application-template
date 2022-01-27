@@ -8,6 +8,8 @@ namespace implementation {
 
         class filesystem : public platform::filesystem {
         public:
+            std::string seperator();
+
             bool rm(std::string filename);
             bool mv(std::string src, std::string dest);
             bool cp(std::string src, std::string dest);

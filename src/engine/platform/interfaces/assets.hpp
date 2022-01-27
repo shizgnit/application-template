@@ -4,73 +4,111 @@ namespace platform {
 
     class assets {
     public:
+        assets() {};
+        virtual ~assets() {
+            for (auto type : cache) {
+                std::vector<std::string> ids;
+                for (auto entry : type.second) {
+                    ids.push_back(entry.first);
+                }
+                for (auto id : ids) {
+                    delete type.second[id];
+                    type.second.erase(id);
+                }
+            }
+        }
+
         struct source {
             std::string path;
             std::istream* stream;
         };
 
+        virtual std::string id(std::vector<std::string> parts) {
+            return utilities::join("/", parts);
+        }
+
+        virtual std::string resolve(const std::string& path) {
+            std::vector<std::string> directories;
+            for (auto entry : stack) {
+                if (entry.path.empty() == false) {
+                    directories.push_back(entry.path);
+                }
+            }
+            for (auto path : utilities::tokenize(path, "/")) {
+                if (path == ".") {
+                    // just ignore
+                }
+                else if (path == "..") {
+                    directories.pop_back();
+                }
+                else {
+                    directories.push_back(path);
+                }
+            }
+            return utilities::join("/", directories);
+        }
+
         virtual void init(void *ref) { /*NULL*/ }
 
-        virtual std::vector<std::string> list(std::string path) = 0;
+        virtual std::vector<std::string> list(const std::string& path) = 0;
 
-        virtual std::istream& retrieve(std::string path) = 0;
+        virtual std::istream& retrieve(const std::string& path) = 0;
 
         virtual void release() = 0;
 
-        type::font& font(std::string id) {
-            static type::font empty;
-            if (fonts.find(id) == fonts.end()) {
-                return empty;
-            }
-            return(fonts[id]);
+        typedef void (assets::* callback)();
+        utilities::scoped<assets*, callback> traverse(const source& node) {
+            stack.push_back(node);
+            return utilities::scoped<assets*, callback>(this, &assets::release);
         }
 
-        type::program& shader(std::string id) {
-            static type::program empty;
-            if (shaders.find(id) == shaders.end()) {
-                return empty;
-            }
-            return(shaders[id]);
+        virtual std::string load(const std::string& type, const std::string& resource, const std::string& id="") = 0;
+
+        template<typename T> bool has(const std::string& id) {
+            auto type = T().type();
+            return cache.find(type) != cache.end() && cache[type].find(id) != cache[type].end();
         }
 
-        type::audio& sound(std::string id) {
-            static type::audio empty;
-            if (sounds.find(id) == sounds.end()) {
-                return empty;
+        template<typename T> void release(const std::string& id) {
+            auto type = T().type();
+            if (has<T>(id)) {
+                delete cache[type][id];
+                cache[type].erase(id);
             }
-            return(sounds[id]);
         }
 
-        type::object& object(std::string id) {
-            static type::object empty;
-            if (objects.find(id) == objects.end()) {
-                return empty;
-            }
-            return(objects[id]);
+        template<typename T> T& create(const std::string& id) {
+            auto type = T().type();
+            release<T>(id);
+            cache[type][id] = new T;
+            cache[type][id]->id(id);
+            return *dynamic_cast<T*>(cache[type][id]);
         }
 
-        type::entity& entity(std::string id) {
-            static type::entity empty;
-            if (entities.find(id) == entities.end()) {
-                return empty;
-            }
-            return(entities[id]);
+        template<typename T> T& get(const std::string& id) {
+            auto type = T().type();
+            return has<T>(id) ? *dynamic_cast<T*>(cache[type][id]) : create<T>(id);
         }
 
-        std::map<std::string, type::font> fonts;
-        std::map<std::string, type::program> shaders;
-        std::map<std::string, type::audio> sounds;
-        std::map<std::string, type::object> objects;
-        std::map<std::string, type::entity> entities;
+        template<typename T> std::vector<T*> get() {
+            auto type = T().type();
 
-        virtual bool load(std::string type, std::string resource, std::string id) = 0;
+            std::vector<T*> results;
+            for (auto entry : cache[type]) {
+                results.push_back(dynamic_cast<T*>(entry.second));
+            }
+
+            return results;
+        }
 
         class common {
         public:
-            virtual bool load(platform::assets *, std::string type, std::string resource, std::string id) = 0;
+            virtual std::string load(platform::assets *, const std::string& type, const std::string& resource, const std::string& id) = 0;
         };
 
     protected:
+        std::map<std::string, std::map<std::string, type::info*>> cache;
+
         common* loader = NULL;
 
         std::vector<assets::source> stack;

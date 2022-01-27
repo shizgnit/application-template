@@ -26,6 +26,10 @@ namespace type {
         int u_AmbientLightPosition;
         int u_AmbientLightColor;
 
+        std::string type() {
+            return "type::program";
+        }
+
         bool empty() {
             return fragment.empty() || vertex.empty();
         }

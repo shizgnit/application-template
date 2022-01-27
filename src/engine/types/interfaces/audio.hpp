@@ -22,6 +22,10 @@ namespace type {
             return instance;
         }
 
+        std::string type() {
+            return "type::audio";
+        }
+
         bool empty() {
             return buffer.empty();
         }

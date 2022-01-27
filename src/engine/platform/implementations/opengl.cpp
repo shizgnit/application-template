@@ -15,7 +15,7 @@ bool implementation::opengl::fbo::init(type::object& object, bool depth) {
 
     glGenBuffers(1, &context.render);
     glBindRenderbuffer(GL_RENDERBUFFER, context.render);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, object.texture.map.properties.width, object.texture.map.properties.height);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, object.texture.map->properties.width, object.texture.map->properties.height);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, context.render);
 
     int status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
@@ -35,7 +35,7 @@ void implementation::opengl::fbo::enable(bool clear) {
         return;
     }
     glBindFramebuffer(GL_FRAMEBUFFER, context.frame);
-    glViewport(0, 0, target->texture.map.properties.width, target->texture.map.properties.height);
+    glViewport(0, 0, target->texture.map->properties.width, target->texture.map->properties.height);
     if (clear || target->texture.depth) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
@@ -87,15 +87,17 @@ void implementation::opengl::graphics::init(void) {
 
     // Setup the ray used for drawing normals
     ray = spatial::ray(spatial::vector(0.0, 0.0, 0.0), spatial::vector(2.0, 0.0, 0.0));
-    ray.texture.map.create(1, 1, 255, 255, 255, 255);
+    ray.texture.map = &assets->get<type::image>("ray");
+    ray.texture.map->create(1, 1, 255, 255, 255, 255);
     ray.xy_projection(0, 0, 1, 1);
     compile(ray);
 
     // Setup the shadow depth map
     shadow = spatial::quad(256, 256);
-    shadow.texture.map.create(1024, 1024, 0, 0, 0, 0);
+    shadow.texture.map = &assets->get<type::image>("shadowmap");
+    shadow.texture.map->create(1024, 1024, 0, 0, 0, 0);
     //shadow.texture.depth = true;
-    shadow.xy_projection(0, 0, shadow.texture.map.properties.width, shadow.texture.map.properties.height);
+    shadow.xy_projection(0, 0, shadow.texture.map->properties.width, shadow.texture.map->properties.height);
     compile(shadow);
 }
 
@@ -130,7 +132,7 @@ bool implementation::opengl::graphics::compile(type::shader& shader) {
         return false;
     }
 
-    switch (shader.type()) {
+    switch (shader.format()) {
     case(type::format::FORMAT_VERT):
         shader.context = glCreateShader(GL_VERTEX_SHADER);
         break;
@@ -229,11 +231,14 @@ bool implementation::opengl::graphics::compile(type::material& material) {
     if (material.compile() == false) {
         return false;
     }
+    if (material.map == NULL) {
+        return false;
+    }
 
     if (material.depth) {
         glGenTextures(1, &material.context);
         glBindTexture(GL_TEXTURE_2D, material.context);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, material.map.properties.width, material.map.properties.height, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, NULL);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, material.map->properties.width, material.map->properties.height, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, NULL);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -244,7 +249,7 @@ bool implementation::opengl::graphics::compile(type::material& material) {
         glBindTexture(GL_TEXTURE_2D, material.context);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, material.map.properties.width, material.map.properties.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, material.map.raster.data());
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, material.map->properties.width, material.map->properties.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, material.map->raster.data());
         glGenerateMipmap(GL_TEXTURE_2D);
     }
     
@@ -271,20 +276,12 @@ bool implementation::opengl::graphics::compile(type::object& object) {
     return true;
 }
 
-bool implementation::opengl::graphics::recompile(type::object& object) {
-    glBindBuffer(GL_ARRAY_BUFFER, object.context);
-    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(spatial::vertex) * object.vertices.size(), object.vertices.data());
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    return true;
-}
-
-
 bool implementation::opengl::graphics::compile(type::font& font) {
     if (font.compile() == false) {
         return false;
     }
 
-    for (auto &glyph : font.glyphs) {
+    for (auto& glyph : font.glyphs) {
         if (glyph.identifier) {
             compile(glyph.quad);
         }
@@ -292,6 +289,46 @@ bool implementation::opengl::graphics::compile(type::font& font) {
 
     return true;
 }
+
+bool implementation::opengl::graphics::compile(type::entity& entity) {
+    if (entity.compile() == false) {
+        return false;
+    }
+
+    for (auto& animation : entity.animations) {
+        for (auto& frame : animation.second.frames) {
+            compile(frame);
+        }
+    }
+    return true;
+}
+
+bool implementation::opengl::graphics::compile(platform::assets* assets) {
+    for (auto program : assets->get<type::program>()) {
+        compile(*program);
+    }
+    for (auto material : assets->get<type::material>()) {
+        compile(*material);
+    }
+    for (auto object : assets->get<type::object>()) {
+        compile(*object);
+    }
+    for (auto entity : assets->get<type::entity>()) {
+        compile(*entity);
+    }
+    for (auto font : assets->get<type::font>()) {
+        compile(*font);
+    }
+    return true;
+}
+
+bool implementation::opengl::graphics::recompile(type::object& object) {
+    glBindBuffer(GL_ARRAY_BUFFER, object.context);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(spatial::vertex) * object.vertices.size(), object.vertices.data());
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    return true;
+}
+
 
 void implementation::opengl::graphics::draw(type::object& object, type::program& shader, const spatial::matrix& model, const spatial::matrix& view, const spatial::matrix& projection, const spatial::matrix& lighting, unsigned int options) {
     // Look for the first object with vertices, just at the top level for now

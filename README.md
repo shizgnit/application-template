@@ -6,11 +6,25 @@ This project is both meant to be a practical framework for client/server infrast
   * Software platforms are often required to build/run on significantly older standards.  In my case only partial C++11 support is available (gcc443).
     https://gcc.gnu.org/projects/cxx-status.html#cxx11
 
-Removing those limitations allows for modern solutions to be experimented with.  This project hosted on github is a synchronized repository from an on-prem gitlab instance being used for CI/CD, so not all aspects of the project will be visible.
+Removing those limitations allows for modern solutions to be experimented with.
 
 ## Build
 
-Use Microsoft Visual Studio 2022 and the build.sln solution file.
+Use Microsoft Visual Studio 2022 and the build.sln solution file.  I have the following components installed.
+
+* ASP.NET and web development
+* Python development
+* Desktop development with C++
+    * MSVC v143
+    * Windows 10 SDK
+    * Test Adapter for Google Test
+* Universal Windows Platform development
+* Mobile development with C++ ()
+    * Android NDK
+    * Apache Ant
+    * C++ Android development tools
+* Game development with C++
+* Linux development with C++
 
 ## Dependencies
 
@@ -24,7 +38,7 @@ The following projects need to be installed on the client PC running the IDE.
     https://nodejs.org/
     https://developer.android.com/studio
 
-Prebuilt package of deps/miniz-2.2.0 installed.  Currently requires manual download and install.
+Prebuilt package of deps/miniz-2.2.0 installed.  Currently just added to the repo directly (pulled from the following).
 
     https://github.com/richgel999/miniz/releases
 
@@ -40,4 +54,6 @@ Work is being tracked on a Kanban board.
 
 Recommended references.
 
-    https://www.amazon.com/s?i=stripbooks&rh=p_66%3A1435458869
+    https://www.amazon.com/s?k=978-1435458864 - Mathematics for 3D Game Programming and Computer Graphics
+    https://www.amazon.com/s?k=978-0321637635 - OpenGL Shading Language
+

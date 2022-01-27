@@ -24,8 +24,8 @@ namespace type {
                 }
             }
 
-            type_t texture_dx = 1 / (type_t)texture.map.properties.width;
-            type_t texture_dy = 1 / (type_t)texture.map.properties.height;
+            type_t texture_dx = 1 / (type_t)texture.map->properties.width;
+            type_t texture_dy = 1 / (type_t)texture.map->properties.height;
 
             for (unsigned int i = 0; i < vertices.size(); i++) {
                 type_t dx = vertices[i].coordinate.x / max_x;
@@ -102,13 +102,9 @@ namespace type {
             return constraint.center;
         }
 
-        //std::vector<std::vector<spatial::vertex>> faces;
-
         std::vector<spatial::vertex> vertices;
 
         type::material texture;
-
-        std::string id;
 
         unsigned int context;
 
@@ -138,6 +134,10 @@ namespace type {
         }
 
         std::vector<object> children;
+
+        std::string type() {
+            return "type::object";
+        }
 
         bool empty() {
             return vertices.empty() && children.empty();

@@ -30,7 +30,7 @@ void implementation::android::assets::init(void* ref) {
     assetManager = (AAssetManager*)ref;
 }
 
-std::vector<std::string> implementation::android::assets::list(std::string path) {
+std::vector<std::string> implementation::android::assets::list(const std::string& path) {
     std::vector<std::string> results;
 
     auto handle = AAssetManager_openDir(assetManager, path.c_str());
@@ -42,20 +42,12 @@ std::vector<std::string> implementation::android::assets::list(std::string path)
     return results;
 }
 
-std::istream &implementation::android::assets::retrieve(std::string path) {
+std::istream &implementation::android::assets::retrieve(const std::string& path) {
     auto ss = new std::stringstream;
     ss->str(std::string());
     ss->clear();
 
-    std::vector<std::string> directories;
-    for (auto entry : stack) {
-        if (entry.path.empty() == false) {
-            directories.push_back(entry.path);
-        }
-    }
-    directories.push_back(path);
-
-    std::string fullpath = utilities::join("/", directories).c_str();
+    std::string fullpath = resolve(path);
 
     const char* spath = fullpath.c_str();
     AAsset* asset = AAssetManager_open(assetManager, fullpath.c_str(), AASSET_MODE_STREAMING);
@@ -82,7 +74,7 @@ void implementation::android::assets::release() {
 }
 
 
-bool implementation::android::assets::load(std::string type, std::string resource, std::string id) {
+std::string implementation::android::assets::load(const std::string& type, const std::string& resource, const std::string& id) {
     if (loader == NULL) {
         loader = new implementation::universal::assets();
     }
