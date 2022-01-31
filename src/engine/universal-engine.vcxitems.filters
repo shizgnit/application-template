@@ -38,6 +38,9 @@
       <Filter>deps\miniz</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)prototype.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)utilities\scene.cpp">
+      <Filter>utilities</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\deps\lodepng\lodepng.h">
@@ -177,6 +180,9 @@
       <Filter>deps\miniz</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)prototype.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)utilities\scene.hpp">
+      <Filter>utilities</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="deps">

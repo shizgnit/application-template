@@ -206,7 +206,7 @@ namespace utilities {
 
     // https://philippegroarke.com/posts/2018/chrono_for_humans/
 
-    using time_t = std::chrono::high_resolution_clock::time_point;
+    using time_t = std::chrono::system_clock::time_point;
 
     using milliseconds_t = std::chrono::duration<double, std::milli>;
     using seconds_t = std::chrono::duration<double>;

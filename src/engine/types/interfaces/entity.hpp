@@ -16,11 +16,13 @@ namespace type {
         std::string state;
         std::map<std::string, animation> animations;
 
+        spatial::position position;
+
         std::list<spatial::position> path;
 
         void play(std::string animation, int seconds = 2) {
             //std::lock_guard<std::mutex> scoped(lock);
-            animations[animation].start = std::chrono::high_resolution_clock::now();
+            animations[animation].start = std::chrono::system_clock::now();
             animations[animation].elapsed = animations[animation].start.time_since_epoch();
             if (animations[animation].duration.size() == 0) {
                 int frames = animations[animation].frames.size();
@@ -38,7 +40,7 @@ namespace type {
                 return;
             }
 
-            utilities::seconds_t now = std::chrono::high_resolution_clock::now().time_since_epoch();
+            utilities::seconds_t now = std::chrono::system_clock::now().time_since_epoch();
 
             int current = animations[state].frame;
             int step = 0;

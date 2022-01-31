@@ -35,7 +35,24 @@ std::vector<std::string> implementation::android::assets::list(const std::string
 
     auto handle = AAssetManager_openDir(assetManager, path.c_str());
     while (auto file = AAssetDir_getNextFileName(handle)) {
-        results.push_back(file);
+        if (strlen(file) >= 6 && strcmp(file, "ls.txt") == 0) {
+            auto fullpath = path + "/" + file;
+            AAsset* asset = AAssetManager_open(assetManager, fullpath.c_str(), AASSET_MODE_BUFFER);
+            if (!asset) {
+                continue;
+            }
+            auto contents = std::string((char*)AAsset_getBuffer(asset), AAsset_getLength(asset));
+            for (auto line : utilities::tokenize(contents)) {
+                if (line.empty() || line[0] == '#') {
+                    continue;
+                }
+                results.push_back(line);
+            }
+            AAsset_close(asset);
+        }
+        else {
+            results.push_back(file);
+        }
     }
     AAssetDir_close(handle);
 
@@ -50,10 +67,11 @@ std::istream &implementation::android::assets::retrieve(const std::string& path)
     std::string fullpath = resolve(path);
 
     const char* spath = fullpath.c_str();
-    AAsset* asset = AAssetManager_open(assetManager, fullpath.c_str(), AASSET_MODE_STREAMING);
+    AAsset* asset = AAssetManager_open(assetManager, fullpath.c_str(), AASSET_MODE_BUFFER);
     if (asset) {
         ss->write((char*)AAsset_getBuffer(asset), AAsset_getLength(asset));
     }
+    AAsset_close(asset);
 
     assets::source entry = { utilities::dirname(path), ss };
     stack.push_back(entry);
