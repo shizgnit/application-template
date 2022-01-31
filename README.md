@@ -1,12 +1,6 @@
 # Application Template 1.0
 
-This project is both meant to be a practical framework for client/server infrastructure and a personal opportunity to learn modern C++ language/platform features.  In a corporate environment it is common that the following are true.
-
-  * WAN access is only through a restricted proxy.  This can cause difficulties in cross project dependencies and prevent IDE capabilities from fully working.
-  * Software platforms are often required to build/run on significantly older standards.  In my case only partial C++11 support is available (gcc443).
-    https://gcc.gnu.org/projects/cxx-status.html#cxx11
-
-Removing those limitations allows for modern solutions to be experimented with.
+A simple 3d application framework targetting windows and android.  No specific goal in mind currently.
 
 ## Build
 
@@ -45,6 +39,10 @@ Prebuilt package of deps/miniz-2.2.0 installed.  Currently just added to the rep
 Bitmat fonts are created with the BMFont tool.
 
     https://www.angelcode.com/products/bmfont/
+
+## Contributing
+
+Currently just moving to gitflow for developer collaboration.  No expectations that there will be any, but having the workflow in place now will make it easier if the project ever grows.
 
 ## Notes
 
