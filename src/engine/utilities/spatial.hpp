@@ -240,6 +240,8 @@ namespace spatial {
         position& reposition(const vector& offset);
         position& lookat(const vector& offset);
 
+        bool dirty = false;
+
     public:
         bool view;
 

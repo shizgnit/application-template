@@ -711,6 +711,7 @@ spatial::position::position(void) {
 
 spatial::position::position(const position& ref) {
     view = ref.view;
+    dirty = ref.dirty;
 
     rotation = ref.rotation;
 
@@ -737,6 +738,8 @@ void spatial::position::identity(void) {
     up.x = 0.0f;
     up.y = 1.0f;
     up.z = 0.0f;
+
+    dirty = true;
 }
 
 void spatial::position::viewable(bool toggle) {
@@ -749,6 +752,8 @@ spatial::position& spatial::position::move(type_t t) {
     center += diff;
     eye += diff;
 
+    dirty = true;
+
     return *this;
 }
 
@@ -757,6 +762,8 @@ spatial::position& spatial::position::elevate(type_t t) {
 
     center += diff;
     eye += diff;
+
+    dirty = true;
 
     return *this;
 }
@@ -769,26 +776,32 @@ spatial::position& spatial::position::strafe(type_t t) {
     center += diff;
     eye += diff;
 
+    dirty = true;
+
     return *this;
 }
 
 spatial::position& spatial::position::pitch(type_t angle) {
     rotation.pitch += angle;
+    dirty = true;
     return rotate();
 }
 
 spatial::position& spatial::position::yaw(type_t angle) {
     rotation.yaw += angle;
+    dirty = true;
     return rotate();
 }
 
 spatial::position& spatial::position::roll(type_t angle) {
     rotation.roll += angle;
+    dirty = true;
     return rotate();
 }
 
 spatial::position& spatial::position::spin(type_t angle) {
     rotation.spin += angle;
+    dirty = true;
     return rotate();
 }
 
@@ -810,6 +823,8 @@ spatial::position& spatial::position::rotate() {
     eye += offset;
     center += offset;
 
+    dirty = true;
+
     return *this;
 }
 
@@ -823,11 +838,14 @@ void spatial::position::project(const vector& offset, const vector& projection) 
     diff.x = (cross.x - center.x) * offset.x;
     diff.y = (cross.y - center.y) * offset.y;
     diff.z = (cross.z - center.z) * offset.z;
+
+    dirty = true;
 }
 
 spatial::position& spatial::position::reposition(const vector& offset) {
     center += offset - eye;
     eye = offset;
+    dirty = true;
     return *this;
 }
 
@@ -837,6 +855,8 @@ spatial::position& spatial::position::lookat(const vector& offset) {
 
     center = forward + eye;
     up = (forward % right).unit();
+
+    dirty = true;
 
     return *this;
 }

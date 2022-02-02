@@ -6,64 +6,75 @@ namespace type {
     public:
         class animation {
         public:
-            int frame = 0;
-            utilities::time_t start;
-            utilities::seconds_t elapsed;
-
+            double elapse = 2.0f; // TODO: this needs to come from the input file
             std::vector<utilities::seconds_t> duration;
             std::vector<type::object> frames;
         };
-        std::string state;
         std::map<std::string, animation> animations;
 
-        spatial::position position;
+        class instance {
+        public:
+            int frame = 0;
+            utilities::seconds_t elapsed;
+            std::string state;
+            spatial::position position;
+            std::list<spatial::position> path;
+        };
+        std::vector<instance> instances;
+        std::vector<float> transforms;
 
-        std::list<spatial::position> path;
+        void allocate(int count) {
+            if (instances.size() < count) {
+                instances.resize(count);
+            }
+        }
 
-        void play(std::string animation, int seconds = 2) {
+        void play(std::string animation, int index=0) {
             //std::lock_guard<std::mutex> scoped(lock);
-            animations[animation].start = std::chrono::system_clock::now();
-            animations[animation].elapsed = animations[animation].start.time_since_epoch();
+            allocate(index + 1);
+            instances[index].elapsed = std::chrono::system_clock::now().time_since_epoch();
             if (animations[animation].duration.size() == 0) {
                 int frames = animations[animation].frames.size();
-                utilities::seconds_t duration = utilities::seconds_t{ seconds / (double)frames };
+                utilities::seconds_t duration = utilities::seconds_t{ animations[animation].elapse / (double)frames };
                 animations[animation].duration.resize(frames);
                 for (int i = 0; i < frames; i++) {
                     animations[animation].duration[i] = duration;
                 }
             }
-            state = animation;
+            instances[index].state = animation;
         }
 
-        void animate() {
-            if (state.empty()) {
+        void animate(int index = 0) {
+            allocate(index + 1);
+            if (instances[index].state.empty()) {
                 return;
             }
 
             utilities::seconds_t now = std::chrono::system_clock::now().time_since_epoch();
 
-            int current = animations[state].frame;
+            int current = instances[index].frame;
             int step = 0;
 
-            while ((animations[state].elapsed + animations[state].duration[current + step]) < now) {
-                animations[state].elapsed += animations[state].duration[current + step];
+            while ((instances[index].elapsed + animations[instances[index].state].duration[current + step]) < now) {
+                instances[index].elapsed += animations[instances[index].state].duration[current + step];
                 step += 1;
-                if ((current + step) >= animations[state].frames.size()) {
+                if ((current + step) >= animations[instances[index].state].frames.size()) {
                     current = 0;
                     step = 0;
                 }
             }
 
-            animations[state].frame = current + step;
+            instances[index].frame = current + step;
         }
 
         operator type::object& () {
             //std::lock_guard<std::mutex> scoped(lock);
+            allocate(1);
             static type::object empty;
-            if (state.empty()) {
+            if (instances[0].state.empty()) {
                 return empty;
             }
-            return animations[state].frames[animations[state].frame];
+            return animations[instances[0].state].frames[instances[0].frame];
         }
 
     public:
