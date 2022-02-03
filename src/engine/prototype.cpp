@@ -180,7 +180,7 @@ public:
         frame.identity();
         frame.translate(20, graphics->height() - 20 - 256, 0);
 
-        graphics->draw(assets->get<type::object>("icon"), assets->get<type::program>("gui"), frame, spatial::matrix(), main::global().ortho);
+        graphics->draw(assets->get<type::object>("icon"), assets->get<type::program>("gui"), main::global().ortho, spatial::matrix(), frame);
     }
     void stop() {
         enter.visible = false;
@@ -306,12 +306,12 @@ public:
         ray = spatial::ray(pos.center, pos.eye);
         ray.texture.map->create(1, 1, 255, 0, 0, 255);
         graphics->recompile(ray);
-        graphics->draw(ray, shader, model, view, projection, spatial::matrix(), options);
+        graphics->draw(ray, shader, projection, view, model, spatial::matrix(), options);
 
         ray = spatial::ray(pos.center, pos.up + pos.center);
         ray.texture.map->create(1, 1, 0, 255, 0, 255);
         graphics->recompile(ray);
-        graphics->draw(ray, shader, model, view, projection, spatial::matrix(), options);
+        graphics->draw(ray, shader, projection, view, model, spatial::matrix(), options);
 
     }
 
@@ -352,34 +352,34 @@ public:
         {
             auto scoped = graphics->target(graphics->shadow);
             graphics->clear();
-            graphics->draw(box, shader_shadowmap, box1_matrix, lighting, ortho, ortho * lighting);
-            graphics->draw(box, shader_shadowmap, box2_matrix, lighting, ortho, ortho * lighting);
-            graphics->draw(monkey, shader_shadowmap, spatial::matrix().translate(0, -2, -10).scale(5.0f), lighting, ortho, ortho * lighting);
-            graphics->draw(assets->get<type::entity>("objects/wiggle"), shader_shadowmap, wiggle_matrix, lighting, ortho, ortho * lighting);
+            graphics->draw(box, shader_shadowmap, ortho, lighting, box1_matrix, ortho * lighting);
+            graphics->draw(box, shader_shadowmap, ortho, lighting, box2_matrix, ortho * lighting);
+            graphics->draw(monkey, shader_shadowmap, ortho, lighting, spatial::matrix().translate(0, -2, -10).scale(5.0f), ortho * lighting);
+            graphics->draw(assets->get<type::entity>("objects/wiggle"), shader_shadowmap, ortho, lighting, wiggle_matrix, ortho * lighting);
         }
 
-        graphics->draw(skybox, shader_skybox, spatial::matrix(), view, perspective);
+        graphics->draw(skybox, shader_skybox, perspective, view, spatial::matrix());
 
-        graphics->draw(ground, shader_scenery, spatial::matrix().scale(4.0f), view, perspective, ortho * lighting, platform::graphics::render::NORMALS);
+        graphics->draw(ground, shader_scenery, perspective, view, spatial::matrix().scale(4.0f), ortho * lighting, platform::graphics::render::NORMALS);
 
-        graphics->draw(box, shader_defuse, box1_matrix, view, perspective, ortho * lighting, platform::graphics::render::NORMALS);
-        graphics->draw(box, shader_defuse, box2_matrix, view, perspective, ortho * lighting, platform::graphics::render::NORMALS);
+        graphics->draw(box, shader_defuse, perspective, view, box1_matrix, ortho * lighting, platform::graphics::render::NORMALS);
+        graphics->draw(box, shader_defuse, perspective, view, box2_matrix, ortho * lighting, platform::graphics::render::NORMALS);
 
-        graphics->draw(xAxis, shader_basic, spatial::matrix(), view, perspective);
-        graphics->draw(yAxis, shader_basic, spatial::matrix(), view, perspective);
-        graphics->draw(zAxis, shader_basic, spatial::matrix(), view, perspective);
+        graphics->draw(xAxis, shader_basic, perspective, view);
+        graphics->draw(yAxis, shader_basic, perspective, view);
+        graphics->draw(zAxis, shader_basic, perspective, view);
 
-        graphics->draw(monkey, shader_objects, spatial::matrix().translate(0, -2, -10).scale(5.0f), view, perspective);
+        graphics->draw(monkey, shader_objects, perspective, view, spatial::matrix().translate(0, -2, -10).scale(5.0f));
 
-        draw(graphics->ambient.position, shader_basic, spatial::matrix(), view, perspective);
+        draw(graphics->ambient.position, shader_basic, perspective, view, spatial::matrix());
 
         spatial::matrix frame;
         frame.identity();
         frame.translate(20, graphics->height() - 20 - 256, 0);
 
-        graphics->draw(graphics->shadow, graphics->shadow.texture.depth ? assets->get<type::program>("depth") : shader_basic, frame, spatial::matrix(), main::global().ortho);
+        graphics->draw(graphics->shadow, graphics->shadow.texture.depth ? assets->get<type::program>("depth") : shader_basic, spatial::matrix(), spatial::matrix(), frame);
 
-        graphics->draw(assets->get<type::entity>("objects/wiggle"), shader_objects, wiggle_matrix, view, perspective);
+        graphics->draw(assets->get<type::entity>("objects/wiggle"), shader_objects, perspective, view, wiggle_matrix);
 
         /*
         if (object_moving[0]) {
@@ -429,7 +429,7 @@ public:
             spatial::matrix ortho;
             ortho.ortho(0, box.texture.map->properties.width, 0, box.texture.map->properties.height);
 
-            graphics->draw(assets->get<type::object>("icon"), shader_basic, rendertotex, spatial::matrix(), ortho);
+            graphics->draw(assets->get<type::object>("icon"), shader_basic, ortho, spatial::matrix(), rendertotex);
         }
 
         /*
@@ -438,12 +438,12 @@ public:
             trail = position.interpolate(spatial::ray(spatial::vector(0.0, 0.0, -0.2), spatial::vector(0.0, 0.0, 0.2)));
             graphics->recompile(trail);
 
-            graphics->draw(trail, shader, spatial::matrix(), view, perspective);
+            graphics->draw(trail, shader, perspective, view);
 
             projectile.move(0.4);
 
             spatial::matrix model = spatial::matrix().translate(projectile.eye, projectile.center, projectile.up);
-            graphics->draw(ray, shader, model, view, perspective);
+            graphics->draw(ray, shader, perspective, view, model);
         }
         */
     }

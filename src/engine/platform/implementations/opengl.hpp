@@ -10,8 +10,8 @@
 #endif
 
 #if defined __PLATFORM_ANDROID
-#include <GLES2/gl2.h>
-#include <GLES2/gl2ext.h>
+#include <GLES3/gl3.h>
+#include <GLES3/gl3ext.h>
 #endif
 
 #if !defined GL_MAX_COLOR_ATTACHMENTS
@@ -99,9 +99,10 @@ namespace implementation {
             bool compile(platform::assets* assets);
 
             bool recompile(type::object& object);
+            bool recompile(type::entity& entity);
 
-            void draw(type::object& object, type::program& shader, const spatial::matrix& model, const spatial::matrix& view, const spatial::matrix& projection, const spatial::matrix& lighting=spatial::matrix(), unsigned int options=0x00);
-            void draw(std::string text, type::font& font, type::program& shader, const spatial::matrix& model, const spatial::matrix& view, const spatial::matrix& projection, const spatial::matrix& lighting=spatial::matrix(), unsigned int options = 0x00);
+            void draw(type::object& object, type::program& shader, const spatial::matrix& projection, const spatial::matrix& view, const spatial::matrix& model=spatial::matrix(), const spatial::matrix& lighting=spatial::matrix(), unsigned int options=0x00);
+            void draw(std::string text, type::font& font, type::program& shader, const spatial::matrix& projection, const spatial::matrix& view, const spatial::matrix& model=spatial::matrix(), const spatial::matrix& lighting=spatial::matrix(), unsigned int options = 0x00);
 
             void ontarget(type::object* object) {
                 if (fbos.find(object) == fbos.end()) {
@@ -127,6 +128,9 @@ namespace implementation {
             std::vector<type::object*> target;
 
             std::map<type::object*, fbo> fbos;
+
+            int offset_vector = 0;
+            int offset_matrix = 0;
         };
 
     }

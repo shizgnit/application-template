@@ -106,7 +106,8 @@ namespace type {
 
         type::material texture;
 
-        unsigned int context;
+        unsigned int context = 0;
+        unsigned int instances = 0;
 
         object& operator = (const spatial::geometry& ref) {
             this->vertices.clear();

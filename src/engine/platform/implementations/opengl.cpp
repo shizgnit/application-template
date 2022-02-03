@@ -99,6 +99,24 @@ void implementation::opengl::graphics::init(void) {
     //shadow.texture.depth = true;
     shadow.xy_projection(0, 0, shadow.texture.map->properties.width, shadow.texture.map->properties.height);
     compile(shadow);
+
+    // Calculate the offsets
+    spatial::vector vector({ 256.0f });
+    unsigned char* vector_ptr = (unsigned char*)&vector;
+    for (int i = 0; i < sizeof(spatial::vector); i++) {
+        if (*(spatial::vector::type_t*)(vector_ptr + i) == 256.0f) {
+            offset_vector = i;
+            break;
+        }
+    }
+    spatial::matrix matrix({ {256.0f} });
+    unsigned char* matrix_ptr = (unsigned char*)&matrix;
+    for (int i = 0; i < sizeof(spatial::matrix); i++) {
+        if (*(spatial::matrix::type_t*)(matrix_ptr + i) == 256.0f) {
+            offset_matrix = i;
+            break;
+        }
+    }
 }
 
 void implementation::opengl::graphics::clear(void) {
@@ -211,9 +229,11 @@ bool implementation::opengl::graphics::compile(type::program& program) {
     program.a_Texture = glGetAttribLocation(program.context, "a_Texture");
     program.a_Normal = glGetAttribLocation(program.context, "a_Normal");
 
-    program.u_ModelMatrix = glGetUniformLocation(program.context, "u_ModelMatrix");
-    program.u_ViewMatrix = glGetUniformLocation(program.context, "u_ViewMatrix");
+    program.a_ModelMatrix = glGetAttribLocation(program.context, "a_ModelMatrix");
+
     program.u_ProjectionMatrix = glGetUniformLocation(program.context, "u_ProjectionMatrix");
+    program.u_ViewMatrix = glGetUniformLocation(program.context, "u_ViewMatrix");
+    program.u_ModelMatrix = glGetUniformLocation(program.context, "u_ModelMatrix");
     program.u_LightingMatrix = glGetUniformLocation(program.context, "u_LightingMatrix");
 
     program.u_SurfaceTextureUnit = glGetUniformLocation(program.context, "u_SurfaceTextureUnit");
@@ -300,6 +320,14 @@ bool implementation::opengl::graphics::compile(type::entity& entity) {
             compile(frame);
         }
     }
+
+    if (entity.positions.size()) {
+        glGenBuffers(1, &entity.context);
+        glBindBuffer(GL_ARRAY_BUFFER, entity.context);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(spatial::matrix) * entity.positions.size(), entity.positions.data());
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+    }
+
     return true;
 }
 
@@ -329,8 +357,14 @@ bool implementation::opengl::graphics::recompile(type::object& object) {
     return true;
 }
 
+bool implementation::opengl::graphics::recompile(type::entity& entity) {
+    glBindBuffer(GL_ARRAY_BUFFER, entity.context);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(spatial::matrix) * entity.positions.size(), entity.positions.data());
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    return true;
+}
 
-void implementation::opengl::graphics::draw(type::object& object, type::program& shader, const spatial::matrix& model, const spatial::matrix& view, const spatial::matrix& projection, const spatial::matrix& lighting, unsigned int options) {
+void implementation::opengl::graphics::draw(type::object& object, type::program& shader, const spatial::matrix& projection, const spatial::matrix& view, const spatial::matrix& model, const spatial::matrix& lighting, unsigned int options) {
     // Look for the first object with vertices, just at the top level for now
     auto &target = object;
     if (target.vertices.size() == 0) {
@@ -346,9 +380,9 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
         glBindTexture(GL_TEXTURE_2D, shadow.texture.context);
     }
 
-    glUniformMatrix4fv(shader.u_ModelMatrix, 1, GL_FALSE, (GLfloat*)model.data());
-    glUniformMatrix4fv(shader.u_ViewMatrix, 1, GL_FALSE, (GLfloat*)view.data());
     glUniformMatrix4fv(shader.u_ProjectionMatrix, 1, GL_FALSE, (GLfloat*)projection.data());
+    glUniformMatrix4fv(shader.u_ViewMatrix, 1, GL_FALSE, (GLfloat*)view.data());
+    glUniformMatrix4fv(shader.u_ModelMatrix, 1, GL_FALSE, (GLfloat*)model.data());
     glUniformMatrix4fv(shader.u_LightingMatrix, 1, GL_FALSE, (GLfloat*)lighting.data());
 
     glUniform1i(shader.u_SurfaceTextureUnit, 0);
@@ -359,28 +393,30 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
 
     glUniform4f(shader.u_Clipping, clip_top[clip_top.size()-1], clip_bottom[clip_bottom.size() - 1], clip_left[clip_left.size() - 1], clip_right[clip_right.size() - 1]);
 
-#ifdef __PLATFORM_64BIT
-    size_t offset = 8; // TODO: necessary to offset target overhead, this could/should be dynamic.  if this is enabled for android it will not work.
-#else
-    size_t offset = 4;
-#endif
-
     glBindBuffer(GL_ARRAY_BUFFER, target.context);
-    glVertexAttribPointer(shader.a_Vertex, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::vertex), BUFFER_OFFSET(offset));
-    glVertexAttribPointer(shader.a_Texture, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::vertex), BUFFER_OFFSET(offset+sizeof(spatial::vector)));
-    glVertexAttribPointer(shader.a_Normal, 4, GL_FLOAT, GL_TRUE, sizeof(spatial::vertex), BUFFER_OFFSET(offset+(sizeof(spatial::vector) * 2)));
+    glVertexAttribPointer(shader.a_Vertex, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::vertex), BUFFER_OFFSET(offset_vector));
+    glVertexAttribPointer(shader.a_Texture, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::vertex), BUFFER_OFFSET(offset_vector +sizeof(spatial::vector)));
+    glVertexAttribPointer(shader.a_Normal, 4, GL_FLOAT, GL_TRUE, sizeof(spatial::vertex), BUFFER_OFFSET(offset_vector +(sizeof(spatial::vector) * 2)));
 
     glEnableVertexAttribArray(shader.a_Vertex);
     glEnableVertexAttribArray(shader.a_Texture);
     glEnableVertexAttribArray(shader.a_Normal);
 
+    if (0) {
+        glBindBuffer(GL_ARRAY_BUFFER, target.context);
+        glVertexAttribPointer(shader.a_ModelMatrix, 16, GL_FLOAT, GL_FALSE, sizeof(spatial::vertex), BUFFER_OFFSET(offset_matrix));
+        glVertexAttribDivisor(shader.a_ModelMatrix, 1);
+    }
+
     // Draw either the solids or wireframes
     if (target.vertices.size() == 2 || options & render::WIREFRAME) {
-        glDrawArrays(GL_LINES, 0, target.vertices.size());
+        //glDrawArrays(GL_LINES, 0, target.vertices.size());
+        glDrawArraysInstanced(GL_LINES, 0, target.vertices.size(), 1);
         frame.lines += target.vertices.size() / 2;
     }
     else {
-        glDrawArrays(GL_TRIANGLES, 0, target.vertices.size());
+        //glDrawArrays(GL_TRIANGLES, 0, target.vertices.size());
+        glDrawArraysInstanced(GL_TRIANGLES, 0, target.vertices.size(), 1);
         frame.triangles += target.vertices.size() / 3;
     }
     frame.vertices += target.vertices.size();
@@ -392,12 +428,12 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
         for (auto vertex : target.vertices) {
             ray = spatial::ray(vertex.coordinate, vertex.normal + vertex.coordinate);
             recompile(ray);
-            draw(ray, shader, model, view, projection);
+            draw(ray, shader, projection, view, model);
         }
     }
 }
 
-void implementation::opengl::graphics::draw(std::string text, type::font& font, type::program& shader, const spatial::matrix& model, const spatial::matrix& view, const spatial::matrix& projection, const spatial::matrix& lighting, unsigned int options) {
+void implementation::opengl::graphics::draw(std::string text, type::font& font, type::program& shader, const spatial::matrix& projection, const spatial::matrix& view, const spatial::matrix& model, const spatial::matrix& lighting, unsigned int options) {
     int prior = 0;
     spatial::matrix position = model;
     for (unsigned int i = 0; i < text.length(); i++) {
@@ -408,7 +444,7 @@ void implementation::opengl::graphics::draw(std::string text, type::font& font, 
 
         relative.translate(spatial::vector((float)glyph.xoffset, (float)(font.point() - glyph.height - glyph.yoffset), 0.0f));
 
-        draw(glyph.quad, shader, relative, view, projection);
+        draw(glyph.quad, shader, projection, view, relative);
         position.translate(spatial::vector((float)glyph.xadvance, 0.0f, 0.0f));
         prior = text[i];
     }

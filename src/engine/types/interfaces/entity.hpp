@@ -21,7 +21,10 @@ namespace type {
             std::list<spatial::position> path;
         };
         std::vector<instance> instances;
-        std::vector<float> transforms;
+
+        unsigned int context = 0;
+
+        std::vector<spatial::matrix> positions;
 
         void allocate(int count) {
             if (instances.size() < count) {
@@ -67,14 +70,18 @@ namespace type {
             instances[index].frame = current + step;
         }
 
-        operator type::object& () {
+        type::object& get(int index = 0) {
             //std::lock_guard<std::mutex> scoped(lock);
-            allocate(1);
+            allocate(index + 1);
             static type::object empty;
-            if (instances[0].state.empty()) {
+            if (instances[index].state.empty()) {
                 return empty;
             }
-            return animations[instances[0].state].frames[instances[0].frame];
+            return animations[instances[index].state].frames[instances[index].frame];
+        }
+
+        operator type::object& () {
+            return get(0);
         }
 
     public:

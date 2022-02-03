@@ -19,6 +19,10 @@ void main()
 {
   mat4 MVP = u_ProjectionMatrix * u_ViewMatrix * u_ModelMatrix;
 
+  if(gl_InstanceID == 1) {
+    MVP = u_ProjectionMatrix * u_ViewMatrix;
+  }
+
   v_Texture = a_Texture.xy;
   v_Vertex = MVP * a_Vertex;
   v_Normal = normalize(MVP * a_Normal);

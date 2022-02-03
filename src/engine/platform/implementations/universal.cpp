@@ -276,7 +276,7 @@ void implementation::universal::interface::print(int x, int y, const std::string
     position.scale(1.0f);
     position.translate(x, (graphics->height() - font.height()) - y, 0);
 
-    graphics->draw(text, font, shader, position, spatial::matrix(), projection);
+    graphics->draw(text, font, shader, projection, spatial::matrix(), position);
 }
 
 void implementation::universal::interface::draw(widget& instance) {
@@ -298,9 +298,9 @@ void implementation::universal::interface::draw(widget& instance) {
         position.scale_x(progress.value.get() / 100.0f);
     }
 
-    graphics->draw(instance.background, shader, position, spatial::matrix(), projection);
+    graphics->draw(instance.background, shader, projection, spatial::matrix(), position);
     if (instance.edge.vertices.size()) {
-        graphics->draw(instance.edge, shader, edge, spatial::matrix(), projection, spatial::matrix(), platform::graphics::render::WIREFRAME);
+        graphics->draw(instance.edge, shader, projection, spatial::matrix(), edge, spatial::matrix(), platform::graphics::render::WIREFRAME);
     }
 
     if (instance.specification == widget::spec::progress) {
