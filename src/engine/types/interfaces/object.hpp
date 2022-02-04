@@ -2,9 +2,13 @@
 
 namespace type {
 
+    class entity;
+
     class object : virtual public type::info {
     public:
-        object() {}
+        entity* emitter = NULL;
+
+        object() : emitter(NULL) {}
         object(const spatial::geometry& ref) {
             *this = ref;
         }

@@ -28,6 +28,8 @@ namespace type {
         int u_AmbientLightPosition;
         int u_AmbientLightColor;
 
+        int u_RelativeParticles;
+
         std::string type() {
             return "type::program";
         }

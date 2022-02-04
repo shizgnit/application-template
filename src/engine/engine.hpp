@@ -111,7 +111,6 @@
 #include "types/interfaces/font.hpp"
 #include "types/interfaces/entity.hpp"
 
-
 #undef interface // Thanks Microsoft
 
 /// Platform Abstractions

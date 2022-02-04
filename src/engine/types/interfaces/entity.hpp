@@ -19,6 +19,11 @@ namespace type {
             std::string state;
             spatial::position position;
             std::list<spatial::position> path;
+
+            spatial::vector::type_t distance;
+            bool operator<(const instance& that) const {
+                return this->distance > that.distance;
+            }
         };
         std::vector<instance> instances;
 
@@ -26,6 +31,13 @@ namespace type {
 
         // http://www.opengl-tutorial.org/intermediate-tutorials/billboards-particles/particles-instancing/
         std::vector<spatial::matrix> positions;
+
+        void position() {
+            std::sort(instances.begin(), instances.end());
+            for (auto entry : instances) {
+                positions.push_back(entry.position);
+            }
+        }
 
         void allocate(int count) {
             if (instances.size() < count) {

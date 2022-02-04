@@ -261,8 +261,8 @@ bool implementation::opengl::graphics::compile(type::material& material) {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, material.map->properties.width, material.map->properties.height, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, NULL);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     }
     else {
         glGenTextures(1, &material.context);
@@ -311,6 +311,14 @@ bool implementation::opengl::graphics::compile(type::font& font) {
 }
 
 bool implementation::opengl::graphics::compile(type::entity& entity) {
+    if (entity.context == 0 && entity.positions.size()) {
+        glGenBuffers(1, &entity.context);
+        glBindBuffer(GL_ARRAY_BUFFER, entity.context);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(spatial::matrix) * 1024, NULL, GL_STREAM_DRAW);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(spatial::matrix) * entity.positions.size(), entity.positions.data());
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+    }
+
     if (entity.compile() == false) {
         return false;
     }
@@ -319,13 +327,6 @@ bool implementation::opengl::graphics::compile(type::entity& entity) {
         for (auto& frame : animation.second.frames) {
             compile(frame);
         }
-    }
-
-    if (entity.positions.size()) {
-        glGenBuffers(1, &entity.context);
-        glBindBuffer(GL_ARRAY_BUFFER, entity.context);
-        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(spatial::matrix) * entity.positions.size(), entity.positions.data());
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
 
     return true;
@@ -351,6 +352,10 @@ bool implementation::opengl::graphics::compile(platform::assets* assets) {
 }
 
 bool implementation::opengl::graphics::recompile(type::object& object) {
+    if (object.context == 0) {
+        return false;
+    }
+
     glBindBuffer(GL_ARRAY_BUFFER, object.context);
     glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(spatial::vertex) * object.vertices.size(), object.vertices.data());
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -358,6 +363,10 @@ bool implementation::opengl::graphics::recompile(type::object& object) {
 }
 
 bool implementation::opengl::graphics::recompile(type::entity& entity) {
+    if (entity.context == 0) {
+        return false;
+    }
+
     glBindBuffer(GL_ARRAY_BUFFER, entity.context);
     glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(spatial::matrix) * entity.positions.size(), entity.positions.data());
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -402,21 +411,23 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
     glEnableVertexAttribArray(shader.a_Texture);
     glEnableVertexAttribArray(shader.a_Normal);
 
-    if (0) {
-        glBindBuffer(GL_ARRAY_BUFFER, target.context);
-        glVertexAttribPointer(shader.a_ModelMatrix, 16, GL_FLOAT, GL_FALSE, sizeof(spatial::vertex), BUFFER_OFFSET(offset_matrix));
-        //glVertexAttribDivisor(shader.a_ModelMatrix, 1);
+    int instances = 1;
+    if (0 && object.emitter && object.emitter->context) {
+        glBindBuffer(GL_ARRAY_BUFFER, object.emitter->context);
+        glVertexAttribPointer(shader.a_ModelMatrix, 16, GL_FLOAT, GL_FALSE, sizeof(spatial::matrix), BUFFER_OFFSET(offset_matrix));
+        glVertexAttribDivisor(shader.a_ModelMatrix, 1);
+        instances = object.emitter->positions.size();
     }
 
     // Draw either the solids or wireframes
     if (target.vertices.size() == 2 || options & render::WIREFRAME) {
-        glDrawArrays(GL_LINES, 0, target.vertices.size());
-        //glDrawArraysInstanced(GL_LINES, 0, target.vertices.size(), 1);
+        //glDrawArrays(GL_LINES, 0, target.vertices.size());
+        glDrawArraysInstanced(GL_LINES, 0, target.vertices.size(), instances);
         frame.lines += target.vertices.size() / 2;
     }
     else {
-        glDrawArrays(GL_TRIANGLES, 0, target.vertices.size());
-        //glDrawArraysInstanced(GL_TRIANGLES, 0, target.vertices.size(), 1);
+        //glDrawArrays(GL_TRIANGLES, 0, target.vertices.size());
+        glDrawArraysInstanced(GL_TRIANGLES, 0, target.vertices.size(), instances);
         frame.triangles += target.vertices.size() / 3;
     }
     frame.vertices += target.vertices.size();
