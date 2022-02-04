@@ -24,6 +24,7 @@ namespace type {
 
         unsigned int context = 0;
 
+        // http://www.opengl-tutorial.org/intermediate-tutorials/billboards-particles/particles-instancing/
         std::vector<spatial::matrix> positions;
 
         void allocate(int count) {

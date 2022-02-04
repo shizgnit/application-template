@@ -4,4 +4,8 @@
     <DebuggerFlavor>AndroidDebugger</DebuggerFlavor>
     <AndroidDeviceID>emulator-5554;Pixel_3_XL_API_25</AndroidDeviceID>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
+    <DebuggerFlavor>AndroidDebugger</DebuggerFlavor>
+    <AndroidDeviceID>R5CN80X1XJT;c2quew</AndroidDeviceID>
+  </PropertyGroup>
 </Project>

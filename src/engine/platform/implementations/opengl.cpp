@@ -405,18 +405,18 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
     if (0) {
         glBindBuffer(GL_ARRAY_BUFFER, target.context);
         glVertexAttribPointer(shader.a_ModelMatrix, 16, GL_FLOAT, GL_FALSE, sizeof(spatial::vertex), BUFFER_OFFSET(offset_matrix));
-        glVertexAttribDivisor(shader.a_ModelMatrix, 1);
+        //glVertexAttribDivisor(shader.a_ModelMatrix, 1);
     }
 
     // Draw either the solids or wireframes
     if (target.vertices.size() == 2 || options & render::WIREFRAME) {
-        //glDrawArrays(GL_LINES, 0, target.vertices.size());
-        glDrawArraysInstanced(GL_LINES, 0, target.vertices.size(), 1);
+        glDrawArrays(GL_LINES, 0, target.vertices.size());
+        //glDrawArraysInstanced(GL_LINES, 0, target.vertices.size(), 1);
         frame.lines += target.vertices.size() / 2;
     }
     else {
-        //glDrawArrays(GL_TRIANGLES, 0, target.vertices.size());
-        glDrawArraysInstanced(GL_TRIANGLES, 0, target.vertices.size(), 1);
+        glDrawArrays(GL_TRIANGLES, 0, target.vertices.size());
+        //glDrawArraysInstanced(GL_TRIANGLES, 0, target.vertices.size(), 1);
         frame.triangles += target.vertices.size() / 3;
     }
     frame.vertices += target.vertices.size();

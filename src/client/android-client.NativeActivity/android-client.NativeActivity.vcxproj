@@ -164,7 +164,7 @@
       <PreprocessorDefinitions>__ANDROID_API__=$(AndroidAPILevelNumber);_FILE_OFFSET_BITS=64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <LibraryDependencies>%(LibraryDependencies);GLESv3;GLESv2;EGL;OpenSLES;m;GLESv1_CM;EGL;</LibraryDependencies>
+      <LibraryDependencies>%(LibraryDependencies);GLESv2;EGL;OpenSLES;m;GLESv1_CM;EGL;</LibraryDependencies>
     </Link>
     <PreBuildEvent>
       <Command>if not exist $(SolutionDir)\src\client\android-client.Packaging\assets mklink /J $(SolutionDir)\src\client\android-client.Packaging\assets $(SolutionDir)\assets </Command>
