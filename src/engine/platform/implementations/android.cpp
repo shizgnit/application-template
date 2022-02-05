@@ -39,6 +39,7 @@ std::vector<std::string> implementation::android::assets::list(const std::string
             auto fullpath = path + "/" + file;
             AAsset* asset = AAssetManager_open(assetManager, fullpath.c_str(), AASSET_MODE_BUFFER);
             if (!asset) {
+                errors.push_back(fullpath + ", failed to retrieve asset list");
                 continue;
             }
             auto contents = std::string((char*)AAsset_getBuffer(asset), AAsset_getLength(asset));
@@ -70,6 +71,9 @@ std::istream &implementation::android::assets::retrieve(const std::string& path)
     AAsset* asset = AAssetManager_open(assetManager, fullpath.c_str(), AASSET_MODE_BUFFER);
     if (asset) {
         ss->write((char*)AAsset_getBuffer(asset), AAsset_getLength(asset));
+    }
+    else {
+        errors.push_back(fullpath + ", failed to retrieve asset");
     }
     AAsset_close(asset);
 

@@ -18,6 +18,19 @@ namespace platform {
             }
         }
 
+        virtual int messages() {
+            return errors.size();
+        }
+
+        virtual std::string message() {
+            if (errors.size() == 0) {
+                return "";
+            }
+            std::string status = errors.front();
+            errors.pop_front();
+            return status;
+        }
+
         struct source {
             std::string path;
             std::istream* stream;
@@ -107,6 +120,8 @@ namespace platform {
         };
 
     protected:
+        std::list<std::string> errors;
+
         std::map<std::string, std::map<std::string, type::info*>> cache;
 
         common* loader = NULL;

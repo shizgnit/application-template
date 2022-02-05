@@ -83,6 +83,8 @@ void implementation::opengl::graphics::init(void) {
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
 
+    auto glsl = glGetString(GL_SHADING_LANGUAGE_VERSION);
+
     auto str = utilities::tokenize((const char*)glGetString(GL_EXTENSIONS), " ");
 
     // Setup the ray used for drawing normals
@@ -422,12 +424,12 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
     // Draw either the solids or wireframes
     if (target.vertices.size() == 2 || options & render::WIREFRAME) {
         //glDrawArrays(GL_LINES, 0, target.vertices.size());
-        glDrawArraysInstanced(GL_LINES, 0, target.vertices.size(), instances);
+        glDrawArraysInstanced(GL_LINES, 0, target.vertices.size(), 2);
         frame.lines += target.vertices.size() / 2;
     }
     else {
         //glDrawArrays(GL_TRIANGLES, 0, target.vertices.size());
-        glDrawArraysInstanced(GL_TRIANGLES, 0, target.vertices.size(), instances);
+        glDrawArraysInstanced(GL_TRIANGLES, 0, target.vertices.size(), 2);
         frame.triangles += target.vertices.size() / 3;
     }
     frame.vertices += target.vertices.size();

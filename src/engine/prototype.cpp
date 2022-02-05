@@ -135,7 +135,7 @@ public:
 
         main::global().call("/load object drawable/marvin.png icon");
 
-        graphics->compile(assets);
+        main::global().call("/compile");
 
         gui->shader = assets->get<type::program>("gui");
         gui->font = assets->get<type::font>("default");
@@ -162,6 +162,9 @@ public:
         }, 1);
 
         main::global().toggle("debug"); // no current way to turn this on in android
+
+        // Forcing the state change
+        main::global().transition("title", "game");
 
         return true;
     }
@@ -255,7 +258,7 @@ public:
             return false;
         }
 
-        graphics->compile(assets);
+        main::global().call("/compile");
 
         main::global().call("/show entities");
         main::global().call("/play objects/wiggle idle");

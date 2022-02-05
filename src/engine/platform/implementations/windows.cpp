@@ -199,6 +199,9 @@ std::istream& implementation::windows::assets::retrieve(const std::string& path)
     auto asset = utilities::join("\\", directories);
 
     file->open(asset.c_str(), std::ios::in | std::ios::binary);
+    if (file->is_open() == false) {
+        errors.push_back(asset + ", failed to retrieve asset");
+    }
 
     // push onto the stack regardless of success or failure
     assets::source entry = { utilities::dirname(path), file };

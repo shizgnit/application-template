@@ -1,19 +1,18 @@
+#version 320 es
+
 uniform mat4 u_ModelMatrix;
 uniform mat4 u_ViewMatrix;
 uniform mat4 u_ProjectionMatrix;
 
 uniform vec4 u_Clipping;
 
-uniform vec4 u_AmbientLightPosition;
-uniform vec4 u_AmbientLightColor;
+in vec4 a_Vertex;
+in vec4 a_Texture;
+in vec4 a_Normal;
 
-attribute vec4 a_Vertex;
-attribute vec4 a_Texture;
-attribute vec4 a_Normal;
-
-varying vec4 v_Vertex;
-varying vec2 v_Texture;
-varying vec4 v_Normal;
+out vec4 v_Vertex;
+out vec2 v_Texture;
+out vec4 v_Normal;
 
 void main()
 {

@@ -291,11 +291,17 @@ value_t main::load(parameters_t p) {
     if (p.size() == 3) {
         assets->load(std::get<std::string>(p[0]), std::get<std::string>(p[1]), std::get<std::string>(p[2]));
     }
+    while (assets->messages()) {
+        main::debug().content.add(assets->message());
+    }
     return 0;
 }
 
 value_t main::compile(parameters_t p) {
     graphics->compile(assets);
+    while (graphics->messages()) {
+        main::debug().content.add(graphics->message());
+    }
     return 0;
 }
 

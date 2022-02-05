@@ -55,3 +55,25 @@ Recommended references.
     https://www.amazon.com/s?k=978-1435458864 - Mathematics for 3D Game Programming and Computer Graphics
     https://www.amazon.com/s?k=978-0321637635 - OpenGL Shading Language
 
+Android
+
+    adb tcpip 5556
+    adb connect 192.168.0.177:5556
+    adb devices
+
+Gitflow
+
+    Standard workflow
+
+        git clone <project>
+        git checkout -b feature/<name>
+        ... Make changes
+        git commit -am "did stuff"
+        git pull origin develop
+        git push
+        ... Create a PR to develop
+
+    Just helpful
+
+        git log --pretty=format:"%h%x09%an%x09%ad%x09%s"
+

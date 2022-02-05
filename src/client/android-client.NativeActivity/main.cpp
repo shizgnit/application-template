@@ -24,7 +24,7 @@
 //#define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO, "AndroidProject1.NativeActivity", __VA_ARGS__))
 #define LOGW(...) ((void)__android_log_print(ANDROID_LOG_WARN, "AndroidProject1.NativeActivity", __VA_ARGS__))
 
-#define  LOG_TAG    "libgl2jni"
+#define  LOG_TAG    "libgl3jni"
 #define  LOGI(...)  __android_log_print(ANDROID_LOG_INFO,LOG_TAG,__VA_ARGS__)
 #define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR,LOG_TAG,__VA_ARGS__)
 
@@ -238,11 +238,11 @@ static int engine_init_display(struct engine* engine) {
 
 	surface = eglCreateWindowSurface(display, config, engine->app->window, NULL);
 
-	const EGLint GiveMeGLES2[] = {
-	  EGL_CONTEXT_CLIENT_VERSION, 2,
+	const EGLint GiveMeGLES3[] = {
+	  EGL_CONTEXT_CLIENT_VERSION, 3,
 	  EGL_NONE
 	};
-	context = eglCreateContext(display, config, NULL, GiveMeGLES2);
+	context = eglCreateContext(display, config, NULL, GiveMeGLES3);
 
 	if (eglMakeCurrent(display, surface, surface, context) == EGL_FALSE) {
 		LOGW("Unable to eglMakeCurrent");
