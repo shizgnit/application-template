@@ -106,6 +106,25 @@ public:
 class title : public main::scene {
 public:
     bool load() {
+
+        spatial::matrix model = { {4,0,0,0},
+{0,4,0,0},
+{0,0,4,0},
+{0,0,0,1} };
+        spatial::matrix lighting = { {-0.0168359,0.0097202,-0.57735,0},
+{0,-0.0194404,-0.57735,0},
+{0.0168359,0.0097202,-0.57735,0},
+{0,0,8.66025,1} };
+
+        spatial::vector vertex = {
+-9.30591202,
+-2.43009806,
+6.97943401,
+1.00000000 };
+
+        auto temp1 = lighting * model;
+        auto temp2 = temp1 * vertex;
+
         main::global().call("/set debug.input 0");
 
         main::global().call("/set ambient.position (5,5,5)");
@@ -355,6 +374,7 @@ public:
         {
             auto scoped = graphics->target(graphics->shadow);
             graphics->clear();
+            graphics->draw(ground, shader_shadowmap, ortho, lighting, spatial::matrix().scale(4.0f), ortho * lighting);
             graphics->draw(box, shader_shadowmap, ortho, lighting, box1_matrix, ortho * lighting);
             graphics->draw(box, shader_shadowmap, ortho, lighting, box2_matrix, ortho * lighting);
             graphics->draw(monkey, shader_shadowmap, ortho, lighting, spatial::matrix().translate(0, -2, -10).scale(5.0f), ortho * lighting);
@@ -365,8 +385,8 @@ public:
 
         graphics->draw(ground, shader_scenery, perspective, view, spatial::matrix().scale(4.0f), ortho * lighting, platform::graphics::render::NORMALS);
 
-        graphics->draw(box, shader_defuse, perspective, view, box1_matrix, ortho * lighting, platform::graphics::render::NORMALS);
-        graphics->draw(box, shader_defuse, perspective, view, box2_matrix, ortho * lighting, platform::graphics::render::NORMALS);
+        graphics->draw(box, shader_scenery, perspective, view, box1_matrix, ortho * lighting, platform::graphics::render::NORMALS);
+        graphics->draw(box, shader_scenery, perspective, view, box2_matrix, ortho * lighting, platform::graphics::render::NORMALS);
 
         graphics->draw(xAxis, shader_basic, perspective, view);
         graphics->draw(yAxis, shader_basic, perspective, view);
@@ -611,6 +631,41 @@ public:
 void prototype::on_startup() {
     graphics->init();
     audio->init();
+
+    spatial::matrix model;
+    model.translate(400, 400, 0);
+
+    float width = 600.0f;
+    float height = 400.0f;
+
+    spatial::matrix ortho;
+    ortho.ortho(0, width, 0, height);
+
+    spatial::triangle t1;
+    t1.vertices[0](256.0f, 256.0f, 0.0f);
+    t1.vertices[1](256.0f, 0.0f, 0.0f);
+    t1.vertices[2](0.0f, 0.0f, 0.0f);
+
+    t1.project(spatial::matrix(), spatial::matrix(), ortho);
+
+    //t1.vertices[0].w = 0.0f;
+    //t1.vertices[1].w = 0.0f;
+    //t1.vertices[2].w = 0.0f;
+
+    spatial::vector reference(width / 2, height / 2);
+    spatial::vector offset = reference.project(spatial::matrix(), spatial::matrix(), ortho);
+
+
+    spatial::vector point(120.0f, 120.0f);
+    spatial::vector projected = point.project(spatial::matrix(), spatial::matrix(), ortho);
+
+    //projected.w = 0.0f;
+
+    spatial::ray r1(projected - spatial::vector(0, 0, 200), projected - spatial::vector(0, 0, -200));
+
+    if (r1.intersects(t1)) {
+        int x = 0;
+    }
 
     /*
     server->handler([](platform::network::client* caller) {

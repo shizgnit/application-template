@@ -36,11 +36,12 @@ void implementation::opengl::fbo::enable(bool clear) {
     }
     glBindFramebuffer(GL_FRAMEBUFFER, context.frame);
     glViewport(0, 0, target->texture.map->properties.width, target->texture.map->properties.height);
-    if (clear || target->texture.depth) {
+    if (target->texture.depth) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glCullFace(GL_FRONT);
     }
     else {
-        glClear(GL_DEPTH_BUFFER_BIT);
+        glClear(clear ? GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT : GL_DEPTH_BUFFER_BIT);
     }
 }
 
@@ -49,7 +50,10 @@ void implementation::opengl::fbo::disable() {
         return;
     }
     // Currently all rendering is done to the mipmap level 0... copy it out after every render
-    if (target->texture.depth == false) {
+    if (target->texture.depth) {
+        glCullFace(GL_BACK);
+    }
+    else {
         glBindTexture(GL_TEXTURE_2D, target->texture.context);
         glGenerateMipmap(GL_TEXTURE_2D);
         glBindTexture(GL_TEXTURE_2D, 0);
@@ -72,7 +76,7 @@ void implementation::opengl::graphics::init(void) {
     glDepthFunc(GL_LEQUAL);
     glDepthMask(GL_TRUE);
     glClearDepthf(1.0f);
-    glDepthRangef(0.1f, 1.0f);
+    glDepthRangef(0.0f, 1.0f);
 
     // Alpha blending
     glEnable(GL_BLEND);
@@ -80,8 +84,8 @@ void implementation::opengl::graphics::init(void) {
 
     // Backface culling, makes GLES rendering of objects easier since they don't need to be drawn back to front
     glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
+    glCullFace(GL_BACK);
 
     auto glsl = glGetString(GL_SHADING_LANGUAGE_VERSION);
 
@@ -98,7 +102,7 @@ void implementation::opengl::graphics::init(void) {
     shadow = spatial::quad(256, 256);
     shadow.texture.map = &assets->get<type::image>("shadowmap");
     shadow.texture.map->create(1024, 1024, 0, 0, 0, 0);
-    //shadow.texture.depth = true;
+    shadow.texture.depth = true;
     shadow.xy_projection(0, 0, shadow.texture.map->properties.width, shadow.texture.map->properties.height);
     compile(shadow);
 
@@ -260,7 +264,7 @@ bool implementation::opengl::graphics::compile(type::material& material) {
     if (material.depth) {
         glGenTextures(1, &material.context);
         glBindTexture(GL_TEXTURE_2D, material.context);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, material.map->properties.width, material.map->properties.height, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, NULL);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, material.map->properties.width, material.map->properties.height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -382,6 +386,9 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
         return;
     }
 
+    //std::string mstr = model;
+    //std::string lstr = lighting;
+
     glUseProgram(shader.context);
 
     glActiveTexture(GL_TEXTURE0);
@@ -414,7 +421,7 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
     glEnableVertexAttribArray(shader.a_Normal);
 
     int instances = 1;
-    if (0 && object.emitter && object.emitter->context) {
+    if (object.emitter && object.emitter->context) {
         glBindBuffer(GL_ARRAY_BUFFER, object.emitter->context);
         glVertexAttribPointer(shader.a_ModelMatrix, 16, GL_FLOAT, GL_FALSE, sizeof(spatial::matrix), BUFFER_OFFSET(offset_matrix));
         glVertexAttribDivisor(shader.a_ModelMatrix, 1);
@@ -424,12 +431,12 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
     // Draw either the solids or wireframes
     if (target.vertices.size() == 2 || options & render::WIREFRAME) {
         //glDrawArrays(GL_LINES, 0, target.vertices.size());
-        glDrawArraysInstanced(GL_LINES, 0, target.vertices.size(), 2);
+        glDrawArraysInstanced(GL_LINES, 0, target.vertices.size(), instances);
         frame.lines += target.vertices.size() / 2;
     }
     else {
         //glDrawArrays(GL_TRIANGLES, 0, target.vertices.size());
-        glDrawArraysInstanced(GL_TRIANGLES, 0, target.vertices.size(), 2);
+        glDrawArraysInstanced(GL_TRIANGLES, 0, target.vertices.size(), instances);
         frame.triangles += target.vertices.size() / 3;
     }
     frame.vertices += target.vertices.size();

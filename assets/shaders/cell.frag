@@ -6,10 +6,12 @@ uniform sampler2D u_SurfaceTextureUnit;
 uniform sampler2D u_ShadowTextureUnit;
 
 uniform vec4 u_AmbientLightPosition;
+uniform vec4 u_AmbientLightColor;
 
 in vec2 v_Texture;
 in vec4 v_Vertex;
 in vec4 v_Normal;
+in vec4 v_Lighting;
 
 layout(location = 0) out vec4 diffuseColor;
 

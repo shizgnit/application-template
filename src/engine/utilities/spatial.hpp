@@ -155,6 +155,21 @@ namespace spatial {
             return const_cast<type_t *>((type_t *)(r.x));
         }
 
+        operator std::string() const {
+            std::stringstream ss;            
+            ss << "{";
+            for (int row = 0; row < 4; row++) {
+                ss << "{";
+                for (int col = 0; col < 4; col++) {
+                    ss << r[row][col] << (col < 3 ? "," : "");
+                }
+                ss << "}" << (row < 3 ? ",\n" : "");
+            }
+            ss << "}";
+            return ss.str();
+        }
+
+
     private:
         matrix_t r;
 
@@ -188,7 +203,7 @@ namespace spatial {
         matrix& translate(const vector& eye, const vector& center, const vector& up);
 
         matrix& perspective(type_t fov, type_t aspect, type_t n, type_t f);
-        matrix& ortho(type_t left, type_t right, type_t bottom, type_t top);
+        matrix& ortho(type_t left, type_t right, type_t bottom, type_t top, type_t near=-1.0f, type_t far=1.0f);
 
         matrix& lookat(const vector& eye, const vector& center, const vector& up);
 

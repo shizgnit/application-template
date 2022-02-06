@@ -244,11 +244,10 @@ spatial::vector spatial::matrix::interpolate(const spatial::vector& v) const {
 }
 
 spatial::geometry spatial::matrix::interpolate(const spatial::geometry& g) const {
-    spatial::vector d(r[3][0], r[3][1], r[3][2], r[3][3]);
     spatial::geometry results = g;
     results.vertices.clear();
     for (auto v : g.vertices) {
-        results.vertices.push_back((*this * v) + d);
+        results.vertices.push_back(*this * v);
     }
     return results;
 }
@@ -297,10 +296,10 @@ spatial::vector spatial::matrix::operator * (const vector& operand) const {
 
     matrix current = *this;
 
-    result.x = (current.r[0][0] * operand.x) + (current.r[1][0] * operand.y) + (current.r[2][0] * operand.z);
-    result.y = (current.r[0][1] * operand.x) + (current.r[1][1] * operand.y) + (current.r[2][1] * operand.z);
-    result.z = (current.r[0][2] * operand.x) + (current.r[1][2] * operand.y) + (current.r[2][2] * operand.z);
-    result.w = (current.r[0][3] * operand.x) + (current.r[1][3] * operand.y) + (current.r[2][3] * operand.z);
+    result.x = (current.r[0][0] * operand.x) + (current.r[1][0] * operand.y) + (current.r[2][0] * operand.z) + (current.r[3][0] * operand.w);
+    result.y = (current.r[0][1] * operand.x) + (current.r[1][1] * operand.y) + (current.r[2][1] * operand.z) + (current.r[3][1] * operand.w);
+    result.z = (current.r[0][2] * operand.x) + (current.r[1][2] * operand.y) + (current.r[2][2] * operand.z) + (current.r[3][2] * operand.w);
+    result.w = (current.r[0][3] * operand.x) + (current.r[1][3] * operand.y) + (current.r[2][3] * operand.z) + (current.r[3][3] * operand.w);
 
     return result;
 }
@@ -472,12 +471,13 @@ spatial::matrix& spatial::matrix::perspective(type_t fov, type_t aspect, type_t 
     return *this;
 }
 
-spatial::matrix& spatial::matrix::ortho(type_t left, type_t right, type_t bottom, type_t top) {
+spatial::matrix& spatial::matrix::ortho(type_t left, type_t right, type_t bottom, type_t top, type_t n, type_t f) {
     r[0][0] = 2.0f / (right - left);
     r[1][1] = 2.0f / (top - bottom);
-    r[2][2] = -1.0f;
+    r[2][2] = -2.0f / (f - n);
     r[3][0] = -(right + left) / (right - left);
     r[3][1] = -(top + bottom) / (top - bottom);
+    r[3][2] = -(f + n) / (f - n);
     r[3][3] = 1.0f;
     return *this;
 }

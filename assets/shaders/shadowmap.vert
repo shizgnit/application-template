@@ -1,3 +1,7 @@
+#version 320 es
+
+precision mediump float;
+
 uniform mat4 u_ModelMatrix;
 uniform mat4 u_ViewMatrix;
 uniform mat4 u_ProjectionMatrix;
@@ -8,14 +12,14 @@ uniform vec4 u_Clipping;
 uniform vec4 u_AmbientLightPosition;
 uniform vec4 u_AmbientLightColor;
 
-attribute vec4 a_Vertex;
-attribute vec4 a_Texture;
-attribute vec4 a_Normal;
+in vec4 a_Vertex;
+in vec4 a_Texture;
+in vec4 a_Normal;
 
-varying vec4 v_Vertex;
-varying vec2 v_Texture;
-varying vec4 v_Normal;
-varying vec4 v_Lighting;
+out vec4 v_Vertex;
+out vec2 v_Texture;
+out vec4 v_Normal;
+out vec4 v_Lighting;
 
 void main()
 {
@@ -25,7 +29,8 @@ void main()
   v_Normal = normalize(MVP * a_Normal);
   
   gl_Position = v_Vertex;
-  gl_Position.z = -1.0 + (gl_Position.z / 10.0);
+  //gl_Position.z = (gl_Position.z / 10.0) - 1.0f;
 
   v_Lighting = (u_LightingMatrix * u_ModelMatrix) * a_Vertex;
+  v_Lighting.z = (v_Lighting.z / 10.0) - 1.0f;
 }

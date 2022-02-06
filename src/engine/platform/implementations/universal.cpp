@@ -192,7 +192,8 @@ void implementation::universal::input::emit() {
 }
 
 void implementation::universal::interface::raise(const input::event& ev, int x, int y) {
-    spatial::vector relative = { (float)x, (float)(graphics->height() - y), 0.0f };
+    //spatial::vector relative = { (float)x, (float)(graphics->height() - y), 0.0f };
+    spatial::vector relative = { (float)x, (float)y, 0.0f };
     spatial::vector position = relative.project(spatial::matrix(), spatial::matrix(), spatial::matrix());
     spatial::ray ray(position - spatial::vector(0,0,100), position - spatial::vector(0,0,-100));
 
@@ -332,7 +333,8 @@ void implementation::universal::interface::draw(widget& instance) {
 
 void implementation::universal::interface::position(widget& instance) {
     spatial::matrix position;
-    position.translate(instance.x, (graphics->height() - instance.background.height()) - instance.y, 0);
+    //position.translate(instance.x, (graphics->height() - instance.background.height()) - instance.y, 0);
+    position.translate(instance.x, instance.y, 0);
     instance.bounds = position.interpolate(spatial::quad(instance.background.vertices));
 }
 

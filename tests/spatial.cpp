@@ -24,6 +24,16 @@ TEST(SpatialTest, Matrix) {
     //EXPECT_EQ();
 }
 
+TEST(SpatialTest, Lighting) {
+    spatial::matrix model = { {4,0,0,0},
+                              {0,4,0,0},
+                              {0,0,4,0},
+                              {0,0,0,1} };
+
+    //EXPECT_EQ();
+}
+
+
 TEST(SpatialTest, Position) {
 
     type::info inf = { { "something" }, type::format::FORMAT_FNT };
