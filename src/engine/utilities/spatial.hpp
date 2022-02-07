@@ -75,6 +75,12 @@ namespace spatial {
             return (x == 0 && y == 0 && z == 0 && w == 1) == false;
         }
 
+        operator std::string() const {
+            std::stringstream ss;
+            ss << "{" << x << "," << y << "," << z << "," << w << "}";
+            return ss.str();
+        }
+
     public:
 
         union {
@@ -169,7 +175,6 @@ namespace spatial {
             return ss.str();
         }
 
-
     private:
         matrix_t r;
 
@@ -202,8 +207,8 @@ namespace spatial {
         matrix& translate(const type_t& x, const type_t& y, const type_t& z, const type_t& w = 1.0f);
         matrix& translate(const vector& eye, const vector& center, const vector& up);
 
-        matrix& perspective(type_t fov, type_t aspect, type_t n, type_t f);
-        matrix& ortho(type_t left, type_t right, type_t bottom, type_t top, type_t near=-1.0f, type_t far=1.0f);
+        matrix& perspective(type_t fov, type_t aspect, type_t near=0.0f, type_t far=10.0f);
+        matrix& ortho(type_t left, type_t right, type_t bottom, type_t top, type_t near=0.0f, type_t far=10.0f);
 
         matrix& lookat(const vector& eye, const vector& center, const vector& up);
 

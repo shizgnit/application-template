@@ -117,7 +117,7 @@ void main::geometry(int width, int height) {
     int fov = has("perspective.fov") ? std::get<int>(main::global().get("perspective.fov")) : 90;
 
     ortho.ortho(0, width, 0, height);
-    perspective.perspective(fov * (float)M_PI / 180.0f, (float)width / (float)height, -1.0f, 1.0f);
+    perspective.perspective(fov, (float)width / (float)height);
 
     std::lock_guard<std::mutex> scoped(lock);
     for (auto scene : current()) {

@@ -17,12 +17,6 @@ in vec4 v_Lighting;
 // https://stackoverflow.com/questions/6652253/getting-the-true-z-value-from-the-depth-buffer
 // https://stackoverflow.com/questions/48288154/pack-depth-information-in-a-rgba-texture-using-mediump-precison
 
-float UnpackDepth16( in vec2 pack )
-{
-    float depth = dot( pack, 1.0 / vec2(1.0, 256.0) );
-    return depth * (256.0*256.0) / (256.0*256.0 - 1.0);
-}
-
 layout(location = 0) out vec4 diffuseColor;
 
 void main()
@@ -40,27 +34,10 @@ void main()
    Projection = Projection * 0.5 + 0.5;
 
    float closestDepth = texture(u_ShadowTextureUnit, Projection.xy).r;
-   float currentDepth = v_Lighting.z;
+   float currentDepth = Projection.z;
 
-   //float shadow = closestDepth;
-   //float shadow = currentDepth;
-
-   float shadow = currentDepth > closestDepth ? 1.0 : 0.5;
-   //if()
-
-   //float shadow = texture(u_ShadowTextureUnit, Projection.xy).r * 42.0f;
-
-   //float shadow = v_Lighting.w;
-
-   //float shadow = texture(u_ShadowTextureUnit, Projection.xy).r;
-   //float shadow = Projection.z;
-
-   //float shadow = texture(u_ShadowTextureUnit, Projection.xy).r >= 1.0 ? 1.0 : 0.5;
-   //float shadow = Projection.z >= 1.0 ? 1.0 : 0.5;
-
-   //float shadow = currentDepth > closestDepth  ? 1.5 : 0.5;
-
-   //float shadow = v_Lighting.w == 1.0 ? 0.5 : 1.5;
+   float bias = min(-0.003 * (1.0 - dot(v_Normal, L)), -0.003);
+   float shadow = currentDepth + bias > closestDepth ? 0.5 : 1.0;
 
    diffuseColor = texture(u_SurfaceTextureUnit, v_Texture) * vec4(texture(u_SurfaceTextureUnit, v_Texture).a) * vec4(vec3(shadow), 1.0f);
 

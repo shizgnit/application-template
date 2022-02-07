@@ -106,25 +106,6 @@ public:
 class title : public main::scene {
 public:
     bool load() {
-
-        spatial::matrix model = { {4,0,0,0},
-{0,4,0,0},
-{0,0,4,0},
-{0,0,0,1} };
-        spatial::matrix lighting = { {-0.0168359,0.0097202,-0.57735,0},
-{0,-0.0194404,-0.57735,0},
-{0.0168359,0.0097202,-0.57735,0},
-{0,0,8.66025,1} };
-
-        spatial::vector vertex = {
--9.30591202,
--2.43009806,
-6.97943401,
-1.00000000 };
-
-        auto temp1 = lighting * model;
-        auto temp2 = temp1 * vertex;
-
         main::global().call("/set debug.input 0");
 
         main::global().call("/set ambient.position (5,5,5)");
@@ -139,6 +120,7 @@ public:
         main::global().call("/set perspective.fov 90");
 
         main::global().call("/set shadow.scale 42");
+        main::global().call("/set shadow.depth 100.0");
 
         main::global().call("/load sound raw/glados");
         main::global().call("/load shader shaders/basic basic");
@@ -180,7 +162,7 @@ public:
             main::global().transition("title", "game");
         }, 1);
 
-        main::global().toggle("debug"); // no current way to turn this on in android
+        main::global().toggle("debug"); // no current way to turn this on in android... so just start with it.
 
         // Forcing the state change
         main::global().transition("title", "game");
@@ -362,7 +344,9 @@ public:
         // orthographic view matrix relative to the target
         spatial::matrix ortho;
         auto scale = std::get<int>(main::global().get("shadow.scale"));
-        ortho.ortho(scale, scale * -1.0f, scale, scale * -1.0f);
+        auto depth = std::get<double>(main::global().get("shadow.depth"));
+
+        ortho.ortho(scale, scale * -1.0f, scale, scale * -1.0f, 0.0f, depth);
 
         auto box1_matrix = spatial::matrix().translate(std::get<spatial::vector>(main::global().get("box1.position")));
         auto box2_matrix = spatial::matrix().translate(std::get<spatial::vector>(main::global().get("box2.position"))).scale(2.0f);
@@ -632,8 +616,54 @@ void prototype::on_startup() {
     graphics->init();
     audio->init();
 
-    spatial::matrix model;
-    model.translate(400, 400, 0);
+    /// <summary>
+    /// Just adding some test code since my unit test project is currently non-functional... had to be rebuilt and needs references set up.
+    /// </summary>
+
+    spatial::matrix model = { {4,0,0,0},
+                              {0,4,0,0},
+                              {0,0,4,0},
+                              {0,0,0,1} };
+
+    spatial::matrix lighting = { {0.707107,-0.408248,0.57735,0},
+{0,0.816497,0.57735,0},
+{-0.707107,-0.408248,0.57735,0},
+{0,0,-8.66025,1} };
+
+    spatial::matrix ortho_for_shadows = { {-0.0238095,0,0,0},
+{0,-0.0238095,0,0},
+{0,0,-0.2,0},
+{0,0,-1,1} };
+
+    spatial::vector vertex = {
+                              -9.30591202,
+                              -2.43009806,
+                              6.97943401,
+                              1.00000000 };
+
+    auto temp1 = lighting * model;
+
+    spatial::matrix result = { {2.82843,-1.63299,2.3094,0},
+{0,3.26599,2.3094,0},
+{-2.82843,-1.63299,2.3094,0},
+{0,0,-8.66025,1} };
+
+    std::string moutput = temp1;
+
+    auto temp2 = temp1 * vertex;
+
+    /*
+    //result.z = (current.r[0][2] * operand.x) + (current.r[1][2] * operand.y) + (current.r[2][2] * operand.z) + (current.r[3][2] * operand.w);
+                          -2.3094   -9.30591202         -2.3094      -2.43009806          -2.3094   6.97943401           8.66025    1
+    
+    //result.w = (current.r[0][3] * operand.x) + (current.r[1][3] * operand.y) + (current.r[2][3] * operand.z) + (current.r[3][3] * operand.w);
+                            0                                 0                              0                               1
+    */
+
+    std::string voutput = temp2; // {1.09671,0.098513,19.6451,1}
+
+    spatial::matrix model2;
+    model2.translate(400, 400, 0);
 
     float width = 600.0f;
     float height = 400.0f;

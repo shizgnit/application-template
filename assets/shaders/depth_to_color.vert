@@ -25,7 +25,6 @@ void main()
   v_Normal = normalize(MVP * a_Normal);
   
   gl_Position = v_Vertex;
-  gl_Position.z = -1.0 + (gl_Position.z / 10.0);
 
   vec4 model = u_ModelMatrix * a_Vertex;
 

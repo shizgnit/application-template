@@ -102,7 +102,7 @@ void implementation::opengl::graphics::init(void) {
     shadow = spatial::quad(256, 256);
     shadow.texture.map = &assets->get<type::image>("shadowmap");
     shadow.texture.map->create(1024, 1024, 0, 0, 0, 0);
-    shadow.texture.depth = true;
+    //shadow.texture.depth = true;
     shadow.xy_projection(0, 0, shadow.texture.map->properties.width, shadow.texture.map->properties.height);
     compile(shadow);
 
@@ -385,9 +385,6 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
     if (target.vertices.size() == 0) {
         return;
     }
-
-    //std::string mstr = model;
-    //std::string lstr = lighting;
 
     glUseProgram(shader.context);
 

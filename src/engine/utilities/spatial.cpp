@@ -446,7 +446,9 @@ spatial::matrix& spatial::matrix::translate(const type_t& x, const type_t& y, co
 }
 
 spatial::matrix& spatial::matrix::perspective(type_t fov, type_t aspect, type_t n, type_t f) {
-    type_t const a = 1.0f / (type_t)tan(fov / 2.0f);
+    auto rad = fov * (float)M_PI / 180.0f;
+
+    type_t const a = 1.0f / (type_t)tan(rad / 2.0f);
 
     r[0][0] = a / aspect;
     r[0][1] = 0.0f;
@@ -473,12 +475,25 @@ spatial::matrix& spatial::matrix::perspective(type_t fov, type_t aspect, type_t 
 
 spatial::matrix& spatial::matrix::ortho(type_t left, type_t right, type_t bottom, type_t top, type_t n, type_t f) {
     r[0][0] = 2.0f / (right - left);
+    r[0][1] = 0.0f;
+    r[0][2] = 0.0f;
+    r[0][3] = 0.0f;
+
+    r[1][0] = 0.0f;
     r[1][1] = 2.0f / (top - bottom);
+    r[1][2] = 0.0f;
+    r[1][3] = 0.0f;
+
+    r[2][0] = 0.0f;
+    r[2][1] = 0.0f;
     r[2][2] = -2.0f / (f - n);
+    r[2][3] = 0.0f;
+
     r[3][0] = -(right + left) / (right - left);
     r[3][1] = -(top + bottom) / (top - bottom);
     r[3][2] = -(f + n) / (f - n);
     r[3][3] = 1.0f;
+
     return *this;
 }
 

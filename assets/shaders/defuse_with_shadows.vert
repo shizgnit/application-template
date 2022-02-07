@@ -30,8 +30,6 @@ void main()
   v_Normal = normalize(MVP * a_Normal);
   
   gl_Position = v_Vertex;
-  gl_Position.z = (gl_Position.z / 10.0) - 1.0f;
 
   v_Lighting = (u_LightingMatrix * u_ModelMatrix) * a_Vertex;
-  v_Lighting.z = (v_Lighting.z / 10.0) - 1.0f;
 }
