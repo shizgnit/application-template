@@ -70,7 +70,7 @@ std::string utilities::uc(std::string in) {
 }
 
 bool utilities::numeric(std::string in) {
-    return in.find_first_not_of("0123456789.") == std::string::npos;
+    return in.find_first_not_of("-0123456789.") == std::string::npos;
 }
 
 /*

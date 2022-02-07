@@ -87,6 +87,7 @@ namespace platform {
         struct {
             spatial::position position;
             spatial::vector color;
+            float bias = 0.0f;
         } ambient;
 
         struct {

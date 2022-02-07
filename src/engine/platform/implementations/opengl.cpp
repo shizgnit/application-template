@@ -249,6 +249,7 @@ bool implementation::opengl::graphics::compile(type::program& program) {
 
     program.u_AmbientLightPosition = glGetUniformLocation(program.context, "u_AmbientLightPosition");
     program.u_AmbientLightColor = glGetUniformLocation(program.context, "u_AmbientLightColor");
+    program.u_AmbientLightBias = glGetUniformLocation(program.context, "u_AmbientLightBias");
 
     return true;
 }
@@ -405,6 +406,8 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
 
     glUniform4f(shader.u_AmbientLightPosition, ambient.position.center.x, ambient.position.center.y, ambient.position.center.z, ambient.position.center.w);
     glUniform4f(shader.u_AmbientLightColor, ambient.color.x, ambient.color.y, ambient.color.z, ambient.color.w);
+
+    glUniform1f(shader.u_AmbientLightBias, ambient.bias);
 
     glUniform4f(shader.u_Clipping, clip_top[clip_top.size()-1], clip_bottom[clip_bottom.size() - 1], clip_left[clip_left.size() - 1], clip_right[clip_right.size() - 1]);
 

@@ -7,6 +7,7 @@ uniform sampler2D u_ShadowTextureUnit;
 
 uniform vec4 u_AmbientLightPosition;
 uniform vec4 u_AmbientLightColor;
+uniform float u_AmbientLightBias;
 
 in vec2 v_Texture;
 in vec4 v_Vertex;
@@ -33,27 +34,27 @@ void main()
    vec3 Projection = v_Lighting.xyz / v_Lighting.w;
    Projection = Projection * 0.5 + 0.5;
 
-   float closestDepth = texture(u_ShadowTextureUnit, Projection.xy).r;
-   float currentDepth = Projection.z;
+   float bias = min(u_AmbientLightBias * (1.0 - dot(v_Normal, L)), u_AmbientLightBias);
+   float currentDepth = Projection.z + bias;
 
-   float bias = min(-0.003 * (1.0 - dot(v_Normal, L)), -0.003);
-   float shadow = currentDepth + bias > closestDepth ? 0.5 : 1.0;
+   //float closestDepth = texture(u_ShadowTextureUnit, Projection.xy).r;
+   //float shadow = currentDepth > closestDepth ? 0.5 : 1.0;
 
-   diffuseColor = texture(u_SurfaceTextureUnit, v_Texture) * vec4(texture(u_SurfaceTextureUnit, v_Texture).a) * vec4(vec3(shadow), 1.0f);
+   //diffuseColor = texture(u_SurfaceTextureUnit, v_Texture) * vec4(texture(u_SurfaceTextureUnit, v_Texture).a) * vec4(vec3(shadow), 1.0f);
 
-   // float shadow = 0.0f;
-   // vec2 texelSize = vec2(1.0) / vec2(textureSize(u_ShadowTextureUnit, 0));
-   // for(int x = -1; x <= 1; ++x)
-   // {
-   //    for(int y = -1; y <= 1; ++y)
-   //    {
-   //       float depth = texture(u_ShadowTextureUnit, Projection.xy + vec2(x, y) * texelSize).z;
-   //       shadow += depth > 0.0 ? 1.0 : 0.0;
-   //    }
-   // }
-   // shadow /= 9.0;
+   float shadow = 0.0f;
+   vec2 texelSize = vec2(1.0) / vec2(textureSize(u_ShadowTextureUnit, 0));
+   for(int x = -1; x <= 1; ++x)
+   {
+       for(int y = -1; y <= 1; ++y)
+       {
+          float shadowDepth = texture(u_ShadowTextureUnit, Projection.xy + vec2(x, y) * texelSize).r;
+          shadow += currentDepth > shadowDepth ? 0.5 : 1.0;
+       }
+   }
+   shadow /= 9.0;
 
-   // Light = clamp(Light / shadow, 0.0, 1.0);
-  
-   // diffuseColor = texture(u_SurfaceTextureUnit, v_Texture) * vec4(texture(u_SurfaceTextureUnit, v_Texture).a) * Light;
+   Light = clamp(Light * shadow, 0.0, 1.0);
+
+   diffuseColor = texture(u_SurfaceTextureUnit, v_Texture) * vec4(texture(u_SurfaceTextureUnit, v_Texture).a) * vec4(vec3(Light), 1.0f);
 }

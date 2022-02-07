@@ -111,6 +111,7 @@ public:
         main::global().call("/set ambient.position (5,5,5)");
         main::global().call("/set ambient.lookat (0,0,0)");
         main::global().call("/set ambient.color (0.4,0.4,0.4)");
+        main::global().call("/set ambient.bias -0.0055");
 
         main::global().call("/set box1.position (0,-8,0)");
         main::global().call("/set box2.position (5,-7.7,0)");
@@ -336,6 +337,9 @@ public:
         graphics->ambient.position.lookat(lookat);
 
         graphics->ambient.color = std::get<spatial::vector>(main::global().get("ambient.color"));
+
+        auto bias = std::get<double>(main::global().get("ambient.bias"));
+        graphics->ambient.bias = bias;
 
         // View based on the camera
         spatial::matrix lighting = spatial::matrix().lookat(graphics->ambient.position.eye, graphics->ambient.position.center, graphics->ambient.position.up);
