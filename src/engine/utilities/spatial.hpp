@@ -245,10 +245,9 @@ namespace spatial {
 
         void viewable(bool toggle);
 
-        position& move(type_t t);
-        position& elevate(type_t t);
-
-        position& strafe(type_t t);
+        position& surge(type_t t);
+        position& sway(type_t t);
+        position& heave(type_t t);
 
         position& pitch(type_t angle);
         position& yaw(type_t angle);

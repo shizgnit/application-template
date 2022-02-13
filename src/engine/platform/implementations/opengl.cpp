@@ -101,7 +101,7 @@ void implementation::opengl::graphics::init(void) {
     // Setup the shadow depth map
     shadow = spatial::quad(256, 256);
     shadow.texture.map = &assets->get<type::image>("shadowmap");
-    shadow.texture.map->create(1024, 1024, 0, 0, 0, 0);
+    shadow.texture.map->create(2048, 2048, 0, 0, 0, 0);
     //shadow.texture.depth = true;
     shadow.xy_projection(0, 0, shadow.texture.map->properties.width, shadow.texture.map->properties.height);
     compile(shadow);
@@ -250,6 +250,7 @@ bool implementation::opengl::graphics::compile(type::program& program) {
     program.u_AmbientLightPosition = glGetUniformLocation(program.context, "u_AmbientLightPosition");
     program.u_AmbientLightColor = glGetUniformLocation(program.context, "u_AmbientLightColor");
     program.u_AmbientLightBias = glGetUniformLocation(program.context, "u_AmbientLightBias");
+    program.u_AmbientLightStrength = glGetUniformLocation(program.context, "u_AmbientLightStrength");
 
     return true;
 }
@@ -321,6 +322,10 @@ bool implementation::opengl::graphics::compile(type::entity& entity) {
     if (entity.context == 0 && entity.positions.size()) {
         glGenBuffers(1, &entity.context);
         glBindBuffer(GL_ARRAY_BUFFER, entity.context);
+
+        float* ptr = (float*)entity.positions.data();
+
+        //glBufferData(GL_ARRAY_BUFFER, sizeof(spatial::matrix) * entity.positions.size(), entity.positions.data(), GL_DYNAMIC_DRAW);
         glBufferData(GL_ARRAY_BUFFER, sizeof(spatial::matrix) * 1024, NULL, GL_STREAM_DRAW);
         glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(spatial::matrix) * entity.positions.size(), entity.positions.data());
         glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -408,23 +413,39 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
     glUniform4f(shader.u_AmbientLightColor, ambient.color.x, ambient.color.y, ambient.color.z, ambient.color.w);
 
     glUniform1f(shader.u_AmbientLightBias, ambient.bias);
+    glUniform1f(shader.u_AmbientLightStrength, ambient.strength);
 
     glUniform4f(shader.u_Clipping, clip_top[clip_top.size()-1], clip_bottom[clip_bottom.size() - 1], clip_left[clip_left.size() - 1], clip_right[clip_right.size() - 1]);
 
     glBindBuffer(GL_ARRAY_BUFFER, target.context);
+
     glVertexAttribPointer(shader.a_Vertex, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::vertex), BUFFER_OFFSET(offset_vector));
-    glVertexAttribPointer(shader.a_Texture, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::vertex), BUFFER_OFFSET(offset_vector +sizeof(spatial::vector)));
-    glVertexAttribPointer(shader.a_Normal, 4, GL_FLOAT, GL_TRUE, sizeof(spatial::vertex), BUFFER_OFFSET(offset_vector +(sizeof(spatial::vector) * 2)));
+    glVertexAttribPointer(shader.a_Texture, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::vertex), BUFFER_OFFSET(offset_vector + sizeof(spatial::vector)));
+    glVertexAttribPointer(shader.a_Normal, 4, GL_FLOAT, GL_TRUE, sizeof(spatial::vertex), BUFFER_OFFSET(offset_vector + (sizeof(spatial::vector) * 2)));
 
     glEnableVertexAttribArray(shader.a_Vertex);
     glEnableVertexAttribArray(shader.a_Texture);
     glEnableVertexAttribArray(shader.a_Normal);
 
     int instances = 1;
-    if (object.emitter && object.emitter->context) {
+    if (object.emitter && object.emitter->context && shader.a_ModelMatrix >= 0) {
         glBindBuffer(GL_ARRAY_BUFFER, object.emitter->context);
-        glVertexAttribPointer(shader.a_ModelMatrix, 16, GL_FLOAT, GL_FALSE, sizeof(spatial::matrix), BUFFER_OFFSET(offset_matrix));
-        glVertexAttribDivisor(shader.a_ModelMatrix, 1);
+
+        glVertexAttribPointer(shader.a_ModelMatrix + 0, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::matrix), BUFFER_OFFSET(offset_matrix + sizeof(float) * 0));
+        glVertexAttribPointer(shader.a_ModelMatrix + 1, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::matrix), BUFFER_OFFSET(offset_matrix + sizeof(float) * 4));
+        glVertexAttribPointer(shader.a_ModelMatrix + 2, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::matrix), BUFFER_OFFSET(offset_matrix + sizeof(float) * 8));
+        glVertexAttribPointer(shader.a_ModelMatrix + 3, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::matrix), BUFFER_OFFSET(offset_matrix + sizeof(float) * 12));
+
+        glEnableVertexAttribArray(shader.a_ModelMatrix + 0);
+        glEnableVertexAttribArray(shader.a_ModelMatrix + 1);
+        glEnableVertexAttribArray(shader.a_ModelMatrix + 2);
+        glEnableVertexAttribArray(shader.a_ModelMatrix + 3);
+
+        glVertexAttribDivisor(shader.a_ModelMatrix + 0, 1);
+        glVertexAttribDivisor(shader.a_ModelMatrix + 1, 1);
+        glVertexAttribDivisor(shader.a_ModelMatrix + 2, 1);
+        glVertexAttribDivisor(shader.a_ModelMatrix + 3, 1);
+
         instances = object.emitter->positions.size();
     }
 

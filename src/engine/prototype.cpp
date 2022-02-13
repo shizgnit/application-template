@@ -32,6 +32,11 @@ public:
         main::debug().selectable = true;
         main::debug().alignment = platform::interface::widget::positioning::bottom;
 
+        main::debug().handler(platform::input::POINTER, platform::input::WHEEL, [](const platform::input::event& ev) {
+            // TODO: scroll up and down the contents
+        }, 0);
+
+
         gui->create(&commandline, 512, 20, 0, 0, 0, 80).position(graphics->width() - 512 - 20, 750);
         commandline.selectable = true;
         commandline.input = true;
@@ -108,10 +113,11 @@ public:
     bool load() {
         main::global().call("/set debug.input 0");
 
-        main::global().call("/set ambient.position (5,5,5)");
+        main::global().call("/set ambient.position (10,10,10)");
         main::global().call("/set ambient.lookat (0,0,0)");
         main::global().call("/set ambient.color (0.4,0.4,0.4)");
-        main::global().call("/set ambient.bias -0.0055");
+        main::global().call("/set ambient.strength 0.8");
+        main::global().call("/set ambient.bias 0.0055");
 
         main::global().call("/set box1.position (0,-8,0)");
         main::global().call("/set box2.position (5,-7.7,0)");
@@ -120,7 +126,7 @@ public:
 
         main::global().call("/set perspective.fov 90");
 
-        main::global().call("/set shadow.scale 42");
+        main::global().call("/set shadow.scale 64");
         main::global().call("/set shadow.depth 100.0");
 
         main::global().call("/load sound raw/glados");
@@ -249,10 +255,10 @@ public:
 
                 main::global().call("/load entity objects/wiggle");
 
-                main::global().progress().value.set(80);
-                utilities::sleep(1000);
-                main::global().progress().value.set(90);
-                utilities::sleep(1000);
+                //main::global().progress().value.set(80);
+                //utilities::sleep(1000);
+                //main::global().progress().value.set(90);
+                //utilities::sleep(1000);
                 main::global().progress().value.set(100);
              }).detach();
         }
@@ -264,6 +270,19 @@ public:
 
         main::global().call("/show entities");
         main::global().call("/play objects/wiggle idle");
+
+        assets->get<type::entity>("objects/wiggle").allocate(3);
+        assets->get<type::entity>("objects/wiggle").instances[1].position.reposition({ 3.0, 3.0, 3.0 });
+        assets->get<type::entity>("objects/wiggle").instances[2].position.reposition({ 5.0, -3.0, 5.0 });
+        assets->get<type::entity>("objects/wiggle").position();
+
+        //assets->get<type::entity>("objects/wiggle").positions[0] = spatial::matrix().translate(0, -2, -10).scale(5.0f);
+        //assets->get<type::entity>("objects/wiggle").positions[1] = spatial::matrix().translate(0, -2, -10).scale(5.0f);
+        //assets->get<type::entity>("objects/wiggle").positions[2] = spatial::matrix().translate(0, -2, -10).scale(5.0f);
+
+        //std::string mat = spatial::matrix().translate(0, -2, -10).scale(5.0f); // { {5,0,0,0}, {0,5,0,0}, {0,0,5,0}, {0,-2,-10,1} };
+
+        graphics->compile(assets->get<type::entity>("objects/wiggle"));
 
         graphics->compile(xAxis);
         graphics->compile(yAxis);
@@ -330,16 +349,11 @@ public:
 
         auto& perspective = main::global().perspective;
 
-        auto position = std::get<spatial::vector>(main::global().get("ambient.position"));
-        auto lookat = std::get<spatial::vector>(main::global().get("ambient.lookat"));
-
-        graphics->ambient.position.reposition(position);
-        graphics->ambient.position.lookat(lookat);
-
+        graphics->ambient.position.reposition(std::get<spatial::vector>(main::global().get("ambient.position")));
+        graphics->ambient.position.lookat(std::get<spatial::vector>(main::global().get("ambient.lookat")));
         graphics->ambient.color = std::get<spatial::vector>(main::global().get("ambient.color"));
-
-        auto bias = std::get<double>(main::global().get("ambient.bias"));
-        graphics->ambient.bias = bias;
+        graphics->ambient.bias = std::get<double>(main::global().get("ambient.bias"));
+        graphics->ambient.strength = std::get<double>(main::global().get("ambient.strength"));
 
         // View based on the camera
         spatial::matrix lighting = spatial::matrix().lookat(graphics->ambient.position.eye, graphics->ambient.position.center, graphics->ambient.position.up);
@@ -414,16 +428,16 @@ public:
         */
 
         if (camera_moving[0]) {
-            camera.move(1);
+            camera.surge(1);
         }
         if (camera_moving[1]) {
-            camera.move(-1);
+            camera.surge(-1);
         }
         if (camera_moving[2]) {
-            camera.strafe(1);
+            camera.sway(1);
         }
         if (camera_moving[3]) {
-            camera.strafe(-1);
+            camera.sway(-1);
         }
 
         //spatial::matrix model = spatial::matrix().translate(pos.eye, pos.center, pos.up);
@@ -492,7 +506,7 @@ public:
             ss << "on_zoom(" << ev.travel << ")(" << ev.point.x << ", " << ev.point.y << ")";
             main::debug().content.add(ss.str());
         }
-        camera.move(ev.travel > 0 ? 1.0 : -1.0);
+        camera.surge(ev.travel > 0 ? 1.0 : -1.0);
     }
 
     void mouse_move(const platform::input::event& ev) {

@@ -7,6 +7,8 @@ uniform vec4 u_Clipping;
 uniform vec4 u_AmbientLightPosition;
 uniform vec4 u_AmbientLightColor;
 
+in mat4 a_ModelMatrix;
+
 attribute vec4 a_Vertex;
 attribute vec4 a_Texture;
 attribute vec4 a_Normal;

@@ -55,6 +55,14 @@ Recommended references.
     https://www.amazon.com/s?k=978-1435458864 - Mathematics for 3D Game Programming and Computer Graphics
     https://www.amazon.com/s?k=978-0321637635 - OpenGL Shading Language
 
+Recommended sites.
+
+    http://www.songho.ca/opengl/gl_projectionmatrix.html
+    https://learnopengl.com/Advanced-Lighting/Shadows/Shadow-Mapping
+    http://web.archive.org/web/20130416194336/http://olivers.posterous.com/linear-depth-in-glsl-for-real
+    https://stackoverflow.com/questions/6652253/getting-the-true-z-value-from-the-depth-buffer
+    https://stackoverflow.com/questions/48288154/pack-depth-information-in-a-rgba-texture-using-mediump-precison
+
 Android
 
     adb tcpip 5556

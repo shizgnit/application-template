@@ -5,6 +5,8 @@ precision mediump float;
 uniform sampler2D u_SurfaceTextureUnit;
 uniform sampler2D u_ShadowTextureUnit;
 
+uniform vec4 u_Clipping;
+
 uniform vec4 u_AmbientLightPosition;
 uniform vec4 u_AmbientLightColor;
 
@@ -12,6 +14,8 @@ in vec2 v_Texture;
 in vec4 v_Vertex;
 in vec4 v_Normal;
 in vec4 v_Lighting;
+
+in float v_Value;
 
 layout(location = 0) out vec4 diffuseColor;
 
@@ -33,5 +37,12 @@ void main()
    
    vec4 Light = vec4(c, c, c, 1.0);
   
+   if(v_Value == 0.0) {
+     Light = vec4(0.0, c, 0.0, 1.0);
+   }
+   else {
+     Light = vec4(c, 0.0, 0.0, 1.0);
+   }
+
    diffuseColor = texture(u_SurfaceTextureUnit, v_Texture) * vec4(texture(u_SurfaceTextureUnit, v_Texture).a) * Light;
 }

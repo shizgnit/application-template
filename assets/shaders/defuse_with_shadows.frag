@@ -8,15 +8,12 @@ uniform sampler2D u_ShadowTextureUnit;
 uniform vec4 u_AmbientLightPosition;
 uniform vec4 u_AmbientLightColor;
 uniform float u_AmbientLightBias;
+uniform float u_AmbientLightStrength;
 
 in vec2 v_Texture;
 in vec4 v_Vertex;
 in vec4 v_Normal;
 in vec4 v_Lighting;
-
-// https://learnopengl.com/Advanced-Lighting/Shadows/Shadow-Mapping
-// https://stackoverflow.com/questions/6652253/getting-the-true-z-value-from-the-depth-buffer
-// https://stackoverflow.com/questions/48288154/pack-depth-information-in-a-rgba-texture-using-mediump-precison
 
 layout(location = 0) out vec4 diffuseColor;
 
@@ -26,16 +23,14 @@ void main()
    vec4 E = normalize(-v_Vertex);
    vec4 R = normalize(-reflect(L,v_Normal));
    
-   float d = 0.6 * max(dot(v_Normal, L), 0.0);
-   vec4 Idiff = vec4(d, d, d, d);
-   
+   vec4 Idiff = vec4(u_AmbientLightStrength * max(dot(v_Normal, L), 0.0));
    vec4 Light = vec4(Idiff.xyz, 1.0) + u_AmbientLightColor;
 
    vec3 Projection = v_Lighting.xyz / v_Lighting.w;
    Projection = Projection * 0.5 + 0.5;
 
-   float bias = min(u_AmbientLightBias * (1.0 - dot(v_Normal, L)), u_AmbientLightBias);
-   float currentDepth = Projection.z + bias;
+   float bias = u_AmbientLightBias; //max(u_AmbientLightBias * (1.0 - dot(L, v_Normal)), u_AmbientLightBias / 10.0f);
+   float currentDepth = Projection.z;
 
    //float closestDepth = texture(u_ShadowTextureUnit, Projection.xy).r;
    //float shadow = currentDepth > closestDepth ? 0.5 : 1.0;
@@ -48,8 +43,8 @@ void main()
    {
        for(int y = -1; y <= 1; ++y)
        {
-          float shadowDepth = texture(u_ShadowTextureUnit, Projection.xy + vec2(x, y) * texelSize).r;
-          shadow += currentDepth > shadowDepth ? 0.5 : 1.0;
+          float shadowDepth = texture(u_ShadowTextureUnit, Projection.xy + vec2(x, y) * texelSize).r + bias;
+          shadow += currentDepth > shadowDepth ? u_AmbientLightStrength : 1.0;
        }
    }
    shadow /= 9.0;

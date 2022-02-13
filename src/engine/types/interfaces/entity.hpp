@@ -33,7 +33,8 @@ namespace type {
         std::vector<spatial::matrix> positions;
 
         void position() {
-            std::sort(instances.begin(), instances.end());
+            positions.clear();
+            //std::sort(instances.begin(), instances.end());
             for (auto entry : instances) {
                 positions.push_back(entry.position);
             }
@@ -55,6 +56,7 @@ namespace type {
                 animations[animation].duration.resize(frames);
                 for (int i = 0; i < frames; i++) {
                     animations[animation].duration[i] = duration;
+                    animations[animation].frames[i].emitter = this;
                 }
             }
             instances[index].state = animation;

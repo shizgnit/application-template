@@ -28,6 +28,7 @@ namespace type {
         int u_AmbientLightPosition;
         int u_AmbientLightColor;
         int u_AmbientLightBias;
+        int u_AmbientLightStrength;
 
         int u_RelativeParticles;
 

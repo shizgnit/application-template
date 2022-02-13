@@ -761,7 +761,7 @@ void spatial::position::viewable(bool toggle) {
     view = toggle;
 }
 
-spatial::position& spatial::position::move(type_t t) {
+spatial::position& spatial::position::surge(type_t t) {
     vector diff = (eye - center).unit() * t;
 
     center += diff;
@@ -772,8 +772,10 @@ spatial::position& spatial::position::move(type_t t) {
     return *this;
 }
 
-spatial::position& spatial::position::elevate(type_t t) {
-    vector diff = up * t;
+spatial::position& spatial::position::sway(type_t t) {
+    vector normal = eye - center;
+    vector cross = (normal % up) + center;
+    vector diff = (cross - center) * t;
 
     center += diff;
     eye += diff;
@@ -783,10 +785,8 @@ spatial::position& spatial::position::elevate(type_t t) {
     return *this;
 }
 
-spatial::position& spatial::position::strafe(type_t t) {
-    vector normal = eye - center;
-    vector cross = (normal % up) + center;
-    vector diff = (cross - center) * t;
+spatial::position& spatial::position::heave(type_t t) {
+    vector diff = up * t;
 
     center += diff;
     eye += diff;
