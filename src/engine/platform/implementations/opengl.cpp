@@ -99,9 +99,9 @@ void implementation::opengl::graphics::init(void) {
     compile(ray);
 
     // Setup the shadow depth map
-    shadow = spatial::quad(256, 256);
+    shadow = spatial::quad(128, 256);
     shadow.texture.map = &assets->get<type::image>("shadowmap");
-    shadow.texture.map->create(2048, 2048, 0, 0, 0, 0);
+    shadow.texture.map->create(1024, 2048, 0, 0, 0, 0);
     //shadow.texture.depth = true;
     shadow.xy_projection(0, 0, shadow.texture.map->properties.width, shadow.texture.map->properties.height);
     compile(shadow);
@@ -244,6 +244,7 @@ bool implementation::opengl::graphics::compile(type::program& program) {
 
     program.u_SurfaceTextureUnit = glGetUniformLocation(program.context, "u_SurfaceTextureUnit");
     program.u_ShadowTextureUnit = glGetUniformLocation(program.context, "u_ShadowTextureUnit");
+    program.u_NormalTextureUnit = glGetUniformLocation(program.context, "u_NormalTextureUnit");
 
     program.u_Clipping = glGetUniformLocation(program.context, "u_Clipping");
 
@@ -251,6 +252,8 @@ bool implementation::opengl::graphics::compile(type::program& program) {
     program.u_AmbientLightColor = glGetUniformLocation(program.context, "u_AmbientLightColor");
     program.u_AmbientLightBias = glGetUniformLocation(program.context, "u_AmbientLightBias");
     program.u_AmbientLightStrength = glGetUniformLocation(program.context, "u_AmbientLightStrength");
+
+    program.u_Flags = glGetUniformLocation(program.context, "u_Flags");
 
     return true;
 }
@@ -417,6 +420,8 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
 
     glUniform4f(shader.u_Clipping, clip_top[clip_top.size()-1], clip_bottom[clip_bottom.size() - 1], clip_left[clip_left.size() - 1], clip_right[clip_right.size() - 1]);
 
+    glUniform1ui(shader.u_Flags, object.emitter ? object.emitter->flags : object.flags);
+
     glBindBuffer(GL_ARRAY_BUFFER, target.context);
 
     glVertexAttribPointer(shader.a_Vertex, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::vertex), BUFFER_OFFSET(offset_vector));
@@ -452,7 +457,7 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
     // Draw either the solids or wireframes
     if (target.vertices.size() == 2 || options & render::WIREFRAME) {
         //glDrawArrays(GL_LINES, 0, target.vertices.size());
-        glDrawArraysInstanced(GL_LINES, 0, target.vertices.size(), instances);
+        glDrawArraysInstanced(GL_LINE_LOOP, 0, target.vertices.size(), instances);
         frame.lines += target.vertices.size() / 2;
     }
     else {

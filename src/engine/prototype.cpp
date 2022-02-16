@@ -139,6 +139,7 @@ public:
         main::global().call("/load shader shaders/basic skybox");
         main::global().call("/load shader shaders/cell objects");
         main::global().call("/load shader shaders/defuse_with_shadows scenery");
+        main::global().call("/load shader shaders/wireframe wireframe");
         main::global().call("/load font fonts/consolas-22 default");
 
         main::global().call("/load object drawable/marvin.png icon");
@@ -217,6 +218,8 @@ public:
 
     type::object ray;
 
+    type::object bounds;
+
     bool load() {
         // TODO: don't use the progress bar to determine thread completion
         if (main::global().progress().value.get() == 0) {
@@ -265,6 +268,9 @@ public:
         if (main::global().progress().value.get() < 100) {
             return false;
         }
+
+        bounds = spatial::quad(1.0, 1.0);
+        graphics->compile(bounds);
 
         main::global().call("/compile");
 
@@ -346,6 +352,7 @@ public:
         auto& shader_skybox = assets->get<type::program>("skybox");
         auto& shader_objects = assets->get<type::program>("objects");
         auto& shader_scenery = assets->get<type::program>("scenery");
+        auto& shader_wireframe = assets->get<type::program>("wireframe");
 
         auto& perspective = main::global().perspective;
 
@@ -405,6 +412,8 @@ public:
         graphics->draw(graphics->shadow, graphics->shadow.texture.depth ? assets->get<type::program>("depth") : shader_basic, main::global().ortho, spatial::matrix(), frame);
 
         graphics->draw(assets->get<type::entity>("objects/wiggle"), shader_objects, perspective, view, wiggle_matrix);
+
+        graphics->draw(bounds, shader_wireframe, perspective, view, spatial::position().lookat(camera.eye), spatial::matrix(), platform::graphics::render::WIREFRAME);
 
         /*
         if (object_moving[0]) {
@@ -633,87 +642,6 @@ public:
 void prototype::on_startup() {
     graphics->init();
     audio->init();
-
-    /// <summary>
-    /// Just adding some test code since my unit test project is currently non-functional... had to be rebuilt and needs references set up.
-    /// </summary>
-
-    spatial::matrix model = { {4,0,0,0},
-                              {0,4,0,0},
-                              {0,0,4,0},
-                              {0,0,0,1} };
-
-    spatial::matrix lighting = { {0.707107,-0.408248,0.57735,0},
-{0,0.816497,0.57735,0},
-{-0.707107,-0.408248,0.57735,0},
-{0,0,-8.66025,1} };
-
-    spatial::matrix ortho_for_shadows = { {-0.0238095,0,0,0},
-{0,-0.0238095,0,0},
-{0,0,-0.2,0},
-{0,0,-1,1} };
-
-    spatial::vector vertex = {
-                              -9.30591202,
-                              -2.43009806,
-                              6.97943401,
-                              1.00000000 };
-
-    auto temp1 = lighting * model;
-
-    spatial::matrix result = { {2.82843,-1.63299,2.3094,0},
-{0,3.26599,2.3094,0},
-{-2.82843,-1.63299,2.3094,0},
-{0,0,-8.66025,1} };
-
-    std::string moutput = temp1;
-
-    auto temp2 = temp1 * vertex;
-
-    /*
-    //result.z = (current.r[0][2] * operand.x) + (current.r[1][2] * operand.y) + (current.r[2][2] * operand.z) + (current.r[3][2] * operand.w);
-                          -2.3094   -9.30591202         -2.3094      -2.43009806          -2.3094   6.97943401           8.66025    1
-    
-    //result.w = (current.r[0][3] * operand.x) + (current.r[1][3] * operand.y) + (current.r[2][3] * operand.z) + (current.r[3][3] * operand.w);
-                            0                                 0                              0                               1
-    */
-
-    std::string voutput = temp2; // {1.09671,0.098513,19.6451,1}
-
-    spatial::matrix model2;
-    model2.translate(400, 400, 0);
-
-    float width = 600.0f;
-    float height = 400.0f;
-
-    spatial::matrix ortho;
-    ortho.ortho(0, width, 0, height);
-
-    spatial::triangle t1;
-    t1.vertices[0](256.0f, 256.0f, 0.0f);
-    t1.vertices[1](256.0f, 0.0f, 0.0f);
-    t1.vertices[2](0.0f, 0.0f, 0.0f);
-
-    t1.project(spatial::matrix(), spatial::matrix(), ortho);
-
-    //t1.vertices[0].w = 0.0f;
-    //t1.vertices[1].w = 0.0f;
-    //t1.vertices[2].w = 0.0f;
-
-    spatial::vector reference(width / 2, height / 2);
-    spatial::vector offset = reference.project(spatial::matrix(), spatial::matrix(), ortho);
-
-
-    spatial::vector point(120.0f, 120.0f);
-    spatial::vector projected = point.project(spatial::matrix(), spatial::matrix(), ortho);
-
-    //projected.w = 0.0f;
-
-    spatial::ray r1(projected - spatial::vector(0, 0, 200), projected - spatial::vector(0, 0, -200));
-
-    if (r1.intersects(t1)) {
-        int x = 0;
-    }
 
     /*
     server->handler([](platform::network::client* caller) {

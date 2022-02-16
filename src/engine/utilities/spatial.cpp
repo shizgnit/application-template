@@ -623,7 +623,7 @@ spatial::quaternion spatial::quaternion::operator *(const quaternion& operand) {
 // https://stackoverflow.com/questions/52413464/look-at-quaternion-using-up-vector
 spatial::quaternion& spatial::quaternion::translate(const vector& eye, const vector& center, const vector& up) {
     vector f = (center - eye).unit();
-    vector s = (f % up).unit();
+    vector s = (up % f).unit();
     vector t = f % s;
 
     double tr = s.x + t.y + f.z;

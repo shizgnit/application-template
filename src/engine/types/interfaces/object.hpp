@@ -113,13 +113,15 @@ namespace type {
         unsigned int context = 0;
         unsigned int instances = 0;
 
+        unsigned int flags = 0;
+
         object& operator = (const spatial::geometry& ref) {
             this->vertices.clear();
             std::copy(ref.vertices.begin(), ref.vertices.end(), std::back_inserter(this->vertices));
             return *this;
         }
 
-        friend type::object& operator>>(type::object& input, type::object& instance) {
+        friend type::object& operator >> (type::object& input, type::object& instance) {
             // Only copy over a single object
             if (input.vertices.size()) {
                 instance = input;
@@ -133,7 +135,7 @@ namespace type {
             return instance;
         }
 
-        friend std::vector<type::object>& operator>>(type::object& input, std::vector<type::object>& instance) {
+        friend std::vector<type::object>& operator >> (type::object& input, std::vector<type::object>& instance) {
             instance = input.children;
             return instance;
         }

@@ -2,6 +2,7 @@ precision mediump float;
 
 uniform sampler2D u_SurfaceTextureUnit;
 uniform sampler2D u_ShadowTextureUnit;
+uniform sampler2D u_NormalTextureUnit;
 
 uniform mat4 u_ModelMatrix;
 uniform mat4 u_ViewMatrix;

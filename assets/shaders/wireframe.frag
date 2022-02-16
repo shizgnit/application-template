@@ -26,23 +26,6 @@ void main()
    vec4 R = normalize(-reflect(L,v_Normal));
    
    float d = max(dot(v_Normal, L), 0.0);
-   float c = 0.4;
-   
-   if (d > 0.95)
-	 c = 1.2;
-   else if (d > 0.5)
-     c = 1.0;
-   else if (d > 0.25)
-     c = 0.5;
-   
-   vec4 Light = vec4(c, c, c, 1.0);
-  
- //  if(v_Value == 0.0) {
- //    Light = vec4(0.0, c, 0.0, 1.0);
- //  }
- //  else {
- //    Light = vec4(c, 0.0, 0.0, 1.0);
- //  }
 
-   diffuseColor = texture(u_SurfaceTextureUnit, v_Texture) * vec4(texture(u_SurfaceTextureUnit, v_Texture).a) * Light;
+   diffuseColor = vec4(1.0, 1.0, 0.0, 1.0);
 }

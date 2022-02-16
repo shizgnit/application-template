@@ -24,6 +24,7 @@ namespace type {
 
         int u_SurfaceTextureUnit;
         int u_ShadowTextureUnit;
+        int u_NormalTextureUnit;
 
         int u_AmbientLightPosition;
         int u_AmbientLightColor;
@@ -31,6 +32,8 @@ namespace type {
         int u_AmbientLightStrength;
 
         int u_RelativeParticles;
+
+        int u_Flags;
 
         std::string type() {
             return "type::program";

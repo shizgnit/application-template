@@ -276,6 +276,8 @@
     <Content Include="assets\shaders\picker.vert" />
     <Content Include="assets\shaders\shadowmap.frag" />
     <Content Include="assets\shaders\shadowmap.vert" />
+    <Content Include="assets\shaders\wireframe.frag" />
+    <Content Include="assets\shaders\wireframe.vert" />
     <Content Include="res\values\strings.xml" />
     <AntBuildXml Include="build.xml" />
     <AndroidManifest Include="AndroidManifest.xml" />
