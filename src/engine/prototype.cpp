@@ -124,6 +124,10 @@ public:
 
         main::global().call("/set wiggle.position (-5,-7,0)");
 
+        main::global().call("/set wiggle.surge 0.0");
+        main::global().call("/set wiggle.sway 0.0");
+        main::global().call("/set wiggle.heave 0.0");
+
         main::global().call("/set perspective.fov 90");
 
         main::global().call("/set shadow.scale 64");
@@ -219,6 +223,8 @@ public:
     type::object ray;
 
     type::object bounds;
+
+    std::vector<type::object> rays;
 
     bool load() {
         // TODO: don't use the progress bar to determine thread completion
@@ -378,6 +384,13 @@ public:
 
         auto wiggle_matrix = spatial::matrix().translate(std::get<spatial::vector>(main::global().get("wiggle.position")));
 
+        assets->get<type::entity>("objects/wiggle").instances[2].position.surge(std::get<double>(main::global().get("wiggle.surge")));
+        assets->get<type::entity>("objects/wiggle").instances[2].position.sway(std::get<double>(main::global().get("wiggle.sway")));
+        assets->get<type::entity>("objects/wiggle").instances[2].position.heave(std::get<double>(main::global().get("wiggle.heave")));
+        assets->get<type::entity>("objects/wiggle").position();
+
+        graphics->recompile(assets->get<type::entity>("objects/wiggle"));
+
         assets->get<type::entity>("objects/wiggle").animate();
 
         {
@@ -414,6 +427,10 @@ public:
         graphics->draw(assets->get<type::entity>("objects/wiggle"), shader_objects, perspective, view, wiggle_matrix);
 
         graphics->draw(bounds, shader_wireframe, perspective, view, spatial::position().lookat(camera.eye), spatial::matrix(), platform::graphics::render::WIREFRAME);
+
+        for(auto & ray: rays) {
+            graphics->draw(ray, shader_wireframe, perspective, view, spatial::matrix(), spatial::matrix(), platform::graphics::render::WIREFRAME);
+        }
 
         /*
         if (object_moving[0]) {
@@ -516,6 +533,54 @@ public:
             main::debug().content.add(ss.str());
         }
         camera.surge(ev.travel > 0 ? 1.0 : -1.0);
+    }
+
+    void mouse_click(const platform::input::event& ev) {
+        if (main::global().flag("debug.input")) {
+            std::stringstream ss;
+            ss << "mouse_click(" << ev.point.x << ", " << ev.point.y << ")";
+            main::debug().content.add(ss.str());
+        }
+
+        spatial::position reference;
+
+        auto view = spatial::matrix().lookat(camera.eye, camera.center, camera.up);
+        auto& perspective = main::global().perspective;
+
+        spatial::vector position_start = spatial::vector({ ev.point.x, ev.point.y }).unproject(perspective, view, graphics->width(), graphics->height());
+        spatial::vector position_end = spatial::vector({ ev.point.x, ev.point.y, 1.0f }).unproject(perspective, view, graphics->width(), graphics->height());
+
+        rays.push_back(spatial::ray(position_start, position_end));
+
+        /*
+        
+        spatial::vector normalized = { 
+            ( 2.0f * ((float)ev.point.x / (float)graphics->width()) ) - 1.0f,  
+            1.0f - ( 2.0f * ((float)ev.point.y / (float)graphics->height()) ),
+            0.0, 
+            1.0 
+        };
+
+        // spatial::vector relative = { (float)ev.point.x, (float)ev.point.y, 0.0f };
+        // spatial::vector position = relative.project(main::global().perspective, spatial::matrix().lookat(camera.eye, camera.center, camera.up), spatial::matrix());
+
+        spatial::vector position = projection * normalized;
+
+        auto point = camera;
+
+        point.reposition(position);
+
+        //std::stringstream ss;
+        //ss << "mouse_click(" << ev.point.x << ", " << ev.point.y << ") -> (" << position.x << "," << position.y << "," << position.z << "," << position.w << ")";
+        //main::debug().content.add(ss.str());
+
+        rays.push_back(spatial::ray(point.center, point.eye));
+
+        */
+
+        rays.back().texture.create(1, 1, 255, 255, 255, 255);
+        rays.back().xy_projection(0, 0, 1, 1);
+        graphics->compile(rays.back());
     }
 
     void mouse_move(const platform::input::event& ev) {
@@ -662,6 +727,7 @@ void prototype::on_startup() {
     input->handler(platform::input::POINTER, platform::input::WHEEL, [](const platform::input::event& ev) { main::global().freelook_zoom(ev); }, 0);
     input->handler(platform::input::POINTER, platform::input::PINCH, [](const platform::input::event& ev) { main::global().freelook_zoom(ev); }, 0);
 
+    input->handler(platform::input::POINTER, platform::input::DOWN, [](const platform::input::event& ev) { main::global().mouse_click(ev); }, 2);
     input->handler(platform::input::POINTER, platform::input::MOVE, [](const platform::input::event& ev) { main::global().mouse_move(ev); }, 0);
 
     input->handler(platform::input::KEY, platform::input::DOWN, [](const platform::input::event& ev) { main::global().keyboard_input(ev); }, 0);

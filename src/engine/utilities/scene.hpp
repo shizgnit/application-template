@@ -27,6 +27,7 @@ public:
         virtual void freelook_start(const platform::input::event& ev) {}
         virtual void freelook_move(const platform::input::event& ev) {}
         virtual void freelook_zoom(const platform::input::event& ev) {}
+        virtual void mouse_click(const platform::input::event& ev) {}
         virtual void mouse_move(const platform::input::event& ev) {}
         virtual void keyboard_input(const platform::input::event& ev) {}
         virtual void gamepad_input(const platform::input::event& ev) {}
@@ -80,6 +81,7 @@ public:
     void freelook_start(const platform::input::event& ev);
     void freelook_move(const platform::input::event& ev);
     void freelook_zoom(const platform::input::event& ev);
+    void mouse_click(const platform::input::event& ev);
     void mouse_move(const platform::input::event& ev);
     void keyboard_input(const platform::input::event& ev);
     void gamepad_input(const platform::input::event& ev);

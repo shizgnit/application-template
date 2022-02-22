@@ -8,7 +8,7 @@
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/scalar_constants.hpp>
 #include <glm/gtx/intersect.hpp>
-
+#include <glm/gtc/type_ptr.hpp>
 
 namespace spatial {
 
@@ -66,8 +66,8 @@ namespace spatial {
 
         type_t distance(const vector& v) const;
 
-        vector project(const matrix& model, const matrix& view, const matrix& projection);
-        vector unproject(const matrix& view, const matrix& projection, int width, int height) const;
+        vector project(const matrix& projection, const matrix& view, const matrix& model);
+        vector unproject(const matrix& projection, const matrix& view, int width, int height) const;
 
         operator glm::vec3() const;
 
@@ -143,6 +143,7 @@ namespace spatial {
 
         matrix();
         matrix(const matrix& m);
+        matrix(const vector& c0, const vector& c1, const vector& c2, const vector& c3);
         matrix(std::initializer_list<std::vector<type_t>> ref) {
             int i = 0;
             for (auto row : ref) {
@@ -182,7 +183,9 @@ namespace spatial {
         matrix& identity();
 
         virtual matrix& operator *= (const matrix& operand);
+
         matrix operator * (const matrix& operand) const;
+        matrix operator * (const type_t& operand) const;
 
         matrix& scale(const type_t& operand);
         matrix& scale_x(const type_t& operand);

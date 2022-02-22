@@ -171,57 +171,32 @@ spatial::vector::type_t spatial::vector::distance(const vector& v) const {
     return sqrt(pow(x - v.x, 2) + pow(y - v.y, 2) + pow(z - v.z, 2));
 }
 
-spatial::vector spatial::vector::project(const matrix& model, const matrix& view, const matrix& projection) {
+spatial::vector spatial::vector::project(const matrix& projection, const matrix& view, const matrix& model) {
     matrix mvp = projection * view * model;
     return mvp.interpolate(*this);
 }
 
-spatial::vector spatial::vector::unproject(const matrix& view, const matrix& projection, int width, int height) const {
-    matrix inverted = view * projection;
-    inverted.invert();
+spatial::vector spatial::vector::unproject(const matrix& projection, const matrix& view, int width, int height) const {
+#if defined _USE_GLM    
+    double x0 = 2.0 * x / width - 1;
+    double y0 = 2.0 * y / height - 1;
 
-    spatial::vector normalized((x / width) * 2 - 1, (y / height) * 2 - 1, z * 2 - 1);
+    glm::vec4 screenPos = glm::vec4(x0, -y0, z, 1.0f);
 
-    return inverted * normalized;
+    glm::mat4 proj;
+    memcpy(glm::value_ptr(proj), projection.data(), sizeof(type_t) * 16);
 
-    /*
-    const float normalized_x = ((float)mouse.x / (float)width) * 2.f - 1.f;
-    const float normalized_y = -(((float)mouse.y / (float)height) * 2.f - 1.f);
+    glm::mat4 vw;
+    memcpy(glm::value_ptr(vw), view.data(), sizeof(type_t) * 16);
 
-    spatial::ray r;
-    auto near_point = spatial::vector(normalized_x, normalized_y, -1, 1);
-    auto far_point = spatial::vector(normalized_x, normalized_y, 1, 1);
+    glm::mat4 ProjectView = proj * vw;
+    glm::mat4 viewProjectionInverse = inverse(ProjectView);
+    glm::vec4 worldPos = viewProjectionInverse * screenPos;
 
-    matrix inverted = model * projection;
-    inverted.invert();
-
-    auto near_point = inverted * r.point;
-    auto far_point = inverted * r.direction;
-
-    near_point /= near_point.w;
-    far_point /= far_point.w;
-
-    */
-
-    /*
-
-    matrix inverted = model * projection;
-    inverted.invert();
-
-    // TODO: this seems redundant
-    // mouse.x /= width;
-    // mouse.y /= height;
-
-    // Normalize the mouse
-    mouse.x = (mouse.x / width) * 2 - 1;
-    mouse.y = (mouse.y / height) * 2 - 1;
-    mouse.z = mouse.z * 2 - 1;
-
-    *this = inverted * mouse;
-
-    mouse /= mouse.z;
-
-    */
+    return spatial::vector(worldPos.x, worldPos.y, worldPos.z, worldPos.w);
+#else
+    return (projection * view).invert() * spatial::vector((x / (type_t)(width)) * 2.0f - 1.0f, 1.0f - ((y / (type_t)(height)) * 2.0f), z, w);
+#endif
 }
 
 spatial::matrix::matrix() {
@@ -229,6 +204,12 @@ spatial::matrix::matrix() {
 }
 spatial::matrix::matrix(const matrix& m) {
     r = m.r;
+}
+spatial::matrix::matrix(const vector& c0, const vector& c1, const vector& c2, const vector& c3) {
+    *this = { { c0.x, c1.x, c2.x, c3.x },
+              { c0.y, c1.y, c2.y, c3.y },
+              { c0.z, c1.z, c2.z, c3.z },
+              { c0.w, c1.w, c2.w, c3.w } };
 }
 
 spatial::matrix& spatial::matrix::identity() {
@@ -301,6 +282,16 @@ spatial::vector spatial::matrix::operator * (const vector& operand) const {
     result.z = (current.r[0][2] * operand.x) + (current.r[1][2] * operand.y) + (current.r[2][2] * operand.z) + (current.r[3][2] * operand.w);
     result.w = (current.r[0][3] * operand.x) + (current.r[1][3] * operand.y) + (current.r[2][3] * operand.z) + (current.r[3][3] * operand.w);
 
+    return result;
+}
+
+spatial::matrix spatial::matrix::operator * (const matrix::type_t& operand) const {
+    matrix result = *this;
+    for (int r = 0; r < 4; r++) {
+        for (int c = 0; c < 4; c++) {
+            result[c][r] *= operand;
+        }
+    }
     return result;
 }
 
@@ -446,6 +437,12 @@ spatial::matrix& spatial::matrix::translate(const type_t& x, const type_t& y, co
 }
 
 spatial::matrix& spatial::matrix::perspective(type_t fov, type_t aspect, type_t n, type_t f) {
+#if defined _USE_GLM
+    auto rad = fov * (float)M_PI / 180.0f;
+    glm::mat4 projection = glm::perspective(rad, aspect, n, f);
+    memcpy(r.x, glm::value_ptr(projection), sizeof(type_t) * 16);
+    return *this;
+#else
     auto rad = fov * (float)M_PI / 180.0f;
 
     type_t const a = 1.0f / (type_t)tan(rad / 2.0f);
@@ -471,6 +468,7 @@ spatial::matrix& spatial::matrix::perspective(type_t fov, type_t aspect, type_t 
     r[3][3] = 1.0f;
 
     return *this;
+#endif
 }
 
 spatial::matrix& spatial::matrix::ortho(type_t left, type_t right, type_t bottom, type_t top, type_t n, type_t f) {
@@ -498,6 +496,17 @@ spatial::matrix& spatial::matrix::ortho(type_t left, type_t right, type_t bottom
 }
 
 spatial::matrix& spatial::matrix::lookat(const vector& eye, const vector& center, const vector& up) {
+#if defined _USE_GLM
+    glm::vec3 e(eye.x, eye.y, eye.z);
+    glm::vec3 c(center.x, center.y, center.z);
+    glm::vec3 u(up.x, up.y, up.z);
+
+    glm::mat4 lat = glm::lookAt(e, c, u);
+
+    memcpy(r.x, glm::value_ptr(lat), sizeof(type_t) * 16);
+
+    return *this;
+#else
     vector f = (center - eye).unit();
     vector s = (f % up).unit();
     vector t = s % f;
@@ -515,6 +524,7 @@ spatial::matrix& spatial::matrix::lookat(const vector& eye, const vector& center
     r[2][2] = -f.z;
 
     return this->translate(eye * -1.0f);
+#endif
 }
 
 spatial::matrix& spatial::matrix::translate(const vector& eye, const vector& center, const vector& up) {
@@ -523,6 +533,14 @@ spatial::matrix& spatial::matrix::translate(const vector& eye, const vector& cen
 }
 
 spatial::matrix& spatial::matrix::invert() {
+#if defined _USE_GLM
+    glm::mat4 current;
+    memcpy(glm::value_ptr(current), r.x, sizeof(type_t) * 16);
+    auto result = glm::inverse(current);
+    memcpy(r.x, glm::value_ptr(result), sizeof(type_t) * 16);
+
+    return *this;
+#else
     type_t s[6];
     type_t c[6];
 
@@ -566,6 +584,7 @@ spatial::matrix& spatial::matrix::invert() {
     result.r[3][3] = (r[2][0] * s[3] - r[2][1] * s[1] + r[2][2] * s[0]) * i;
 
     return *this = result;
+#endif
 }
 
 spatial::quaternion::quaternion() {
@@ -622,7 +641,7 @@ spatial::quaternion spatial::quaternion::operator *(const quaternion& operand) {
 
 // https://stackoverflow.com/questions/52413464/look-at-quaternion-using-up-vector
 spatial::quaternion& spatial::quaternion::translate(const vector& eye, const vector& center, const vector& up) {
-    vector f = (center - eye).unit();
+    vector f = (eye - center).unit();
     vector s = (up % f).unit();
     vector t = f % s;
 

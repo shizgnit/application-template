@@ -94,6 +94,11 @@ void main::freelook_zoom(const platform::input::event& ev) {
         scene.second->freelook_zoom(ev);
     }
 }
+void main::mouse_click(const platform::input::event& ev) {
+    for (auto scene : active) {
+        scene.second->mouse_click(ev);
+    }
+}
 void main::mouse_move(const platform::input::event& ev) {
     for (auto scene : active) {
         scene.second->mouse_move(ev);
@@ -215,7 +220,7 @@ value_t main::call(const std::string& input) {
     }
     if (std::holds_alternative<spatial::vector>(result)) {
         auto& v = std::get<spatial::vector>(result);
-        ss << "(" << v.x << "," << v.x << "," << v.x << "," << v.x << ")";
+        ss << "(" << v.x << "," << v.y << "," << v.z << "," << v.w << ")";
     }
     main::debug().content.add(ss.str());
 

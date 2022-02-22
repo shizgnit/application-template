@@ -28,7 +28,7 @@ namespace platform {
             action gesture;
             int identifier;
             time_t delta;
-            float travel;
+            spatial::vector::type_t travel;
             spatial::vector point;
             std::vector<spatial::vector> points;
         };
