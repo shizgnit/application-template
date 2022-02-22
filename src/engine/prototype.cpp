@@ -426,7 +426,15 @@ public:
 
         graphics->draw(assets->get<type::entity>("objects/wiggle"), shader_objects, perspective, view, wiggle_matrix);
 
-        graphics->draw(bounds, shader_wireframe, perspective, view, spatial::position().lookat(camera.eye), spatial::matrix(), platform::graphics::render::WIREFRAME);
+        if (1) {
+            spatial::matrix direct = spatial::position().lookat(camera.eye);
+            bounds = direct.interpolate(spatial::quad(1.0, 1.0));
+            graphics->recompile(bounds);
+            graphics->draw(bounds, shader_wireframe, perspective, view, spatial::matrix(), spatial::matrix(), platform::graphics::render::WIREFRAME);
+        }
+        else {
+            graphics->draw(bounds, shader_wireframe, perspective, view, spatial::position().lookat(camera.eye), spatial::matrix(), platform::graphics::render::WIREFRAME);
+        }
 
         for(auto & ray: rays) {
             graphics->draw(ray, shader_wireframe, perspective, view, spatial::matrix(), spatial::matrix(), platform::graphics::render::WIREFRAME);
