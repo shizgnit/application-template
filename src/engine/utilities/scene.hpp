@@ -36,7 +36,7 @@ public:
 
         }
 
-        void geometry(int width, int height) {
+        void dimensions(int width, int height) {
 
         }
 
@@ -86,7 +86,7 @@ public:
     void keyboard_input(const platform::input::event& ev);
     void gamepad_input(const platform::input::event& ev);
 
-    void geometry(int width, int height);
+    void dimensions(int width, int height);
 
     spatial::matrix ortho;
     spatial::matrix perspective;

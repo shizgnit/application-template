@@ -83,7 +83,7 @@ namespace implementation {
 
         class graphics : public platform::graphics {
         public:
-            void geometry(int width, int height);
+            void dimensions(int width, int height);
 
             void init(void);
             void clear(void);
@@ -118,7 +118,7 @@ namespace implementation {
                 }
                 fbos[target.back()].disable();
                 target.pop_back();
-                geometry(display_width, display_height);
+                dimensions(display_width, display_height);
             }
 
             void release(type::object* object) {

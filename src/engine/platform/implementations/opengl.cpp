@@ -61,7 +61,7 @@ void implementation::opengl::fbo::disable() {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void implementation::opengl::graphics::geometry(int width, int height) {
+void implementation::opengl::graphics::dimensions(int width, int height) {
     glViewport(0, 0, width, height);
     display_width = width;
     display_height = height;
@@ -99,12 +99,19 @@ void implementation::opengl::graphics::init(void) {
     compile(ray);
 
     // Setup the shadow depth map
-    shadow = spatial::quad(128, 256);
+    shadow = spatial::quad(256, 256);
     shadow.texture.map = &assets->get<type::image>("shadowmap");
-    shadow.texture.map->create(1024, 2048, 0, 0, 0, 0);
+    shadow.texture.map->create(2048, 2048, 0, 0, 0, 0);
     //shadow.texture.depth = true;
     shadow.xy_projection(0, 0, shadow.texture.map->properties.width, shadow.texture.map->properties.height);
     compile(shadow);
+
+    // Setup the render buffer
+    buffer = spatial::quad(width(), height());
+    buffer.texture.map = &assets->get<type::image>("buffer");
+    buffer.texture.map->create(width(), height(), 0, 0, 0, 0);
+    buffer.xy_projection(0, 0, buffer.texture.map->properties.width, buffer.texture.map->properties.height);
+    compile(buffer);
 
     // Calculate the offsets
     spatial::vector vector({ 256.0f });

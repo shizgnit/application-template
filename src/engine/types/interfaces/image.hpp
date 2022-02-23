@@ -48,8 +48,8 @@ namespace type {
             raster.resize(properties.width * properties.height * properties.channels);
 
             int index = 0;
-            for (int width = 0; width < properties.width; width++) {
-                for (int height = 0; height < properties.width; height++) {
+            for (int w = 0; w < properties.width; w++) {
+                for (int h = 0; h < properties.height; h++) {
                     raster[index++] = r;
                     raster[index++] = g;
                     raster[index++] = b;

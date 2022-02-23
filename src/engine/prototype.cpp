@@ -393,6 +393,7 @@ public:
 
         assets->get<type::entity>("objects/wiggle").animate();
 
+        // Build the shadow map
         {
             auto scoped = graphics->target(graphics->shadow);
             graphics->clear();
@@ -401,6 +402,23 @@ public:
             graphics->draw(box, shader_shadowmap, ortho, lighting, box2_matrix, ortho * lighting);
             graphics->draw(monkey, shader_shadowmap, ortho, lighting, spatial::matrix().translate(0, -2, -10).scale(5.0f), ortho * lighting);
             graphics->draw(assets->get<type::entity>("objects/wiggle"), shader_shadowmap, ortho, lighting, wiggle_matrix, ortho * lighting);
+        }
+
+        // Just rendering to a texture
+        {
+            // This entire scope will render to the poly texture, every frame... which is unnecessary, just testing for performance, etc.
+            auto scoped = graphics->target(box);
+
+            // just moving it a bit to move away from the edges
+            spatial::matrix rendertotex;
+            rendertotex.identity();
+            rendertotex.translate(20, 20, 0);
+
+            // orthographic view matrix relative to the target
+            spatial::matrix ortho;
+            ortho.ortho(0, box.texture.map->properties.width, 0, box.texture.map->properties.height);
+
+            graphics->draw(assets->get<type::object>("icon"), shader_basic, ortho, spatial::matrix(), rendertotex);
         }
 
         graphics->draw(skybox, shader_skybox, perspective, view, spatial::matrix());
@@ -440,6 +458,9 @@ public:
             graphics->draw(ray, shader_wireframe, perspective, view, spatial::matrix(), spatial::matrix(), platform::graphics::render::WIREFRAME);
         }
 
+        //spatial::matrix model = spatial::matrix().translate(pos.eye, pos.center, pos.up);
+
+
         /*
         if (object_moving[0]) {
             pos.spin(1.0f);
@@ -472,23 +493,6 @@ public:
         }
         if (camera_moving[3]) {
             camera.sway(-1);
-        }
-
-        //spatial::matrix model = spatial::matrix().translate(pos.eye, pos.center, pos.up);
-        {
-            // This entire scope will render to the poly texture, every frame... which is unnecessary, just testing for performance, etc.
-            auto scoped = graphics->target(box);
-
-            // just moving it a bit to move away from the edges
-            spatial::matrix rendertotex;
-            rendertotex.identity();
-            rendertotex.translate(20, 20, 0);
-
-            // orthographic view matrix relative to the target
-            spatial::matrix ortho;
-            ortho.ortho(0, box.texture.map->properties.width, 0, box.texture.map->properties.height);
-
-            graphics->draw(assets->get<type::object>("icon"), shader_basic, ortho, spatial::matrix(), rendertotex);
         }
 
         /*
@@ -758,9 +762,8 @@ void prototype::on_startup() {
 }
 
 void prototype::on_resize() {
-    graphics->geometry(width, height);
-
-    main::global().geometry(width, height);
+    graphics->dimensions(width, height);
+    main::global().dimensions(width, height);
 
     gui->projection = main::global().ortho;
 

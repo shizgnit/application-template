@@ -118,7 +118,7 @@ void main::gamepad_input(const platform::input::event& ev) {
     }
 }
 
-void main::geometry(int width, int height) {
+void main::dimensions(int width, int height) {
     int fov = has("perspective.fov") ? std::get<int>(main::global().get("perspective.fov")) : 90;
 
     ortho.ortho(0, width, 0, height);
@@ -126,7 +126,7 @@ void main::geometry(int width, int height) {
 
     std::lock_guard<std::mutex> scoped(lock);
     for (auto scene : current()) {
-        scene.second->geometry(width, height);
+        scene.second->dimensions(width, height);
     }
 }
 
@@ -258,7 +258,7 @@ value_t main::get(label_t label) {
 value_t main::set(label_t label, value_t value) {
     variables[label] = value;
     if (label == "perspective.fov") {
-        geometry(graphics->width(), graphics->height());
+        dimensions(graphics->width(), graphics->height());
     }
 
     return value;

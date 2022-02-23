@@ -11,7 +11,7 @@ namespace platform {
             NORMALS   = (1u << 3)
         };
 
-        virtual void geometry(int width, int height) = 0;
+        virtual void dimensions(int width, int height) = 0;
 
         virtual void init(void) = 0;
         virtual void clear(void) = 0;
@@ -97,6 +97,7 @@ namespace platform {
 
         type::object ray;
         type::object shadow;
+        type::object buffer;
 
     protected:
         std::list<std::string> errors;
