@@ -30,9 +30,8 @@ void main()
    float d = max(dot(v_Normal, L), 0.0);
 
    if(v_FrontFacing < 0.0) {
-      diffuseColor = vec4(1.0, 1.0, 0.0, 1.0);
+      discard;
    }
-   else {
-      diffuseColor = vec4(0.0, 1.0, 1.0, 1.0);
-   }
+   
+   diffuseColor = vec4(0.0, 0.0, 0.0, 1.0);
 }

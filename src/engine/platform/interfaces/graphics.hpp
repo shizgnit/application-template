@@ -35,6 +35,11 @@ namespace platform {
         virtual void ontarget(type::object* object) {}
         virtual void untarget() {}
 
+        virtual void oninvert() {}
+
+        virtual void onsize(int weight) {}
+        virtual void unsize() {}
+
         virtual int messages() {
             return errors.size();
         }
@@ -52,6 +57,16 @@ namespace platform {
         utilities::scoped<graphics*, callback> target(type::object& object) {
             ontarget(&object);
             return utilities::scoped<graphics*, callback>(this, &graphics::untarget);
+        }
+
+        utilities::scoped<graphics*, callback> invert() {
+            oninvert();
+            return utilities::scoped<graphics*, callback>(this, &graphics::oninvert);
+        }
+
+        utilities::scoped<graphics*, callback> size(int weight) {
+            onsize(weight);
+            return utilities::scoped<graphics*, callback>(this, &graphics::unsize);
         }
 
         virtual void clip(float top, float bottom, float left, float right) {
@@ -97,7 +112,8 @@ namespace platform {
 
         type::object ray;
         type::object shadow;
-        type::object buffer;
+        type::object color;
+        type::object depth;
 
     protected:
         std::list<std::string> errors;

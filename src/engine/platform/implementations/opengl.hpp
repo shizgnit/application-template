@@ -104,22 +104,14 @@ namespace implementation {
             void draw(type::object& object, type::program& shader, const spatial::matrix& projection, const spatial::matrix& view, const spatial::matrix& model=spatial::matrix(), const spatial::matrix& lighting=spatial::matrix(), unsigned int options=0x00);
             void draw(std::string text, type::font& font, type::program& shader, const spatial::matrix& projection, const spatial::matrix& view, const spatial::matrix& model=spatial::matrix(), const spatial::matrix& lighting=spatial::matrix(), unsigned int options = 0x00);
 
-            void ontarget(type::object* object) {
-                if (fbos.find(object) == fbos.end()) {
-                    fbos[object].init(*object);
-                }
-                fbos[object].enable();
-                target.push_back(object);
-            }
+            void ontarget(type::object* object);
+            void untarget();
 
-            void untarget() {
-                if (target.size() == 0) {
-                    return;
-                }
-                fbos[target.back()].disable();
-                target.pop_back();
-                dimensions(display_width, display_height);
-            }
+            void onsize(int weight);
+            void unsize();
+
+            bool front = true;
+            void oninvert();
 
             void release(type::object* object) {
                 fbos.erase(object);

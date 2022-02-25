@@ -13,7 +13,7 @@ bool implementation::opengl::fbo::init(type::object& object, bool depth) {
 
     glFramebufferTexture2D(GL_FRAMEBUFFER, allocation, GL_TEXTURE_2D, object.texture.context, 0);
 
-    glGenBuffers(1, &context.render);
+    glGenRenderbuffers(1, &context.render);
     glBindRenderbuffer(GL_RENDERBUFFER, context.render);
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, object.texture.map->properties.width, object.texture.map->properties.height);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, context.render);
@@ -35,6 +35,10 @@ void implementation::opengl::fbo::enable(bool clear) {
         return;
     }
     glBindFramebuffer(GL_FRAMEBUFFER, context.frame);
+
+    //glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, context.render);
+
+    glBindRenderbuffer(GL_RENDERBUFFER, context.render);
     glViewport(0, 0, target->texture.map->properties.width, target->texture.map->properties.height);
     if (target->texture.depth) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -42,6 +46,8 @@ void implementation::opengl::fbo::enable(bool clear) {
     }
     else {
         glClear(clear ? GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT : GL_DEPTH_BUFFER_BIT);
+
+
     }
 }
 
@@ -58,6 +64,8 @@ void implementation::opengl::fbo::disable() {
         glGenerateMipmap(GL_TEXTURE_2D);
         glBindTexture(GL_TEXTURE_2D, 0);
     }
+    //glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, 0);
+    glBindRenderbuffer(GL_RENDERBUFFER, 0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
@@ -107,11 +115,19 @@ void implementation::opengl::graphics::init(void) {
     compile(shadow);
 
     // Setup the render buffer
-    buffer = spatial::quad(width(), height());
-    buffer.texture.map = &assets->get<type::image>("buffer");
-    buffer.texture.map->create(width(), height(), 0, 0, 0, 0);
-    buffer.xy_projection(0, 0, buffer.texture.map->properties.width, buffer.texture.map->properties.height);
-    compile(buffer);
+    color = spatial::quad(width(), height());
+    color.texture.map = &assets->get<type::image>("color");
+    color.texture.map->create(width(), height(), 0, 0, 0, 0);
+    color.xy_projection(0, 0, color.texture.map->properties.width, color.texture.map->properties.height, false, true);
+    compile(color);
+
+    // Setup the scene depth buffer
+    depth = spatial::quad(width(), height());
+    depth.texture.map = &assets->get<type::image>("depth");
+    depth.texture.map->create(width(), height(), 0, 0, 0, 0);
+    depth.texture.depth = true;
+    depth.xy_projection(0, 0, depth.texture.map->properties.width, depth.texture.map->properties.height, false, true);
+    compile(depth);
 
     // Calculate the offsets
     spatial::vector vector({ 256.0f });
@@ -502,5 +518,44 @@ void implementation::opengl::graphics::draw(std::string text, type::font& font, 
         prior = text[i];
     }
 }
+
+
+void implementation::opengl::graphics::ontarget(type::object* object) {
+    if (fbos.find(object) == fbos.end()) {
+        fbos[object].init(*object);
+    }
+    fbos[object].enable();
+    target.push_back(object);
+}
+
+void implementation::opengl::graphics::untarget() {
+    if (target.size() == 0) {
+        return;
+    }
+    fbos[target.back()].disable();
+    target.pop_back();
+    dimensions(display_width, display_height);
+}
+
+void implementation::opengl::graphics::onsize(int weight) {
+    glLineWidth(weight);
+}
+
+void implementation::opengl::graphics::unsize() {
+    glLineWidth(1);
+}
+
+
+void implementation::opengl::graphics::oninvert() {
+    if (front) {
+        glCullFace(GL_FRONT);
+        front = false;
+    }
+    else {
+        glCullFace(GL_BACK);
+        front = true;
+    }
+}
+
 
 #endif

@@ -15,7 +15,7 @@ namespace type {
 
         typedef spatial::vector::type_t type_t;
 
-        void xy_projection(unsigned int x, unsigned int y, unsigned int width, unsigned int height) {
+        void xy_projection(unsigned int x, unsigned int y, unsigned int width, unsigned int height, bool horizontal=false, bool vertical=false) {
             type_t max_x = 0.0f;
             type_t max_y = 0.0f;
 
@@ -38,6 +38,13 @@ namespace type {
                 type_t tx = (width * dx + x) * texture_dx;
                 type_t ty = (height * dy + y) * texture_dy;
                 //float ty = 1.0f - ((height * dy + y) * texture_dy);
+
+                if (horizontal) {
+                    tx = 1.0 - tx;
+                }
+                if (vertical) {
+                    ty = 1.0 - ty;
+                }
 
                 vertices[i].texture(tx, ty, 0.0f, 0.0f);
             }

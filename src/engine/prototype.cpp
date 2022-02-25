@@ -144,6 +144,7 @@ public:
         main::global().call("/load shader shaders/cell objects");
         main::global().call("/load shader shaders/defuse_with_shadows scenery");
         main::global().call("/load shader shaders/wireframe wireframe");
+        main::global().call("/load shader shaders/outline outline");
         main::global().call("/load font fonts/consolas-22 default");
 
         main::global().call("/load object drawable/marvin.png icon");
@@ -359,6 +360,7 @@ public:
         auto& shader_objects = assets->get<type::program>("objects");
         auto& shader_scenery = assets->get<type::program>("scenery");
         auto& shader_wireframe = assets->get<type::program>("wireframe");
+        auto& shader_outline = assets->get<type::program>("outline");
 
         auto& perspective = main::global().perspective;
 
@@ -396,6 +398,7 @@ public:
         // Build the shadow map
         {
             auto scoped = graphics->target(graphics->shadow);
+
             graphics->clear();
             graphics->draw(ground, shader_shadowmap, ortho, lighting, spatial::matrix().scale(4.0f), ortho * lighting);
             graphics->draw(box, shader_shadowmap, ortho, lighting, box1_matrix, ortho * lighting);
@@ -421,42 +424,54 @@ public:
             graphics->draw(assets->get<type::object>("icon"), shader_basic, ortho, spatial::matrix(), rendertotex);
         }
 
-        graphics->draw(skybox, shader_skybox, perspective, view, spatial::matrix());
+        {
+            auto scoped = graphics->target(graphics->color);
+            
+            graphics->clear();
 
-        graphics->draw(ground, shader_scenery, perspective, view, spatial::matrix().scale(4.0f), ortho * lighting, platform::graphics::render::NORMALS);
+            graphics->draw(skybox, shader_skybox, perspective, view, spatial::matrix());
 
-        graphics->draw(box, shader_scenery, perspective, view, box1_matrix, ortho * lighting, platform::graphics::render::NORMALS);
-        graphics->draw(box, shader_scenery, perspective, view, box2_matrix, ortho * lighting, platform::graphics::render::NORMALS);
+            graphics->draw(ground, shader_scenery, perspective, view, spatial::matrix().scale(4.0f), ortho * lighting, platform::graphics::render::NORMALS);
 
-        graphics->draw(xAxis, shader_basic, perspective, view);
-        graphics->draw(yAxis, shader_basic, perspective, view);
-        graphics->draw(zAxis, shader_basic, perspective, view);
+            graphics->draw(box, shader_scenery, perspective, view, box1_matrix, ortho * lighting);
+            graphics->draw(box, shader_scenery, perspective, view, box2_matrix, ortho * lighting);
+            {
+                auto scope = graphics->size(5);
+                graphics->draw(box, shader_outline, perspective, view, box2_matrix, ortho * lighting, platform::graphics::render::WIREFRAME);
+            }
 
-        graphics->draw(monkey, shader_objects, perspective, view, spatial::matrix().translate(0, -2, -10).scale(5.0f));
+            graphics->draw(xAxis, shader_basic, perspective, view);
+            graphics->draw(yAxis, shader_basic, perspective, view);
+            graphics->draw(zAxis, shader_basic, perspective, view);
 
-        draw(graphics->ambient.position, shader_basic, perspective, view, spatial::matrix());
+            graphics->draw(monkey, shader_objects, perspective, view, spatial::matrix().translate(0, -2, -10).scale(5.0f));
 
-        spatial::matrix frame;
-        frame.identity();
-        frame.translate(20, graphics->height() - 20 - 256, 0);
+            draw(graphics->ambient.position, shader_basic, perspective, view, spatial::matrix());
 
-        graphics->draw(graphics->shadow, graphics->shadow.texture.depth ? assets->get<type::program>("depth") : shader_basic, main::global().ortho, spatial::matrix(), frame);
+            spatial::matrix frame;
+            frame.identity();
+            frame.translate(20, graphics->height() - 20 - 256, 0);
 
-        graphics->draw(assets->get<type::entity>("objects/wiggle"), shader_objects, perspective, view, wiggle_matrix);
+            graphics->draw(assets->get<type::entity>("objects/wiggle"), shader_objects, perspective, view, wiggle_matrix);
 
-        if (1) {
-            spatial::matrix direct = spatial::position().lookat(camera.eye);
-            bounds = direct.interpolate(spatial::quad(1.0, 1.0));
-            graphics->recompile(bounds);
-            graphics->draw(bounds, shader_wireframe, perspective, view, spatial::matrix(), spatial::matrix(), platform::graphics::render::WIREFRAME);
+            if (1) {
+                spatial::matrix direct = spatial::position().lookat(camera.eye);
+                bounds = direct.interpolate(spatial::quad(1.0, 1.0));
+                graphics->recompile(bounds);
+                graphics->draw(bounds, shader_wireframe, perspective, view, spatial::matrix(), spatial::matrix(), platform::graphics::render::WIREFRAME);
+            }
+            else {
+                graphics->draw(bounds, shader_wireframe, perspective, view, spatial::position().lookat(camera.eye), spatial::matrix(), platform::graphics::render::WIREFRAME);
+            }
+
+            for (auto& ray : rays) {
+                graphics->draw(ray, shader_wireframe, perspective, view, spatial::matrix(), spatial::matrix(), platform::graphics::render::WIREFRAME);
+            }
+
+            graphics->draw(graphics->shadow, graphics->shadow.texture.depth ? assets->get<type::program>("depth") : shader_basic, main::global().ortho, spatial::matrix(), frame);
         }
-        else {
-            graphics->draw(bounds, shader_wireframe, perspective, view, spatial::position().lookat(camera.eye), spatial::matrix(), platform::graphics::render::WIREFRAME);
-        }
 
-        for(auto & ray: rays) {
-            graphics->draw(ray, shader_wireframe, perspective, view, spatial::matrix(), spatial::matrix(), platform::graphics::render::WIREFRAME);
-        }
+        graphics->draw(graphics->color, shader_basic, main::global().ortho, spatial::matrix(), spatial::matrix());
 
         //spatial::matrix model = spatial::matrix().translate(pos.eye, pos.center, pos.up);
 

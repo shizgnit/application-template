@@ -272,6 +272,8 @@
     <Content Include="assets\shaders\defuse_with_shadows.vert" />
     <Content Include="assets\shaders\depth_to_color.frag" />
     <Content Include="assets\shaders\depth_to_color.vert" />
+    <Content Include="assets\shaders\outline.frag" />
+    <Content Include="assets\shaders\outline.vert" />
     <Content Include="assets\shaders\picker.frag" />
     <Content Include="assets\shaders\picker.vert" />
     <Content Include="assets\shaders\shadowmap.frag" />
