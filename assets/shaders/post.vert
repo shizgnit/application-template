@@ -19,27 +19,18 @@ layout(location = 12) uniform vec4 u_AmbientLightPosition;
 layout(location = 13) uniform vec4 u_AmbientLightColor;
 
 out vec4 v_Vertex;
-out vec2 v_Texture;
+out vec4 v_Texture;
 out vec4 v_Normal;
 out vec4 v_Lighting;
-out vec4 v_Clipping;
 
 void main()
 {
   mat4 MVP = u_ProjectionMatrix * u_ViewMatrix * u_ModelMatrix;
-  if(gl_InstanceID >= 1) {
-    MVP = u_ProjectionMatrix * u_ViewMatrix * a_ModelMatrix;
-  }
 
+  v_Texture = a_Texture;
   v_Vertex = MVP * a_Vertex;
   v_Normal = normalize(MVP * a_Normal);
-
+  
   gl_Position = v_Vertex;
 
-  if(gl_InstanceID >= 1) {
-    v_Lighting = (u_LightingMatrix * a_ModelMatrix) * a_Vertex;
-  }
-  else {
-    v_Lighting = (u_LightingMatrix * u_ModelMatrix) * a_Vertex;
-  }
 }

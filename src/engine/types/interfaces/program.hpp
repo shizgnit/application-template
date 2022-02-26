@@ -25,6 +25,7 @@ namespace type {
         int u_SurfaceTextureUnit;
         int u_ShadowTextureUnit;
         int u_NormalTextureUnit;
+        int u_DepthTextureUnit;
 
         int u_AmbientLightPosition;
         int u_AmbientLightColor;

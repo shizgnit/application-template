@@ -36,6 +36,7 @@ namespace platform {
         virtual void untarget() {}
 
         virtual void oninvert() {}
+        virtual void uninvert() {}
 
         virtual void onsize(int weight) {}
         virtual void unsize() {}
@@ -61,7 +62,7 @@ namespace platform {
 
         utilities::scoped<graphics*, callback> invert() {
             oninvert();
-            return utilities::scoped<graphics*, callback>(this, &graphics::oninvert);
+            return utilities::scoped<graphics*, callback>(this, &graphics::uninvert);
         }
 
         utilities::scoped<graphics*, callback> size(int weight) {

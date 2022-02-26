@@ -35,20 +35,9 @@ void implementation::opengl::fbo::enable(bool clear) {
         return;
     }
     glBindFramebuffer(GL_FRAMEBUFFER, context.frame);
-
-    //glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, context.render);
-
     glBindRenderbuffer(GL_RENDERBUFFER, context.render);
     glViewport(0, 0, target->texture.map->properties.width, target->texture.map->properties.height);
-    if (target->texture.depth) {
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glCullFace(GL_FRONT);
-    }
-    else {
-        glClear(clear ? GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT : GL_DEPTH_BUFFER_BIT);
-
-
-    }
+    glClear(clear ? GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT : GL_DEPTH_BUFFER_BIT);
 }
 
 void implementation::opengl::fbo::disable() {
@@ -56,15 +45,11 @@ void implementation::opengl::fbo::disable() {
         return;
     }
     // Currently all rendering is done to the mipmap level 0... copy it out after every render
-    if (target->texture.depth) {
-        glCullFace(GL_BACK);
-    }
-    else {
+    if (!target->texture.depth) {
         glBindTexture(GL_TEXTURE_2D, target->texture.context);
         glGenerateMipmap(GL_TEXTURE_2D);
         glBindTexture(GL_TEXTURE_2D, 0);
     }
-    //glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, 0);
     glBindRenderbuffer(GL_RENDERBUFFER, 0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
@@ -125,7 +110,7 @@ void implementation::opengl::graphics::init(void) {
     depth = spatial::quad(width(), height());
     depth.texture.map = &assets->get<type::image>("depth");
     depth.texture.map->create(width(), height(), 0, 0, 0, 0);
-    depth.texture.depth = true;
+    //depth.texture.depth = true;
     depth.xy_projection(0, 0, depth.texture.map->properties.width, depth.texture.map->properties.height, false, true);
     compile(depth);
 
@@ -266,8 +251,9 @@ bool implementation::opengl::graphics::compile(type::program& program) {
     program.u_LightingMatrix = glGetUniformLocation(program.context, "u_LightingMatrix");
 
     program.u_SurfaceTextureUnit = glGetUniformLocation(program.context, "u_SurfaceTextureUnit");
-    program.u_ShadowTextureUnit = glGetUniformLocation(program.context, "u_ShadowTextureUnit");
     program.u_NormalTextureUnit = glGetUniformLocation(program.context, "u_NormalTextureUnit");
+    program.u_ShadowTextureUnit = glGetUniformLocation(program.context, "u_ShadowTextureUnit");
+    program.u_DepthTextureUnit = glGetUniformLocation(program.context, "u_DepthTextureUnit");
 
     program.u_Clipping = glGetUniformLocation(program.context, "u_Clipping");
 
@@ -423,8 +409,12 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, target.texture.context);
     if (shadow.texture.context) {
-        glActiveTexture(GL_TEXTURE0 + 1);
+        glActiveTexture(GL_TEXTURE0 + 2);
         glBindTexture(GL_TEXTURE_2D, shadow.texture.context);
+    }
+    if (depth.texture.context) {
+        glActiveTexture(GL_TEXTURE0 + 3);
+        glBindTexture(GL_TEXTURE_2D, depth.texture.context);
     }
 
     glUniformMatrix4fv(shader.u_ProjectionMatrix, 1, GL_FALSE, (GLfloat*)projection.data());
@@ -433,7 +423,9 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
     glUniformMatrix4fv(shader.u_LightingMatrix, 1, GL_FALSE, (GLfloat*)lighting.data());
 
     glUniform1i(shader.u_SurfaceTextureUnit, 0);
-    glUniform1i(shader.u_ShadowTextureUnit, 1);
+    glUniform1i(shader.u_NormalTextureUnit, 1);
+    glUniform1i(shader.u_ShadowTextureUnit, 2);
+    glUniform1i(shader.u_DepthTextureUnit, 3);
 
     glUniform4f(shader.u_AmbientLightPosition, ambient.position.center.x, ambient.position.center.y, ambient.position.center.z, ambient.position.center.w);
     glUniform4f(shader.u_AmbientLightColor, ambient.color.x, ambient.color.y, ambient.color.z, ambient.color.w);
@@ -547,15 +539,11 @@ void implementation::opengl::graphics::unsize() {
 
 
 void implementation::opengl::graphics::oninvert() {
-    if (front) {
-        glCullFace(GL_FRONT);
-        front = false;
-    }
-    else {
-        glCullFace(GL_BACK);
-        front = true;
-    }
+    glCullFace(GL_FRONT);
 }
 
+void implementation::opengl::graphics::uninvert() {
+    glCullFace(GL_BACK);
+}
 
 #endif

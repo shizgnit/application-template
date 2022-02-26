@@ -138,13 +138,15 @@ public:
         main::global().call("/load shader shaders/cell cell");
         main::global().call("/load shader shaders/defuse defuse");
         main::global().call("/load shader shaders/shadowmap shadowmap");
-        main::global().call("/load shader shaders/depth_to_color depth");
+        main::global().call("/load shader shaders/depth_to_color depth_to_color");
         main::global().call("/load shader shaders/basic gui");
         main::global().call("/load shader shaders/basic skybox");
         main::global().call("/load shader shaders/cell objects");
         main::global().call("/load shader shaders/defuse_with_shadows scenery");
         main::global().call("/load shader shaders/wireframe wireframe");
         main::global().call("/load shader shaders/outline outline");
+        main::global().call("/load shader shaders/depth depth");
+        main::global().call("/load shader shaders/post post");
         main::global().call("/load font fonts/consolas-22 default");
 
         main::global().call("/load object drawable/marvin.png icon");
@@ -361,6 +363,8 @@ public:
         auto& shader_scenery = assets->get<type::program>("scenery");
         auto& shader_wireframe = assets->get<type::program>("wireframe");
         auto& shader_outline = assets->get<type::program>("outline");
+        auto& shader_depth = assets->get<type::program>("depth");
+        auto& shader_post = assets->get<type::program>("post");
 
         auto& perspective = main::global().perspective;
 
@@ -425,6 +429,17 @@ public:
         }
 
         {
+            auto scoped = graphics->target(graphics->depth);
+
+            graphics->clear();
+
+            graphics->draw(box, shader_depth, perspective, view, box1_matrix);
+            graphics->draw(box, shader_depth, perspective, view, box2_matrix);
+            graphics->draw(monkey, shader_depth, perspective, view, spatial::matrix().translate(0, -2, -10).scale(5.0f));
+            graphics->draw(assets->get<type::entity>("objects/wiggle"), shader_depth, perspective, view, wiggle_matrix);
+        }
+
+        {
             auto scoped = graphics->target(graphics->color);
             
             graphics->clear();
@@ -435,10 +450,6 @@ public:
 
             graphics->draw(box, shader_scenery, perspective, view, box1_matrix, ortho * lighting);
             graphics->draw(box, shader_scenery, perspective, view, box2_matrix, ortho * lighting);
-            {
-                auto scope = graphics->size(5);
-                graphics->draw(box, shader_outline, perspective, view, box2_matrix, ortho * lighting, platform::graphics::render::WIREFRAME);
-            }
 
             graphics->draw(xAxis, shader_basic, perspective, view);
             graphics->draw(yAxis, shader_basic, perspective, view);
@@ -447,10 +458,6 @@ public:
             graphics->draw(monkey, shader_objects, perspective, view, spatial::matrix().translate(0, -2, -10).scale(5.0f));
 
             draw(graphics->ambient.position, shader_basic, perspective, view, spatial::matrix());
-
-            spatial::matrix frame;
-            frame.identity();
-            frame.translate(20, graphics->height() - 20 - 256, 0);
 
             graphics->draw(assets->get<type::entity>("objects/wiggle"), shader_objects, perspective, view, wiggle_matrix);
 
@@ -468,10 +475,11 @@ public:
                 graphics->draw(ray, shader_wireframe, perspective, view, spatial::matrix(), spatial::matrix(), platform::graphics::render::WIREFRAME);
             }
 
-            graphics->draw(graphics->shadow, graphics->shadow.texture.depth ? assets->get<type::program>("depth") : shader_basic, main::global().ortho, spatial::matrix(), frame);
+            graphics->draw(graphics->shadow, graphics->shadow.texture.depth ? assets->get<type::program>("depth_to_color") : shader_basic, main::global().ortho, spatial::matrix(), spatial::matrix().translate(20, graphics->height() - 20 - 256, 0));
+            graphics->draw(graphics->depth, graphics->depth.texture.depth ? assets->get<type::program>("depth_to_color") : shader_basic, main::global().ortho, spatial::matrix(), spatial::matrix().translate(40 + 256, graphics->height() - 20 - 256, 0).scale(0.2));
         }
 
-        graphics->draw(graphics->color, shader_basic, main::global().ortho, spatial::matrix(), spatial::matrix());
+        graphics->draw(graphics->color, shader_post, main::global().ortho, spatial::matrix(), spatial::matrix());
 
         //spatial::matrix model = spatial::matrix().translate(pos.eye, pos.center, pos.up);
 

@@ -110,8 +110,8 @@ namespace implementation {
             void onsize(int weight);
             void unsize();
 
-            bool front = true;
             void oninvert();
+            void uninvert();
 
             void release(type::object* object) {
                 fbos.erase(object);

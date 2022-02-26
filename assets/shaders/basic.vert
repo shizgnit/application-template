@@ -32,10 +32,6 @@ void main()
   v_Vertex = MVP * a_Vertex;
   v_Normal = normalize(MVP * a_Normal);
   
-  if(a_ModelMatrix[0][0] == 0.0) {
-    v_Lighting = vec4(0.0);
-  }
-  
   gl_Position = v_Vertex;
 
   vec4 model = u_ModelMatrix * a_Vertex;
