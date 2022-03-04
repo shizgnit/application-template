@@ -121,8 +121,8 @@ void main::gamepad_input(const platform::input::event& ev) {
 void main::dimensions(int width, int height) {
     int fov = has("perspective.fov") ? std::get<int>(main::global().get("perspective.fov")) : 90;
 
-    ortho.ortho(0, width, 0, height);
-    perspective.perspective(fov, (float)width / (float)height);
+    ortho = spatial::matrix().ortho(0, width, 0, height);
+    perspective = spatial::matrix().perspective(fov, (float)width / (float)height);
 
     std::lock_guard<std::mutex> scoped(lock);
     for (auto scene : current()) {

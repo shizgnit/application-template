@@ -65,18 +65,21 @@ namespace implementation {
 
             fbo() { }
 
-            bool init(type::object& object, bool depth = false);
+            bool init(type::object& object, platform::graphics *ref, bool depth = false);
+
             void enable(bool clear = false);
             void disable();
 
         private:
             struct {
-                GLuint frame;
-                GLuint render;
-                GLuint depth;
+                GLuint frame = 0;
+                GLuint render = 0;
+                GLuint depth = 0;
             } context;
 
-            GLenum allocation;
+            GLenum allocation = 0;
+
+            platform::graphics* parent = NULL;
 
             type::object* target = NULL;
         };
@@ -98,17 +101,11 @@ namespace implementation {
 
             bool compile(platform::assets* assets);
 
-            bool recompile(type::object& object);
-            bool recompile(type::entity& entity);
-
             void draw(type::object& object, type::program& shader, const spatial::matrix& projection, const spatial::matrix& view, const spatial::matrix& model=spatial::matrix(), const spatial::matrix& lighting=spatial::matrix(), unsigned int options=0x00);
             void draw(std::string text, type::font& font, type::program& shader, const spatial::matrix& projection, const spatial::matrix& view, const spatial::matrix& model=spatial::matrix(), const spatial::matrix& lighting=spatial::matrix(), unsigned int options = 0x00);
 
             void ontarget(type::object* object);
             void untarget();
-
-            void onsize(int weight);
-            void unsize();
 
             void oninvert();
             void uninvert();

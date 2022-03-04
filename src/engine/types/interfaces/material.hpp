@@ -13,15 +13,15 @@ namespace type {
         float opacity;
         float illumination;
 
-        type::image* allocation = NULL;
-        type::image* map = NULL;
-        unsigned int context;
+        type::image* normal = NULL;
+        type::image* color = NULL;
 
         bool depth = false;
 
         void create(int width, int height, char r, char g, char b, char a) {
-            map = allocation = new type::image;
-            map->create(width, height, r, g, b, a);
+            color = new type::image;
+            color->create(width, height, r, g, b, a);
+            compiled(false);
         }
 
         friend type::material& operator>>(type::material& input, type::material& instance) {

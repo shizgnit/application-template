@@ -129,7 +129,7 @@ namespace format {
                             vertex.coordinate.w = 1.0f;
 
                             vertex.texture.x = textures[ti][0];
-                            vertex.texture.y = textures[ti][1];
+                            vertex.texture.y = 1.0f - textures[ti][1];
                             vertex.texture.z = 0.0f;
                             vertex.texture.w = 0.0f;
 

@@ -21,6 +21,8 @@ namespace type {
         std::vector<char> colormap;
         std::vector<char> raster;
 
+        unsigned int context;
+
         friend type::image& operator>>(type::image& input, type::image* instance) {
             *instance = input;
             return *instance;
@@ -55,7 +57,9 @@ namespace type {
                     raster[index++] = b;
                     raster[index++] = a;
                 }
-            }        
+            }
+
+            compiled(false);
         }
 
         std::string type() {

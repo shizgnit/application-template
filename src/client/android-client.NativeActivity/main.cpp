@@ -184,7 +184,7 @@ struct engine {
 	const ASensor* accelerometerSensor;
 	ASensorEventQueue* sensorEventQueue;
 
-	int animating;
+	int active;
 	EGLConfig config;
 	EGLDisplay display;
 	EGLSurface surface;
@@ -260,13 +260,6 @@ static int engine_init_display(struct engine* engine) {
 	engine->height = h;
 	engine->state.angle = 0;
 
-	// Initialize GL state.
-	//glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
-	//glEnable(GL_CULL_FACE);
-	//glShadeModel(GL_SMOOTH);
-	//glDisable(GL_DEPTH_TEST);
-
-	//setupGraphics(1440, 2960);
 	setupGraphics(w, h);
 
 	assets->init(engine->app->activity->assetManager);
@@ -274,7 +267,23 @@ static int engine_init_display(struct engine* engine) {
 	instance->on_resize();
 	instance->on_startup();
 	instance->started = true;
-	//instance->on_resize();
+
+	return 0;
+}
+
+static int engine_reinit_display(struct engine* engine) {
+	engine->surface = eglCreateWindowSurface(engine->display, engine->config, engine->app->window, NULL);
+
+	const EGLint GiveMeGLES3[] = {
+	  EGL_CONTEXT_CLIENT_VERSION, 3,
+	  EGL_NONE
+	};
+	engine->context = eglCreateContext(engine->display, engine->config, NULL, GiveMeGLES3);
+
+	if (eglMakeCurrent(engine->display, engine->surface, engine->surface, engine->context) == EGL_FALSE) {
+		LOGW("Unable to eglMakeCurrent");
+		return -1;
+	}
 
 	return 0;
 }
@@ -287,8 +296,6 @@ static int engine_resize_display(struct engine* engine) {
 
 	engine->width = w;
 	engine->height = h;
-
-	//setupGraphics(w, h);
 
 	instance->dimensions(h, w)->on_resize();
 
@@ -333,7 +340,7 @@ static void engine_term_display(struct engine* engine) {
 		}
 		eglTerminate(engine->display);
 	}
-	engine->animating = 0;
+	engine->active = 0;
 	engine->display = EGL_NO_DISPLAY;
 	engine->context = EGL_NO_CONTEXT;
 	engine->surface = EGL_NO_SURFACE;
@@ -416,6 +423,9 @@ static void engine_handle_cmd(struct android_app* app, int32_t cmd) {
 			engine_init_display(engine);
 			engine_draw_frame(engine);
 		}
+		else {
+			//engine_reinit_display(engine);
+		}
 		break;
 	case APP_CMD_CONFIG_CHANGED:
 		if (engine->app->window != NULL) {
@@ -444,7 +454,7 @@ static void engine_handle_cmd(struct android_app* app, int32_t cmd) {
 				engine->accelerometerSensor);
 		}
 		// Also stop animating.
-		engine->animating = 0;
+		engine->active = 0;
 		engine_draw_frame(engine);
 		break;
 	}
@@ -476,7 +486,7 @@ void android_main(struct android_app* state) {
 		engine.state = *(struct saved_state*)state->savedState;
 	}
 
-	engine.animating = 1;
+	engine.active = 1;
 
 	// TODO: this will probably be required for internet access
 	//check_android_permissions(state);
@@ -492,7 +502,7 @@ void android_main(struct android_app* state) {
 		// If not animating, we will block forever waiting for events.
 		// If animating, we loop until all events are read, then continue
 		// to draw the next frame of animation.
-		while ((ident = ALooper_pollAll(engine.animating ? 0 : -1, NULL, &events,
+		while ((ident = ALooper_pollAll(engine.active ? 0 : -1, NULL, &events,
 			(void**)&source)) >= 0) {
 
 			// Process this event.
@@ -520,7 +530,7 @@ void android_main(struct android_app* state) {
 			}
 		}
 
-		if (engine.animating) {
+		if (engine.active) {
 			// Done with events; draw next animation frame.
 			engine.state.angle += .01f;
 			if (engine.state.angle > 1) {

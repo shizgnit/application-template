@@ -8,9 +8,9 @@ layout(location = 4) in vec4 a_Vertex;
 layout(location = 5) in vec4 a_Texture;
 layout(location = 6) in vec4 a_Normal;
 
-layout(location = 7) uniform mat4 u_ModelMatrix;
+layout(location = 7) uniform mat4 u_ProjectionMatrix;
 layout(location = 8) uniform mat4 u_ViewMatrix;
-layout(location = 9) uniform mat4 u_ProjectionMatrix;
+layout(location = 9) uniform mat4 u_ModelMatrix;
 layout(location = 10) uniform mat4 u_LightingMatrix;
 
 layout(location = 11) uniform vec4 u_Clipping;

@@ -97,7 +97,7 @@ namespace format {
                     details.channel = character.node().attribute("chnl").as_int();
 
                     details.quad = spatial::quad(details.width, details.height);
-                    details.quad.texture.map = &instance.pages[details.page];
+                    details.quad.texture.color = &instance.pages[details.page];
                     details.quad.xy_projection(details.x, details.y, details.width, details.height);
 
                     //details.quad.id = character.node().attribute("id").value();

@@ -318,22 +318,22 @@ public:
         /// Just some random objects to play around with
         /// </summary>
         ray = spatial::ray(spatial::vector(0.0, 0.0, -0.2), spatial::vector(0.0, 0.0, 0.2));
-        ray.texture.map.create(1, 1, 255, 255, 0, 255);
+        ray.texture.color.create(1, 1, 255, 255, 0, 255);
         ray.xy_projection(0, 0, 1, 1);
         graphics->compile(ray);
 
         trail = spatial::ray(spatial::vector(0.0, 0.0, -0.2), spatial::vector(0.0, 0.0, 0.2));
-        trail.texture.map.create(1, 1, 255, 0, 0, 255);
+        trail.texture.color.create(1, 1, 255, 0, 0, 255);
         trail.xy_projection(0, 0, 1, 1);
         graphics->compile(trail);
 
         sphere = spatial::sphere(30, 30);
-        sphere.texture.map.create(1, 1, 255, 255, 255, 255);
+        sphere.texture.color.create(1, 1, 255, 255, 255, 255);
         sphere.xy_projection(0, 0, 1, 1);
         graphics->compile(sphere);
 
         visualized_bounds = bounds;
-        visualized_bounds.texture.map.create(1, 1, 255, 255, 255, 255);
+        visualized_bounds.texture.color.create(1, 1, 255, 255, 255, 255);
         visualized_bounds.xy_projection(0, 0, 1, 1);
         graphics->compile(visualized_bounds);
         */
@@ -343,15 +343,14 @@ public:
 
     void draw(spatial::position pos, type::program& shader, const spatial::matrix& model, const spatial::matrix& view, const spatial::matrix& projection, unsigned int options = 0x00) {
         ray = spatial::ray(pos.center, pos.eye);
-        ray.texture.map->create(1, 1, 255, 0, 0, 255);
-        graphics->recompile(ray);
+        ray.texture.color->create(1, 1, 255, 0, 0, 255);
+        graphics->compile(ray);
         graphics->draw(ray, shader, projection, view, model, spatial::matrix(), options);
 
         ray = spatial::ray(pos.center, pos.up + pos.center);
-        ray.texture.map->create(1, 1, 0, 255, 0, 255);
-        graphics->recompile(ray);
+        ray.texture.color->create(1, 1, 0, 255, 0, 255);
+        graphics->compile(ray);
         graphics->draw(ray, shader, projection, view, model, spatial::matrix(), options);
-
     }
 
     void run() {
@@ -395,7 +394,7 @@ public:
         assets->get<type::entity>("objects/wiggle").instances[2].position.heave(std::get<double>(main::global().get("wiggle.heave")));
         assets->get<type::entity>("objects/wiggle").position();
 
-        graphics->recompile(assets->get<type::entity>("objects/wiggle"));
+        graphics->compile(assets->get<type::entity>("objects/wiggle"));
 
         assets->get<type::entity>("objects/wiggle").animate();
 
@@ -423,7 +422,7 @@ public:
 
             // orthographic view matrix relative to the target
             spatial::matrix ortho;
-            ortho.ortho(0, box.texture.map->properties.width, 0, box.texture.map->properties.height);
+            ortho.ortho(0, box.texture.color->properties.width, 0, box.texture.color->properties.height);
 
             graphics->draw(assets->get<type::object>("icon"), shader_basic, ortho, spatial::matrix(), rendertotex);
         }
@@ -436,6 +435,8 @@ public:
             graphics->draw(box, shader_depth, perspective, view, box1_matrix);
             graphics->draw(box, shader_depth, perspective, view, box2_matrix);
             graphics->draw(monkey, shader_depth, perspective, view, spatial::matrix().translate(0, -2, -10).scale(5.0f));
+
+            assets->get<type::entity>("objects/wiggle").flags = 1;
             graphics->draw(assets->get<type::entity>("objects/wiggle"), shader_depth, perspective, view, wiggle_matrix);
         }
 
@@ -464,7 +465,7 @@ public:
             if (1) {
                 spatial::matrix direct = spatial::position().lookat(camera.eye);
                 bounds = direct.interpolate(spatial::quad(1.0, 1.0));
-                graphics->recompile(bounds);
+                graphics->compile(bounds);
                 graphics->draw(bounds, shader_wireframe, perspective, view, spatial::matrix(), spatial::matrix(), platform::graphics::render::WIREFRAME);
             }
             else {
@@ -786,6 +787,7 @@ void prototype::on_startup() {
 
 void prototype::on_resize() {
     graphics->dimensions(width, height);
+
     main::global().dimensions(width, height);
 
     gui->projection = main::global().ortho;

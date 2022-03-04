@@ -89,7 +89,11 @@ namespace format {
                 }
                 if (command == "map_Kd") {
                     auto texture = assets->load("texture", arguments[1] == "." ? "untitled.png" : arguments[1]);
-                    material->map = &assets->get<type::image>(texture);
+                    material->color = &assets->get<type::image>(texture);
+                }
+                if (command == "map_Bump") {
+                    auto texture = assets->load("texture", arguments[1] == "." ? "untitled.png" : arguments[1]);
+                    material->normal = &assets->get<type::image>(texture);
                 }
             }
 

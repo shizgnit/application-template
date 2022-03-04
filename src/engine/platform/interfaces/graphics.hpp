@@ -26,9 +26,6 @@ namespace platform {
 
         virtual bool compile(platform::assets* assets) = 0;
 
-        virtual bool recompile(type::object& object) = 0;
-        virtual bool recompile(type::entity& entity) = 0;
-
         virtual void draw(type::object& object, type::program& shader, const spatial::matrix& projection, const spatial::matrix& view, const spatial::matrix& model=spatial::matrix(), const spatial::matrix& lighting=spatial::matrix(), unsigned int options = 0x00) = 0;
         virtual void draw(std::string text, type::font& font, type::program& shader, const spatial::matrix& projection, const spatial::matrix& view, const spatial::matrix& model, const spatial::matrix& lighting=spatial::matrix(), unsigned int options = 0x00) = 0;
 
@@ -37,9 +34,6 @@ namespace platform {
 
         virtual void oninvert() {}
         virtual void uninvert() {}
-
-        virtual void onsize(int weight) {}
-        virtual void unsize() {}
 
         virtual int messages() {
             return errors.size();
@@ -63,11 +57,6 @@ namespace platform {
         utilities::scoped<graphics*, callback> invert() {
             oninvert();
             return utilities::scoped<graphics*, callback>(this, &graphics::uninvert);
-        }
-
-        utilities::scoped<graphics*, callback> size(int weight) {
-            onsize(weight);
-            return utilities::scoped<graphics*, callback>(this, &graphics::unsize);
         }
 
         virtual void clip(float top, float bottom, float left, float right) {

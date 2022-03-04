@@ -2,20 +2,30 @@
 
 #if defined __PLATFORM_SUPPORTS_OPENGL
 
-bool implementation::opengl::fbo::init(type::object& object, bool depth) {
-    allocation = object.texture.depth ? GL_DEPTH_ATTACHMENT : attachments().allocate();
+bool implementation::opengl::fbo::init(type::object& object, platform::graphics *ref, bool depth) {
     if (allocation == 0) {
-        return false;
+        allocation = object.texture.depth ? GL_DEPTH_ATTACHMENT : attachments().allocate();
+        if (allocation == 0 || object.texture.color == NULL) {
+            return false;
+        }
+    }
+
+    parent = ref;
+
+    if (context.frame) {
+        glDeleteFramebuffers(1, &context.frame);
+    }
+    if (context.render) {
+        glDeleteRenderbuffers(1, &context.render);
     }
 
     glGenFramebuffers(1, &context.frame);
     glBindFramebuffer(GL_FRAMEBUFFER, context.frame);
-
-    glFramebufferTexture2D(GL_FRAMEBUFFER, allocation, GL_TEXTURE_2D, object.texture.context, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, allocation, GL_TEXTURE_2D, object.texture.color->context, 0);
 
     glGenRenderbuffers(1, &context.render);
     glBindRenderbuffer(GL_RENDERBUFFER, context.render);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, object.texture.map->properties.width, object.texture.map->properties.height);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, object.texture.color->properties.width, object.texture.color->properties.height);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, context.render);
 
     int status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
@@ -36,28 +46,53 @@ void implementation::opengl::fbo::enable(bool clear) {
     }
     glBindFramebuffer(GL_FRAMEBUFFER, context.frame);
     glBindRenderbuffer(GL_RENDERBUFFER, context.render);
-    glViewport(0, 0, target->texture.map->properties.width, target->texture.map->properties.height);
+    glViewport(0, 0, target->texture.color->properties.width, target->texture.color->properties.height);
     glClear(clear ? GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT : GL_DEPTH_BUFFER_BIT);
 }
 
 void implementation::opengl::fbo::disable() {
-    if (target == NULL) {
+    if (target == NULL || target->texture.color == NULL) {
         return;
     }
     // Currently all rendering is done to the mipmap level 0... copy it out after every render
     if (!target->texture.depth) {
-        glBindTexture(GL_TEXTURE_2D, target->texture.context);
+        glBindTexture(GL_TEXTURE_2D, target->texture.color->context);
         glGenerateMipmap(GL_TEXTURE_2D);
         glBindTexture(GL_TEXTURE_2D, 0);
     }
     glBindRenderbuffer(GL_RENDERBUFFER, 0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glViewport(0, 0, parent->width(), parent->height());
 }
 
 void implementation::opengl::graphics::dimensions(int width, int height) {
-    glViewport(0, 0, width, height);
+    bool init = (display_width == 0 && display_height == 0);
+
     display_width = width;
     display_height = height;
+
+    glViewport(0, 0, display_width, display_height);
+
+    // Setup the render buffer
+    color = spatial::quad(display_width, display_height);
+    color.texture.color = &assets->get<type::image>("color");
+    color.texture.color->create(display_width, display_height, 0, 0, 0, 0);
+    color.xy_projection(0, 0, display_width, display_height, false, true);
+
+    compile(color);
+
+    fbos[&color].init(color, this);
+
+    // Setup the scene depth buffer
+    depth = spatial::quad(display_width, display_height);
+    depth.texture.color = &assets->get<type::image>("depth");
+    depth.texture.color->create(display_width, display_height, 0, 0, 0, 0);
+    //depth.texture.depth = true;
+    depth.xy_projection(0, 0, display_width, display_height, false, true);
+
+    compile(depth);
+
+    fbos[&depth].init(depth, this);
 }
 
 void implementation::opengl::graphics::init(void) {
@@ -86,33 +121,18 @@ void implementation::opengl::graphics::init(void) {
 
     // Setup the ray used for drawing normals
     ray = spatial::ray(spatial::vector(0.0, 0.0, 0.0), spatial::vector(2.0, 0.0, 0.0));
-    ray.texture.map = &assets->get<type::image>("ray");
-    ray.texture.map->create(1, 1, 255, 255, 255, 255);
+    ray.texture.color = &assets->get<type::image>("ray");
+    ray.texture.color->create(1, 1, 255, 255, 255, 255);
     ray.xy_projection(0, 0, 1, 1);
     compile(ray);
 
     // Setup the shadow depth map
     shadow = spatial::quad(256, 256);
-    shadow.texture.map = &assets->get<type::image>("shadowmap");
-    shadow.texture.map->create(2048, 2048, 0, 0, 0, 0);
+    shadow.texture.color = &assets->get<type::image>("shadowmap");
+    shadow.texture.color->create(2048, 2048, 0, 0, 0, 0);
     //shadow.texture.depth = true;
-    shadow.xy_projection(0, 0, shadow.texture.map->properties.width, shadow.texture.map->properties.height);
+    shadow.xy_projection(0, 0, shadow.texture.color->properties.width, shadow.texture.color->properties.height);
     compile(shadow);
-
-    // Setup the render buffer
-    color = spatial::quad(width(), height());
-    color.texture.map = &assets->get<type::image>("color");
-    color.texture.map->create(width(), height(), 0, 0, 0, 0);
-    color.xy_projection(0, 0, color.texture.map->properties.width, color.texture.map->properties.height, false, true);
-    compile(color);
-
-    // Setup the scene depth buffer
-    depth = spatial::quad(width(), height());
-    depth.texture.map = &assets->get<type::image>("depth");
-    depth.texture.map->create(width(), height(), 0, 0, 0, 0);
-    //depth.texture.depth = true;
-    depth.xy_projection(0, 0, depth.texture.map->properties.width, depth.texture.map->properties.height, false, true);
-    compile(depth);
 
     // Calculate the offsets
     spatial::vector vector({ 256.0f });
@@ -239,30 +259,30 @@ bool implementation::opengl::graphics::compile(type::program& program) {
 
     glUseProgram(program.context);
 
-    program.a_Vertex = glGetAttribLocation(program.context, "a_Vertex");
-    program.a_Texture = glGetAttribLocation(program.context, "a_Texture");
-    program.a_Normal = glGetAttribLocation(program.context, "a_Normal");
+    program.a_ModelMatrix = glGetAttribLocation(program.context, "a_ModelMatrix"); // 0
 
-    program.a_ModelMatrix = glGetAttribLocation(program.context, "a_ModelMatrix");
+    program.a_Vertex = glGetAttribLocation(program.context, "a_Vertex"); // 4
+    program.a_Texture = glGetAttribLocation(program.context, "a_Texture"); // 5
+    program.a_Normal = glGetAttribLocation(program.context, "a_Normal"); // 6
 
-    program.u_ProjectionMatrix = glGetUniformLocation(program.context, "u_ProjectionMatrix");
-    program.u_ViewMatrix = glGetUniformLocation(program.context, "u_ViewMatrix");
-    program.u_ModelMatrix = glGetUniformLocation(program.context, "u_ModelMatrix");
-    program.u_LightingMatrix = glGetUniformLocation(program.context, "u_LightingMatrix");
+    program.u_ProjectionMatrix = glGetUniformLocation(program.context, "u_ProjectionMatrix"); // 7
+    program.u_ViewMatrix = glGetUniformLocation(program.context, "u_ViewMatrix"); // 8
+    program.u_ModelMatrix = glGetUniformLocation(program.context, "u_ModelMatrix"); // 9
+    program.u_LightingMatrix = glGetUniformLocation(program.context, "u_LightingMatrix"); // 10
+
+    program.u_Clipping = glGetUniformLocation(program.context, "u_Clipping"); // 11
+
+    program.u_AmbientLightPosition = glGetUniformLocation(program.context, "u_AmbientLightPosition"); // 12
+    program.u_AmbientLightColor = glGetUniformLocation(program.context, "u_AmbientLightColor"); // 13
+    program.u_AmbientLightBias = glGetUniformLocation(program.context, "u_AmbientLightBias"); // 14
+    program.u_AmbientLightStrength = glGetUniformLocation(program.context, "u_AmbientLightStrength"); //15
+
+    program.u_Flags = glGetUniformLocation(program.context, "u_Flags"); // 16
 
     program.u_SurfaceTextureUnit = glGetUniformLocation(program.context, "u_SurfaceTextureUnit");
     program.u_NormalTextureUnit = glGetUniformLocation(program.context, "u_NormalTextureUnit");
     program.u_ShadowTextureUnit = glGetUniformLocation(program.context, "u_ShadowTextureUnit");
     program.u_DepthTextureUnit = glGetUniformLocation(program.context, "u_DepthTextureUnit");
-
-    program.u_Clipping = glGetUniformLocation(program.context, "u_Clipping");
-
-    program.u_AmbientLightPosition = glGetUniformLocation(program.context, "u_AmbientLightPosition");
-    program.u_AmbientLightColor = glGetUniformLocation(program.context, "u_AmbientLightColor");
-    program.u_AmbientLightBias = glGetUniformLocation(program.context, "u_AmbientLightBias");
-    program.u_AmbientLightStrength = glGetUniformLocation(program.context, "u_AmbientLightStrength");
-
-    program.u_Flags = glGetUniformLocation(program.context, "u_Flags");
 
     return true;
 }
@@ -271,28 +291,45 @@ bool implementation::opengl::graphics::compile(type::material& material) {
     if (material.compile() == false) {
         return false;
     }
-    if (material.map == NULL) {
+    if (material.color == NULL && material.normal == NULL) {
         return false;
     }
 
-    if (material.depth) {
-        glGenTextures(1, &material.context);
-        glBindTexture(GL_TEXTURE_2D, material.context);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, material.map->properties.width, material.map->properties.height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    if (material.color) {
+        if (material.color->context) {
+            glDeleteTextures(1, &material.color->context);
+        }
+        if (material.depth) {
+            glGenTextures(1, &material.color->context);
+            glBindTexture(GL_TEXTURE_2D, material.color->context);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, material.color->properties.width, material.color->properties.height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        }
+        else {
+            glGenTextures(1, &material.color->context);
+            glBindTexture(GL_TEXTURE_2D, material.color->context);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, material.color->properties.width, material.color->properties.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, material.color->raster.data());
+            glGenerateMipmap(GL_TEXTURE_2D);
+        }
     }
-    else {
-        glGenTextures(1, &material.context);
-        glBindTexture(GL_TEXTURE_2D, material.context);
+
+    if (material.normal) {
+        if (material.normal->context) {
+            glDeleteTextures(1, &material.normal->context);
+        }
+        glGenTextures(1, &material.normal->context);
+        glBindTexture(GL_TEXTURE_2D, material.normal->context);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, material.map->properties.width, material.map->properties.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, material.map->raster.data());
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, material.normal->properties.width, material.normal->properties.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, material.normal->raster.data());
         glGenerateMipmap(GL_TEXTURE_2D);
     }
-    
+
     glBindTexture(GL_TEXTURE_2D, 0);
 
     return true;
@@ -306,10 +343,17 @@ bool implementation::opengl::graphics::compile(type::object& object) {
         return false;
     }
 
-    glGenBuffers(1, &object.context);
-    glBindBuffer(GL_ARRAY_BUFFER, object.context);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(spatial::vertex) * object.vertices.size(), object.vertices.data(), GL_DYNAMIC_DRAW);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    if (object.context) {
+        glBindBuffer(GL_ARRAY_BUFFER, object.context);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(spatial::vertex) * object.vertices.size(), object.vertices.data());
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+    }
+    else {
+        glGenBuffers(1, &object.context);
+        glBindBuffer(GL_ARRAY_BUFFER, object.context);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(spatial::vertex) * object.vertices.size(), object.vertices.data(), GL_DYNAMIC_DRAW);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+    }
 
     compile(object.texture);
 
@@ -331,7 +375,12 @@ bool implementation::opengl::graphics::compile(type::font& font) {
 }
 
 bool implementation::opengl::graphics::compile(type::entity& entity) {
-    if (entity.context == 0 && entity.positions.size()) {
+    if (entity.context) {
+        glBindBuffer(GL_ARRAY_BUFFER, entity.context);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(spatial::matrix) * entity.positions.size(), entity.positions.data());
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+    }
+    else if (entity.positions.size()) {
         glGenBuffers(1, &entity.context);
         glBindBuffer(GL_ARRAY_BUFFER, entity.context);
 
@@ -375,28 +424,6 @@ bool implementation::opengl::graphics::compile(platform::assets* assets) {
     return true;
 }
 
-bool implementation::opengl::graphics::recompile(type::object& object) {
-    if (object.context == 0) {
-        return false;
-    }
-
-    glBindBuffer(GL_ARRAY_BUFFER, object.context);
-    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(spatial::vertex) * object.vertices.size(), object.vertices.data());
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    return true;
-}
-
-bool implementation::opengl::graphics::recompile(type::entity& entity) {
-    if (entity.context == 0) {
-        return false;
-    }
-
-    glBindBuffer(GL_ARRAY_BUFFER, entity.context);
-    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(spatial::matrix) * entity.positions.size(), entity.positions.data());
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    return true;
-}
-
 void implementation::opengl::graphics::draw(type::object& object, type::program& shader, const spatial::matrix& projection, const spatial::matrix& view, const spatial::matrix& model, const spatial::matrix& lighting, unsigned int options) {
     // Look for the first object with vertices, just at the top level for now
     auto &target = object;
@@ -406,15 +433,21 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
 
     glUseProgram(shader.context);
 
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, target.texture.context);
-    if (shadow.texture.context) {
-        glActiveTexture(GL_TEXTURE0 + 2);
-        glBindTexture(GL_TEXTURE_2D, shadow.texture.context);
+    if (target.texture.color && target.texture.color->context) {
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, target.texture.color->context);
     }
-    if (depth.texture.context) {
+    if (target.texture.normal && target.texture.normal->context) {
+        glActiveTexture(GL_TEXTURE0 + 1);
+        glBindTexture(GL_TEXTURE_2D, target.texture.normal->context);
+    }
+    if (shadow.texture.color && shadow.texture.color->context) {
+        glActiveTexture(GL_TEXTURE0 + 2);
+        glBindTexture(GL_TEXTURE_2D, shadow.texture.color->context);
+    }
+    if (depth.texture.color && depth.texture.color->context) {
         glActiveTexture(GL_TEXTURE0 + 3);
-        glBindTexture(GL_TEXTURE_2D, depth.texture.context);
+        glBindTexture(GL_TEXTURE_2D, depth.texture.color->context);
     }
 
     glUniformMatrix4fv(shader.u_ProjectionMatrix, 1, GL_FALSE, (GLfloat*)projection.data());
@@ -488,7 +521,7 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
     if (options & render::NORMALS) {
         for (auto vertex : target.vertices) {
             ray = spatial::ray(vertex.coordinate, vertex.normal + vertex.coordinate);
-            recompile(ray);
+            compile(ray);
             draw(ray, shader, projection, view, model);
         }
     }
@@ -514,7 +547,7 @@ void implementation::opengl::graphics::draw(std::string text, type::font& font, 
 
 void implementation::opengl::graphics::ontarget(type::object* object) {
     if (fbos.find(object) == fbos.end()) {
-        fbos[object].init(*object);
+        fbos[object].init(*object, this);
     }
     fbos[object].enable();
     target.push_back(object);
@@ -526,17 +559,7 @@ void implementation::opengl::graphics::untarget() {
     }
     fbos[target.back()].disable();
     target.pop_back();
-    dimensions(display_width, display_height);
 }
-
-void implementation::opengl::graphics::onsize(int weight) {
-    glLineWidth(weight);
-}
-
-void implementation::opengl::graphics::unsize() {
-    glLineWidth(1);
-}
-
 
 void implementation::opengl::graphics::oninvert() {
     glCullFace(GL_FRONT);

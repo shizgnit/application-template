@@ -28,8 +28,8 @@ namespace type {
                 }
             }
 
-            type_t texture_dx = 1 / (type_t)texture.map->properties.width;
-            type_t texture_dy = 1 / (type_t)texture.map->properties.height;
+            type_t texture_dx = 1 / (type_t)texture.color->properties.width;
+            type_t texture_dy = 1 / (type_t)texture.color->properties.height;
 
             for (unsigned int i = 0; i < vertices.size(); i++) {
                 type_t dx = vertices[i].coordinate.x / max_x;
@@ -48,6 +48,8 @@ namespace type {
 
                 vertices[i].texture(tx, ty, 0.0f, 0.0f);
             }
+
+            texture.compiled(false);
         }
 
         object* flat_normals() {
@@ -125,6 +127,8 @@ namespace type {
         object& operator = (const spatial::geometry& ref) {
             this->vertices.clear();
             std::copy(ref.vertices.begin(), ref.vertices.end(), std::back_inserter(this->vertices));
+            constraint.calculated = false;
+            compiled(false);
             return *this;
         }
 
@@ -159,6 +163,9 @@ namespace type {
 
     protected:
         void calculate_constraints() {
+            constraint.min = spatial::vector();
+            constraint.max = spatial::vector();
+
             for (auto vertex : vertices) {
                 if (vertex.coordinate.x > constraint.max.x) {
                     constraint.max.x = vertex.coordinate.x;
@@ -182,6 +189,8 @@ namespace type {
             constraint.center.x = constraint.min.x + ((constraint.max.x - constraint.min.x) / 2);
             constraint.center.y = constraint.min.y + ((constraint.max.y - constraint.min.y) / 2);
             constraint.center.z = constraint.min.z + ((constraint.max.z - constraint.min.z) / 2);
+
+            constraint.calculated = true;
         }
 
         struct {

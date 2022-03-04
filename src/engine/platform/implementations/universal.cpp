@@ -380,9 +380,9 @@ std::string implementation::universal::assets::load(platform::assets* instance, 
         else if (ext == ".png") {
             auto& object = instance->get<type::object>(cache);
             object = spatial::quad(256, 256);
-            object.texture.map = &instance->get<type::image>(cache);
-            instance->retrieve(path + ext) >> format::parser::png >> *object.texture.map;
-            object.xy_projection(0, 0, object.texture.map->properties.width, object.texture.map->properties.height);
+            object.texture.color = &instance->get<type::image>(cache);
+            instance->retrieve(path + ext) >> format::parser::png >> *object.texture.color;
+            object.xy_projection(0, 0, object.texture.color->properties.width, object.texture.color->properties.height);
         }
         else {
             instance->retrieve(path + (ext.empty() ? ".obj" : ext)) >> format::parser::obj >> instance->get<type::object>(cache);
