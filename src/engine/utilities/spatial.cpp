@@ -199,6 +199,26 @@ spatial::vector spatial::vector::unproject(const matrix& projection, const matri
 #endif
 }
 
+float sign_xz(const spatial::vector& v0, const spatial::vector& v1, const spatial::vector& v2)
+{
+    return (v0.x - v2.x) * (v1.z - v2.z) - (v1.x - v2.x) * (v0.z - v2.z);
+}
+
+bool spatial::vector::encompassed_xz(const vector& v0, const vector& v1, const vector& v2) const {
+    type_t d1, d2, d3;
+    bool has_neg, has_pos;
+
+    d1 = sign_xz(*this, v0, v1);
+    d2 = sign_xz(*this, v1, v2);
+    d3 = sign_xz(*this, v2, v0);
+
+    has_neg = (d1 < 0) || (d2 < 0) || (d3 < 0);
+    has_pos = (d1 > 0) || (d2 > 0) || (d3 > 0);
+
+    return !(has_neg && has_pos);
+}
+
+
 spatial::matrix::matrix() {
     identity();
 }
@@ -586,6 +606,12 @@ spatial::matrix& spatial::matrix::invert() {
     return *this = result;
 #endif
 }
+
+spatial::matrix& spatial::matrix::set(int row, int col, type_t value) {
+    r[row][col] = value;
+    return *this;
+}
+
 
 spatial::quaternion::quaternion() {
 

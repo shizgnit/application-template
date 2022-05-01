@@ -7,7 +7,8 @@ namespace platform {
             POINTER,
             KEY,
             GAMEPAD,
-            TIMER
+            TIMER,
+            EVENT
         };
 
         enum action {
@@ -20,7 +21,8 @@ namespace platform {
             DRAG,
             WHEEL,
             SELECT,
-            UNSELECT
+            UNSELECT,
+            CUSTOM // Marks the last pre-defined event
         };
 
         typedef struct event {
@@ -31,6 +33,8 @@ namespace platform {
             spatial::vector::type_t travel;
             spatial::vector point;
             std::vector<spatial::vector> points;
+            void* caller = NULL;
+            void* reference = NULL;
         };
 
         typedef std::function<void(const event &)> callback_t;

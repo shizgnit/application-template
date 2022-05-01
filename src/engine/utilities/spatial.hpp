@@ -69,6 +69,8 @@ namespace spatial {
         vector project(const matrix& projection, const matrix& view, const matrix& model);
         vector unproject(const matrix& projection, const matrix& view, int width, int height) const;
 
+        bool encompassed_xz(const vector& v0, const vector& v1, const vector& v2) const;
+
         operator glm::vec3() const;
 
         virtual bool value() {
@@ -216,6 +218,8 @@ namespace spatial {
         matrix& lookat(const vector& eye, const vector& center, const vector& up);
 
         matrix& invert();
+
+        matrix& set(int row, int col, type_t value);
     };
 
     class quaternion : public vector {

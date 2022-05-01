@@ -15,6 +15,7 @@ namespace type {
 
         type::image* normal = NULL;
         type::image* color = NULL;
+        type::image* blur = NULL;
 
         bool depth = false;
 

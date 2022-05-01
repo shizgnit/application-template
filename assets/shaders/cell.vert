@@ -19,7 +19,8 @@ layout(location = 11) uniform vec4 u_Clipping;
 layout(location = 12) uniform vec4 u_AmbientLightPosition;
 layout(location = 13) uniform vec4 u_AmbientLightColor;
 
-layout(location = 16) uniform uint u_Flags;
+layout(location = 14) uniform uint u_Flags;
+layout(location = 15) uniform mat4 u_Parameters;
 
 out vec4 v_Vertex;
 out vec2 v_Texture;

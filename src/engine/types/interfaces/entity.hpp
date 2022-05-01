@@ -101,6 +101,8 @@ namespace type {
             return get(0);
         }
 
+        platform::input events;
+
     public:
         entity() {}
 

@@ -20,9 +20,6 @@ namespace platform {
             widget() {} // hide the default constructor
 
         public:
-            //typedef void(*callback)(const platform::input::event&);
-            typedef std::function<void(const platform::input::event&)> callback;
-
             enum spec {
                 button,
                 textbox,
@@ -74,25 +71,7 @@ namespace platform {
                 return *this;
             }
 
-            virtual widget& handler(platform::input::type t, platform::input::action a, callback c, int identifier = 0) {
-                callbacks[t][a][identifier] = c;
-                return *this;
-            }
-
-            virtual widget& raise(const input::event& ev) {
-                if (callbacks.find(ev.input) != callbacks.end()) {
-                    if (callbacks[ev.input].find(ev.gesture) != callbacks[ev.input].end()) {
-                        if (callbacks[ev.input][ev.gesture].find(ev.identifier) != callbacks[ev.input][ev.gesture].end()) {
-                            callbacks[ev.input][ev.gesture][ev.identifier](ev);
-                        }
-                        /// Also fire off the catch-all handler
-                        if (callbacks[ev.input][ev.gesture].find(0) != callbacks[ev.input][ev.gesture].end()) {
-                            callbacks[ev.input][ev.gesture][0](ev);
-                        }
-                    }
-                }
-                return *this;
-            }
+            platform::input events;
 
             type::object background;
             type::object edge;
@@ -118,8 +97,6 @@ namespace platform {
             positioning vertical = positioning::none;
 
             std::vector<std::reference_wrapper<widget>> children;
-
-            std::map<platform::input::type, std::map<platform::input::action, std::map<int, callback>>> callbacks;
         };
 
         class button : public widget {
@@ -211,7 +188,7 @@ namespace platform {
             if (selected != NULL && (target == NULL || selected != target)) {
                 input::event select;
                 select.gesture = platform::input::UNSELECT;
-                selected->raise(select);
+                selected->events.raise(select);
                 selected = NULL;
             }
             // Track and pass along the events
@@ -220,7 +197,7 @@ namespace platform {
                     selected = target;
                     input::event select;
                     select.gesture = platform::input::SELECT;
-                    selected->raise(select);
+                    selected->events.raise(select);
                 }
             }
         }

@@ -11,7 +11,8 @@ namespace platform {
             NORMALS   = (1u << 3)
         };
 
-        virtual void dimensions(int width, int height) = 0;
+        virtual void projection(int fov) = 0;
+        virtual void dimensions(int width, int height, float scale=1.0) = 0;
 
         virtual void init(void) = 0;
         virtual void clear(void) = 0;
@@ -104,8 +105,26 @@ namespace platform {
         type::object shadow;
         type::object color;
         type::object depth;
+        type::object blur;
+
+        spatial::matrix ortho;
+        spatial::matrix perspective;
+
+        spatial::matrix::type_t parameter(int index) {
+            int col = index / 4;
+            int row = index % 4;
+            return parameters[col][row];
+        }
+
+        void parameter(int index, spatial::matrix::type_t value) {
+            int col = index / 4;
+            int row = index % 4;
+            parameters.set(row, col, value);
+        }
 
     protected:
+        spatial::matrix parameters;
+
         std::list<std::string> errors;
 
         std::vector<float> clip_top = { 10000.0f };

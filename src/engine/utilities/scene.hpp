@@ -88,9 +88,6 @@ public:
 
     void dimensions(int width, int height);
 
-    spatial::matrix ortho;
-    spatial::matrix perspective;
-
     std::map<label_t, value_t> variables;
 
     std::map<std::string, scene*> scenes;
@@ -110,7 +107,13 @@ public:
     value_t get(label_t label);
     value_t set(label_t label, value_t value);
 
+    void callback(std::string label, callback_t c) {
+        events[label] = c;
+    }
+
 private:
+    std::map<std::string, callback_t> events;
+
     std::map<std::string, std::pair<std::string, callback_t>> commands = {
         { "/get",     { "/get <label>\n/get <entity> <label>", [](parameters_t p)->value_t { return main::global().get(p); } } },
         { "/set",     { "/set <label> <value>\n/set <entity> <label> <value>", [](parameters_t p)->value_t { return main::global().set(p); } } },

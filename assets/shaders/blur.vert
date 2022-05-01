@@ -36,5 +36,4 @@ void main()
   v_Normal = normalize(MVP * a_Normal);
   
   gl_Position = v_Vertex;
-
 }

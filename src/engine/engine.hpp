@@ -100,6 +100,8 @@
 #include "utilities/type_cast.hpp"
 #include "utilities/spatial.hpp"
 
+#include "platform/interfaces/input.hpp"
+
 /// Types
 #include "types/interfaces/info.hpp"
 #include "types/interfaces/audio.hpp"
@@ -117,7 +119,6 @@
 #include "platform/interfaces/audio.hpp"
 #include "platform/interfaces/filesystem.hpp"
 #include "platform/interfaces/assets.hpp"
-#include "platform/interfaces/input.hpp"
 #include "platform/interfaces/interface.hpp"
 #include "platform/interfaces/graphics.hpp"
 #include "platform/interfaces/network.hpp"

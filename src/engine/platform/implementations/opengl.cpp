@@ -65,7 +65,12 @@ void implementation::opengl::fbo::disable() {
     glViewport(0, 0, parent->width(), parent->height());
 }
 
-void implementation::opengl::graphics::dimensions(int width, int height) {
+void implementation::opengl::graphics::projection(int fov) {
+    ortho = spatial::matrix().ortho(0, display_width, 0, display_height);
+    perspective = spatial::matrix().perspective(fov, (float)display_width / (float)display_height, 0.0f, 60.0f);
+}
+
+void implementation::opengl::graphics::dimensions(int width, int height, float scale) {
     bool init = (display_width == 0 && display_height == 0);
 
     display_width = width;
@@ -93,6 +98,16 @@ void implementation::opengl::graphics::dimensions(int width, int height) {
     compile(depth);
 
     fbos[&depth].init(depth, this);
+
+    // Setup the post process blur buffer
+    blur = spatial::quad(display_width * scale, display_height * scale);
+    blur.texture.color = &assets->get<type::image>("blur");
+    blur.texture.color->create(display_width * scale, display_height * scale, 0, 0, 0, 0);
+    blur.xy_projection(0, 0, display_width * scale, display_height * scale, false, true);
+
+    compile(blur);
+
+    fbos[&blur].init(blur, this);
 }
 
 void implementation::opengl::graphics::init(void) {
@@ -278,11 +293,13 @@ bool implementation::opengl::graphics::compile(type::program& program) {
     program.u_AmbientLightStrength = glGetUniformLocation(program.context, "u_AmbientLightStrength"); //15
 
     program.u_Flags = glGetUniformLocation(program.context, "u_Flags"); // 16
+    program.u_Parameters = glGetUniformLocation(program.context, "u_Parameters"); // 17
 
     program.u_SurfaceTextureUnit = glGetUniformLocation(program.context, "u_SurfaceTextureUnit");
     program.u_NormalTextureUnit = glGetUniformLocation(program.context, "u_NormalTextureUnit");
     program.u_ShadowTextureUnit = glGetUniformLocation(program.context, "u_ShadowTextureUnit");
     program.u_DepthTextureUnit = glGetUniformLocation(program.context, "u_DepthTextureUnit");
+    program.u_BlurTextureUnit = glGetUniformLocation(program.context, "u_BlurTextureUnit");
 
     return true;
 }
@@ -449,6 +466,10 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
         glActiveTexture(GL_TEXTURE0 + 3);
         glBindTexture(GL_TEXTURE_2D, depth.texture.color->context);
     }
+    if (blur.texture.color && blur.texture.color->context) {
+        glActiveTexture(GL_TEXTURE0 + 4);
+        glBindTexture(GL_TEXTURE_2D, blur.texture.color->context);
+    }
 
     glUniformMatrix4fv(shader.u_ProjectionMatrix, 1, GL_FALSE, (GLfloat*)projection.data());
     glUniformMatrix4fv(shader.u_ViewMatrix, 1, GL_FALSE, (GLfloat*)view.data());
@@ -459,6 +480,7 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
     glUniform1i(shader.u_NormalTextureUnit, 1);
     glUniform1i(shader.u_ShadowTextureUnit, 2);
     glUniform1i(shader.u_DepthTextureUnit, 3);
+    glUniform1i(shader.u_BlurTextureUnit, 4);
 
     glUniform4f(shader.u_AmbientLightPosition, ambient.position.center.x, ambient.position.center.y, ambient.position.center.z, ambient.position.center.w);
     glUniform4f(shader.u_AmbientLightColor, ambient.color.x, ambient.color.y, ambient.color.z, ambient.color.w);
@@ -469,6 +491,7 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
     glUniform4f(shader.u_Clipping, clip_top[clip_top.size()-1], clip_bottom[clip_bottom.size() - 1], clip_left[clip_left.size() - 1], clip_right[clip_right.size() - 1]);
 
     glUniform1ui(shader.u_Flags, object.emitter ? object.emitter->flags : object.flags);
+    glUniformMatrix4fv(shader.u_Parameters, 1, GL_FALSE, (GLfloat*)parameters.data());
 
     glBindBuffer(GL_ARRAY_BUFFER, target.context);
 

@@ -208,12 +208,12 @@ void implementation::universal::interface::raise(const input::event& ev, int x, 
         select(target);
         // Pass along the events
         if (target) {
-            target->raise(ev);
+            target->events.raise(ev);
         }
     }
 
     if (ev.input == input::KEY && selected) {
-        selected->raise(ev);
+        selected->events.raise(ev);
     }
 }
 

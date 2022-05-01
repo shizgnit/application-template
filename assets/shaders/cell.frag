@@ -11,6 +11,7 @@ uniform vec4 u_AmbientLightPosition;
 uniform vec4 u_AmbientLightColor;
 
 uniform uint u_Flags;
+uniform mat4 u_Parameters;
 
 in vec2 v_Texture;
 in vec4 v_Vertex;

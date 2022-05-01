@@ -32,17 +32,16 @@ public:
         main::debug().selectable = true;
         main::debug().alignment = platform::interface::widget::positioning::bottom;
 
-        main::debug().handler(platform::input::POINTER, platform::input::WHEEL, [](const platform::input::event& ev) {
+        main::debug().events.handler(platform::input::POINTER, platform::input::WHEEL, [](const platform::input::event& ev) {
             // TODO: scroll up and down the contents
         }, 0);
-
 
         gui->create(&commandline, 512, 20, 0, 0, 0, 80).position(graphics->width() - 512 - 20, 750);
         commandline.selectable = true;
         commandline.input = true;
         commandline.multiline = false;
         commandline.content.limit = 1; // TODO: This should be covered by the multiline flag, but currently isn't.
-        commandline.handler(platform::input::KEY, platform::input::DOWN, [this](const platform::input::event& ev) {
+        commandline.events.handler(platform::input::KEY, platform::input::DOWN, [this](const platform::input::event& ev) {
             std::vector<std::string> content;
             switch (ev.identifier) {
             case(38):
@@ -110,7 +109,19 @@ public:
 
 class title : public main::scene {
 public:
+
     bool load() {
+        main::global().callback("perspective.fov", [](main::parameters_t p)->value_t { 
+            int fov = main::global().has("perspective.fov") ? std::get<int>(main::global().get("perspective.fov")) : 90;
+            graphics->projection(fov);
+            return fov;
+        });
+        main::global().callback("blur.scale", [](main::parameters_t p)->value_t {
+            float scale = main::global().has("blur.scale") ? std::get<double>(main::global().get("blur.scale")) : 0.5;
+            graphics->dimensions(graphics->width(), graphics->height(), scale);
+            return scale;
+        });
+
         main::global().call("/set debug.input 0");
 
         main::global().call("/set ambient.position (10,10,10)");
@@ -118,6 +129,14 @@ public:
         main::global().call("/set ambient.color (0.4,0.4,0.4)");
         main::global().call("/set ambient.strength 0.8");
         main::global().call("/set ambient.bias 0.0055");
+
+        main::global().call("/set blur.strength 4.0");
+        main::global().call("/set blur.scale 0.5");
+
+        main::global().call("/set dof.near 0.4");
+        main::global().call("/set dof.far 0.05");
+
+        main::global().call("/set edge.threshold 0.1");
 
         main::global().call("/set box1.position (0,-8,0)");
         main::global().call("/set box2.position (5,-7.7,0)");
@@ -134,6 +153,7 @@ public:
         main::global().call("/set shadow.depth 100.0");
 
         main::global().call("/load sound raw/glados");
+
         main::global().call("/load shader shaders/basic basic");
         main::global().call("/load shader shaders/cell cell");
         main::global().call("/load shader shaders/defuse defuse");
@@ -147,6 +167,8 @@ public:
         main::global().call("/load shader shaders/outline outline");
         main::global().call("/load shader shaders/depth depth");
         main::global().call("/load shader shaders/post post");
+        main::global().call("/load shader shaders/blur blur");
+
         main::global().call("/load font fonts/consolas-22 default");
 
         main::global().call("/load object drawable/marvin.png icon");
@@ -158,14 +180,18 @@ public:
 
         gui->create(&main::global().progress(), graphics->width() / 2, 20, 0, 0, 0, 80).position(graphics->width() / 2 / 2, graphics->height() - 80);
 
-        gui->create(&enter, 256, 256, 0, 0, 0, 80).position(20, 20).handler(platform::input::POINTER, platform::input::MOVE, [](const platform::input::event& ev) {
+        gui->create(&enter, 256, 256, 0, 0, 0, 80).position(20, 20);
+            
+        enter.events.handler(platform::input::POINTER, platform::input::MOVE, [](const platform::input::event& ev) {
             if (main::global().flag("debug.input")) {
                 std::stringstream ss;
                 ss << "hover_over(" << ev.point.x << ", " << ev.point.y << ")";
                 main::debug().content.add(ss.str());
             }
             gui->print(210, 210, "HelloWorld"); // TODO: this won't draw... likely before or after the frame buffer swap, don't intend to ever do this anyway
-        }, 1).handler(platform::input::POINTER, platform::input::DOWN, [](const platform::input::event& ev) {
+            }, 1);
+
+        enter.events.handler(platform::input::POINTER, platform::input::DOWN, [](const platform::input::event& ev) {
             if (main::global().flag("debug.input")) {
                 std::stringstream ss;
                 ss << "button_down(" << ev.point.x << ", " << ev.point.y << ")";
@@ -199,7 +225,7 @@ public:
         frame.identity();
         frame.translate(20, graphics->height() - 20 - 256, 0);
 
-        graphics->draw(assets->get<type::object>("icon"), assets->get<type::program>("gui"), main::global().ortho, spatial::matrix(), frame);
+        graphics->draw(assets->get<type::object>("icon"), assets->get<type::program>("gui"), graphics->ortho, spatial::matrix(), frame);
     }
     void stop() {
         enter.visible = false;
@@ -364,14 +390,21 @@ public:
         auto& shader_outline = assets->get<type::program>("outline");
         auto& shader_depth = assets->get<type::program>("depth");
         auto& shader_post = assets->get<type::program>("post");
+        auto& shader_blur = assets->get<type::program>("blur");
 
-        auto& perspective = main::global().perspective;
+        auto& perspective = graphics->perspective;
 
         graphics->ambient.position.reposition(std::get<spatial::vector>(main::global().get("ambient.position")));
         graphics->ambient.position.lookat(std::get<spatial::vector>(main::global().get("ambient.lookat")));
         graphics->ambient.color = std::get<spatial::vector>(main::global().get("ambient.color"));
         graphics->ambient.bias = std::get<double>(main::global().get("ambient.bias"));
         graphics->ambient.strength = std::get<double>(main::global().get("ambient.strength"));
+
+        graphics->parameter(0, std::get<double>(main::global().get("blur.strength")));
+        graphics->parameter(1, std::get<double>(main::global().get("blur.scale")));
+        graphics->parameter(2, std::get<double>(main::global().get("dof.near")));
+        graphics->parameter(3, std::get<double>(main::global().get("dof.far")));
+        graphics->parameter(4, std::get<double>(main::global().get("edge.threshold")));
 
         // View based on the camera
         spatial::matrix lighting = spatial::matrix().lookat(graphics->ambient.position.eye, graphics->ambient.position.center, graphics->ambient.position.up);
@@ -397,6 +430,14 @@ public:
         graphics->compile(assets->get<type::entity>("objects/wiggle"));
 
         assets->get<type::entity>("objects/wiggle").animate();
+
+        std::vector<std::vector<int>> building = {
+            { 0 , 0 , 1, 1},
+            { 0 , 0 , 1, 1},
+            { 0 , 0 , 1, 1},
+            { 1 , 1 , 1, 1},
+            { 1 , 1 , 1, 1}
+        };
 
         // Build the shadow map
         {
@@ -434,6 +475,16 @@ public:
 
             graphics->draw(box, shader_depth, perspective, view, box1_matrix);
             graphics->draw(box, shader_depth, perspective, view, box2_matrix);
+
+            for (int y = 0; y < building.size(); y++) {
+                for (int x = 0; x < building[y].size(); x++) {
+                    if (building[y][x] > 0) {
+                        auto pos = spatial::matrix().translate({ (float)x * 2.0f,(float)(building.size() - y) * 2.0f, 0 });
+                        graphics->draw(box, shader_depth, perspective, view, pos);
+                    }
+                }
+            }
+
             graphics->draw(monkey, shader_depth, perspective, view, spatial::matrix().translate(0, -2, -10).scale(5.0f));
 
             assets->get<type::entity>("objects/wiggle").flags = 1;
@@ -449,8 +500,17 @@ public:
 
             graphics->draw(ground, shader_scenery, perspective, view, spatial::matrix().scale(4.0f), ortho * lighting, platform::graphics::render::NORMALS);
 
-            graphics->draw(box, shader_scenery, perspective, view, box1_matrix, ortho * lighting);
-            graphics->draw(box, shader_scenery, perspective, view, box2_matrix, ortho * lighting);
+            for (int y = 0; y < building.size(); y++) {
+                for (int x = 0; x < building[y].size(); x++) {
+                    if (building[y][x] > 0) {
+                        auto pos = spatial::matrix().translate({ (float)x * 2.0f,(float)(building.size() - y) * 2.0f, 0 });
+                        graphics->draw(box, shader_objects, perspective, view, pos, ortho * lighting);
+                    }
+                }
+            }
+
+            graphics->draw(box, shader_objects, perspective, view, box1_matrix, ortho * lighting);
+            graphics->draw(box, shader_objects, perspective, view, box2_matrix, ortho * lighting);
 
             graphics->draw(xAxis, shader_basic, perspective, view);
             graphics->draw(yAxis, shader_basic, perspective, view);
@@ -476,11 +536,17 @@ public:
                 graphics->draw(ray, shader_wireframe, perspective, view, spatial::matrix(), spatial::matrix(), platform::graphics::render::WIREFRAME);
             }
 
-            graphics->draw(graphics->shadow, graphics->shadow.texture.depth ? assets->get<type::program>("depth_to_color") : shader_basic, main::global().ortho, spatial::matrix(), spatial::matrix().translate(20, graphics->height() - 20 - 256, 0));
-            graphics->draw(graphics->depth, graphics->depth.texture.depth ? assets->get<type::program>("depth_to_color") : shader_basic, main::global().ortho, spatial::matrix(), spatial::matrix().translate(40 + 256, graphics->height() - 20 - 256, 0).scale(0.2));
         }
 
-        graphics->draw(graphics->color, shader_post, main::global().ortho, spatial::matrix(), spatial::matrix());
+        {
+            auto scoped = graphics->target(graphics->blur);
+            graphics->draw(graphics->color, shader_blur, graphics->ortho, spatial::matrix(), spatial::matrix());
+        }
+
+        //graphics->draw(graphics->blur, shader_post, main::global().ortho, spatial::matrix(), spatial::matrix());
+        graphics->draw(graphics->color, shader_post, graphics->ortho, spatial::matrix(), spatial::matrix());
+        graphics->draw(graphics->shadow, graphics->shadow.texture.depth ? assets->get<type::program>("depth_to_color") : shader_basic, graphics->ortho, spatial::matrix(), spatial::matrix().translate(20, graphics->height() - 20 - 256, 0));
+        graphics->draw(graphics->depth, graphics->depth.texture.depth ? assets->get<type::program>("depth_to_color") : shader_basic, graphics->ortho, spatial::matrix(), spatial::matrix().translate(40 + 256, graphics->height() - 20 - 256, 0).scale(0.2));
 
         //spatial::matrix model = spatial::matrix().translate(pos.eye, pos.center, pos.up);
 
@@ -581,7 +647,7 @@ public:
         spatial::position reference;
 
         auto view = spatial::matrix().lookat(camera.eye, camera.center, camera.up);
-        auto& perspective = main::global().perspective;
+        auto& perspective = graphics->perspective;
 
         spatial::vector position_start = spatial::vector({ ev.point.x, ev.point.y }).unproject(perspective, view, graphics->width(), graphics->height());
         spatial::vector position_end = spatial::vector({ ev.point.x, ev.point.y, 1.0f }).unproject(perspective, view, graphics->width(), graphics->height());
@@ -758,7 +824,7 @@ void prototype::on_startup() {
 
     // Hook up the input handlers
     input->handler(platform::input::POINTER, platform::input::DOWN, [](const platform::input::event& ev) { main::global().freelook_start(ev); }, 2);
-    input->handler(platform::input::POINTER, platform::input::DRAG, [](const platform::input::event& ev) { main::global().freelook_move(ev); }, 0);
+    input->handler(platform::input::POINTER, platform::input::DRAG, [](const platform::input::event& ev) { main::global().freelook_move(ev); }, 0); 
 
     input->handler(platform::input::POINTER, platform::input::WHEEL, [](const platform::input::event& ev) { main::global().freelook_zoom(ev); }, 0);
     input->handler(platform::input::POINTER, platform::input::PINCH, [](const platform::input::event& ev) { main::global().freelook_zoom(ev); }, 0);
@@ -786,11 +852,15 @@ void prototype::on_startup() {
 }
 
 void prototype::on_resize() {
-    graphics->dimensions(width, height);
+    float scale = main::global().has("blur.scale") ? std::get<double>(main::global().get("blur.scale")) : 0.5;
+    graphics->dimensions(width, height, scale);
+
+    int fov = main::global().has("perspective.fov") ? std::get<int>(main::global().get("perspective.fov")) : 90;
+    graphics->projection(fov);
 
     main::global().dimensions(width, height);
 
-    gui->projection = main::global().ortho;
+    gui->projection = graphics->ortho;
 
     gui->position();
 }

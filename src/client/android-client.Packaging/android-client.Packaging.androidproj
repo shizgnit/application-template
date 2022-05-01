@@ -264,6 +264,8 @@
     <Content Include="assets\raw\test.txt" />
     <Content Include="assets\shaders\basic.frag" />
     <Content Include="assets\shaders\basic.vert" />
+    <Content Include="assets\shaders\blur.frag" />
+    <Content Include="assets\shaders\blur.vert" />
     <Content Include="assets\shaders\cell.frag" />
     <Content Include="assets\shaders\cell.vert" />
     <Content Include="assets\shaders\defuse.frag" />

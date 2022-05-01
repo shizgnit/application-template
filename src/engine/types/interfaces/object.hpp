@@ -80,6 +80,11 @@ namespace type {
             return(NULL);
         }
 
+        spatial::vector::type_t vertical_distance(const spatial::vector &v) {
+            spatial::ray projection(v, v.y + 1.0f);
+            return projection.intersection(vertices).length();
+        }
+
         int width() {
             if (constraint.calculated == false) {
                 calculate_constraints();
