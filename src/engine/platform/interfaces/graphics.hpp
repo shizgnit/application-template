@@ -102,13 +102,18 @@ namespace platform {
         } light;
 
         type::object ray;
+
+        // Render buffers
         type::object shadow;
         type::object color;
         type::object depth;
         type::object blur;
+        type::object picking;
 
         spatial::matrix ortho;
         spatial::matrix perspective;
+
+        std::vector<unsigned char> pixels;
 
         spatial::matrix::type_t parameter(int index) {
             int col = index / 4;

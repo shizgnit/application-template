@@ -167,6 +167,10 @@ spatial::vector spatial::vector::unit() const {
     return(*this / (vector)length());
 }
 
+spatial::vector &spatial::vector::normalize() {
+    return(*this = unit());
+}
+
 spatial::vector::type_t spatial::vector::distance(const vector& v) const {
     return sqrt(pow(x - v.x, 2) + pow(y - v.y, 2) + pow(z - v.z, 2));
 }
@@ -217,6 +221,47 @@ bool spatial::vector::encompassed_xz(const vector& v0, const vector& v1, const v
 
     return !(has_neg && has_pos);
 }
+
+spatial::vector spatial::vector::lerp(const vector& to, const type_t t)
+{
+    if (t >= 1.0) {
+        return *this;
+    }
+    if (t <= 0.0) {
+        return to;
+    }
+
+    vector result;
+    type_t s = 1.0 - t;
+    result.x = s * x + t * to.x;
+    result.y = s * y + t * to.y;
+    result.z = s * z + t * to.z;
+    result.w = s * w + t * to.w;
+    return result;
+}
+
+spatial::vector spatial::vector::slerp(const vector& to, const type_t t)
+{
+    if (t >= 1.0) {
+        return *this;
+    }
+    if (t <= 0.0) {
+        return to;
+    }
+
+    vector result;
+    type_t dot = utilities::clamp(this->unit().dot(to.unit()), -1.0, 1.0);
+    type_t theta = acos(dot);
+    type_t sn = sin(theta);
+    type_t s = sin((1.0 - t) * theta) / sn;
+    type_t r = sin(t * theta) / sn;
+    result.x = s * x + r * to.x;
+    result.y = s * y + r * to.y;
+    result.z = s * z + r * to.z;
+    result.w = s * w + r * to.w;
+    return result;
+}
+
 
 
 spatial::matrix::matrix() {
@@ -617,6 +662,30 @@ spatial::quaternion::quaternion() {
 
 }
 
+spatial::quaternion::quaternion(type_t v[]) {
+    this->x = v[0];
+    this->y = v[1];
+    this->z = v[2];
+    this->w = v[3];
+    normalize();
+}
+
+spatial::quaternion::quaternion(const type_t& x, const type_t& y, const type_t& z, const type_t& w) {
+    this->x = x;
+    this->y = y;
+    this->z = z;
+    this->w = w;
+    normalize();
+}
+
+spatial::quaternion::quaternion(const vector& v) {
+    x = v.x;
+    y = v.y;
+    z = v.z;
+    w = v.w;
+    normalize();
+}
+
 spatial::quaternion::quaternion(const matrix& m) {
     type_t tr, s, q[4];
     int i, j, k;
@@ -763,6 +832,16 @@ spatial::quaternion::operator spatial::matrix() {
     return(result);
 }
 
+spatial::quaternion spatial::quaternion::lerp(const quaternion& q, const type_t t)
+{
+    return this->vector::lerp(q, t).unit();
+}
+
+spatial::quaternion spatial::quaternion::slerp(const quaternion& q, const type_t t)
+{
+    return this->vector::slerp(q, t).unit();
+}
+
 
 spatial::position::position(void) {
     view = false;
@@ -771,7 +850,6 @@ spatial::position::position(void) {
 
 spatial::position::position(const position& ref) {
     view = ref.view;
-    dirty = ref.dirty;
 
     rotation = ref.rotation;
 
@@ -798,8 +876,6 @@ void spatial::position::identity(void) {
     up.x = 0.0f;
     up.y = 1.0f;
     up.z = 0.0f;
-
-    dirty = true;
 }
 
 void spatial::position::viewable(bool toggle) {
@@ -812,8 +888,6 @@ spatial::position& spatial::position::surge(type_t t) {
     center += diff;
     eye += diff;
 
-    dirty = true;
-
     return *this;
 }
 
@@ -825,8 +899,6 @@ spatial::position& spatial::position::sway(type_t t) {
     center += diff;
     eye += diff;
 
-    dirty = true;
-
     return *this;
 }
 
@@ -836,32 +908,26 @@ spatial::position& spatial::position::heave(type_t t) {
     center += diff;
     eye += diff;
 
-    dirty = true;
-
     return *this;
 }
 
 spatial::position& spatial::position::pitch(type_t angle) {
     rotation.pitch += angle;
-    dirty = true;
     return rotate();
 }
 
 spatial::position& spatial::position::yaw(type_t angle) {
     rotation.yaw += angle;
-    dirty = true;
     return rotate();
 }
 
 spatial::position& spatial::position::roll(type_t angle) {
     rotation.roll += angle;
-    dirty = true;
     return rotate();
 }
 
 spatial::position& spatial::position::spin(type_t angle) {
     rotation.spin += angle;
-    dirty = true;
     return rotate();
 }
 
@@ -883,8 +949,6 @@ spatial::position& spatial::position::rotate() {
     eye += offset;
     center += offset;
 
-    dirty = true;
-
     return *this;
 }
 
@@ -898,14 +962,11 @@ void spatial::position::project(const vector& offset, const vector& projection) 
     diff.x = (cross.x - center.x) * offset.x;
     diff.y = (cross.y - center.y) * offset.y;
     diff.z = (cross.z - center.z) * offset.z;
-
-    dirty = true;
 }
 
 spatial::position& spatial::position::reposition(const vector& offset) {
     center += offset - eye;
     eye = offset;
-    dirty = true;
     return *this;
 }
 
@@ -916,9 +977,11 @@ spatial::position& spatial::position::lookat(const vector& offset) {
     center = forward + eye;
     up = (forward % right).unit();
 
-    dirty = true;
-
     return *this;
+}
+
+spatial::vector spatial::position::down() {
+    return center - spatial::vector(0, 1, 0);
 }
 
 
@@ -1181,47 +1244,3 @@ spatial::triangle& spatial::triangle::project(const matrix& model, const matrix&
     }
     return *this;
 }
-
-
-/*
-Slerp(QUAT * from, QUAT * to, type_t t, QUAT * res)
-{
-    type_t           to1[4];
-    double        omega, cosom, sinom, scale0, scale1;
-    // calc cosine
-    cosom = from->x * to->x + from->y * to->y + from->z * to->z
-    + from->w * to->w;
-    // adjust signs (if necessary)
-    if (cosom <0.0) {
-    cosom = -cosom; to1[0] = -to->x;
-    to1[1] = -to->y;
-    to1[2] = -to->z;
-    to1[3] = -to->w;
-    }
-    else {
-    to1[0] = to->x;
-    to1[1] = to->y;
-    to1[2] = to->z;
-    to1[3] = to->w;
-    }
-    // calculate coefficients
-    if ((1.0 - cosom) > DELTA) {
-    // standard case (slerp)
-    omega = acos(cosom);
-    sinom = sin(omega);
-    scale0 = sin((1.0 - t) * omega) / sinom;
-    scale1 = sin(t * omega) / sinom;
-    }
-    else {
-    // "from" and "to" quaternions are very close
-    //  ... so we can do a linear interpolation
-    scale0 = 1.0 - t;
-    scale1 = t;
-    }
-    // calculate final values
-    res->x = scale0 * from->x + scale1 * to1[0];
-    res->y = scale0 * from->y + scale1 * to1[1];
-    res->z = scale0 * from->z + scale1 * to1[2];
-    res->w = scale0 * from->w + scale1 * to1[3];
-}
-*/

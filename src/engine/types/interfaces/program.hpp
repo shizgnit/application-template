@@ -27,6 +27,7 @@ namespace type {
         int u_NormalTextureUnit;
         int u_DepthTextureUnit;
         int u_BlurTextureUnit;
+        int u_PickingTextureUnit;
 
         int u_AmbientLightPosition;
         int u_AmbientLightColor;

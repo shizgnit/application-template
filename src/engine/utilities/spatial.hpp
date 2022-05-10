@@ -63,6 +63,7 @@ namespace spatial {
 
         type_t length() const;
         vector unit() const; // TODO: make the interface consistent for behavior
+        vector& normalize();
 
         type_t distance(const vector& v) const;
 
@@ -82,6 +83,9 @@ namespace spatial {
             ss << "{" << x << "," << y << "," << z << "," << w << "}";
             return ss.str();
         }
+
+        vector lerp(const vector& to, const type_t t);
+        vector slerp(const vector& to, const type_t t);
 
     public:
 
@@ -227,6 +231,10 @@ namespace spatial {
         typedef vector::type_t type_t;
 
         quaternion();
+        quaternion(type_t v[]);
+        quaternion(const type_t& x, const type_t& y, const type_t& z = 0.0f, const type_t& w = 1.0f);
+
+        quaternion(const vector& v);
         quaternion(const matrix& m);
 
         ~quaternion();
@@ -237,8 +245,20 @@ namespace spatial {
         quaternion& euler(const type_t& x, const type_t& y, const type_t& z, const type_t& degrees);
 
         quaternion operator *(const quaternion& operand);
+
+        quaternion lerp(const quaternion& q, const type_t t);
+        quaternion slerp(const quaternion& q, const type_t t);
     };
 
+    /// <summary>
+    /// 
+    ///          up
+    ///           ^
+    ///           |
+    ///           |
+    ///  eye ---> . center (lookat)
+    /// 
+    /// </summary>
     class position {
     public:
         typedef vector::type_t type_t;
@@ -266,7 +286,7 @@ namespace spatial {
         position& reposition(const vector& offset);
         position& lookat(const vector& offset);
 
-        bool dirty = false;
+        vector down();
 
     public:
         bool view;

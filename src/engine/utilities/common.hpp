@@ -48,6 +48,8 @@ namespace utilities {
 
     bool numeric(std::string in);
 
+    double clamp(double value, double min, double max);
+
 //    std::string format(std::string str, ...);
 
     std::string dirname(const std::string& in);

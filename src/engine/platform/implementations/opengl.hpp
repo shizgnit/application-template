@@ -65,7 +65,7 @@ namespace implementation {
 
             fbo() { }
 
-            bool init(type::object& object, platform::graphics *ref, bool depth = false);
+            bool init(type::object& object, platform::graphics *ref, bool depth = false, unsigned char *collector=NULL);
 
             void enable(bool clear = false);
             void disable();
@@ -82,6 +82,8 @@ namespace implementation {
             platform::graphics* parent = NULL;
 
             type::object* target = NULL;
+
+            unsigned char* collect = NULL;
         };
 
         class graphics : public platform::graphics {

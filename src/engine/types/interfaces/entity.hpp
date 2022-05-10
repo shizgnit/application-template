@@ -27,6 +27,11 @@ namespace type {
         };
         std::vector<instance> instances;
 
+        class director : public spatial::position {
+
+        };
+        std::list<director> checkpoints;
+
         unsigned int context = 0;
 
         unsigned int flags = 0;

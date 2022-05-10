@@ -168,6 +168,7 @@ public:
         main::global().call("/load shader shaders/depth depth");
         main::global().call("/load shader shaders/post post");
         main::global().call("/load shader shaders/blur blur");
+        main::global().call("/load shader shaders/picking picking");
 
         main::global().call("/load font fonts/consolas-22 default");
 
@@ -391,6 +392,7 @@ public:
         auto& shader_depth = assets->get<type::program>("depth");
         auto& shader_post = assets->get<type::program>("post");
         auto& shader_blur = assets->get<type::program>("blur");
+        auto& shader_picking = assets->get<type::program>("picking");
 
         auto& perspective = graphics->perspective;
 
@@ -451,7 +453,7 @@ public:
             graphics->draw(assets->get<type::entity>("objects/wiggle"), shader_shadowmap, ortho, lighting, wiggle_matrix, ortho * lighting);
         }
 
-        // Just rendering to a texture
+        // Rendering to a texture, just to test the capability
         {
             // This entire scope will render to the poly texture, every frame... which is unnecessary, just testing for performance, etc.
             auto scoped = graphics->target(box);
@@ -468,12 +470,12 @@ public:
             graphics->draw(assets->get<type::object>("icon"), shader_basic, ortho, spatial::matrix(), rendertotex);
         }
 
+        // Render to the depth buffer for post processing
         {
             auto scoped = graphics->target(graphics->depth);
 
             graphics->clear();
 
-            graphics->draw(box, shader_depth, perspective, view, box1_matrix);
             graphics->draw(box, shader_depth, perspective, view, box2_matrix);
 
             for (int y = 0; y < building.size(); y++) {
@@ -491,6 +493,44 @@ public:
             graphics->draw(assets->get<type::entity>("objects/wiggle"), shader_depth, perspective, view, wiggle_matrix);
         }
 
+        // Render to the picking buffer
+        {
+            auto scoped = graphics->target(graphics->picking);
+
+            graphics->clear();
+
+            double increment = 1.0 / 256;
+            double current = 1.0;
+
+            graphics->parameter(5, current);
+            current -= increment;
+            graphics->draw(box, shader_picking, perspective, view, box1_matrix);
+            graphics->parameter(5, current);
+            current -= increment;
+            graphics->draw(box, shader_picking, perspective, view, box2_matrix);
+
+            for (int y = 0; y < building.size(); y++) {
+                for (int x = 0; x < building[y].size(); x++) {
+                    if (building[y][x] > 0) {
+                        auto pos = spatial::matrix().translate({ (float)x * 2.0f,(float)(building.size() - y) * 2.0f, 0 });
+                        graphics->parameter(5, current);
+                        current -= increment;
+                        graphics->draw(box, shader_picking, perspective, view, pos);
+                    }
+                }
+            }
+
+            graphics->parameter(5, current);
+            current -= increment;
+            graphics->draw(monkey, shader_picking, perspective, view, spatial::matrix().translate(0, -2, -10).scale(5.0f));
+
+            assets->get<type::entity>("objects/wiggle").flags = 1;
+            graphics->parameter(5, current);
+            current -= increment;
+            graphics->draw(assets->get<type::entity>("objects/wiggle"), shader_picking, perspective, view, wiggle_matrix);
+        }
+
+        // Render to the color buffer
         {
             auto scoped = graphics->target(graphics->color);
             
@@ -538,18 +578,21 @@ public:
 
         }
 
+        // Create the blur buffer from the color buffer and depth
         {
             auto scoped = graphics->target(graphics->blur);
             graphics->draw(graphics->color, shader_blur, graphics->ortho, spatial::matrix(), spatial::matrix());
         }
 
-        //graphics->draw(graphics->blur, shader_post, main::global().ortho, spatial::matrix(), spatial::matrix());
+        // Render the visible scene
         graphics->draw(graphics->color, shader_post, graphics->ortho, spatial::matrix(), spatial::matrix());
+
+        // Render anything not subjected to post processing
         graphics->draw(graphics->shadow, graphics->shadow.texture.depth ? assets->get<type::program>("depth_to_color") : shader_basic, graphics->ortho, spatial::matrix(), spatial::matrix().translate(20, graphics->height() - 20 - 256, 0));
         graphics->draw(graphics->depth, graphics->depth.texture.depth ? assets->get<type::program>("depth_to_color") : shader_basic, graphics->ortho, spatial::matrix(), spatial::matrix().translate(40 + 256, graphics->height() - 20 - 256, 0).scale(0.2));
+        graphics->draw(graphics->picking, graphics->picking.texture.depth ? assets->get<type::program>("depth_to_color") : shader_basic, graphics->ortho, spatial::matrix(), spatial::matrix().translate(40 + 582, graphics->height() - 20 - 256, 0).scale(0.2));
 
         //spatial::matrix model = spatial::matrix().translate(pos.eye, pos.center, pos.up);
-
 
         /*
         if (object_moving[0]) {
@@ -653,6 +696,30 @@ public:
         spatial::vector position_end = spatial::vector({ ev.point.x, ev.point.y, 1.0f }).unproject(perspective, view, graphics->width(), graphics->height());
 
         rays.push_back(spatial::ray(position_start, position_end));
+
+        {
+            int w = graphics->width();
+            int h = graphics->height();            
+
+            int i = (graphics->width() * (graphics->height() - ev.point.y) * 4) + (ev.point.x * 4);
+
+            int r = graphics->pixels[i];
+            int g = graphics->pixels[i+1];
+            int b = graphics->pixels[i+2];
+            int a = graphics->pixels[i+3];
+
+            std::stringstream ss;
+            ss << "mouse_click(" << ev.point.x << ", " << ev.point.y << ") (" << r << "," << g << "," << b << "," << a << ")";
+            main::debug().content.add(ss.str());
+
+            /*
+            // Store off the data for evaluation
+            std::vector<unsigned char> png;
+            lodepng::State state;
+            unsigned error = lodepng::encode(png, graphics->pixels.data(), graphics->width(), graphics->height(), state);
+            if (!error) lodepng::save_file(png, "c:\\temp\\picker.png");
+            */
+        }
 
         /*
         
@@ -807,6 +874,7 @@ public:
 //=====================================================================================================
 
 void prototype::on_startup() {
+
     graphics->init();
     audio->init();
 

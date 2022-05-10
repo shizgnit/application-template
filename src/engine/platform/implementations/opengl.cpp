@@ -2,13 +2,15 @@
 
 #if defined __PLATFORM_SUPPORTS_OPENGL
 
-bool implementation::opengl::fbo::init(type::object& object, platform::graphics *ref, bool depth) {
+bool implementation::opengl::fbo::init(type::object& object, platform::graphics *ref, bool depth, unsigned char *collector) {
     if (allocation == 0) {
         allocation = object.texture.depth ? GL_DEPTH_ATTACHMENT : attachments().allocate();
         if (allocation == 0 || object.texture.color == NULL) {
             return false;
         }
     }
+
+    collect = collector;
 
     parent = ref;
 
@@ -54,7 +56,11 @@ void implementation::opengl::fbo::disable() {
     if (target == NULL || target->texture.color == NULL) {
         return;
     }
+
     // Currently all rendering is done to the mipmap level 0... copy it out after every render
+    if (collect != NULL) {
+        glReadPixels(0, 0, target->texture.color->properties.width, target->texture.color->properties.height, GL_RGBA, GL_UNSIGNED_BYTE, collect);
+    }
     if (!target->texture.depth) {
         glBindTexture(GL_TEXTURE_2D, target->texture.color->context);
         glGenerateMipmap(GL_TEXTURE_2D);
@@ -62,6 +68,7 @@ void implementation::opengl::fbo::disable() {
     }
     glBindRenderbuffer(GL_RENDERBUFFER, 0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
     glViewport(0, 0, parent->width(), parent->height());
 }
 
@@ -83,9 +90,7 @@ void implementation::opengl::graphics::dimensions(int width, int height, float s
     color.texture.color = &assets->get<type::image>("color");
     color.texture.color->create(display_width, display_height, 0, 0, 0, 0);
     color.xy_projection(0, 0, display_width, display_height, false, true);
-
     compile(color);
-
     fbos[&color].init(color, this);
 
     // Setup the scene depth buffer
@@ -94,9 +99,7 @@ void implementation::opengl::graphics::dimensions(int width, int height, float s
     depth.texture.color->create(display_width, display_height, 0, 0, 0, 0);
     //depth.texture.depth = true;
     depth.xy_projection(0, 0, display_width, display_height, false, true);
-
     compile(depth);
-
     fbos[&depth].init(depth, this);
 
     // Setup the post process blur buffer
@@ -104,10 +107,17 @@ void implementation::opengl::graphics::dimensions(int width, int height, float s
     blur.texture.color = &assets->get<type::image>("blur");
     blur.texture.color->create(display_width * scale, display_height * scale, 0, 0, 0, 0);
     blur.xy_projection(0, 0, display_width * scale, display_height * scale, false, true);
-
     compile(blur);
-
     fbos[&blur].init(blur, this);
+
+    // Setup the picking buffer
+    picking = spatial::quad(display_width, display_height);
+    picking.texture.color = &assets->get<type::image>("picking");
+    picking.texture.color->create(display_width, display_height, 0, 0, 0, 0);
+    picking.xy_projection(0, 0, display_width, display_height, false, true);
+    compile(picking);
+    pixels.resize(display_width * display_height * 4, 0);
+    fbos[&picking].init(picking, this, false, pixels.data());
 }
 
 void implementation::opengl::graphics::init(void) {
@@ -300,6 +310,7 @@ bool implementation::opengl::graphics::compile(type::program& program) {
     program.u_ShadowTextureUnit = glGetUniformLocation(program.context, "u_ShadowTextureUnit");
     program.u_DepthTextureUnit = glGetUniformLocation(program.context, "u_DepthTextureUnit");
     program.u_BlurTextureUnit = glGetUniformLocation(program.context, "u_BlurTextureUnit");
+    program.u_PickingTextureUnit = glGetUniformLocation(program.context, "u_PickingTextureUnit");
 
     return true;
 }

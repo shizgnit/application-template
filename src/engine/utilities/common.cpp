@@ -73,6 +73,17 @@ bool utilities::numeric(std::string in) {
     return in.find_first_not_of("-0123456789.") == std::string::npos;
 }
 
+double utilities::clamp(double value, double min, double max) {
+    if (value < min) {
+        return min;
+    }
+    if (value > max) {
+        return max;
+    }
+    return value;
+}
+
+
 /*
 std::string utilities::format(std::string str, ...) {
     std::string result;
