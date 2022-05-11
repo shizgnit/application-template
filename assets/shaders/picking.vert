@@ -5,6 +5,8 @@ precision mediump int;
 
 layout(location = 0) in mat4 a_ModelMatrix;
 
+layout(location = 4) in uint a_Identifier;
+
 layout(location = 5) in vec4 a_Vertex;
 layout(location = 6) in vec4 a_Texture;
 layout(location = 7) in vec4 a_Normal;
@@ -30,6 +32,8 @@ out vec4 v_Clipping;
 
 out uint v_Flags;
 
+flat out uint v_Identifier;
+
 void main()
 {
   mat4 MVP = u_ProjectionMatrix * u_ViewMatrix * u_ModelMatrix;
@@ -40,5 +44,7 @@ void main()
 
   v_Vertex = MVP * a_Vertex;
   
+  v_Identifier = a_Identifier;
+
   gl_Position = v_Vertex;
 }

@@ -15,6 +15,8 @@ namespace type {
 
         int a_ModelMatrix;
 
+        int a_Identifier;
+
         int u_Clipping;
 
         int u_ProjectionMatrix;

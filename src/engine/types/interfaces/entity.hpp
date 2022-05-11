@@ -15,10 +15,10 @@ namespace type {
         class instance {
         public:
             instance() {
-                static int increment = 0;
+                static unsigned int increment = 1250;
                 id = ++increment;
             }
-            int id = 0;
+            unsigned int id = 0;
             int frame = 0;
             utilities::seconds_t elapsed;
             std::string state;
@@ -37,18 +37,26 @@ namespace type {
         };
         std::list<director> checkpoints;
 
-        unsigned int context = 0;
-
         unsigned int flags = 0;
 
         // http://www.opengl-tutorial.org/intermediate-tutorials/billboards-particles/particles-instancing/
-        std::vector<spatial::matrix> positions;
+        struct {
+            unsigned int context = 0;
+            std::vector<unsigned int> content;
+        } identifiers;
 
-        void position() {
-            positions.clear();
+        struct {
+            unsigned int context = 0;
+            std::vector<spatial::matrix> content;
+        } positions;
+
+        void bake() {
+            identifiers.content.clear();
+            positions.content.clear();
             //std::sort(instances.begin(), instances.end());
             for (auto entry : instances) {
-                positions.push_back(entry.position);
+                identifiers.content.push_back(entry.id);
+                positions.content.push_back(entry.position);
             }
         }
 

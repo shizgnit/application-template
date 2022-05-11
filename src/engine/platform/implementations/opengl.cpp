@@ -286,6 +286,8 @@ bool implementation::opengl::graphics::compile(type::program& program) {
 
     program.a_ModelMatrix = glGetAttribLocation(program.context, "a_ModelMatrix");
 
+    program.a_Identifier = glGetAttribLocation(program.context, "a_Identifier");
+
     program.a_Vertex = glGetAttribLocation(program.context, "a_Vertex");
     program.a_Texture = glGetAttribLocation(program.context, "a_Texture");
     program.a_Normal = glGetAttribLocation(program.context, "a_Normal");
@@ -403,20 +405,40 @@ bool implementation::opengl::graphics::compile(type::font& font) {
 }
 
 bool implementation::opengl::graphics::compile(type::entity& entity) {
-    if (entity.context) {
-        glBindBuffer(GL_ARRAY_BUFFER, entity.context);
-        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(spatial::matrix) * entity.positions.size(), entity.positions.data());
+    entity.bake();
+
+    if (entity.identifiers.context) {
+        glBindBuffer(GL_ARRAY_BUFFER, entity.identifiers.context);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(unsigned int) * entity.identifiers.content.size(), entity.identifiers.content.data());
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
-    else if (entity.positions.size()) {
-        glGenBuffers(1, &entity.context);
-        glBindBuffer(GL_ARRAY_BUFFER, entity.context);
+    else if (entity.identifiers.content.size()) {
+        glGenBuffers(1, &entity.identifiers.context);
+        glBindBuffer(GL_ARRAY_BUFFER, entity.identifiers.context);
 
-        float* ptr = (float*)entity.positions.data();
+        float* ptr = (float*)entity.identifiers.content.data();
+
+        //glBufferData(GL_ARRAY_BUFFER, sizeof(spatial::matrix) * entity.positions.size(), entity.positions.data(), GL_DYNAMIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(unsigned int) * 1024, NULL, GL_STREAM_DRAW);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(unsigned int) * entity.identifiers.content.size(), entity.identifiers.content.data());
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+    }
+
+
+    if (entity.positions.context) {
+        glBindBuffer(GL_ARRAY_BUFFER, entity.positions.context);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(spatial::matrix) * entity.positions.content.size(), entity.positions.content.data());
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+    }
+    else if (entity.positions.content.size()) {
+        glGenBuffers(1, &entity.positions.context);
+        glBindBuffer(GL_ARRAY_BUFFER, entity.positions.context);
+
+        float* ptr = (float*)entity.positions.content.data();
 
         //glBufferData(GL_ARRAY_BUFFER, sizeof(spatial::matrix) * entity.positions.size(), entity.positions.data(), GL_DYNAMIC_DRAW);
         glBufferData(GL_ARRAY_BUFFER, sizeof(spatial::matrix) * 1024, NULL, GL_STREAM_DRAW);
-        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(spatial::matrix) * entity.positions.size(), entity.positions.data());
+        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(spatial::matrix) * entity.positions.content.size(), entity.positions.content.data());
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
 
@@ -515,25 +537,40 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
     glEnableVertexAttribArray(shader.a_Normal);
 
     int instances = 1;
-    if (object.emitter && object.emitter->context && shader.a_ModelMatrix >= 0) {
-        glBindBuffer(GL_ARRAY_BUFFER, object.emitter->context);
+    if (object.emitter) {
+        if (shader.a_ModelMatrix >= 0 && object.emitter->positions.context) {
+            glBindBuffer(GL_ARRAY_BUFFER, object.emitter->positions.context);
 
-        glVertexAttribPointer(shader.a_ModelMatrix + 0, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::matrix), BUFFER_OFFSET(offset_matrix + sizeof(float) * 0));
-        glVertexAttribPointer(shader.a_ModelMatrix + 1, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::matrix), BUFFER_OFFSET(offset_matrix + sizeof(float) * 4));
-        glVertexAttribPointer(shader.a_ModelMatrix + 2, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::matrix), BUFFER_OFFSET(offset_matrix + sizeof(float) * 8));
-        glVertexAttribPointer(shader.a_ModelMatrix + 3, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::matrix), BUFFER_OFFSET(offset_matrix + sizeof(float) * 12));
+            glVertexAttribPointer(shader.a_ModelMatrix + 0, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::matrix), BUFFER_OFFSET(offset_matrix + sizeof(float) * 0));
+            glVertexAttribPointer(shader.a_ModelMatrix + 1, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::matrix), BUFFER_OFFSET(offset_matrix + sizeof(float) * 4));
+            glVertexAttribPointer(shader.a_ModelMatrix + 2, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::matrix), BUFFER_OFFSET(offset_matrix + sizeof(float) * 8));
+            glVertexAttribPointer(shader.a_ModelMatrix + 3, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::matrix), BUFFER_OFFSET(offset_matrix + sizeof(float) * 12));
 
-        glEnableVertexAttribArray(shader.a_ModelMatrix + 0);
-        glEnableVertexAttribArray(shader.a_ModelMatrix + 1);
-        glEnableVertexAttribArray(shader.a_ModelMatrix + 2);
-        glEnableVertexAttribArray(shader.a_ModelMatrix + 3);
+            glEnableVertexAttribArray(shader.a_ModelMatrix + 0);
+            glEnableVertexAttribArray(shader.a_ModelMatrix + 1);
+            glEnableVertexAttribArray(shader.a_ModelMatrix + 2);
+            glEnableVertexAttribArray(shader.a_ModelMatrix + 3);
 
-        glVertexAttribDivisor(shader.a_ModelMatrix + 0, 1);
-        glVertexAttribDivisor(shader.a_ModelMatrix + 1, 1);
-        glVertexAttribDivisor(shader.a_ModelMatrix + 2, 1);
-        glVertexAttribDivisor(shader.a_ModelMatrix + 3, 1);
+            glVertexAttribDivisor(shader.a_ModelMatrix + 0, 1);
+            glVertexAttribDivisor(shader.a_ModelMatrix + 1, 1);
+            glVertexAttribDivisor(shader.a_ModelMatrix + 2, 1);
+            glVertexAttribDivisor(shader.a_ModelMatrix + 3, 1);
+        }
 
-        instances = object.emitter->positions.size();
+        if (shader.a_Identifier >= 0 && object.emitter->identifiers.context) {
+            glBindBuffer(GL_ARRAY_BUFFER, object.emitter->identifiers.context);
+
+            glVertexAttribPointer(shader.a_Identifier, 1, GL_FLOAT, GL_FALSE, sizeof(unsigned int), BUFFER_OFFSET(0));
+            glEnableVertexAttribArray(shader.a_Identifier);
+            glVertexAttribDivisor(shader.a_Identifier, 1);
+        }
+
+        instances = object.emitter->instances.size();
+    }
+    else {
+        if (shader.a_Identifier >= 0) {
+            glDisableVertexAttribArray(shader.a_Identifier);
+        }
     }
 
     // Draw either the solids or wireframes

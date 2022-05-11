@@ -316,7 +316,6 @@ public:
         assets->get<type::entity>("objects/wiggle").allocate(3);
         assets->get<type::entity>("objects/wiggle").instances[1].position.reposition({ 3.0, 3.0, 3.0 });
         assets->get<type::entity>("objects/wiggle").instances[2].position.reposition({ 5.0, -3.0, 5.0 });
-        assets->get<type::entity>("objects/wiggle").position();
 
         //assets->get<type::entity>("objects/wiggle").positions[0] = spatial::matrix().translate(0, -2, -10).scale(5.0f);
         //assets->get<type::entity>("objects/wiggle").positions[1] = spatial::matrix().translate(0, -2, -10).scale(5.0f);
@@ -427,7 +426,6 @@ public:
         assets->get<type::entity>("objects/wiggle").instances[2].position.surge(std::get<double>(main::global().get("wiggle.surge")));
         assets->get<type::entity>("objects/wiggle").instances[2].position.sway(std::get<double>(main::global().get("wiggle.sway")));
         assets->get<type::entity>("objects/wiggle").instances[2].position.heave(std::get<double>(main::global().get("wiggle.heave")));
-        assets->get<type::entity>("objects/wiggle").position();
 
         graphics->compile(assets->get<type::entity>("objects/wiggle"));
 
