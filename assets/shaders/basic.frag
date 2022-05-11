@@ -1,6 +1,7 @@
 #version 320 es
 
 precision mediump float;
+precision mediump int;
 
 uniform sampler2D u_SurfaceTextureUnit;
 uniform sampler2D u_ShadowTextureUnit;
@@ -12,7 +13,7 @@ uniform vec4 u_AmbientLightPosition;
 uniform vec4 u_AmbientLightColor;
 
 in vec4 v_Vertex;
-in vec4 v_Texture;
+in vec2 v_Texture;
 in vec4 v_Normal;
 in vec4 v_Clipping;
 

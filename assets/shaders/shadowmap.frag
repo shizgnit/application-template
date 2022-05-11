@@ -1,6 +1,7 @@
 #version 320 es
 
 precision mediump float;
+precision mediump int;
 
 uniform sampler2D u_SurfaceTextureUnit;
 uniform sampler2D u_ShadowTextureUnit;

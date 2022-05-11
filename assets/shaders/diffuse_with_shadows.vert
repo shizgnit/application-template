@@ -33,19 +33,16 @@ out uint v_Flags;
 void main()
 {
   mat4 MVP = u_ProjectionMatrix * u_ViewMatrix * u_ModelMatrix;
-  if(gl_InstanceID >= 1) {
-    MVP = u_ProjectionMatrix * u_ViewMatrix * a_ModelMatrix;
-  }
 
+  v_Texture = a_Texture.xy;
   v_Vertex = MVP * a_Vertex;
   v_Normal = normalize(MVP * a_Normal);
+  
+  if(a_ModelMatrix[0][0] == 0.0) {
+    v_Lighting = vec4(0.0);
+  }
 
   gl_Position = v_Vertex;
 
-  if(gl_InstanceID >= 1) {
-    v_Lighting = (u_LightingMatrix * a_ModelMatrix) * a_Vertex;
-  }
-  else {
-    v_Lighting = (u_LightingMatrix * u_ModelMatrix) * a_Vertex;
-  }
+  v_Lighting = (u_LightingMatrix * u_ModelMatrix) * a_Vertex;
 }

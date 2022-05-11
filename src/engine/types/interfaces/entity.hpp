@@ -14,6 +14,11 @@ namespace type {
 
         class instance {
         public:
+            instance() {
+                static int increment = 0;
+                id = ++increment;
+            }
+            int id = 0;
             int frame = 0;
             utilities::seconds_t elapsed;
             std::string state;

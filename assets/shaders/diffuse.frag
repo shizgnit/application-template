@@ -1,4 +1,7 @@
+#version 320 es
+
 precision mediump float;
+precision mediump int;
 
 uniform sampler2D u_SurfaceTextureUnit;
 uniform sampler2D u_ShadowTextureUnit;
@@ -7,13 +10,15 @@ uniform sampler2D u_NormalTextureUnit;
 uniform vec4 u_AmbientLightPosition;
 uniform vec4 u_AmbientLightColor;
 
-varying vec2 v_Texture;
-varying vec4 v_Vertex;
-varying vec4 v_Normal;
-varying vec4 v_Lighting;
+in vec2 v_Texture;
+in vec4 v_Vertex;
+in vec4 v_Normal;
+in vec4 v_Lighting;
 
 // https://learnopengl.com/Advanced-Lighting/Shadows/Shadow-Mapping
 // https://stackoverflow.com/questions/6652253/getting-the-true-z-value-from-the-depth-buffer
+
+layout(location = 0) out vec4 diffuseColor;
 
 void main()
 {
@@ -28,5 +33,5 @@ void main()
 
    Light = clamp(Light, 0.0, 1.0);
   
-   gl_FragColor = texture2D(u_SurfaceTextureUnit, v_Texture) * vec4(texture2D(u_SurfaceTextureUnit, v_Texture).a) * Light;
+   diffuseColor = texture(u_SurfaceTextureUnit, v_Texture) * vec4(texture(u_SurfaceTextureUnit, v_Texture).a) * Light;
 }

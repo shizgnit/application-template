@@ -18,7 +18,7 @@ uniform uint u_Flags;
 uniform mat4 u_Parameters;
 
 in vec4 v_Vertex;
-in vec4 v_Texture;
+in vec2 v_Texture;
 in vec4 v_Normal;
 
 layout(location = 0) out vec4 diffuseColor;

@@ -1,4 +1,7 @@
+#version 320 es
+
 precision mediump float;
+precision mediump int;
 
 uniform sampler2D u_SurfaceTextureUnit;
 uniform sampler2D u_ShadowTextureUnit;
@@ -13,12 +16,14 @@ uniform vec4 u_Clipping;
 uniform vec4 u_AmbientLightPosition;
 uniform vec4 u_AmbientLightColor;
 
-varying vec4 v_Vertex;
-varying vec4 v_Texture;
-varying vec4 v_Normal;
-varying vec4 v_Clipping;
+in vec4 v_Vertex;
+in vec2 v_Texture;
+in vec4 v_Normal;
+in vec4 v_Clipping;
+
+layout(location = 0) out vec4 diffuseColor;
 
 void main()
 {
-  gl_FragColor = vec4(texture2D(u_ShadowTextureUnit, v_Texture.xy).r);
+  diffuseColor = vec4(texture(u_ShadowTextureUnit, v_Texture.xy).r);
 }

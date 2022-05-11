@@ -284,26 +284,26 @@ bool implementation::opengl::graphics::compile(type::program& program) {
 
     glUseProgram(program.context);
 
-    program.a_ModelMatrix = glGetAttribLocation(program.context, "a_ModelMatrix"); // 0
+    program.a_ModelMatrix = glGetAttribLocation(program.context, "a_ModelMatrix");
 
-    program.a_Vertex = glGetAttribLocation(program.context, "a_Vertex"); // 4
-    program.a_Texture = glGetAttribLocation(program.context, "a_Texture"); // 5
-    program.a_Normal = glGetAttribLocation(program.context, "a_Normal"); // 6
+    program.a_Vertex = glGetAttribLocation(program.context, "a_Vertex");
+    program.a_Texture = glGetAttribLocation(program.context, "a_Texture");
+    program.a_Normal = glGetAttribLocation(program.context, "a_Normal");
 
-    program.u_ProjectionMatrix = glGetUniformLocation(program.context, "u_ProjectionMatrix"); // 7
-    program.u_ViewMatrix = glGetUniformLocation(program.context, "u_ViewMatrix"); // 8
-    program.u_ModelMatrix = glGetUniformLocation(program.context, "u_ModelMatrix"); // 9
-    program.u_LightingMatrix = glGetUniformLocation(program.context, "u_LightingMatrix"); // 10
+    program.u_ProjectionMatrix = glGetUniformLocation(program.context, "u_ProjectionMatrix");
+    program.u_ViewMatrix = glGetUniformLocation(program.context, "u_ViewMatrix");
+    program.u_ModelMatrix = glGetUniformLocation(program.context, "u_ModelMatrix");
+    program.u_LightingMatrix = glGetUniformLocation(program.context, "u_LightingMatrix");
 
-    program.u_Clipping = glGetUniformLocation(program.context, "u_Clipping"); // 11
+    program.u_Clipping = glGetUniformLocation(program.context, "u_Clipping");
 
-    program.u_AmbientLightPosition = glGetUniformLocation(program.context, "u_AmbientLightPosition"); // 12
-    program.u_AmbientLightColor = glGetUniformLocation(program.context, "u_AmbientLightColor"); // 13
-    program.u_AmbientLightBias = glGetUniformLocation(program.context, "u_AmbientLightBias"); // 14
-    program.u_AmbientLightStrength = glGetUniformLocation(program.context, "u_AmbientLightStrength"); //15
+    program.u_AmbientLightPosition = glGetUniformLocation(program.context, "u_AmbientLightPosition");
+    program.u_AmbientLightColor = glGetUniformLocation(program.context, "u_AmbientLightColor");
+    program.u_AmbientLightBias = glGetUniformLocation(program.context, "u_AmbientLightBias");
+    program.u_AmbientLightStrength = glGetUniformLocation(program.context, "u_AmbientLightStrength");
 
-    program.u_Flags = glGetUniformLocation(program.context, "u_Flags"); // 16
-    program.u_Parameters = glGetUniformLocation(program.context, "u_Parameters"); // 17
+    program.u_Flags = glGetUniformLocation(program.context, "u_Flags");
+    program.u_Parameters = glGetUniformLocation(program.context, "u_Parameters");
 
     program.u_SurfaceTextureUnit = glGetUniformLocation(program.context, "u_SurfaceTextureUnit");
     program.u_NormalTextureUnit = glGetUniformLocation(program.context, "u_NormalTextureUnit");

@@ -156,13 +156,13 @@ public:
 
         main::global().call("/load shader shaders/basic basic");
         main::global().call("/load shader shaders/cell cell");
-        main::global().call("/load shader shaders/defuse defuse");
+        main::global().call("/load shader shaders/diffuse diffuse");
         main::global().call("/load shader shaders/shadowmap shadowmap");
         main::global().call("/load shader shaders/depth_to_color depth_to_color");
         main::global().call("/load shader shaders/basic gui");
         main::global().call("/load shader shaders/basic skybox");
         main::global().call("/load shader shaders/cell objects");
-        main::global().call("/load shader shaders/defuse_with_shadows scenery");
+        main::global().call("/load shader shaders/diffuse_with_shadows scenery");
         main::global().call("/load shader shaders/wireframe wireframe");
         main::global().call("/load shader shaders/outline outline");
         main::global().call("/load shader shaders/depth depth");
@@ -383,7 +383,7 @@ public:
     void run() {
         auto& shader_basic = assets->get<type::program>("basic");
         auto& shader_shadowmap = assets->get<type::program>("shadowmap");
-        auto& shader_defuse = assets->get<type::program>("defuse");
+        auto& shader_diffuse = assets->get<type::program>("diffuse");
         auto& shader_skybox = assets->get<type::program>("skybox");
         auto& shader_objects = assets->get<type::program>("objects");
         auto& shader_scenery = assets->get<type::program>("scenery");
