@@ -14,11 +14,8 @@ namespace type {
 
         class instance {
         public:
-            instance() {
-                static unsigned int increment = 1250;
-                id = ++increment;
-            }
             unsigned int id = 0;
+            unsigned int flags = 0;
             int frame = 0;
             utilities::seconds_t elapsed;
             std::string state;
@@ -30,14 +27,15 @@ namespace type {
                 return this->distance > that.distance;
             }
         };
-        std::vector<instance> instances;
+
+        std::list<unsigned int> available;
+
+        std::map<unsigned int, instance> instances;
 
         class director : public spatial::position {
 
         };
         std::list<director> checkpoints;
-
-        unsigned int flags = 0;
 
         // http://www.opengl-tutorial.org/intermediate-tutorials/billboards-particles/particles-instancing/
         struct {
@@ -47,29 +45,57 @@ namespace type {
 
         struct {
             unsigned int context = 0;
+            std::vector<unsigned int> content;
+        } flags;
+
+        struct {
+            unsigned int context = 0;
             std::vector<spatial::matrix> content;
         } positions;
 
         void bake() {
             identifiers.content.clear();
+            identifiers.content.reserve(instances.size());
+            flags.content.clear();
+            flags.content.reserve(instances.size());
             positions.content.clear();
+            positions.content.reserve(instances.size());
             //std::sort(instances.begin(), instances.end());
             for (auto entry : instances) {
-                identifiers.content.push_back(entry.id);
-                positions.content.push_back(entry.position);
+                identifiers.content.push_back(entry.second.id);
+                flags.content.push_back(entry.second.flags);
+                positions.content.push_back(entry.second.position);
             }
         }
 
-        void allocate(int count) {
-            if (instances.size() < count) {
-                instances.resize(count);
+        bool allocate(int count) {
+            static unsigned int increment = 0;
+            int current = available.size() + instances.size();
+            for (int i = 0; i < count - current; i++) {
+                available.push_back(++increment);
             }
+            while (instances.size() < count) {
+                instances[*available.begin()].id = *available.begin();
+                available.pop_front();
+            }
+            return true;
         }
 
-        void play(std::string animation, int index=0) {
+        void release(int id) {
+            instances.erase(id);
+            available.push_back(id);
+        }
+
+        void play(std::string animation, int id=0) {
             //std::lock_guard<std::mutex> scoped(lock);
-            allocate(index + 1);
-            instances[index].elapsed = std::chrono::system_clock::now().time_since_epoch();
+            allocate(1);
+
+            int key = id == 0 ? instances.begin()->first : id;
+            if (instances.find(key) == instances.end()) {
+                return;
+            }
+
+            instances[key].elapsed = std::chrono::system_clock::now().time_since_epoch();
             if (animations[animation].duration.size() == 0) {
                 int frames = animations[animation].frames.size();
                 utilities::seconds_t duration = utilities::seconds_t{ animations[animation].elapse / (double)frames };
@@ -79,44 +105,55 @@ namespace type {
                     animations[animation].frames[i].emitter = this;
                 }
             }
-            instances[index].state = animation;
+            instances[key].state = animation;
         }
 
-        void animate(int index = 0) {
-            allocate(index + 1);
-            if (instances[index].state.empty()) {
+        void animate(int id = 0) {
+            allocate(1);
+
+            int key = id == 0 ? instances.begin()->first : id;
+            if (instances.find(key) == instances.end()) {
+                return;
+            }
+            if (instances[key].state.empty()) {
                 return;
             }
 
             utilities::seconds_t now = std::chrono::system_clock::now().time_since_epoch();
 
-            int current = instances[index].frame;
+            int current = instances[key].frame;
             int step = 0;
 
-            while ((instances[index].elapsed + animations[instances[index].state].duration[current + step]) < now) {
-                instances[index].elapsed += animations[instances[index].state].duration[current + step];
+            while ((instances[key].elapsed + animations[instances[key].state].duration[current + step]) < now) {
+                instances[key].elapsed += animations[instances[key].state].duration[current + step];
                 step += 1;
-                if ((current + step) >= animations[instances[index].state].frames.size()) {
+                if ((current + step) >= animations[instances[key].state].frames.size()) {
                     current = 0;
                     step = 0;
                 }
             }
 
-            instances[index].frame = current + step;
+            instances[key].frame = current + step;
         }
 
-        type::object& get(int index = 0) {
+        type::object& get(int id = 0) {
             //std::lock_guard<std::mutex> scoped(lock);
-            allocate(index + 1);
             static type::object empty;
-            if (instances[index].state.empty()) {
+
+            allocate(1);
+
+            int key = id == 0 ? instances.begin()->first : id;
+            if (instances.find(key) == instances.end()) {
                 return empty;
             }
-            return animations[instances[index].state].frames[instances[index].frame];
+            if (instances[key].state.empty()) {
+                return empty;
+            }
+            return animations[instances[key].state].frames[instances[key].frame];
         }
 
         operator type::object& () {
-            return get(0);
+            return get();
         }
 
         platform::input events;

@@ -158,7 +158,11 @@
     <Content Include="assets\objects\untitled.mtl" />
     <Content Include="assets\objects\untitled.obj" />
     <Content Include="assets\objects\untitled.png" />
-    <Content Include="assets\objects\wiggle\ls.txt" />
+	<Content Include="assets\objects\camera\ls.txt" />
+	<Content Include="assets\objects\camera\idle\camera.png" />
+	<Content Include="assets\objects\camera\idle\camera.mtl" />
+	<Content Include="assets\objects\camera\idle\camera.obj" />
+	<Content Include="assets\objects\wiggle\ls.txt" />
     <Content Include="assets\objects\wiggle\idle\untitled.png" />
     <Content Include="assets\objects\wiggle\idle\wiggle_000001.mtl" />
     <Content Include="assets\objects\wiggle\idle\wiggle_000001.obj" />

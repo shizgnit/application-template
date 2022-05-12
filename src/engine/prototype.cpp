@@ -123,6 +123,7 @@ public:
         });
 
         main::global().call("/set debug.input 0");
+        main::global().call("/set view.source freelook");
 
         main::global().call("/set ambient.position (10,10,10)");
         main::global().call("/set ambient.lookat (0,0,0)");
@@ -248,6 +249,8 @@ public:
     type::object box;
     type::object ground;
 
+    type::object viewport;
+
     type::object monkey;
 
     type::object ray;
@@ -255,6 +258,10 @@ public:
     type::object bounds;
 
     std::vector<type::object> rays;
+
+    int selected = 0;
+
+    bool in_camera = false;
 
     bool load() {
         // TODO: don't use the progress bar to determine thread completion
@@ -292,7 +299,14 @@ public:
                 // Just to simulate when more resources are required
                 main::global().progress().value.set(70);
 
+                main::global().call("/load entity objects/camera");
                 main::global().call("/load entity objects/wiggle");
+
+                float ratio = graphics->width() / graphics->height();
+                viewport = spatial::quad(1 * ratio, 1);
+                viewport.texture.color = graphics->color.texture.color; //&assets->get<type::image>("color");
+                viewport.xy_projection(0, 0, graphics->width(), graphics->height(), false, true);
+                viewport.texture.compiled(true);
 
                 //main::global().progress().value.set(80);
                 //utilities::sleep(1000);
@@ -311,19 +325,14 @@ public:
         main::global().call("/compile");
 
         main::global().call("/show entities");
+
+        main::global().call("/play objects/camera idle");
+
         main::global().call("/play objects/wiggle idle");
-
         assets->get<type::entity>("objects/wiggle").allocate(3);
-        assets->get<type::entity>("objects/wiggle").instances[1].position.reposition({ 3.0, 3.0, 3.0 });
-        assets->get<type::entity>("objects/wiggle").instances[2].position.reposition({ 5.0, -3.0, 5.0 });
-
-        //assets->get<type::entity>("objects/wiggle").positions[0] = spatial::matrix().translate(0, -2, -10).scale(5.0f);
-        //assets->get<type::entity>("objects/wiggle").positions[1] = spatial::matrix().translate(0, -2, -10).scale(5.0f);
-        //assets->get<type::entity>("objects/wiggle").positions[2] = spatial::matrix().translate(0, -2, -10).scale(5.0f);
-
-        //std::string mat = spatial::matrix().translate(0, -2, -10).scale(5.0f); // { {5,0,0,0}, {0,5,0,0}, {0,0,5,0}, {0,-2,-10,1} };
-
-        graphics->compile(assets->get<type::entity>("objects/wiggle"));
+        auto instance = assets->get<type::entity>("objects/wiggle").instances.begin();        
+        (instance++)->second.position.reposition({ 3.0, 3.0, 3.0 });
+        (instance++)->second.position.reposition({ 5.0, -3.0, 5.0 });
 
         graphics->compile(xAxis);
         graphics->compile(yAxis);
@@ -332,6 +341,8 @@ public:
         graphics->compile(box);
         graphics->compile(ground);
         graphics->compile(monkey);
+
+        graphics->compile(viewport);
 
         ray = spatial::ray(spatial::vector(0.0, 0.0, -0.2), spatial::vector(0.0, 0.0, 0.2));
         ray.texture.create(1, 1, 255, 255, 255, 255);
@@ -395,6 +406,9 @@ public:
 
         auto& perspective = graphics->perspective;
 
+        graphics->compile(assets->get<type::entity>("objects/camera"));
+        graphics->compile(assets->get<type::entity>("objects/wiggle"));
+
         graphics->ambient.position.reposition(std::get<spatial::vector>(main::global().get("ambient.position")));
         graphics->ambient.position.lookat(std::get<spatial::vector>(main::global().get("ambient.lookat")));
         graphics->ambient.color = std::get<spatial::vector>(main::global().get("ambient.color"));
@@ -423,11 +437,19 @@ public:
 
         auto wiggle_matrix = spatial::matrix().translate(std::get<spatial::vector>(main::global().get("wiggle.position")));
 
-        assets->get<type::entity>("objects/wiggle").instances[2].position.surge(std::get<double>(main::global().get("wiggle.surge")));
-        assets->get<type::entity>("objects/wiggle").instances[2].position.sway(std::get<double>(main::global().get("wiggle.sway")));
-        assets->get<type::entity>("objects/wiggle").instances[2].position.heave(std::get<double>(main::global().get("wiggle.heave")));
+        in_camera = std::get<std::string>(main::global().get("view.source")) == "camera";
+        spatial::matrix relative = spatial::matrix().lookat(freelook.eye, freelook.center, freelook.up);
 
-        graphics->compile(assets->get<type::entity>("objects/wiggle"));
+        if (selected) {
+            for(auto & instance: assets->get<type::entity>("objects/wiggle").instances) {
+                instance.second.flags = instance.first == selected ? 1 : 0;
+            }
+            for (auto& instance : assets->get<type::entity>("objects/camera").instances) {
+                instance.second.flags = instance.first == selected ? 1 : 0;
+            }
+        }
+
+        //graphics->compile(assets->get<type::entity>("objects/wiggle"));
 
         assets->get<type::entity>("objects/wiggle").animate();
 
@@ -487,7 +509,7 @@ public:
 
             graphics->draw(monkey, shader_depth, perspective, view, spatial::matrix().translate(0, -2, -10).scale(5.0f));
 
-            assets->get<type::entity>("objects/wiggle").flags = 1;
+            //assets->get<type::entity>("objects/wiggle").flags = 1;
             graphics->draw(assets->get<type::entity>("objects/wiggle"), shader_depth, perspective, view, wiggle_matrix);
         }
 
@@ -497,35 +519,29 @@ public:
 
             graphics->clear();
 
-            double increment = 1.0 / 256;
-            double current = 1.0;
+            graphics->parameter(5, 1.0);
 
-            graphics->parameter(5, current);
-            current -= increment;
-            graphics->draw(box, shader_picking, perspective, view, box1_matrix);
-            graphics->parameter(5, current);
-            current -= increment;
-            graphics->draw(box, shader_picking, perspective, view, box2_matrix);
+            graphics->draw(box, shader_picking, perspective, in_camera ? view : relative, box1_matrix);
+            graphics->draw(box, shader_picking, perspective, in_camera ? view : relative, box2_matrix);
 
             for (int y = 0; y < building.size(); y++) {
                 for (int x = 0; x < building[y].size(); x++) {
                     if (building[y][x] > 0) {
                         auto pos = spatial::matrix().translate({ (float)x * 2.0f,(float)(building.size() - y) * 2.0f, 0 });
-                        graphics->parameter(5, current);
-                        current -= increment;
-                        graphics->draw(box, shader_picking, perspective, view, pos);
+                        graphics->draw(box, shader_picking, perspective, in_camera ? view : relative, pos);
                     }
                 }
             }
 
-            graphics->parameter(5, current);
-            current -= increment;
-            graphics->draw(monkey, shader_picking, perspective, view, spatial::matrix().translate(0, -2, -10).scale(5.0f));
+            graphics->draw(monkey, shader_picking, perspective, in_camera ? view : relative, spatial::matrix().translate(0, -2, -10).scale(5.0f));
 
-            assets->get<type::entity>("objects/wiggle").flags = 1;
-            graphics->parameter(5, current);
-            current -= increment;
-            graphics->draw(assets->get<type::entity>("objects/wiggle"), shader_picking, perspective, view, wiggle_matrix);
+            graphics->draw(assets->get<type::entity>("objects/wiggle"), shader_picking, perspective, in_camera ? view : relative, wiggle_matrix);
+
+            if (in_camera == false) {
+                auto reposition = camera;
+                reposition.surge(1.5);
+                graphics->draw(assets->get<type::entity>("objects/camera"), shader_picking, perspective, relative, reposition);
+            }
         }
 
         // Render to the color buffer
@@ -579,11 +595,62 @@ public:
         // Create the blur buffer from the color buffer and depth
         {
             auto scoped = graphics->target(graphics->blur);
-            graphics->draw(graphics->color, shader_blur, graphics->ortho, spatial::matrix(), spatial::matrix());
+            graphics->draw(graphics->color, shader_blur, graphics->ortho);
         }
 
         // Render the visible scene
-        graphics->draw(graphics->color, shader_post, graphics->ortho, spatial::matrix(), spatial::matrix());
+        if (in_camera) { // In camera
+            graphics->draw(graphics->color, shader_post, graphics->ortho);
+        }
+        else { // Freelook
+            graphics->draw(ground, shader_scenery, perspective, relative, spatial::matrix().scale(4.0f), ortho * lighting, platform::graphics::render::NORMALS);
+            
+            for (int y = 0; y < building.size(); y++) {
+                for (int x = 0; x < building[y].size(); x++) {
+                    if (building[y][x] > 0) {
+                        auto pos = spatial::matrix().translate({ (float)x * 2.0f,(float)(building.size() - y) * 2.0f, 0 });
+                        graphics->draw(box, shader_objects, perspective, relative, pos, ortho * lighting);
+                    }
+                }
+            }
+
+            graphics->draw(box, shader_objects, perspective, relative, box1_matrix, ortho * lighting);
+            graphics->draw(box, shader_objects, perspective, relative, box2_matrix, ortho * lighting);
+
+            graphics->draw(xAxis, shader_basic, perspective, relative);
+            graphics->draw(yAxis, shader_basic, perspective, relative);
+            graphics->draw(zAxis, shader_basic, perspective, relative);
+
+            graphics->draw(monkey, shader_objects, perspective, relative, spatial::matrix().translate(0, -2, -10).scale(5.0f));
+
+            draw(graphics->ambient.position, shader_basic, perspective, relative, spatial::matrix());
+
+            graphics->draw(assets->get<type::entity>("objects/wiggle"), shader_objects, perspective, relative, wiggle_matrix);
+
+            if (0) {
+                spatial::matrix direct = spatial::position().lookat(camera.eye);
+                bounds = direct.interpolate(spatial::quad(1.0, 1.0));
+                graphics->compile(bounds);
+                graphics->draw(bounds, shader_wireframe, perspective, relative, spatial::matrix(), spatial::matrix(), platform::graphics::render::WIREFRAME);
+            }
+            else {
+                //graphics->draw(bounds, shader_wireframe, perspective, relative, spatial::position().lookat(freelook.eye), spatial::matrix(), platform::graphics::render::WIREFRAME);
+            }
+
+            for (auto& ray : rays) {
+                graphics->draw(ray, shader_wireframe, perspective, relative, spatial::matrix(), spatial::matrix(), platform::graphics::render::WIREFRAME);
+            }
+
+            // Draw a physical camera
+            spatial::position reposition = camera;
+            reposition.heave(viewport.height() / 2.0 * -1);
+            reposition.sway(viewport.width() / 2.0);
+            reposition.surge(0.5);
+            graphics->draw(viewport, shader_post, perspective, relative, reposition);
+            reposition = camera;
+            reposition.surge(1.5);
+            graphics->draw(assets->get<type::entity>("objects/camera"), shader_basic, perspective, relative, reposition);
+        }
 
         // Render anything not subjected to post processing
         graphics->draw(graphics->shadow, graphics->shadow.texture.depth ? assets->get<type::program>("depth_to_color") : shader_basic, graphics->ortho, spatial::matrix(), spatial::matrix().translate(20, graphics->height() - 20 - 256, 0));
@@ -663,8 +730,8 @@ public:
             ss << "freelook_move(" << ev.identifier << ")(" << ev.point.x << ", " << ev.point.y << ")";
             main::debug().content.add(ss.str());
         }
-        camera.pitch(ev.point.y - prior_y);
-        camera.spin(prior_x - ev.point.x);
+        freelook.pitch(ev.point.y - prior_y);
+        freelook.spin(prior_x - ev.point.x);
         prior_x = ev.point.x;
         prior_y = ev.point.y;
     }
@@ -675,7 +742,7 @@ public:
             ss << "on_zoom(" << ev.travel << ")(" << ev.point.x << ", " << ev.point.y << ")";
             main::debug().content.add(ss.str());
         }
-        camera.surge(ev.travel > 0 ? 1.0 : -1.0);
+        freelook.surge(ev.travel > 0 ? 1.0 : -1.0);
     }
 
     void mouse_click(const platform::input::event& ev) {
@@ -705,6 +772,8 @@ public:
             int g = graphics->pixels[i+1];
             int b = graphics->pixels[i+2];
             int a = graphics->pixels[i+3];
+
+            selected = (g * 255) + b;
 
             std::stringstream ss;
             ss << "mouse_click(" << ev.point.x << ", " << ev.point.y << ") (" << r << "," << g << "," << b << "," << a << ")";

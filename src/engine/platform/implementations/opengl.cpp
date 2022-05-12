@@ -287,6 +287,7 @@ bool implementation::opengl::graphics::compile(type::program& program) {
     program.a_ModelMatrix = glGetAttribLocation(program.context, "a_ModelMatrix");
 
     program.a_Identifier = glGetAttribLocation(program.context, "a_Identifier");
+    program.a_Flags = glGetAttribLocation(program.context, "a_Flags");
 
     program.a_Vertex = glGetAttribLocation(program.context, "a_Vertex");
     program.a_Texture = glGetAttribLocation(program.context, "a_Texture");
@@ -415,15 +416,23 @@ bool implementation::opengl::graphics::compile(type::entity& entity) {
     else if (entity.identifiers.content.size()) {
         glGenBuffers(1, &entity.identifiers.context);
         glBindBuffer(GL_ARRAY_BUFFER, entity.identifiers.context);
-
-        float* ptr = (float*)entity.identifiers.content.data();
-
-        //glBufferData(GL_ARRAY_BUFFER, sizeof(spatial::matrix) * entity.positions.size(), entity.positions.data(), GL_DYNAMIC_DRAW);
         glBufferData(GL_ARRAY_BUFFER, sizeof(unsigned int) * 1024, NULL, GL_STREAM_DRAW);
         glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(unsigned int) * entity.identifiers.content.size(), entity.identifiers.content.data());
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
 
+    if (entity.flags.context) {
+        glBindBuffer(GL_ARRAY_BUFFER, entity.flags.context);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(unsigned int) * entity.flags.content.size(), entity.flags.content.data());
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+    }
+    else if (entity.flags.content.size()) {
+        glGenBuffers(1, &entity.flags.context);
+        glBindBuffer(GL_ARRAY_BUFFER, entity.flags.context);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(unsigned int) * 1024, NULL, GL_STREAM_DRAW);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(unsigned int) * entity.flags.content.size(), entity.flags.content.data());
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+    }
 
     if (entity.positions.context) {
         glBindBuffer(GL_ARRAY_BUFFER, entity.positions.context);
@@ -433,10 +442,6 @@ bool implementation::opengl::graphics::compile(type::entity& entity) {
     else if (entity.positions.content.size()) {
         glGenBuffers(1, &entity.positions.context);
         glBindBuffer(GL_ARRAY_BUFFER, entity.positions.context);
-
-        float* ptr = (float*)entity.positions.content.data();
-
-        //glBufferData(GL_ARRAY_BUFFER, sizeof(spatial::matrix) * entity.positions.size(), entity.positions.data(), GL_DYNAMIC_DRAW);
         glBufferData(GL_ARRAY_BUFFER, sizeof(spatial::matrix) * 1024, NULL, GL_STREAM_DRAW);
         glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(spatial::matrix) * entity.positions.content.size(), entity.positions.content.data());
         glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -523,7 +528,7 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
 
     glUniform4f(shader.u_Clipping, clip_top[clip_top.size()-1], clip_bottom[clip_bottom.size() - 1], clip_left[clip_left.size() - 1], clip_right[clip_right.size() - 1]);
 
-    glUniform1ui(shader.u_Flags, object.emitter ? object.emitter->flags : object.flags);
+    glUniform1ui(shader.u_Flags, object.flags);
     glUniformMatrix4fv(shader.u_Parameters, 1, GL_FALSE, (GLfloat*)parameters.data());
 
     glBindBuffer(GL_ARRAY_BUFFER, target.context);
@@ -565,11 +570,22 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
             glVertexAttribDivisor(shader.a_Identifier, 1);
         }
 
+        if (shader.a_Flags >= 0 && object.emitter->flags.context) {
+            glBindBuffer(GL_ARRAY_BUFFER, object.emitter->flags.context);
+
+            glVertexAttribPointer(shader.a_Flags, 1, GL_FLOAT, GL_FALSE, sizeof(unsigned int), BUFFER_OFFSET(0));
+            glEnableVertexAttribArray(shader.a_Flags);
+            glVertexAttribDivisor(shader.a_Flags, 1);
+        }
+
         instances = object.emitter->instances.size();
     }
     else {
         if (shader.a_Identifier >= 0) {
             glDisableVertexAttribArray(shader.a_Identifier);
+        }
+        if (shader.a_Flags >= 0) {
+            glDisableVertexAttribArray(shader.a_Flags);
         }
     }
 

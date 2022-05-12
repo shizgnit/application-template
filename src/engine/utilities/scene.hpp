@@ -44,6 +44,7 @@ public:
         bool displayed = false;
 
         spatial::position camera;
+        spatial::position freelook;
     };
 
     static platform::interface::textbox& debug() {

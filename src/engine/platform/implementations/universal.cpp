@@ -389,7 +389,13 @@ std::string implementation::universal::assets::load(platform::assets* instance, 
         }
     }
     if (type == "entity") {
+        auto& entity = instance->get<type::entity>(cache);
+
         for (auto state : instance->list(path)) {
+            if (state == "ls.txt") {
+                continue;
+            }
+
             auto resources = instance->list(path + "/" + state);
             std::sort(resources.begin(), resources.end());
 
@@ -400,8 +406,6 @@ std::string implementation::universal::assets::load(platform::assets* instance, 
                 }
             }
 
-            auto& entity = instance->get<type::entity>(cache);
-
             entity.animations[state].frames.resize(objects.size());
 
             int frame = 0;
@@ -410,6 +414,9 @@ std::string implementation::universal::assets::load(platform::assets* instance, 
                 frame++;
             }
         }
+//        if (entity.animations.size() == 1) {
+//            entity.play(entity.animations.begin()->first);
+//        }
     }
 
     return cache;

@@ -16,6 +16,7 @@ namespace type {
         int a_ModelMatrix;
 
         int a_Identifier;
+        int a_Flags;
 
         int u_Clipping;
 
