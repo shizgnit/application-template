@@ -39,7 +39,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)platform\interfaces\input.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)platform\interfaces\interface.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)platform\interfaces\network.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)prototype.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)types\formats\fbx.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)types\formats\fnt.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)types\formats\frag.hpp" />
@@ -74,7 +73,6 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)platform\implementations\posix.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)platform\implementations\universal.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)platform\implementations\windows.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)prototype.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)utilities\common.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)utilities\scene.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)utilities\spatial.cpp" />

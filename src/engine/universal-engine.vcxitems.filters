@@ -37,7 +37,6 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\deps\miniz-2.2.0\miniz.c">
       <Filter>deps\miniz</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)prototype.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)utilities\scene.cpp">
       <Filter>utilities</Filter>
     </ClCompile>
@@ -179,7 +178,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\deps\miniz-2.2.0\miniz.h">
       <Filter>deps\miniz</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)prototype.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)utilities\scene.hpp">
       <Filter>utilities</Filter>
     </ClInclude>

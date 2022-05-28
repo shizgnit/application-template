@@ -171,10 +171,5 @@ inline platform::network::server* server = new implementation::windows::network:
 #include "types/formats/fbx.hpp"
 
 
-/// Just a simple prototype implementation to test infrastructure portability, will be refactored later
 #include "utilities/scene.hpp"
-#include "prototype.hpp"
-
-/// Application definition instance to pass information into the prototype
-inline application* instance = new prototype();
 

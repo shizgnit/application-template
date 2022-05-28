@@ -6,6 +6,11 @@
 
 #include "engine.hpp"
 
+#include "application.hpp"
+
+inline application* instance = new app();
+
+
 #define MAX_LOADSTRING 100
 
 // Global Variables:
