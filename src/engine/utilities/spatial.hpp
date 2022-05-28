@@ -286,10 +286,22 @@ namespace spatial {
         position& reposition(const vector& offset);
         position& lookat(const vector& offset);
 
+        void constrain(bool x, bool y, bool z);
+
+        vector x(type_t magnitude = -1.0);
+        vector y(type_t magnitude = 1.0);
+        vector z(type_t magnitude = 1.0);
+
         vector down();
 
     public:
         bool view;
+
+        struct {
+            bool x = false;
+            bool y = false;
+            bool z = false;
+        } constraint;
 
         struct {
             type_t pitch = 0.0f;
@@ -302,8 +314,28 @@ namespace spatial {
         vector center;
         vector up;
 
+        void apply(const position& reference);
+
     protected:
         position& rotate();
+    };
+
+    class store {
+        position storage;
+        position* source = NULL;
+        store() {} // hidden
+    public:
+        store(position& instance) {
+            if (instance.constraint.x || instance.constraint.y || instance.constraint.z) {
+                storage = instance;
+                source = &instance;
+            }
+        }
+        ~store() {
+            if (source) {
+                source->apply(storage);
+            }
+        }
     };
 
     class plane {

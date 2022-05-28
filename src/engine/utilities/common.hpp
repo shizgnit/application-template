@@ -145,9 +145,7 @@ namespace utilities {
             }
             auto current = std::next(data.begin(), index);
             if (count >= current->size()) {
-                if (data.size()) {
-                    data.pop_back();
-                }
+                current->clear();
             }
             else {
                 current->erase(current->size() - count, count);

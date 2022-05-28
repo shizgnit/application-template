@@ -55,16 +55,18 @@ public:
                 break;
             case(13): // Enter to submit
                 content = commandline.content.get();
-                if (content.size() && content.back().size() && content.back()[0] == '/') {
-                    main::global().call(content.back());
+                if (content.size()) {
+                    if (content.back().size() && content.back()[0] == '/') {
+                        main::global().call(content.back());
+                    }
+                    else {
+                        main::debug().content.add(content.back());
+                    }
+                    if (commandline.content.position() == 0) {
+                        commandline.content.add();
+                    }
+                    commandline.content.position(content.back().size() * -1);
                 }
-                else {
-                    main::debug().content.add(content.back());
-                }
-                if (commandline.content.position() == 0) {
-                    commandline.content.add();
-                }
-                commandline.content.position(commandline.content.size() * -1);
                 break;
             default: // Every other printable gets added to the contents
                 commandline.content.append(input->printable(ev.identifier));
@@ -572,24 +574,7 @@ public:
 
             graphics->draw(monkey, shader_objects, perspective, view, spatial::matrix().translate(0, -2, -10).scale(5.0f));
 
-            draw(graphics->ambient.position, shader_basic, perspective, view, spatial::matrix());
-
             graphics->draw(assets->get<type::entity>("objects/wiggle"), shader_objects, perspective, view, wiggle_matrix);
-
-            if (1) {
-                spatial::matrix direct = spatial::position().lookat(camera.eye);
-                bounds = direct.interpolate(spatial::quad(1.0, 1.0));
-                graphics->compile(bounds);
-                graphics->draw(bounds, shader_wireframe, perspective, view, spatial::matrix(), spatial::matrix(), platform::graphics::render::WIREFRAME);
-            }
-            else {
-                graphics->draw(bounds, shader_wireframe, perspective, view, spatial::position().lookat(camera.eye), spatial::matrix(), platform::graphics::render::WIREFRAME);
-            }
-
-            for (auto& ray : rays) {
-                graphics->draw(ray, shader_wireframe, perspective, view, spatial::matrix(), spatial::matrix(), platform::graphics::render::WIREFRAME);
-            }
-
         }
 
         // Create the blur buffer from the color buffer and depth
@@ -627,14 +612,17 @@ public:
 
             graphics->draw(assets->get<type::entity>("objects/wiggle"), shader_objects, perspective, relative, wiggle_matrix);
 
-            if (0) {
+            /// <summary>
+            /// Draw all the stuff not visible in camera view
+            /// </summary>
+            if (1) {
                 spatial::matrix direct = spatial::position().lookat(camera.eye);
                 bounds = direct.interpolate(spatial::quad(1.0, 1.0));
                 graphics->compile(bounds);
                 graphics->draw(bounds, shader_wireframe, perspective, relative, spatial::matrix(), spatial::matrix(), platform::graphics::render::WIREFRAME);
             }
             else {
-                //graphics->draw(bounds, shader_wireframe, perspective, relative, spatial::position().lookat(freelook.eye), spatial::matrix(), platform::graphics::render::WIREFRAME);
+                graphics->draw(bounds, shader_wireframe, perspective, relative, spatial::position().lookat(camera.eye), spatial::matrix(), platform::graphics::render::WIREFRAME);
             }
 
             for (auto& ray : rays) {
@@ -649,13 +637,13 @@ public:
             graphics->draw(viewport, shader_post, perspective, relative, reposition);
             reposition = camera;
             reposition.surge(1.5);
-            graphics->draw(assets->get<type::entity>("objects/camera"), shader_basic, perspective, relative, reposition);
-        }
+            graphics->draw(assets->get<type::entity>("objects/camera"), shader_objects, perspective, relative, reposition);
 
-        // Render anything not subjected to post processing
-        graphics->draw(graphics->shadow, graphics->shadow.texture.depth ? assets->get<type::program>("depth_to_color") : shader_basic, graphics->ortho, spatial::matrix(), spatial::matrix().translate(20, graphics->height() - 20 - 256, 0));
-        graphics->draw(graphics->depth, graphics->depth.texture.depth ? assets->get<type::program>("depth_to_color") : shader_basic, graphics->ortho, spatial::matrix(), spatial::matrix().translate(40 + 256, graphics->height() - 20 - 256, 0).scale(0.2));
-        graphics->draw(graphics->picking, graphics->picking.texture.depth ? assets->get<type::program>("depth_to_color") : shader_basic, graphics->ortho, spatial::matrix(), spatial::matrix().translate(40 + 582, graphics->height() - 20 - 256, 0).scale(0.2));
+            // Show the offscreen buffers
+            graphics->draw(graphics->shadow, graphics->shadow.texture.depth ? assets->get<type::program>("depth_to_color") : shader_basic, graphics->ortho, spatial::matrix(), spatial::matrix().translate(20, graphics->height() - 20 - 256, 0));
+            graphics->draw(graphics->depth, graphics->depth.texture.depth ? assets->get<type::program>("depth_to_color") : shader_basic, graphics->ortho, spatial::matrix(), spatial::matrix().translate(40 + 256, graphics->height() - 20 - 256, 0).scale(0.2));
+            graphics->draw(graphics->picking, graphics->picking.texture.depth ? assets->get<type::program>("depth_to_color") : shader_basic, graphics->ortho, spatial::matrix(), spatial::matrix().translate(40 + 582, graphics->height() - 20 - 256, 0).scale(0.2));
+        }
 
         //spatial::matrix model = spatial::matrix().translate(pos.eye, pos.center, pos.up);
 
@@ -879,6 +867,18 @@ public:
 
         if (ev.gesture == platform::input::UP && gui->active() == false) {
             switch (ev.identifier) {
+            case(88):
+                freelook.lookat(freelook.x());
+                //freelook.constrain(true, false, false);
+                break;
+            case(89):
+                freelook.lookat(freelook.y());
+                //freelook.constrain(false, true, false);
+                break;
+            case(90):
+                freelook.lookat(freelook.z());
+                //freelook.constrain(false, false, true);
+                break;
             case(32):
                 //projectiles.push_back(pos);
                 //if (projectiles.size() > 10) {

@@ -883,6 +883,8 @@ void spatial::position::viewable(bool toggle) {
 }
 
 spatial::position& spatial::position::surge(type_t t) {
+    store scope(*this);
+
     vector diff = (eye - center).unit() * t;
 
     center += diff;
@@ -892,6 +894,8 @@ spatial::position& spatial::position::surge(type_t t) {
 }
 
 spatial::position& spatial::position::sway(type_t t) {
+    store scope(*this);
+
     vector normal = eye - center;
     vector cross = (normal % up) + center;
     vector diff = (cross - center) * t;
@@ -903,6 +907,8 @@ spatial::position& spatial::position::sway(type_t t) {
 }
 
 spatial::position& spatial::position::heave(type_t t) {
+    store scope(*this);
+
     vector diff = up * t;
 
     center += diff;
@@ -932,6 +938,8 @@ spatial::position& spatial::position::spin(type_t angle) {
 }
 
 spatial::position& spatial::position::rotate() {
+    store scope(*this);
+
     vector offset = center;
 
     identity();
@@ -953,6 +961,8 @@ spatial::position& spatial::position::rotate() {
 }
 
 void spatial::position::project(const vector& offset, const vector& projection) {
+    store scope(*this);
+
     vector normal = eye - center;
 
     vector cross = (normal % up) + center;
@@ -965,25 +975,63 @@ void spatial::position::project(const vector& offset, const vector& projection) 
 }
 
 spatial::position& spatial::position::reposition(const vector& offset) {
+    store scope(*this);
+
     center += offset - eye;
     eye = offset;
+
     return *this;
 }
 
 spatial::position& spatial::position::lookat(const vector& offset) {
+    store scope(*this);
+
     auto forward = (offset - eye).unit();
-    auto right = vector(0, 1, 0) % forward;
+    auto right = forward == vector(0, -1, 0) ? vector(-1, 0, 0) : vector(0, 1, 0) % forward;
 
     center = forward + eye;
-    up = (forward % right).unit();
+    up = (forward % right).unit(); 
 
     return *this;
 }
 
-spatial::vector spatial::position::down() {
-    return center - spatial::vector(0, 1, 0);
+void spatial::position::constrain(bool x, bool y, bool z) {
+    constraint.x = x;
+    constraint.y = y;
+    constraint.z = z;
 }
 
+void spatial::position::apply(const spatial::position& reference) {
+    if (constraint.x) {
+        this->eye.x = reference.eye.x;
+        this->center.x = reference.center.x;
+        this->up.x = reference.up.x;
+    }
+    if (constraint.y) {
+        this->eye.y = reference.eye.y;
+        this->center.y = reference.center.y;
+        this->up.y = reference.up.y;
+    }
+    if (constraint.z) {
+        this->eye.z = reference.eye.z;
+        this->center.z = reference.center.z;
+        this->up.z = reference.up.z;
+    }
+}
+
+spatial::vector spatial::position::x(type_t magnitude) {
+    return eye - spatial::vector(magnitude, 0, 0);
+}
+spatial::vector spatial::position::y(type_t magnitude) {
+    return eye - spatial::vector(0, magnitude, 0);
+}
+spatial::vector spatial::position::z(type_t magnitude) {
+    return eye - spatial::vector(0, 0, magnitude);
+}
+
+spatial::vector spatial::position::down() {
+    return y();
+}
 
 spatial::sphere::sphere(int horizontal, int vertical) : sphere() {
     interpolate(horizontal, vertical);
