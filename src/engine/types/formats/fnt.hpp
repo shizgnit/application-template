@@ -1,6 +1,6 @@
 #pragma once
 
-#include "deps/pugixml/src/pugixml.hpp"
+#include "pugixml/src/pugixml.hpp"
 
 namespace format {
 

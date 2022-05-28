@@ -3,7 +3,7 @@
 //#include "deps/fbx-master/src/fbxdocument.h"
 
 #include <variant>
-#include <deps/miniz-2.2.0/miniz.h>
+#include <miniz-2.2.0/miniz.h>
 
 //#include "zlib.h"
 

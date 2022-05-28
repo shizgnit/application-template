@@ -1,6 +1,6 @@
 #pragma once
 
-#include "deps/lodepng/lodepng.h"
+#include "lodepng/lodepng.h"
 
 namespace format {
 
