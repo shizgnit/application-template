@@ -64,7 +64,12 @@ void implementation::universal::input::on_release(const event& ev) {
                                 return p->code == ev.identifier;
                               });
     active_pointers.erase(end, active_pointers.end());
-    platform::input::raise({ POINTER, UP, ev.identifier, time(NULL) - pointers[ev.identifier].pressed, 0.0f, ev.point });
+
+    // Store off the pressed so it can be cleared before raising the event
+    auto reference = pointers[ev.identifier].pressed;
+    pointers[ev.identifier].pressed = 0;
+
+    platform::input::raise({ POINTER, UP, ev.identifier, time(NULL) - reference, 0.0f, ev.point });
 }
 
 void averages(const implementation::universal::input::event& ev, float& distance, spatial::vector& point) {
@@ -90,6 +95,18 @@ void averages(const implementation::universal::input::event& ev, float& distance
 
 void implementation::universal::input::on_move(const event& ev) {
     if (active_pointers.size()) {
+        auto derived = ev.identifier;
+        for (int i = 0; i < 8; i++) {
+            if (derived == 0 && pointers[i].pressed) {
+                derived = i;
+                break;
+            }
+        }
+        // Special case to simulate middle mouse... not sure if
+        if (derived == 0 && pointers[1].pressed && pointers[2].pressed) {
+            derived = 3;
+        }
+
         if (ev.points.size() > 1) {
             drag = false; // Don't allow trailing input to drag the view
             float current_distance;
@@ -98,17 +115,17 @@ void implementation::universal::input::on_move(const event& ev) {
             averages(ev, current_distance, current_position);
 
             if (abs(current_distance - last_distance) > threshold_travel) {
-                platform::input::raise({ POINTER, PINCH, ev.identifier, time(NULL) - pointers[ev.identifier].pressed, current_distance - last_distance, current_position, ev.points });
+                platform::input::raise({ POINTER, PINCH, derived, time(NULL) - pointers[ev.identifier].pressed, current_distance - last_distance, current_position, ev.points });
             }
             else {
-                platform::input::raise({ POINTER, WHEEL, ev.identifier, time(NULL) - pointers[ev.identifier].pressed, last_position.distance(current_position), current_position, ev.points});
+                platform::input::raise({ POINTER, WHEEL, derived, time(NULL) - pointers[ev.identifier].pressed, last_position.distance(current_position), current_position, ev.points});
             }
 
             last_distance = current_distance;
             last_position = current_position;
         }
         else if(drag) {
-            platform::input::raise({ POINTER, DRAG, ev.identifier, time(NULL) - pointers[ev.identifier].pressed, 0.0f, ev.point });
+            platform::input::raise({ POINTER, DRAG, derived, time(NULL) - pointers[ev.identifier].pressed, 0.0f, ev.point });
         }
     }
     else {
@@ -145,8 +162,11 @@ void implementation::universal::input::on_key_up(const event& ev) {
         tracking.unlock();
     }
 
+    // Store off the pressed so it can be cleared before raising the event
+    auto reference = keys[ev.identifier].pressed;
     keys[ev.identifier].pressed = 0;
-    platform::input::raise({ KEY, UP, ev.identifier, time(NULL) - keys[ev.identifier].pressed, 0.0f, { 0.0f, 0.0f, 0.0f } });
+
+    platform::input::raise({ KEY, UP, ev.identifier, time(NULL) - reference, 0.0f, { 0.0f, 0.0f, 0.0f } });
 }
 
 void implementation::universal::input::on_button_down(const event& ev) {
