@@ -292,7 +292,9 @@ namespace spatial {
         vector y(type_t magnitude = 1.0);
         vector z(type_t magnitude = 1.0);
 
+        vector forward();
         vector down();
+        vector tanget();
 
     public:
         bool view;
@@ -316,6 +318,8 @@ namespace spatial {
 
         void apply(const position& reference);
 
+        double rate = 1.0f;
+
     protected:
         position& rotate();
     };
@@ -338,8 +342,14 @@ namespace spatial {
         }
     };
 
-    class plane {
+    class plane : public geometry {
     public:
+        plane() : geometry() {}
+        plane(vector p, vector n) {
+            point = p;
+            normal = n;
+        }
+
         vector point;
         vector normal;
     };
@@ -411,7 +421,10 @@ namespace spatial {
         ray() : geometry() {}
         ray(const vector& origin, const vector& terminus);
 
+        ray(const vector& point, const matrix& perspective, const matrix& view, const int& w, const int& h);
+
         ray &interpolate(const vector& origin, const vector& terminus);
+        ray &projection(const vector& point, const matrix& perspective, const matrix& view, const int& w, const int& h);
 
         typedef vector::type_t type_t;
 

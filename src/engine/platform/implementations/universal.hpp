@@ -16,6 +16,9 @@ namespace implementation {
             }
 
         protected:
+            int active_pointer();
+            int active_pointer(const event& ev);
+
             void on_press(const event& ev);
             void on_release(const event& ev);
             void on_move(const event& ev);

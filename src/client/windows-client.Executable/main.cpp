@@ -524,8 +524,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
         }
 
-        if (instance->started)
+        if (instance->started) {
+            instance->on_interval();
             instance->on_draw();
+        }
+
         SwapBuffers(hdc);
         break;
 

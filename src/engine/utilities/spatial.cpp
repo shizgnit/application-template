@@ -1029,8 +1029,17 @@ spatial::vector spatial::position::z(type_t magnitude) {
     return eye - spatial::vector(0, 0, magnitude);
 }
 
+spatial::vector spatial::position::forward() {
+    return (eye - center).unit();
+}
+
 spatial::vector spatial::position::down() {
     return y();
+}
+
+spatial::vector spatial::position::tanget() {
+    vector normal = eye - center;
+    return (normal % up) + center;
 }
 
 spatial::sphere::sphere(int horizontal, int vertical) : sphere() {
@@ -1161,15 +1170,23 @@ spatial::ray::ray(const vector& origin, const vector& terminus) : ray() {
     interpolate(origin, terminus);
 }
 
+spatial::ray::ray(const vector& point, const matrix& perspective, const matrix& view, const int& w, const int& h) {
+    projection(point, perspective, view, w, h);
+}
+
 spatial::ray &spatial::ray::interpolate(const vector& origin, const vector& terminus) {
     vertices.resize(2);
-
     vertices[0] = origin;
     vertices[1] = terminus;
-
     return *this;
 }
 
+spatial::ray &spatial::ray::projection(const vector& point, const matrix& perspective, const matrix& view, const int& w, const int& h) {
+    vertices.resize(2);
+    vertices[0] = spatial::vector({ point.x, point.y }).unproject(perspective, view, w, h);
+    vertices[1] = spatial::vector({ point.x, point.y, 1.0f }).unproject(perspective, view, w, h);
+    return *this;
+}
 
 spatial::ray::type_t spatial::ray::distance(const spatial::ray& r) {
     // TODO: needs implementation
@@ -1262,21 +1279,13 @@ spatial::vector spatial::ray::intersection(const spatial::triangle& triangle) {
 
 // https://en.wikipedia.org/wiki/Line%E2%80%93plane_intersection
 spatial::vector spatial::ray::intersection(const spatial::plane& p) {
-    auto d = vertices[1] - vertices[0];
-    auto denominator = d.dot(p.normal);
-
-    if (abs(denominator) > 0.0001f) {
-        auto t = p.normal.dot(p.point - vertices[0]) / denominator;
-        //if (t >= 0) {
-            return vertices[0] + d * t;
-        //}
+    auto d = vertices[1].unit().dot(p.normal);
+    if (abs(d) > 0.0001f) {
+        auto r = vertices[0] - p.point;
+        auto t = -r.dot(p.normal);
+        return (r + p.point) + (vertices[1].unit() * (t / d));
     }
-
     return spatial::vector();
-
-    //auto d = p.point - point;
-    //auto s = d.dot(p.normal) / direction.dot(p.normal);
-    //return point + direction * s;
 }
 
 spatial::vector spatial::triangle::normal() const {

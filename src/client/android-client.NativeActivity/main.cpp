@@ -324,8 +324,10 @@ static void engine_draw_frame(struct engine* engine) {
 
 	//renderFrame();
 
-	if (instance->started)
+	if (instance->started) {
+		instance->on_interval();
 		instance->on_draw();
+	}
 	
 	eglSwapBuffers(engine->display, engine->surface);
 }

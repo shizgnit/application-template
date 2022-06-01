@@ -61,6 +61,13 @@ bool main::transition(std::string from, std::string to) {
     return true;
 }
 
+void main::draw() {
+    auto list = active;
+    for (auto scene : list) {
+        scene.second->draw();
+    }
+}
+
 void main::run() {
     if (transitions.size()) {
         transition(transitions.front().first, transitions.front().second);
@@ -102,6 +109,16 @@ void main::mouse_click(const platform::input::event& ev) {
 void main::mouse_move(const platform::input::event& ev) {
     for (auto scene : active) {
         scene.second->mouse_move(ev);
+    }
+}
+void main::mouse_drag(const platform::input::event& ev) {
+    for (auto scene : active) {
+        scene.second->mouse_drag(ev);
+    }
+}
+void main::mouse_scroll(const platform::input::event& ev) {
+    for (auto scene : active) {
+        scene.second->mouse_scroll(ev);
     }
 }
 void main::keyboard_input(const platform::input::event& ev) {

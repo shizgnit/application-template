@@ -23,7 +23,7 @@ void implementation::universal::input::raise(const event& ev) {
             on_move(ev);
         }
         if (ev.gesture == WHEEL) {
-            platform::input::raise({ POINTER, WHEEL, ev.identifier, time(NULL) - pointers[ev.identifier].pressed, ev.travel, ev.point });
+            platform::input::raise({ POINTER, WHEEL, active_pointer(), time(NULL) - pointers[ev.identifier].pressed, ev.travel, ev.point });
         }
     }
     if (ev.input == KEY) {
@@ -34,6 +34,23 @@ void implementation::universal::input::raise(const event& ev) {
             on_key_up(ev);
         }
     }
+}
+int implementation::universal::input::active_pointer() {
+    return active_pointer(event());
+}
+int implementation::universal::input::active_pointer(const event& ev) {
+    auto derived = ev.identifier;
+    for (int i = 0; i < 8; i++) {
+        if (derived == 0 && pointers[i].pressed) {
+            derived = i;
+            break;
+        }
+    }
+    // Special case to simulate middle mouse... not sure if
+    if (derived == 0 && pointers[1].pressed && pointers[2].pressed) {
+        derived = 3;
+    }
+    return derived;
 }
 
 void implementation::universal::input::on_press(const event& ev) {
@@ -95,18 +112,7 @@ void averages(const implementation::universal::input::event& ev, float& distance
 
 void implementation::universal::input::on_move(const event& ev) {
     if (active_pointers.size()) {
-        auto derived = ev.identifier;
-        for (int i = 0; i < 8; i++) {
-            if (derived == 0 && pointers[i].pressed) {
-                derived = i;
-                break;
-            }
-        }
-        // Special case to simulate middle mouse... not sure if
-        if (derived == 0 && pointers[1].pressed && pointers[2].pressed) {
-            derived = 3;
-        }
-
+        auto active = active_pointer(ev);
         if (ev.points.size() > 1) {
             drag = false; // Don't allow trailing input to drag the view
             float current_distance;
@@ -115,17 +121,17 @@ void implementation::universal::input::on_move(const event& ev) {
             averages(ev, current_distance, current_position);
 
             if (abs(current_distance - last_distance) > threshold_travel) {
-                platform::input::raise({ POINTER, PINCH, derived, time(NULL) - pointers[ev.identifier].pressed, current_distance - last_distance, current_position, ev.points });
+                platform::input::raise({ POINTER, PINCH, active, time(NULL) - pointers[ev.identifier].pressed, current_distance - last_distance, current_position, ev.points });
             }
             else {
-                platform::input::raise({ POINTER, WHEEL, derived, time(NULL) - pointers[ev.identifier].pressed, last_position.distance(current_position), current_position, ev.points});
+                platform::input::raise({ POINTER, WHEEL, active, time(NULL) - pointers[ev.identifier].pressed, last_position.distance(current_position), current_position, ev.points});
             }
 
             last_distance = current_distance;
             last_position = current_position;
         }
         else if(drag) {
-            platform::input::raise({ POINTER, DRAG, derived, time(NULL) - pointers[ev.identifier].pressed, 0.0f, ev.point });
+            platform::input::raise({ POINTER, DRAG, active, time(NULL) - pointers[ev.identifier].pressed, 0.0f, ev.point });
         }
     }
     else {

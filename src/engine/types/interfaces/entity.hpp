@@ -20,6 +20,7 @@ namespace type {
             utilities::seconds_t elapsed;
             std::string state;
             spatial::position position;
+            spatial::vector offset;
             std::list<spatial::position> path;
 
             spatial::vector::type_t distance;

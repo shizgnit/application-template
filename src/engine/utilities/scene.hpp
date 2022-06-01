@@ -21,6 +21,7 @@ public:
 
         virtual bool load() { return true; }
         virtual void start() {}
+        virtual void draw() {}
         virtual void run() {}
         virtual void stop() {}
 
@@ -29,6 +30,8 @@ public:
         virtual void freelook_zoom(const platform::input::event& ev) {}
         virtual void mouse_click(const platform::input::event& ev) {}
         virtual void mouse_move(const platform::input::event& ev) {}
+        virtual void mouse_drag(const platform::input::event& ev) {}
+        virtual void mouse_scroll(const platform::input::event& ev) {}
         virtual void keyboard_input(const platform::input::event& ev) {}
         virtual void gamepad_input(const platform::input::event& ev) {}
 
@@ -72,18 +75,23 @@ public:
     bool deactivate(std::string name);
     bool transition(std::string from, std::string to);
     void run();
+    void draw();
 
     std::map<std::string, scene*> current();
 
     /// <summary>
-    /// Event propagation to the active scenes
+    /// Event propagation to the active scenes, note that these have no inherent meaing.
     /// </summary>
 
     void freelook_start(const platform::input::event& ev);
     void freelook_move(const platform::input::event& ev);
     void freelook_zoom(const platform::input::event& ev);
+
     void mouse_click(const platform::input::event& ev);
     void mouse_move(const platform::input::event& ev);
+    void mouse_drag(const platform::input::event& ev);
+    void mouse_scroll(const platform::input::event& ev);
+
     void keyboard_input(const platform::input::event& ev);
     void gamepad_input(const platform::input::event& ev);
 
