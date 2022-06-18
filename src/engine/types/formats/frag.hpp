@@ -18,6 +18,7 @@ namespace format {
         friend type::shader& operator>>(std::istream& input, format::frag& instance) {
             /// ignore any non-good stream states
             if (input.good() == false) {
+                assets->release();
                 return instance;
             }
 

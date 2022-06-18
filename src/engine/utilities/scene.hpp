@@ -46,7 +46,7 @@ public:
         bool loaded = false;
         bool displayed = false;
 
-        spatial::position camera;
+        //spatial::position camera;
         spatial::position freelook;
     };
 

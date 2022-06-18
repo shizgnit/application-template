@@ -367,7 +367,7 @@ void* start_server(void *instance) {
     int clientAddrSize = sizeof(clientAddr);
     while ((client = accept(server, (SOCKADDR*)&clientAddr, &clientAddrSize)) != INVALID_SOCKET)
     {
-        auto instantiated = (implementation::windows::network::client *)reference->add("somkething", new implementation::windows::network::client());
+        auto instantiated = (implementation::windows::network::client *)reference->add("something", new implementation::windows::network::client());
         instantiated->connection = client;
         instantiated->parent = reference;
         pthread_create(&instantiated->thread, NULL, start_client, (void*)instantiated);

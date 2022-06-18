@@ -18,6 +18,7 @@ namespace format {
         friend std::istream& operator>>(std::istream& input, format::tga& instance) {
             /// ignore any non-good stream states
             if (input.good() == false) {
+                assets->release();
                 return input;
             }
 

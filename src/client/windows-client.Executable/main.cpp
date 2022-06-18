@@ -204,7 +204,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
    UpdateWindow(hWnd);
 
-   static char path[] = "C:\\Projects\\application-template\\assets";
+   static char path[] = "C:\\Projects\\applications\\assets";
    assets->init((void*)path);
 
    instance->dimensions(width, height)->on_startup();

@@ -337,7 +337,7 @@ value_t main::create(parameters_t p) {
 
 value_t main::show(parameters_t p) {
     if (p.size() == 0) {
-        main::debug().content.add("/show [commands|variables|assets|loaded]");
+        main::debug().content.add("/show [commands|variables|assets|loaded|entities]");
         return 0;
     }
 

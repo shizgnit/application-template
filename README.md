@@ -40,6 +40,10 @@ Bitmat fonts are created with the BMFont tool.
 
     https://www.angelcode.com/products/bmfont/
 
+Model viewer/export.
+
+    https://www.gildor.org/en/projects/umodel#files
+
 ## Contributing
 
 Currently just moving to gitflow for developer collaboration.  No expectations that there will be any, but having the workflow in place now will make it easier if the project ever grows.

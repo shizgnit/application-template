@@ -30,6 +30,7 @@ namespace format {
         friend type::object& operator>>(std::istream& input, format::obj& instance) {
             /// ignore any non-good stream states
             if (input.good() == false) {
+                assets->release();
                 return instance;
             }
 
@@ -62,7 +63,7 @@ namespace format {
 
             std::string line;
             while (std::getline(input, line)) {
-                auto arguments = utilities::tokenize(line, " ");
+                auto arguments = utilities::tokenize(utilities::rtrim(line), " ");
                 auto command = arguments[0];
 
                 if (command == "mtllib") { //material

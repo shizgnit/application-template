@@ -24,6 +24,7 @@ namespace format {
         friend type::image& operator>>(std::istream& input, format::png& instance) {
             /// ignore any non-good stream states
             if (input.good() == false) {
+                assets->release();
                 return instance;
             }
 

@@ -18,6 +18,7 @@ namespace format {
         friend type::audio& operator>>(std::istream& input, format::wav &instance) {
             /// ignore any non-good stream states
             if (input.good() == false) {
+                assets->release();
                 return instance;
             }
 

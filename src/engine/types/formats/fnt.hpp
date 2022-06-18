@@ -24,6 +24,7 @@ namespace format {
         friend type::font& operator>>(std::istream& input, format::fnt& instance) {
             /// ignore any non-good stream states
             if (input.good() == false) {
+                assets->release();
                 return instance;
             }
 

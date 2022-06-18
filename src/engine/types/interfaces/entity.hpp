@@ -21,6 +21,7 @@ namespace type {
             std::string state;
             spatial::position position;
             spatial::vector offset;
+            float scale = 1.0;
             std::list<spatial::position> path;
 
             spatial::vector::type_t distance;
@@ -125,21 +126,23 @@ namespace type {
             int current = instances[key].frame;
             int step = 0;
 
-            while ((instances[key].elapsed + animations[instances[key].state].duration[current + step]) < now) {
-                instances[key].elapsed += animations[instances[key].state].duration[current + step];
-                step += 1;
-                if ((current + step) >= animations[instances[key].state].frames.size()) {
-                    current = 0;
-                    step = 0;
+            if (animations[instances[key].state].duration.size()) {
+                while ((instances[key].elapsed + animations[instances[key].state].duration[current + step]) < now) {
+                    instances[key].elapsed += animations[instances[key].state].duration[current + step];
+                    step += 1;
+                    if ((current + step) >= animations[instances[key].state].frames.size()) {
+                        current = 0;
+                        step = 0;
+                    }
                 }
             }
 
             instances[key].frame = current + step;
         }
 
-        type::object& get(int id = 0) {
+        instance& get(int id = 0) {
             //std::lock_guard<std::mutex> scoped(lock);
-            static type::object empty;
+            static type::entity::instance empty;
 
             allocate(1);
 
@@ -147,14 +150,21 @@ namespace type {
             if (instances.find(key) == instances.end()) {
                 return empty;
             }
-            if (instances[key].state.empty()) {
-                return empty;
-            }
-            return animations[instances[key].state].frames[instances[key].frame];
+            return instances[key];
         }
 
         operator type::object& () {
-            return get();
+            static type::object empty;
+
+            auto instance = get();
+            if (instance.state.empty()) {
+                return empty;
+            }
+            if (animations[instance.state].frames.size() == 0) {
+                return empty;
+            }
+
+            return animations[instance.state].frames[instance.frame];
         }
 
         platform::input events;
@@ -169,6 +179,8 @@ namespace type {
         bool empty() {
             return true;
         }
+
+        bool camera = false;
     };
 
 }

@@ -440,6 +440,7 @@ std::string implementation::universal::assets::load(platform::assets* instance, 
                 frame++;
             }
         }
+
 //        if (entity.animations.size() == 1) {
 //            entity.play(entity.animations.begin()->first);
 //        }

@@ -18,7 +18,7 @@ std::vector<int> utilities::range(int start, int end) {
 
 std::string utilities::rtrim(std::string in) {
     size_t back = in.length() - 1;
-    while (back != -1 && (in[back] == 0x09 || in[back] == 0x20)) {
+    while (back != -1 && (in[back] == 0x09 || in[back] == 0x20 || in[back] == 0x0A || in[back] == 0x0D)) {
         back -= 1;
     }
     if (back < in.length()) {
@@ -29,7 +29,7 @@ std::string utilities::rtrim(std::string in) {
 
 std::string utilities::ltrim(std::string in) {
     size_t front = 0;
-    while (front < in.length() && (in[front] == 0x09 || in[front] == 0x20)) {
+    while (front < in.length() && (in[front] == 0x09 || in[front] == 0x20 || in[front] == 0x0A || in[front] == 0x0D)) {
         front += 1;
     }
     if (front > 0) {
@@ -40,11 +40,11 @@ std::string utilities::ltrim(std::string in) {
 
 std::string utilities::trim(std::string in) {
     size_t front = 0;
-    while (front < in.length() && (in[front] == 0x09 || in[front] == 0x20)) {
+    while (front < in.length() && (in[front] == 0x09 || in[front] == 0x20 || in[front] == 0x0A || in[front] == 0x0D)) {
         front += 1;
     }
     size_t back = in.length() - 1;
-    while (back != -1 && (in[back] == 0x09 || in[back] == 0x20)) {
+    while (back != -1 && (in[back] == 0x09 || in[back] == 0x20 || in[back] == 0x0A || in[back] == 0x0D)) {
         back -= 1;
     }
     if (front < back) {
