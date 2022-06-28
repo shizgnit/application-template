@@ -24,7 +24,8 @@ namespace platform {
                 button,
                 textbox,
                 tabbed,
-                progress
+                progress,
+                panel
             };
 
             widget(spec selection) {
@@ -132,6 +133,20 @@ namespace platform {
             utilities::percentage value;
 
             positioning alignment = positioning::hcenter;
+        };
+
+        class panel : public widget {
+            panel() : widget(widget::spec::panel) {
+                this->id = platform::interface::next();
+            }
+
+            int add(interface::widget& child, interface::widget& content) {
+                children.push_back(child);
+                return 0;
+            }
+
+        protected:
+            bool vertical = false;
         };
 
         class tabbed : public widget {

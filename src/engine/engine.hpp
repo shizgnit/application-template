@@ -46,6 +46,7 @@
 #include <fcntl.h>
 #include <shellapi.h>
 #include <xinput.h>
+#include <shlobj.h> 
 #define HAVE_STRUCT_TIMESPEC
 #endif
 
@@ -61,6 +62,7 @@
 #include <netdb.h>
 #include <resolv.h>
 #include <cstring>
+#include <cstdlib>
 #ifndef MAP_FILE
 #define MAP_FILE 0
 #endif

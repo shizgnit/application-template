@@ -20,6 +20,7 @@ public:
         std::map<label_t, value_t> variables;
 
         virtual bool load() { return true; }
+        virtual bool save() { return false; }
         virtual void start() {}
         virtual void draw() {}
         virtual void run() {}
@@ -131,6 +132,7 @@ private:
         { "/play",    { "/play <entity> <state>", [](parameters_t p)->value_t { return main::global().play(p); } } },
         { "/create",  { "/create <type>", [](parameters_t p)->value_t { return main::global().create(p); } } },
         { "/show",    { "/show <type>", [](parameters_t p)->value_t { return main::global().show(p); } } },
+        { "/save",    { "/save", [](parameters_t p)->value_t { return main::global().save(p); } } },
         { "/exit",    { "/exit", [](parameters_t p)->value_t { return main::global().exit(p); } } },
     };
     std::map<int, callback_t> keybinds;
@@ -142,5 +144,6 @@ private:
     value_t play(parameters_t p);
     value_t create(parameters_t p);
     value_t show(parameters_t p);
+    value_t save(parameters_t p);
     value_t exit(parameters_t p);
 };

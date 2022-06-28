@@ -14,7 +14,7 @@ namespace implementation {
             bool mv(std::string src, std::string dest);
             bool cp(std::string src, std::string dest);
 
-            bool mkdir(std::string path, std::string mask);
+            bool mkdir(std::string path, unsigned int mask=0766);
             bool rmdir(std::string path);
 
             std::string pwd(std::string path = "");
@@ -31,6 +31,14 @@ namespace implementation {
             std::vector<std::string> read_directory(std::string path, bool hidden=false);
 
             bool is_directory(std::string path);
+
+            std::string join(std::vector<std::string> arguments);
+
+            std::string dirname(const std::string& path);
+            std::string basename(const std::string& path);
+
+            std::string home(const std::string& path = "");
+            std::string appdata(const std::string& path = "");
         };
 
         class network : public platform::network {

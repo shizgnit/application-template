@@ -395,6 +395,14 @@ value_t main::show(parameters_t p) {
     return 0;
 }
 
+value_t main::save(parameters_t p) {
+    auto list = active;
+    for (auto scene : list) {
+        scene.second->save();
+    }
+    return 0;
+}
+
 value_t main::exit(parameters_t p) {
     main::debug().content.add("goodbye");
     ::exit(0);

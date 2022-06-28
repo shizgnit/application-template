@@ -849,19 +849,19 @@ spatial::position::position(void) {
 }
 
 spatial::position::position(const position& ref) {
-    view = ref.view;
-
-    rotation = ref.rotation;
-
-    eye = ref.eye;
-    center = ref.center;
-    up = ref.up;
+    *this = ref;
 }
 
 spatial::position::operator spatial::matrix() {
     matrix result;
     result.translate(eye, center, up);
-    return(result);
+    return result;
+}
+
+spatial::matrix spatial::position::scale(type_t value) {
+    matrix result;
+    result.translate(eye, center, up);
+    return result * spatial::matrix().scale(value);
 }
 
 void spatial::position::identity(void) {

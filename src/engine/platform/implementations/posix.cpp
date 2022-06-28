@@ -99,12 +99,12 @@ mode_t _mask(std::string& mask) {
     return(bytes);
 }
 
-bool implementation::posix::filesystem::mkdir(std::string path, std::string mask) {
-    return(::mkdir(path.c_str(), _mask(mask)));
+bool implementation::posix::filesystem::mkdir(std::string path, unsigned int mask) {
+    return(::mkdir(path.c_str(), mask) == 0);
 }
 
 bool implementation::posix::filesystem::rmdir(std::string path) {
-    return(::rmdir(path.c_str()));
+    return(::rmdir(path.c_str()) == 0);
 }
 
 std::string implementation::posix::filesystem::pwd(std::string path) {
@@ -131,7 +131,7 @@ std::vector<unsigned long> implementation::posix::filesystem::stat(std::string p
         return(results);
     }
 
-    results.reserve(13);
+    results.resize(13);
 
     results[12] = sst.st_blocks;
     results[11] = sst.st_blksize;
@@ -237,6 +237,43 @@ std::vector<std::string> implementation::posix::filesystem::read_directory(std::
 bool implementation::posix::filesystem::is_directory(std::string path) {
     return filetype(path) == "directory";
 }
+
+std::string implementation::posix::filesystem::join(std::vector<std::string> arguments) {
+    return utilities::join(seperator(), arguments);
+}
+
+std::string implementation::posix::filesystem::dirname(const std::string& path) {
+    auto parts = utilities::tokenize(path, seperator());
+    parts.pop_back();
+    return join(parts);
+}
+std::string implementation::posix::filesystem::basename(const std::string& path) {
+    auto parts = utilities::tokenize(path, seperator());
+    return parts.back();
+}
+
+std::string implementation::posix::filesystem::home(const std::string& path) {
+    if (path.empty() == false) {
+        _home = path;
+    }
+    if (_home.empty() == false) {
+        return _home;
+    }
+    auto value = std::getenv("HOME");
+    return value ? value : "";
+}
+std::string implementation::posix::filesystem::appdata(const std::string& path) {
+    if (path.empty() == false) {
+        _appdata = path;
+    }
+    if (_appdata.empty() == false) {
+        return _appdata;
+    }
+    auto value = std::getenv("APPDATA");
+    return value ? value : "";
+}
+
+
 
 std::string implementation::posix::network::hostname() {
     char hostname[128];

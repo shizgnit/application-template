@@ -4,6 +4,8 @@ namespace type {
 
     class entity : virtual public type::info {
     public:
+        typedef unsigned int key_t;
+
         class animation {
         public:
             double elapse = 2.0f; // TODO: this needs to come from the input file
@@ -14,6 +16,10 @@ namespace type {
 
         class instance {
         public:
+            operator spatial::matrix () {
+                return position.scale(scale);
+            }
+
             unsigned int id = 0;
             unsigned int flags = 0;
             int frame = 0;
@@ -28,11 +34,13 @@ namespace type {
             bool operator<(const instance& that) const {
                 return this->distance > that.distance;
             }
+
+            type::entity* parent = NULL;
         };
 
-        std::list<unsigned int> available;
+        std::list<key_t> available;
 
-        std::map<unsigned int, instance> instances;
+        std::map<key_t, instance> instances;
 
         class director : public spatial::position {
 
@@ -63,11 +71,16 @@ namespace type {
             positions.content.clear();
             positions.content.reserve(instances.size());
             //std::sort(instances.begin(), instances.end());
-            for (auto entry : instances) {
+            for (auto& entry : instances) {
                 identifiers.content.push_back(entry.second.id);
                 flags.content.push_back(entry.second.flags);
-                positions.content.push_back(entry.second.position);
+                positions.content.push_back(entry.second.position.scale(entry.second.scale));
             }
+        }
+
+        instance & add(int count=1) {
+            allocate(instances.size() + count);
+            return get(last);
         }
 
         bool allocate(int count) {
@@ -77,22 +90,26 @@ namespace type {
                 available.push_back(++increment);
             }
             while (instances.size() < count) {
-                instances[*available.begin()].id = *available.begin();
+                last = *available.begin();
+                instances[last].id = last;
+                instances[last].parent = this;
                 available.pop_front();
             }
             return true;
         }
 
-        void release(int id) {
+        void release(key_t id) {
             instances.erase(id);
             available.push_back(id);
         }
 
-        void play(std::string animation, int id=0) {
+        void play(std::string animation, key_t id=0) {
             //std::lock_guard<std::mutex> scoped(lock);
-            allocate(1);
+            if (instances.size() == 0) {
+                return;
+            }
 
-            int key = id == 0 ? instances.begin()->first : id;
+            key_t key = id == 0 ? instances.begin()->first : id;
             if (instances.find(key) == instances.end()) {
                 return;
             }
@@ -110,10 +127,12 @@ namespace type {
             instances[key].state = animation;
         }
 
-        void animate(int id = 0) {
-            allocate(1);
+        void animate(key_t id = 0) {
+            if (instances.size() == 0) {
+                return;
+            }
 
-            int key = id == 0 ? instances.begin()->first : id;
+            key_t key = id == 0 ? instances.begin()->first : id;
             if (instances.find(key) == instances.end()) {
                 return;
             }
@@ -140,13 +159,19 @@ namespace type {
             instances[key].frame = current + step;
         }
 
-        instance& get(int id = 0) {
+        bool has(key_t id) {
+            return instances.find(id) != instances.end();
+        }
+
+        instance& get(key_t id = 0) {
             //std::lock_guard<std::mutex> scoped(lock);
             static type::entity::instance empty;
 
-            allocate(1);
+            if (instances.size() == 0) {
+                return empty;
+            }
 
-            int key = id == 0 ? instances.begin()->first : id;
+            key_t key = id == 0 ? instances.begin()->first : id;
             if (instances.find(key) == instances.end()) {
                 return empty;
             }
@@ -181,6 +206,10 @@ namespace type {
         }
 
         bool camera = false;
+
+    protected:
+
+        key_t last = 0;
     };
 
 }

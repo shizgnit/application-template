@@ -155,6 +155,10 @@
     <Content Include="assets\objects\skybox.mtl" />
     <Content Include="assets\objects\skybox.obj" />
     <Content Include="assets\objects\skybox.png" />
+    <Content Include="assets\objects\terrain\flat.mtl" />
+    <Content Include="assets\objects\terrain\flat.obj" />
+    <Content Include="assets\objects\terrain\terrain.mtl" />
+    <Content Include="assets\objects\terrain\terrain.png" />
     <Content Include="assets\objects\tree\idle\tree.mtl" />
     <Content Include="assets\objects\tree\idle\tree.obj" />
     <Content Include="assets\objects\tree\idle\tree.png" />

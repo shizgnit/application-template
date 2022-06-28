@@ -50,9 +50,8 @@ bool implementation::windows::filesystem::mv(std::string srcfile, std::string de
 #endif
 }
 
-bool implementation::windows::filesystem::mkdir(std::string path, std::string mask) {
+bool implementation::windows::filesystem::mkdir(std::string path, unsigned int mask) {
     return(CreateDirectory(utilities::type_cast<std::wstring>(path).c_str(), NULL) ? true : false);
-    //return(CreateDirectory(utilities::type_cast<std::string>(path).c_str(), NULL) ? true : false);
 }
 
 bool implementation::windows::filesystem::rmdir(std::string path) {
@@ -88,7 +87,7 @@ std::vector<unsigned long> implementation::windows::filesystem::stat(std::string
         return(results);
     }
 
-    results.reserve(13);
+    results.resize(13);
 
     results[12] = 0;
     results[11] = 0;
@@ -176,6 +175,50 @@ std::vector<std::string> implementation::windows::filesystem::read_directory(std
 
 bool implementation::windows::filesystem::is_directory(std::string path) {
     return filetype(path) == "directory";
+}
+
+std::string implementation::windows::filesystem::join(std::vector<std::string> arguments) {
+    return utilities::join(seperator(), arguments);
+}
+
+std::string implementation::windows::filesystem::dirname(const std::string& path) {
+    auto parts = utilities::tokenize(path, seperator());
+    parts.pop_back();
+    return join(parts);
+}
+std::string implementation::windows::filesystem::basename(const std::string& path) {
+    auto parts = utilities::tokenize(path, seperator());
+    return parts.back();
+}
+
+std::string implementation::windows::filesystem::home(const std::string& path) {
+    if (path.empty() == false) {
+        _home = path;
+    }
+    if (_home.empty() == false) {
+        return _home;
+    }
+    WCHAR value[MAX_PATH];
+    HRESULT result = SHGetFolderPathW(NULL, CSIDL_PROFILE, NULL, 0, value);
+    if (SUCCEEDED(result)) {
+        return utilities::type_cast<std::string>(value);
+    }
+    return "";
+}
+
+std::string implementation::windows::filesystem::appdata(const std::string& path) {
+    if (path.empty() == false) {
+        _appdata = path;
+    }
+    if (_appdata.empty() == false) {
+        return _appdata;
+    }
+    WCHAR value[MAX_PATH];
+    HRESULT result = SHGetFolderPathW(NULL, CSIDL_APPDATA, NULL, 0, value);
+    if (SUCCEEDED(result)) {
+        return utilities::type_cast<std::string>(value);
+    }
+    return "";
 }
 
 void implementation::windows::assets::init(void* ref) {

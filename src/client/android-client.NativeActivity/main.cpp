@@ -266,7 +266,12 @@ static int engine_init_display(struct engine* engine) {
 
 	setupGraphics(w, h);
 
+	filesystem->home(engine->app->activity->externalDataPath); // no HOME environment for android apps
+	//filesystem->home(engine->app->activity->internalDataPath);
+	filesystem->appdata("/sdcard");
+
 	assets->init(engine->app->activity->assetManager);
+
 	instance->dimensions(w, h);
 	instance->on_resize();
 	instance->on_startup();
@@ -495,7 +500,7 @@ void android_main(struct android_app* state) {
 	engine.active = 1;
 
 	// TODO: this will probably be required for internet access
-	//check_android_permissions(state);
+	check_android_permissions(state);
 
 	// loop waiting for stuff to do.
 
