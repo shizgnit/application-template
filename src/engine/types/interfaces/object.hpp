@@ -120,6 +120,13 @@ namespace type {
             return constraint.center;
         }
 
+        spatial::vector& dimensions() {
+            if (constraint.calculated == false) {
+                calculate_constraints();
+            }
+            return constraint.dimensions;
+        }
+
         std::vector<spatial::vertex> vertices;
 
         type::material texture;
@@ -166,34 +173,50 @@ namespace type {
             return vertices.empty() && children.empty();
         }
 
+        object& offset(spatial::vector amount) {
+            for (auto &vertex : vertices) {
+                vertex.coordinate += amount;
+            }
+            calculate_constraints();
+            return *this;
+        }
+
     protected:
         void calculate_constraints() {
-            constraint.min = spatial::vector();
-            constraint.max = spatial::vector();
+            if (vertices.size() == 0) {
+                return;
+            }
+
+            constraint.min = vertices.front().coordinate;
+            constraint.max = vertices.front().coordinate;
 
             for (auto vertex : vertices) {
-                if (vertex.coordinate.x > constraint.max.x) {
+                if (constraint.max.x < vertex.coordinate.x) {
                     constraint.max.x = vertex.coordinate.x;
                 }
-                if (vertex.coordinate.y > constraint.max.y) {
+                if (constraint.max.y < vertex.coordinate.y) {
                     constraint.max.y = vertex.coordinate.y;
                 }
-                if (vertex.coordinate.z > constraint.max.z) {
+                if (constraint.max.z < vertex.coordinate.z) {
                     constraint.max.z = vertex.coordinate.z;
                 }
-                if (vertex.coordinate.x < constraint.min.x) {
+                if (constraint.min.x > vertex.coordinate.x) {
                     constraint.min.x = vertex.coordinate.x;
                 }
-                if (vertex.coordinate.y < constraint.min.y) {
+                if (constraint.min.y > vertex.coordinate.y) {
                     constraint.min.y = vertex.coordinate.y;
                 }
-                if (vertex.coordinate.z < constraint.min.z) {
+                if (constraint.min.z > vertex.coordinate.z) {
                     constraint.min.z = vertex.coordinate.z;
                 }
             }
-            constraint.center.x = constraint.min.x + ((constraint.max.x - constraint.min.x) / 2);
-            constraint.center.y = constraint.min.y + ((constraint.max.y - constraint.min.y) / 2);
-            constraint.center.z = constraint.min.z + ((constraint.max.z - constraint.min.z) / 2);
+            constraint.dimensions.x = constraint.max.x - constraint.min.x;
+            constraint.dimensions.y = constraint.max.y - constraint.min.y;
+            constraint.dimensions.z = constraint.max.z - constraint.min.z;
+
+            constraint.center.x = constraint.min.x + (constraint.dimensions.x / 2);
+            constraint.center.y = constraint.min.y + (constraint.dimensions.y / 2);
+            constraint.center.z = constraint.min.z + (constraint.dimensions.z / 2);
 
             constraint.calculated = true;
         }
@@ -203,6 +226,7 @@ namespace type {
             spatial::vector min;
             spatial::vector max;
             spatial::vector center;
+            spatial::vector dimensions;
         } constraint;
     };
 

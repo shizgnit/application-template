@@ -63,26 +63,29 @@
     <Link>
       <LibraryDependencies>%(LibraryDependencies);GLESv3;EGL;OpenSLES;m;GLESv1_CM</LibraryDependencies>
     </Link>
-	<PreBuildEvent>
-		<Command>if not exist $(ProjectDir)..\..\..\src\client\android-client.Packaging\assets mklink /J $(ProjectDir)..\..\..\src\client\android-client.Packaging\assets $(SolutionDir)\assets </Command>
-	</PreBuildEvent>
+    <PreBuildEvent>
+      <Command>if not exist $(ProjectDir)..\..\..\src\client\android-client.Packaging\assets mklink /J $(ProjectDir)..\..\..\src\client\android-client.Packaging\assets $(SolutionDir)\assets </Command>
+    </PreBuildEvent>
+    <PostBuildEvent>
+      <Command>tree /a $(SolutionDir)assets &gt; $(SolutionDir)assets\content.txt</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
     <ClCompile>
-        <PrecompiledHeader>Use</PrecompiledHeader>
-        <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-        <CompileAs>CompileAsCpp</CompileAs>
-        <AdditionalIncludeDirectories>$(SolutionDir);$(ProjectDir)..\..\..\deps;$(ProjectDir)..\..\..\deps\glm;%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory)</AdditionalIncludeDirectories>
-        <ExceptionHandling>Enabled</ExceptionHandling>
-        <RuntimeTypeInfo>true</RuntimeTypeInfo>
-        <CppLanguageStandard>c++1z</CppLanguageStandard>
-        <PreprocessorDefinitions>__ANDROID_API__=$(AndroidAPILevelNumber);_FILE_OFFSET_BITS=64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <AdditionalIncludeDirectories>$(SolutionDir);$(ProjectDir)..\..\..\deps;$(ProjectDir)..\..\..\deps\glm;%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory)</AdditionalIncludeDirectories>
+      <ExceptionHandling>Enabled</ExceptionHandling>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <CppLanguageStandard>c++1z</CppLanguageStandard>
+      <PreprocessorDefinitions>__ANDROID_API__=$(AndroidAPILevelNumber);_FILE_OFFSET_BITS=64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-        <LibraryDependencies>%(LibraryDependencies);GLESv3;EGL;OpenSLES;m;GLESv1_CM</LibraryDependencies>
+      <LibraryDependencies>%(LibraryDependencies);GLESv3;EGL;OpenSLES;m;GLESv1_CM</LibraryDependencies>
     </Link>
     <PreBuildEvent>
-        <Command>if not exist $(ProjectDir)..\..\..\src\client\android-client.Packaging\assets mklink /J $(ProjectDir)..\..\..\src\client\android-client.Packaging\assets $(SolutionDir)\assets </Command>
+      <Command>if not exist $(ProjectDir)..\..\..\src\client\android-client.Packaging\assets mklink /J $(ProjectDir)..\..\..\src\client\android-client.Packaging\assets $(SolutionDir)\assets </Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

@@ -33,27 +33,41 @@ void implementation::android::assets::init(void* ref) {
 std::vector<std::string> implementation::android::assets::list(const std::string& path) {
     std::vector<std::string> results;
 
+    std::vector<std::string> stack;
+    std::vector<std::string> directories;
+
+    // Compensation for AAssetDir not listing directories
+    AAsset* asset = AAssetManager_open(assetManager, "content.txt", AASSET_MODE_BUFFER);
+    if (!asset) {
+        errors.push_back("failed to retrieve asset list from the content.txt");
+        return results;
+    }
+    auto contents = std::string((char*)AAsset_getBuffer(asset), AAsset_getLength(asset));
+    for (auto line : utilities::tokenize(contents)) {
+        if (line.empty() || line[0] == '#') {
+            continue;
+        }
+        auto pos = line.find_first_of("+\\");
+        if (pos == std::string::npos) {
+            continue;
+        }
+        if (line[pos] == '\\' && stack.size() == 0) {
+            continue;
+        }
+        int depth = pos / 4;
+        while (stack.size() && depth < stack.size()) {
+            auto directory = filesystem->join(stack);
+            if (directory.length() > path.length() && directory.substr(0, path.length()) == path) {
+                results.push_back(directory.substr(path.length() + 1, directory.length() - path.length() - 1));
+            }
+            stack.pop_back();
+        }
+        stack.push_back(line.substr(pos + 4, line.length() - 4));
+    }
+
     auto handle = AAssetManager_openDir(assetManager, path.c_str());
     while (auto file = AAssetDir_getNextFileName(handle)) {
-        if (strlen(file) >= 6 && strcmp(file, "ls.txt") == 0) {
-            auto fullpath = path + "/" + file;
-            AAsset* asset = AAssetManager_open(assetManager, fullpath.c_str(), AASSET_MODE_BUFFER);
-            if (!asset) {
-                errors.push_back(fullpath + ", failed to retrieve asset list");
-                continue;
-            }
-            auto contents = std::string((char*)AAsset_getBuffer(asset), AAsset_getLength(asset));
-            for (auto line : utilities::tokenize(contents)) {
-                if (line.empty() || line[0] == '#') {
-                    continue;
-                }
-                results.push_back(line);
-            }
-            AAsset_close(asset);
-        }
-        else {
-            results.push_back(file);
-        }
+        results.push_back(file);
     }
     AAssetDir_close(handle);
 

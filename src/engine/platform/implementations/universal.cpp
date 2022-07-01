@@ -373,8 +373,10 @@ std::string implementation::universal::assets::load(platform::assets* instance, 
     std::string ext = "";
     if (dot != std::string::npos) {
         int len = path.length() - dot;
-        ext = path.substr(dot, len);
-        path = path.substr(0, path.length() - len);
+        if (utilities::numeric(path.substr(dot, len)) == false) {
+            ext = path.substr(dot, len);
+            path = path.substr(0, path.length() - len);
+        }
     }
 
     std::string cache = id.empty() ? path : id;
@@ -417,17 +419,45 @@ std::string implementation::universal::assets::load(platform::assets* instance, 
     if (type == "entity") {
         auto& entity = instance->get<type::entity>(cache);
 
-        for (auto state : instance->list(path)) {
-            if (state == "ls.txt") {
-                continue;
-            }
+        std::vector<std::string> states;
+        
+        std::string object;
 
-            auto resources = instance->list(path + "/" + state);
+        for (auto resource : instance->list(path)) {
+            auto ext = utilities::extension(resource);
+            if (ext.empty() == false) {
+                if (ext == "obj") {
+                    object = resource;
+                }
+            }
+            else {
+                states.push_back(resource);
+            }
+        }
+
+        spatial::vector offset;
+        if (object.empty() == false) {
+            entity.animations["static"].frames.resize(1);
+            instance->retrieve(path + "/" + object) >> format::parser::obj.d(resource + ".") >> entity.animations["static"].frames[0];
+            auto center = entity.animations["static"].frames[0].center();
+            auto min = entity.animations["static"].frames[0].min();
+            offset = {
+                 -center.x,
+                 -min.y,
+                 -(center.z - 1.0f)
+            };
+            entity.animations["static"].frames[0].offset(offset);
+        }
+
+        for (auto state : states) {
+            std::vector<std::string> resources;
+            
+            resources = instance->list(path + "/" + state);
             std::sort(resources.begin(), resources.end());
 
             std::vector<std::string> objects;
             for (auto resource : resources) {
-                if (resource.substr(resource.size() - 4, 4) == ".obj") {
+                if (utilities::extension(resource) == "obj") {
                     objects.push_back(resource);
                 }
             }
@@ -436,14 +466,14 @@ std::string implementation::universal::assets::load(platform::assets* instance, 
 
             int frame = 0;
             for (auto resource : objects) {
-                instance->retrieve(path + "/" + state + "/" + resource) >> format::parser::obj.decoration(resource + ".") >> entity.animations[state].frames[frame];
+                instance->retrieve(path + "/" + state + "/" + resource) >> format::parser::obj.d(resource + ".").o(offset) >> entity.animations[state].frames[frame];
                 frame++;
             }
         }
 
-//        if (entity.animations.size() == 1) {
-//            entity.play(entity.animations.begin()->first);
-//        }
+        // if (entity.animations.size() == 1) {
+        //      entity.play(entity.animations.begin()->first);
+        // }
     }
 
     return cache;

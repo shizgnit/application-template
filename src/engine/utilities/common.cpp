@@ -83,6 +83,15 @@ double utilities::clamp(double value, double min, double max) {
     return value;
 }
 
+std::string utilities::extension(const std::string& in) {
+    std::string ext;
+    auto dot = in.find_last_of(".");
+    if (dot != std::string::npos) {
+        ext = in.substr(dot + 1, in.length() - dot - 1);
+    }
+    return ext;
+}
+
 
 /*
 std::string utilities::format(std::string str, ...) {

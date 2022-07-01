@@ -204,8 +204,11 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
    UpdateWindow(hWnd);
 
-   static char path[] = "C:\\Projects\\applications\\assets";
-   assets->init((void*)path);
+   char executablePath[MAX_PATH];
+   GetModuleFileNameA(NULL, executablePath, MAX_PATH);
+
+   auto assetPath = filesystem->dirname(executablePath) + "\\..\\..\\assets";
+   assets->init((void *)assetPath.c_str());
 
    instance->dimensions(width, height)->on_startup();
 

@@ -4,6 +4,10 @@ namespace format {
 
     class obj : virtual public type::object {
         std::string decorator;
+        bool material = true;
+
+        spatial::vector offset;
+
     public:
         typedef spatial::vector::type_t type_t;
 
@@ -22,8 +26,18 @@ namespace format {
             return(*this);
         }
 
-        format::obj& decoration(const std::string& value) {
+        format::obj& d(const std::string& value) {
             decorator = value;
+            return *this;
+        }
+
+        format::obj& g() {
+            material = false;
+            return *this;
+        }
+
+        format::obj& o(spatial::vector& amount) {
+            offset = amount;
             return *this;
         }
 
@@ -53,9 +67,9 @@ namespace format {
 
             instance.children.clear();
 
-            std::vector<std::vector<float>> coordinates;
-            std::vector<std::vector<float>> textures;
-            std::vector<std::vector<float>> normals;
+            std::vector<spatial::vector> coordinates;
+            std::vector<spatial::vector> textures;
+            std::vector<spatial::vector> normals;
 
             std::string mtllib;
 
@@ -83,23 +97,23 @@ namespace format {
                 }
 
                 if (command == "v") { //vertex
-                    coordinates.push_back({
-                        (float)atof(arguments[1].c_str()),
-                        (float)atof(arguments[2].c_str()),
-                        (float)atof(arguments[3].c_str())
-                    });
+                    coordinates.push_back(spatial::vector({
+                        (type_t)atof(arguments[1].c_str()),
+                        (type_t)atof(arguments[2].c_str()),
+                        (type_t)atof(arguments[3].c_str())
+                    }) + instance.offset);
                 }
                 if (command == "vt") { //texture coordinates
                     textures.push_back({
-                        (float)atof(arguments[1].c_str()),
-                        (float)atof(arguments[2].c_str())
+                        (type_t)atof(arguments[1].c_str()),
+                        (type_t)atof(arguments[2].c_str())
                     });
                 }
                 if (command == "vn") { //normals
                     normals.push_back({
-                        (float)atof(arguments[1].c_str()),
-                        (float)atof(arguments[2].c_str()),
-                        (float)atof(arguments[3].c_str())
+                        (type_t)atof(arguments[1].c_str()),
+                        (type_t)atof(arguments[2].c_str()),
+                        (type_t)atof(arguments[3].c_str())
                     });
                 }
                 if (command == "g") { //group
@@ -124,19 +138,19 @@ namespace format {
                             int ti = (atoi(points[1].c_str()) - 1);
                             int ni = (atoi(points[2].c_str()) - 1);
 
-                            vertex.coordinate.x = coordinates[vi][0];
-                            vertex.coordinate.y = coordinates[vi][1];
-                            vertex.coordinate.z = coordinates[vi][2];
+                            vertex.coordinate.x = coordinates[vi].x;
+                            vertex.coordinate.y = coordinates[vi].y;
+                            vertex.coordinate.z = coordinates[vi].z;
                             vertex.coordinate.w = 1.0f;
 
-                            vertex.texture.x = textures[ti][0];
-                            vertex.texture.y = 1.0f - textures[ti][1];
+                            vertex.texture.x = textures[ti].x;
+                            vertex.texture.y = 1.0f - textures[ti].y;
                             vertex.texture.z = 0.0f;
                             vertex.texture.w = 0.0f;
 
-                            vertex.normal.x = normals[ni][0];
-                            vertex.normal.y = normals[ni][1];
-                            vertex.normal.z = normals[ni][2];
+                            vertex.normal.x = normals[ni].x;
+                            vertex.normal.y = normals[ni].y;
+                            vertex.normal.z = normals[ni].z;
                             vertex.normal.w = 0.0f;
 
                             vertices.push_back(vertex);

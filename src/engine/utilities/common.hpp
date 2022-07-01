@@ -50,6 +50,8 @@ namespace utilities {
 
     double clamp(double value, double min, double max);
 
+    std::string extension(const std::string& in);
+
 //    std::string format(std::string str, ...);
 
     std::string dirname(const std::string& in);
