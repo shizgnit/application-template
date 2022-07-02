@@ -6,6 +6,8 @@ namespace type {
     public:
         typedef unsigned int key_t;
 
+        std::map<std::string, bool> properties;
+
         class animation {
         public:
             double elapse = 2.0f; // TODO: this needs to come from the input file
@@ -34,6 +36,8 @@ namespace type {
             bool operator<(const instance& that) const {
                 return this->distance > that.distance;
             }
+
+            std::map<std::string, bool> properties;
 
             type::entity* parent = NULL;
         };
@@ -91,6 +95,7 @@ namespace type {
             }
             while (instances.size() < count) {
                 last = *available.begin();
+                instances[last].properties = properties;
                 instances[last].id = last;
                 instances[last].parent = this;
                 available.pop_front();
@@ -103,28 +108,33 @@ namespace type {
             available.push_back(id);
         }
 
-        void play(std::string animation, key_t id=0) {
+        bool play(std::string animation, key_t id=0) {
             //std::lock_guard<std::mutex> scoped(lock);
             if (instances.size() == 0) {
-                return;
+                return false;
             }
 
             key_t key = id == 0 ? instances.begin()->first : id;
             if (instances.find(key) == instances.end()) {
-                return;
+                return false;
             }
 
             instances[key].elapsed = std::chrono::system_clock::now().time_since_epoch();
-            if (animations[animation].duration.size() == 0) {
-                int frames = animations[animation].frames.size();
-                utilities::seconds_t duration = utilities::seconds_t{ animations[animation].elapse / (double)frames };
-                animations[animation].duration.resize(frames);
-                for (int i = 0; i < frames; i++) {
-                    animations[animation].duration[i] = duration;
-                    animations[animation].frames[i].emitter = this;
+
+            if (int frames = animations[animation].frames.size()) {
+                if (animations[animation].duration.size() == 0) {
+                    utilities::seconds_t duration = utilities::seconds_t{ animations[animation].elapse / (double)frames };
+                    animations[animation].duration.resize(frames);
+                    for (int i = 0; i < frames; i++) {
+                        animations[animation].duration[i] = duration;
+                        animations[animation].frames[i].emitter = this;
+                    }
                 }
+                instances[key].state = animation;
+                return true;
             }
-            instances[key].state = animation;
+
+            return false;
         }
 
         void animate(key_t id = 0) {
@@ -181,9 +191,15 @@ namespace type {
         operator type::object& () {
             static type::object empty;
 
-            auto instance = get();
-            if (instance.state.empty()) {
+            if (instances.size() == 0) {
                 return empty;
+            }
+
+            auto &instance = get();
+            if (instance.state.empty()) {
+                if (play("static", instance.id) == false) {
+                    return empty;
+                }
             }
             if (animations[instance.state].frames.size() == 0) {
                 return empty;
@@ -204,8 +220,6 @@ namespace type {
         bool empty() {
             return true;
         }
-
-        bool camera = false;
 
     protected:
 

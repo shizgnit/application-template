@@ -86,7 +86,7 @@ void implementation::universal::input::on_release(const event& ev) {
     auto reference = pointers[ev.identifier].pressed;
     pointers[ev.identifier].pressed = 0;
 
-    platform::input::raise({ POINTER, UP, ev.identifier, time(NULL) - reference, 0.0f, ev.point });
+    platform::input::raise({ POINTER, drag ? RELEASE : UP, ev.identifier, time(NULL) - reference, 0.0f, ev.point });
 }
 
 void averages(const implementation::universal::input::event& ev, float& distance, spatial::vector& point) {
@@ -424,6 +424,7 @@ std::string implementation::universal::assets::load(platform::assets* instance, 
         std::string object;
 
         for (auto resource : instance->list(path)) {
+            const char* r = resource.c_str();
             auto ext = utilities::extension(resource);
             if (ext.empty() == false) {
                 if (ext == "obj") {
@@ -444,7 +445,7 @@ std::string implementation::universal::assets::load(platform::assets* instance, 
             offset = {
                  -center.x,
                  -min.y,
-                 -(center.z - 1.0f)
+                 -center.z
             };
             entity.animations["static"].frames[0].offset(offset);
         }
@@ -466,6 +467,7 @@ std::string implementation::universal::assets::load(platform::assets* instance, 
 
             int frame = 0;
             for (auto resource : objects) {
+                const char* r = std::string(path + "/" + state + "/" + resource).c_str();
                 instance->retrieve(path + "/" + state + "/" + resource) >> format::parser::obj.d(resource + ".").o(offset) >> entity.animations[state].frames[frame];
                 frame++;
             }

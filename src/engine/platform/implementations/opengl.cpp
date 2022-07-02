@@ -74,7 +74,7 @@ void implementation::opengl::fbo::disable() {
 
 void implementation::opengl::graphics::projection(int fov) {
     ortho = spatial::matrix().ortho(0, display_width, 0, display_height);
-    perspective = spatial::matrix().perspective(fov, (float)display_width / (float)display_height, 0.0f, 60.0f);
+    perspective = spatial::matrix().perspective(fov, (float)display_width / (float)display_height, 0.0f, 100.0f);
 }
 
 void implementation::opengl::graphics::dimensions(int width, int height, float scale) {

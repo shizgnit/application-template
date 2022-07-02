@@ -19,6 +19,7 @@ namespace platform {
             MOVE,
             PINCH,
             DRAG,
+            RELEASE,
             WHEEL,
             SELECT,
             UNSELECT,

@@ -116,6 +116,11 @@ void main::mouse_drag(const platform::input::event& ev) {
         scene.second->mouse_drag(ev);
     }
 }
+void main::mouse_release(const platform::input::event& ev) {
+    for (auto scene : active) {
+        scene.second->mouse_release(ev);
+    }
+}
 void main::mouse_scroll(const platform::input::event& ev) {
     for (auto scene : active) {
         scene.second->mouse_scroll(ev);
@@ -208,6 +213,13 @@ value_t main::call(const std::string& input) {
             else {
                 params.push_back(utilities::type_cast<int>(token));
             }
+        }
+        // Booleans
+        else if (token == "true") {
+            params.push_back(true);
+        }
+        else if (token == "false") {
+            params.push_back(false);
         }
         // Just add the token as-is
         else {

@@ -1,7 +1,7 @@
 #pragma once
 
 typedef std::string label_t;
-typedef std::variant<double, int, std::string, spatial::vector> value_t;
+typedef std::variant<bool, double, int, std::string, spatial::vector> value_t;
 
 /// <summary>
 /// Organizes the resources, interface and actions that are currently active
@@ -32,17 +32,14 @@ public:
         virtual void mouse_click(const platform::input::event& ev) {}
         virtual void mouse_move(const platform::input::event& ev) {}
         virtual void mouse_drag(const platform::input::event& ev) {}
+        virtual void mouse_release(const platform::input::event& ev) {}
         virtual void mouse_scroll(const platform::input::event& ev) {}
         virtual void keyboard_input(const platform::input::event& ev) {}
         virtual void gamepad_input(const platform::input::event& ev) {}
 
-        void set(std::string entity, label_t label, value_t value) {
+        virtual void set(label_t entity, label_t label, value_t value) {}
 
-        }
-
-        void dimensions(int width, int height) {
-
-        }
+        virtual void dimensions(int width, int height) {}
 
         bool loaded = false;
         bool displayed = false;
@@ -91,6 +88,7 @@ public:
     void mouse_click(const platform::input::event& ev);
     void mouse_move(const platform::input::event& ev);
     void mouse_drag(const platform::input::event& ev);
+    void mouse_release(const platform::input::event& ev);
     void mouse_scroll(const platform::input::event& ev);
 
     void keyboard_input(const platform::input::event& ev);

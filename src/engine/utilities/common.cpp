@@ -120,6 +120,13 @@ std::string utilities::dirname(const std::string& in) {
     }
     return("");
 }
+std::string utilities::basename(const std::string& in) {
+    auto pos = in.find_last_of("\\/");
+    if (pos != std::string::npos) {
+        return(in.substr(pos + 1, in.length() - pos - 1));
+    }
+    return(in);
+}
 
 
 std::string utilities::join(std::string delimiter, std::vector<std::string> arguments) {
