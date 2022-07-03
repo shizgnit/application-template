@@ -252,11 +252,11 @@ namespace spatial {
 
     /// <summary>
     /// 
-    ///          up
-    ///           ^
-    ///           |
-    ///           |
-    ///  eye ---> . center (lookat)
+    ///     up
+    ///      ^
+    ///      |
+    ///      |
+    ///  eye . ---> focus (lookat)
     /// 
     /// </summary>
     class position {
@@ -314,7 +314,7 @@ namespace spatial {
         } rotation;
 
         vector eye;
-        vector center;
+        vector focus;
         vector up;
 
         void apply(const position& reference);

@@ -16,6 +16,64 @@ namespace type {
         };
         std::map<std::string, animation> animations;
 
+        class waypoint {
+        public:
+            waypoint(const spatial::vector& p1, const spatial::vector& p2) {
+                set(p1, p2);
+            }
+
+            waypoint& checkpoint() {
+                return checkpoint(start.eye);
+            }
+
+            waypoint& checkpoint(const spatial::vector& p1) {
+                distance = p1.distance(finish.eye);
+                return set(p1, finish.eye);
+            }
+
+            waypoint& set(const spatial::vector& p1, const spatial::vector& p2) {
+                start.reposition(p1);
+                finish.reposition(p2);
+                distance = p1.distance(p2);
+                reference = std::chrono::system_clock::now().time_since_epoch();
+                active = true;
+                finished = false;
+                return *this;
+            }
+
+            spatial::position position() {
+                if (active == false) {
+                    return start;
+                }
+
+                duration = distance / rate;
+                auto now = std::chrono::system_clock::now().time_since_epoch();
+                auto travel = ((now - reference) / duration).count();
+
+                if (travel >= 1.0) {
+                    active = false;
+                    finished = true;
+                    current = finish;
+                }
+                else {
+                    current.reposition(start.eye.lerp(finish.eye, travel));
+                }
+
+                return current;
+            }
+
+            utilities::seconds_t reference = std::chrono::system_clock::now().time_since_epoch();
+            float rate = 1.0; // units per second
+            float distance; // units
+            float duration;
+            spatial::position start;
+            spatial::position finish;
+            spatial::position current;
+
+            bool finished = false;
+            bool active = false;
+        };
+
         class instance {
         public:
             operator spatial::matrix () {
@@ -30,7 +88,7 @@ namespace type {
             spatial::position position;
             spatial::vector offset;
             float scale = 1.0;
-            std::list<spatial::position> path;
+            std::list<waypoint> path;
 
             spatial::vector::type_t distance;
             bool operator<(const instance& that) const {
@@ -114,7 +172,7 @@ namespace type {
                 return false;
             }
 
-            key_t key = id == 0 ? instances.begin()->first : id;
+            key_t key = (id == 0) ? instances.begin()->first : id;
             if (instances.find(key) == instances.end()) {
                 return false;
             }
@@ -142,7 +200,7 @@ namespace type {
                 return;
             }
 
-            key_t key = id == 0 ? instances.begin()->first : id;
+            key_t key = (id == 0) ? instances.begin()->first : id;
             if (instances.find(key) == instances.end()) {
                 return;
             }
@@ -167,6 +225,17 @@ namespace type {
             }
 
             instances[key].frame = current + step;
+
+            for (auto& instance : instances) {
+                if (instance.second.path.size()) {
+                    auto position = instance.second.path.begin()->position();
+                    instance.second.position.reposition(position.eye);
+                    if (instance.second.path.begin()->finished) {
+                        instance.second.path.pop_front();
+                    }
+                }
+            }
+
         }
 
         bool has(key_t id) {
@@ -180,8 +249,7 @@ namespace type {
             if (instances.size() == 0) {
                 return empty;
             }
-
-            key_t key = id == 0 ? instances.begin()->first : id;
+            key_t key = (id == 0) ? instances.begin()->first : id;
             if (instances.find(key) == instances.end()) {
                 return empty;
             }

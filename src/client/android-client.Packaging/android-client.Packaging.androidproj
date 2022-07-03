@@ -352,6 +352,9 @@
       <Project>{b99e6339-699b-4076-9859-749b394d2690}</Project>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="assets\objects\light.000\" />
+  </ItemGroup>
   <Import Project="$(AndroidTargetsPath)\Android.targets" />
   <ImportGroup Label="ExtensionTargets" />
 </Project>

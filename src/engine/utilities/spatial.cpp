@@ -854,13 +854,13 @@ spatial::position::position(const position& ref) {
 
 spatial::position::operator spatial::matrix() {
     matrix result;
-    result.translate(eye, center, up);
+    result.translate(eye, focus, up);
     return result;
 }
 
 spatial::matrix spatial::position::scale(type_t value) {
     matrix result;
-    result.translate(eye, center, up);
+    result.translate(eye, focus, up);
     return result * spatial::matrix().scale(value);
 }
 
@@ -869,9 +869,9 @@ void spatial::position::identity(void) {
     eye.y = 0.0f;
     eye.z = 1.0f;
 
-    center.x = 0.0f;
-    center.y = 0.0f;
-    center.z = 0.0f;
+    focus.x = 0.0f;
+    focus.y = 0.0f;
+    focus.z = 0.0f;
 
     up.x = 0.0f;
     up.y = 1.0f;
@@ -885,9 +885,9 @@ void spatial::position::viewable(bool toggle) {
 spatial::position& spatial::position::surge(type_t t) {
     store scope(*this);
 
-    vector diff = (eye - center).unit() * t;
+    vector diff = (eye - focus).unit() * t;
 
-    center += diff;
+    focus += diff;
     eye += diff;
 
     return *this;
@@ -896,11 +896,11 @@ spatial::position& spatial::position::surge(type_t t) {
 spatial::position& spatial::position::sway(type_t t) {
     store scope(*this);
 
-    vector normal = eye - center;
-    vector cross = (normal % up) + center;
-    vector diff = (cross - center) * t;
+    vector normal = eye - focus;
+    vector cross = (normal % up) + focus;
+    vector diff = (cross - focus) * t;
 
-    center += diff;
+    focus += diff;
     eye += diff;
 
     return *this;
@@ -911,7 +911,7 @@ spatial::position& spatial::position::heave(type_t t) {
 
     vector diff = up * t;
 
-    center += diff;
+    focus += diff;
     eye += diff;
 
     return *this;
@@ -940,7 +940,7 @@ spatial::position& spatial::position::spin(type_t angle) {
 spatial::position& spatial::position::rotate() {
     store scope(*this);
 
-    vector offset = center;
+    vector offset = focus;
 
     identity();
 
@@ -955,7 +955,7 @@ spatial::position& spatial::position::rotate() {
     up.rotate_y(rady);
 
     eye += offset;
-    center += offset;
+    focus += offset;
 
     return *this;
 }
@@ -963,21 +963,21 @@ spatial::position& spatial::position::rotate() {
 void spatial::position::project(const vector& offset, const vector& projection) {
     store scope(*this);
 
-    vector normal = eye - center;
+    vector normal = eye - focus;
 
-    vector cross = (normal % up) + center;
+    vector cross = (normal % up) + focus;
 
-    vector diff = (cross - center) * offset;
+    vector diff = (cross - focus) * offset;
 
-    diff.x = (cross.x - center.x) * offset.x;
-    diff.y = (cross.y - center.y) * offset.y;
-    diff.z = (cross.z - center.z) * offset.z;
+    diff.x = (cross.x - focus.x) * offset.x;
+    diff.y = (cross.y - focus.y) * offset.y;
+    diff.z = (cross.z - focus.z) * offset.z;
 }
 
 spatial::position& spatial::position::reposition(const vector& offset) {
     store scope(*this);
 
-    center += offset - eye;
+    focus += offset - eye;
     eye = offset;
 
     return *this;
@@ -989,7 +989,7 @@ spatial::position& spatial::position::lookat(const vector& offset) {
     auto forward = (offset - eye).unit();
     auto right = forward == vector(0, -1, 0) ? vector(-1, 0, 0) : vector(0, 1, 0) % forward;
 
-    center = forward + eye;
+    focus = forward + eye;
     up = (forward % right).unit(); 
 
     return *this;
@@ -1004,17 +1004,17 @@ void spatial::position::constrain(bool x, bool y, bool z) {
 void spatial::position::apply(const spatial::position& reference) {
     if (constraint.x) {
         this->eye.x = reference.eye.x;
-        this->center.x = reference.center.x;
+        this->focus.x = reference.focus.x;
         this->up.x = reference.up.x;
     }
     if (constraint.y) {
         this->eye.y = reference.eye.y;
-        this->center.y = reference.center.y;
+        this->focus.y = reference.focus.y;
         this->up.y = reference.up.y;
     }
     if (constraint.z) {
         this->eye.z = reference.eye.z;
-        this->center.z = reference.center.z;
+        this->focus.z = reference.focus.z;
         this->up.z = reference.up.z;
     }
 }
@@ -1030,7 +1030,7 @@ spatial::vector spatial::position::z(type_t magnitude) {
 }
 
 spatial::vector spatial::position::forward() {
-    return (eye - center).unit();
+    return (eye - focus).unit();
 }
 
 spatial::vector spatial::position::down() {
@@ -1038,8 +1038,8 @@ spatial::vector spatial::position::down() {
 }
 
 spatial::vector spatial::position::tanget() {
-    vector normal = eye - center;
-    return (normal % up) + center;
+    vector normal = eye - focus;
+    return (normal % up) + focus;
 }
 
 spatial::sphere::sphere(int horizontal, int vertical) : sphere() {

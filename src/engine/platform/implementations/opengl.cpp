@@ -520,7 +520,7 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
     glUniform1i(shader.u_DepthTextureUnit, 3);
     glUniform1i(shader.u_BlurTextureUnit, 4);
 
-    glUniform4f(shader.u_AmbientLightPosition, ambient.position.center.x, ambient.position.center.y, ambient.position.center.z, ambient.position.center.w);
+    glUniform4f(shader.u_AmbientLightPosition, ambient.position.eye.x, ambient.position.eye.y, ambient.position.eye.z, ambient.position.eye.w);
     glUniform4f(shader.u_AmbientLightColor, ambient.color.x, ambient.color.y, ambient.color.z, ambient.color.w);
 
     glUniform1f(shader.u_AmbientLightBias, ambient.bias);
