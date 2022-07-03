@@ -127,6 +127,15 @@ namespace platform {
             parameters.set(row, col, value);
         }
 
+        std::string stat() {
+            if (frames.size() == 0) {
+                return "";
+            }
+            std::stringstream ss;
+            ss << frames.back().frames;
+            return ss.str();
+        }
+
     protected:
         spatial::matrix parameters;
 

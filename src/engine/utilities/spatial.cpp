@@ -852,6 +852,10 @@ spatial::position::position(const position& ref) {
     *this = ref;
 }
 
+spatial::position::position(const spatial::vector& pos) {
+    reposition(pos);
+}
+
 spatial::position::operator spatial::matrix() {
     matrix result;
     result.translate(eye, focus, up);
@@ -991,6 +995,11 @@ spatial::position& spatial::position::lookat(const vector& offset) {
 
     focus = forward + eye;
     up = (forward % right).unit(); 
+
+    rotation.pitch = 0;
+    rotation.roll = 0;
+    rotation.spin = 0;
+    rotation.yaw = 0;
 
     return *this;
 }

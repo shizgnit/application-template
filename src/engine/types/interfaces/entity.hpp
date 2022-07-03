@@ -18,26 +18,32 @@ namespace type {
 
         class waypoint {
         public:
-            waypoint(const spatial::vector& p1, const spatial::vector& p2) {
-                set(p1, p2);
+            waypoint() {}
+            waypoint(const spatial::position& p1, const spatial::position& p2, double r) {
+                set(p1, p2, r);
             }
 
             waypoint& checkpoint() {
                 return checkpoint(start.eye);
             }
 
-            waypoint& checkpoint(const spatial::vector& p1) {
-                distance = p1.distance(finish.eye);
-                return set(p1, finish.eye);
+            waypoint& checkpoint(const spatial::position& p1) {
+                distance = p1.eye.distance(finish.eye);
+                return set(p1, finish.eye, rate);
             }
 
-            waypoint& set(const spatial::vector& p1, const spatial::vector& p2) {
-                start.reposition(p1);
-                finish.reposition(p2);
-                distance = p1.distance(p2);
+            waypoint& set(const spatial::position& p1, const spatial::position& p2, double r) {
+                rate = r;
+                start = p1;
+                finish = p2;
+                distance = p1.eye.distance(p2.eye);
                 reference = std::chrono::system_clock::now().time_since_epoch();
-                active = true;
                 finished = false;
+                return *this;
+            }
+
+            waypoint& go() {
+                active = true;
                 return *this;
             }
 
@@ -48,7 +54,8 @@ namespace type {
 
                 duration = distance / rate;
                 auto now = std::chrono::system_clock::now().time_since_epoch();
-                auto travel = ((now - reference) / duration).count();
+                auto diff = std::chrono::duration_cast<utilities::seconds_t>(now - reference).count();
+                auto travel = diff / duration;
 
                 if (travel >= 1.0) {
                     active = false;
@@ -57,15 +64,16 @@ namespace type {
                 }
                 else {
                     current.reposition(start.eye.lerp(finish.eye, travel));
+                    current.lookat(start.focus.lerp(finish.focus, travel));
                 }
 
                 return current;
             }
 
             utilities::seconds_t reference = std::chrono::system_clock::now().time_since_epoch();
-            float rate = 1.0; // units per second
-            float distance; // units
-            float duration;
+            double rate = 1.0; // units per second
+            double distance; // units
+            double duration;
             spatial::position start;
             spatial::position finish;
             spatial::position current;
@@ -199,6 +207,9 @@ namespace type {
             if (instances.size() == 0) {
                 return;
             }
+            if (properties["animated"] == false) {
+                return;
+            }
 
             key_t key = (id == 0) ? instances.begin()->first : id;
             if (instances.find(key) == instances.end()) {
@@ -227,11 +238,15 @@ namespace type {
             instances[key].frame = current + step;
 
             for (auto& instance : instances) {
-                if (instance.second.path.size()) {
+                while(instance.second.path.size()) {
                     auto position = instance.second.path.begin()->position();
                     instance.second.position.reposition(position.eye);
+                    instance.second.position.lookat(position.focus);
                     if (instance.second.path.begin()->finished) {
                         instance.second.path.pop_front();
+                    }
+                    else {
+                        break; // the current node isn't finished
                     }
                 }
             }

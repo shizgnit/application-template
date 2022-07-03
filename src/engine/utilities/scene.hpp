@@ -58,7 +58,7 @@ public:
         return instance;
     }
 
-    static main& global() {
+    inline static main& global() {
         static main singleton;
         return singleton;
     }

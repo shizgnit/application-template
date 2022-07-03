@@ -266,6 +266,8 @@ namespace spatial {
         position(void);
         position(const position& ref);
 
+        position(const spatial::vector& pos);
+
         operator matrix();
         spatial::matrix scale(type_t value);
 
