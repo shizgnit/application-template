@@ -145,9 +145,18 @@
     <Content Include="assets\fonts\consolas-8.fnt" />
     <Content Include="assets\fonts\consolas-8_0.png" />
     <Content Include="assets\map.json" />
-    <Content Include="assets\objects\ground\ground.000.mtl" />
-    <Content Include="assets\objects\ground\ground.000.obj" />
-    <Content Include="assets\objects\ground\ground.000.png" />
+    <Content Include="assets\objects\flag.000\flag.000.mtl" />
+    <Content Include="assets\objects\flag.000\flag.000.obj" />
+    <Content Include="assets\objects\flag.000\flag.000.png" />
+    <Content Include="assets\objects\ground.000\ground.000.mtl" />
+    <Content Include="assets\objects\ground.000\ground.000.obj" />
+    <Content Include="assets\objects\ground.000\ground.000.png" />
+    <Content Include="assets\objects\house.000\house.000.mtl" />
+    <Content Include="assets\objects\house.000\house.000.obj" />
+    <Content Include="assets\objects\house.000\house.000.png" />
+    <Content Include="assets\objects\light.000\light.000.mtl" />
+    <Content Include="assets\objects\light.000\light.000.obj" />
+    <Content Include="assets\objects\light.000\light.000.png" />
     <Content Include="assets\objects\monkey.mtl" />
     <Content Include="assets\objects\monkey.obj" />
     <Content Include="assets\objects\monkey.png" />
@@ -160,13 +169,6 @@
     <Content Include="assets\objects\suzanne\idle\suzanne.mtl" />
     <Content Include="assets\objects\suzanne\idle\suzanne.obj" />
     <Content Include="assets\objects\suzanne\idle\suzanne.png" />
-    <Content Include="assets\objects\terrain\flat.mtl" />
-    <Content Include="assets\objects\terrain\flat.obj" />
-    <Content Include="assets\objects\terrain\terrain.mtl" />
-    <Content Include="assets\objects\terrain\terrain.png" />
-    <Content Include="assets\objects\tree\idle\tree.mtl" />
-    <Content Include="assets\objects\tree\idle\tree.obj" />
-    <Content Include="assets\objects\tree\idle\tree.png" />
     <Content Include="assets\objects\untitled.mtl" />
     <Content Include="assets\objects\untitled.obj" />
     <Content Include="assets\objects\untitled.png" />
@@ -351,9 +353,6 @@
     <ProjectReference Include="..\android-client.NativeActivity\android-client.NativeActivity.vcxproj">
       <Project>{b99e6339-699b-4076-9859-749b394d2690}</Project>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="assets\objects\light.000\" />
   </ItemGroup>
   <Import Project="$(AndroidTargetsPath)\Android.targets" />
   <ImportGroup Label="ExtensionTargets" />

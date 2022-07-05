@@ -58,6 +58,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)types\interfaces\shader.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)types\interfaces\info.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)utilities\common.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)utilities\properties.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)utilities\scene.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)utilities\spatial.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)utilities\type_cast.hpp" />
@@ -74,6 +75,7 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)platform\implementations\universal.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)platform\implementations\windows.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)utilities\common.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)utilities\properties.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)utilities\scene.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)utilities\spatial.cpp" />
   </ItemGroup>

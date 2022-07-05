@@ -251,51 +251,23 @@ value_t main::call(const std::string& input) {
     return result;
 }
 
-bool main::flag(label_t label) {
-    if (variables.find(label) == variables.end()) {
-        return false;
-    }
-    auto variable = variables[label];
-    if (std::holds_alternative<int>(variable)) {
-        return std::get<int>(variable) != 0;
-    }
-    if (std::holds_alternative<double>(variable)) {
-        return std::get<double>(variable) > 0.0f;
-    }
-    if (std::holds_alternative<std::string>(variable)) {
-        return std::get<std::string>(variable).empty();
-    }
-    if (std::holds_alternative<spatial::vector>(variable)) {
-        return std::get<spatial::vector>(variable).value();
-    }
-    return false;
-}
-
-bool main::has(label_t label) {
-    return variables.find(label) != variables.end();
-}
-
-value_t main::get(label_t label) {
-    return variables[label];
-}
-
 value_t main::set(label_t label, value_t value) {
-    variables[label] = value;
+    properties::set(label, value);
     if (events.find(label) != events.end()) {
         events[label](parameters_t()); // TODO: actually pass in the value
     }
     return value;
 }
 
-value_t main::get(parameters_t p) {
+value_t main::_get(parameters_t p) {
     if (p.size() < 1) {
         main::debug().content.add(commands["get"].first);
         return 0;
     }
-    return get(std::get<label_t>(p[0]));
+    return properties::get(std::get<label_t>(p[0]));
 }
 
-value_t main::set(parameters_t p) {
+value_t main::_set(parameters_t p) {
     if (p.size() < 2) {
         main::debug().content.add(commands["set"].first);
         return 0;
@@ -312,7 +284,7 @@ value_t main::set(parameters_t p) {
     return p[1];
 }
 
-value_t main::load(parameters_t p) {
+value_t main::_load(parameters_t p) {
     if (p.size() == 2) {
         assets->load(std::get<std::string>(p[0]), std::get<std::string>(p[1]));
     }
@@ -325,7 +297,7 @@ value_t main::load(parameters_t p) {
     return 0;
 }
 
-value_t main::compile(parameters_t p) {
+value_t main::_compile(parameters_t p) {
     graphics->compile(assets);
     while (graphics->messages()) {
         main::debug().content.add(graphics->message());
@@ -333,7 +305,7 @@ value_t main::compile(parameters_t p) {
     return 0;
 }
 
-value_t main::play(parameters_t p) {
+value_t main::_play(parameters_t p) {
     if (p.size() == 2) {
         auto name = std::get<label_t>(p[0]);
         auto animation = std::get<label_t>(p[1]);
@@ -343,11 +315,11 @@ value_t main::play(parameters_t p) {
     return 0;
 }
 
-value_t main::create(parameters_t p) {
+value_t main::_create(parameters_t p) {
     return 0;
 }
 
-value_t main::show(parameters_t p) {
+value_t main::_show(parameters_t p) {
     if (p.size() == 0) {
         main::debug().content.add("/show [commands|variables|assets|loaded|entities]");
         return 0;
@@ -407,7 +379,7 @@ value_t main::show(parameters_t p) {
     return 0;
 }
 
-value_t main::save(parameters_t p) {
+value_t main::_save(parameters_t p) {
     auto list = active;
     for (auto scene : list) {
         scene.second->save();
@@ -415,7 +387,7 @@ value_t main::save(parameters_t p) {
     return 0;
 }
 
-value_t main::exit(parameters_t p) {
+value_t main::_exit(parameters_t p) {
     main::debug().content.add("goodbye");
     ::exit(0);
 }

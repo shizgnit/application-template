@@ -1,8 +1,5 @@
 #pragma once
 
-typedef std::string label_t;
-typedef std::variant<bool, double, int, std::string, spatial::vector> value_t;
-
 /// <summary>
 /// Organizes the resources, interface and actions that are currently active
 /// as well as transations between them.
@@ -10,14 +7,12 @@ typedef std::variant<bool, double, int, std::string, spatial::vector> value_t;
 /// - Configuration
 /// - Results
 /// </summary>
-class main {
+class main : public properties {
 public:
-    class scene {
+    class scene : public properties {
     public:
         scene() {}
         virtual ~scene() {}
-
-        std::map<label_t, value_t> variables;
 
         virtual bool load() { return true; }
         virtual bool save() { return false; }
@@ -96,8 +91,6 @@ public:
 
     void dimensions(int width, int height);
 
-    std::map<label_t, value_t> variables;
-
     std::map<std::string, scene*> scenes;
     std::map<std::string, scene*> active;
 
@@ -110,9 +103,7 @@ public:
     typedef std::function<value_t(parameters_t)> callback_t;
 
     value_t call(const std::string& input);
-    bool flag(label_t label);
-    bool has(label_t label);
-    value_t get(label_t label);
+
     value_t set(label_t label, value_t value);
 
     void callback(std::string label, callback_t c) {
@@ -123,25 +114,25 @@ private:
     std::map<std::string, callback_t> events;
 
     std::map<std::string, std::pair<std::string, callback_t>> commands = {
-        { "/get",     { "/get <label>\n/get <entity> <label>", [](parameters_t p)->value_t { return main::global().get(p); } } },
-        { "/set",     { "/set <label> <value>\n/set <entity> <label> <value>", [](parameters_t p)->value_t { return main::global().set(p); } } },
-        { "/load",    { "/load <type> <source> [target]", [](parameters_t p)->value_t { return main::global().load(p); } } },
-        { "/compile", { "/compile", [](parameters_t p)->value_t { return main::global().compile(p); } } },
-        { "/play",    { "/play <entity> <state>", [](parameters_t p)->value_t { return main::global().play(p); } } },
-        { "/create",  { "/create <type>", [](parameters_t p)->value_t { return main::global().create(p); } } },
-        { "/show",    { "/show <type>", [](parameters_t p)->value_t { return main::global().show(p); } } },
-        { "/save",    { "/save", [](parameters_t p)->value_t { return main::global().save(p); } } },
-        { "/exit",    { "/exit", [](parameters_t p)->value_t { return main::global().exit(p); } } },
+        { "/get",     { "/get <label>\n/get <entity> <label>", [](parameters_t p)->value_t { return main::global()._get(p); } } },
+        { "/set",     { "/set <label> <value>\n/set <entity> <label> <value>", [](parameters_t p)->value_t { return main::global()._set(p); } } },
+        { "/load",    { "/load <type> <source> [target]", [](parameters_t p)->value_t { return main::global()._load(p); } } },
+        { "/compile", { "/compile", [](parameters_t p)->value_t { return main::global()._compile(p); } } },
+        { "/play",    { "/play <entity> <state>", [](parameters_t p)->value_t { return main::global()._play(p); } } },
+        { "/create",  { "/create <type>", [](parameters_t p)->value_t { return main::global()._create(p); } } },
+        { "/show",    { "/show <type>", [](parameters_t p)->value_t { return main::global()._show(p); } } },
+        { "/save",    { "/save", [](parameters_t p)->value_t { return main::global()._save(p); } } },
+        { "/exit",    { "/exit", [](parameters_t p)->value_t { return main::global()._exit(p); } } },
     };
     std::map<int, callback_t> keybinds;
 
-    value_t get(parameters_t p);
-    value_t set(parameters_t p);
-    value_t load(parameters_t p);
-    value_t compile(parameters_t p);
-    value_t play(parameters_t p);
-    value_t create(parameters_t p);
-    value_t show(parameters_t p);
-    value_t save(parameters_t p);
-    value_t exit(parameters_t p);
+    value_t _get(parameters_t p);
+    value_t _set(parameters_t p);
+    value_t _load(parameters_t p);
+    value_t _compile(parameters_t p);
+    value_t _play(parameters_t p);
+    value_t _create(parameters_t p);
+    value_t _show(parameters_t p);
+    value_t _save(parameters_t p);
+    value_t _exit(parameters_t p);
 };

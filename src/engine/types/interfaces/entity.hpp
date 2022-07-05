@@ -2,11 +2,9 @@
 
 namespace type {
 
-    class entity : virtual public type::info {
+    class entity : virtual public type::info, public properties {
     public:
         typedef unsigned int key_t;
-
-        std::map<std::string, bool> properties;
 
         class animation {
         public:
@@ -82,13 +80,20 @@ namespace type {
             bool active = false;
         };
 
-        class instance {
+        class instance : public properties {
         public:
+            void set(key_t i, entity* r, properties::type_t& p) {
+                id = i;
+                parent = r;
+                variables = p;
+            }
+
             operator spatial::matrix () {
                 return position.scale(scale);
             }
 
-            unsigned int id = 0;
+            key_t id = 0;
+
             unsigned int flags = 0;
             int frame = 0;
             utilities::seconds_t elapsed;
@@ -102,8 +107,6 @@ namespace type {
             bool operator<(const instance& that) const {
                 return this->distance > that.distance;
             }
-
-            std::map<std::string, bool> properties;
 
             type::entity* parent = NULL;
         };
@@ -150,7 +153,7 @@ namespace type {
 
         instance & add(int count=1) {
             allocate(instances.size() + count);
-            return get(last);
+            return active(last);
         }
 
         bool allocate(int count) {
@@ -161,9 +164,7 @@ namespace type {
             }
             while (instances.size() < count) {
                 last = *available.begin();
-                instances[last].properties = properties;
-                instances[last].id = last;
-                instances[last].parent = this;
+                instances[last].set(last, this, variables);
                 available.pop_front();
             }
             return true;
@@ -207,7 +208,7 @@ namespace type {
             if (instances.size() == 0) {
                 return;
             }
-            if (properties["animated"] == false) {
+            if (flag("animated") == false) {
                 return;
             }
 
@@ -257,7 +258,7 @@ namespace type {
             return instances.find(id) != instances.end();
         }
 
-        instance& get(key_t id = 0) {
+        instance& active(key_t id = 0) {
             //std::lock_guard<std::mutex> scoped(lock);
             static type::entity::instance empty;
 
@@ -278,7 +279,7 @@ namespace type {
                 return empty;
             }
 
-            auto &instance = get();
+            auto &instance = active();
             if (instance.state.empty()) {
                 if (play("static", instance.id) == false) {
                     return empty;

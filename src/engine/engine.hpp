@@ -94,6 +94,7 @@
 #include <thread>
 #include <functional>
 #include <chrono>
+#include <variant>
 
 #include <pthread.h>
 
@@ -101,6 +102,7 @@
 #include "utilities/common.hpp"
 #include "utilities/type_cast.hpp"
 #include "utilities/spatial.hpp"
+#include "utilities/properties.hpp"
 
 #include "platform/interfaces/input.hpp"
 
