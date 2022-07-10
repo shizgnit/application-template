@@ -34,6 +34,9 @@ public:
 
         virtual void set(label_t entity, label_t label, value_t value) {}
 
+        virtual void group(label_t identifier, label_t command) {}
+        virtual void group(label_t identifier, label_t label, value_t value) {}
+
         virtual void dimensions(int width, int height) {}
 
         bool loaded = false;
@@ -114,6 +117,7 @@ private:
     std::map<std::string, callback_t> events;
 
     std::map<std::string, std::pair<std::string, callback_t>> commands = {
+        { "/group",   { "/group <id> <command>\n/group <id> <label> <value>", [](parameters_t p)->value_t { return main::global()._group(p); } } },
         { "/get",     { "/get <label>\n/get <entity> <label>", [](parameters_t p)->value_t { return main::global()._get(p); } } },
         { "/set",     { "/set <label> <value>\n/set <entity> <label> <value>", [](parameters_t p)->value_t { return main::global()._set(p); } } },
         { "/load",    { "/load <type> <source> [target]", [](parameters_t p)->value_t { return main::global()._load(p); } } },
@@ -126,6 +130,7 @@ private:
     };
     std::map<int, callback_t> keybinds;
 
+    value_t _group(parameters_t p);
     value_t _get(parameters_t p);
     value_t _set(parameters_t p);
     value_t _load(parameters_t p);

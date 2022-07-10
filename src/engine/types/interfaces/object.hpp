@@ -136,6 +136,13 @@ namespace type {
 
         unsigned int flags = 0;
 
+        object& operator += (const object& ref) {
+            for (auto vertex : ref.vertices) {
+                vertices.push_back(vertex);
+            }
+            return *this;
+        }
+
         object& operator = (const spatial::geometry& ref) {
             this->vertices.clear();
             std::copy(ref.vertices.begin(), ref.vertices.end(), std::back_inserter(this->vertices));

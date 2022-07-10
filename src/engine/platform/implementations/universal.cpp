@@ -330,6 +330,12 @@ void implementation::universal::interface::draw(widget& instance) {
         graphics->draw(instance.edge, shader, projection, spatial::matrix(), edge, spatial::matrix(), platform::graphics::render::WIREFRAME);
     }
 
+    if (instance.specification == widget::spec::panel) {
+        platform::interface::panel& panel = gui->cast<platform::interface::panel>(instance);
+        for (auto& child : panel.children) {
+            draw(*child);
+        }
+    }
     if (instance.specification == widget::spec::progress) {
         platform::interface::progress& progress = gui->cast<platform::interface::progress>(instance);
         std::stringstream ss;

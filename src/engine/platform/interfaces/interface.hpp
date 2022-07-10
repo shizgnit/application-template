@@ -92,12 +92,12 @@ namespace platform {
             bool enabled = true;
             bool visible = true;
 
+            std::vector<widget*> children;
+
         protected:
             bool floating = false;
             positioning horizontal = positioning::none;
             positioning vertical = positioning::none;
-
-            std::vector<std::reference_wrapper<widget>> children;
         };
 
         class button : public widget {
@@ -108,7 +108,7 @@ namespace platform {
 
             std::string label;
 
-            ::type::object icon;
+            //::type::object icon;
         };
 
         class textbox : public widget {
@@ -140,10 +140,19 @@ namespace platform {
                 this->id = platform::interface::next();
             }
 
-            int add(interface::widget& child, interface::widget& content) {
-                children.push_back(child);
+            int add(interface::widget& child) {
+                if (children.size()) {
+                    child.position(children.back()->x + margin, margin);
+                }
+                else {
+                    child.position(children.back()->x + margin, margin);
+                }
+                children.push_back(&child);
                 return 0;
             }
+
+            positioning alignment = positioning::right;
+            float margin = 1.0;
 
         protected:
             bool vertical = false;
@@ -156,9 +165,9 @@ namespace platform {
             }
 
             int add(interface::widget& button, interface::widget& content) {
-                children.push_back(button);
+                children.push_back(&button);
                 crossreference[" "] = children.size();
-                children.push_back(content);
+                children.push_back(&content);
                 return 0;
             }
 

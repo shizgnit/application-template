@@ -578,7 +578,7 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
             glVertexAttribDivisor(shader.a_Flags, 1);
         }
 
-        instances = object.emitter->instances.size();
+        instances = object.emitter->baked;
     }
     else {
         if (shader.a_Identifier >= 0) {

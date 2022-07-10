@@ -259,6 +259,28 @@ value_t main::set(label_t label, value_t value) {
     return value;
 }
 
+value_t main::_group(parameters_t p) {
+    if (p.size() < 2) {
+        main::debug().content.add(commands["group"].first);
+        return 0;
+    }
+    std::lock_guard<std::mutex> scoped(lock);
+
+    auto group = std::get<label_t>(p[0]);
+    if (p.size() == 2) {
+        for (auto scene : active) {
+            scene.second->group(group, std::get<label_t>(p[1]));
+        }
+    }
+    if (p.size() == 3) {
+        type::entity::catalog::getSingleton().lookup(group).set(std::get<label_t>(p[1]), p[2]);
+        for (auto scene : active) {
+            scene.second->group(group, std::get<label_t>(p[1]), p[2]);
+        }
+    }
+    return p[1];
+}
+
 value_t main::_get(parameters_t p) {
     if (p.size() < 1) {
         main::debug().content.add(commands["get"].first);

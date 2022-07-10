@@ -4,7 +4,93 @@ namespace type {
 
     class entity : virtual public type::info, public properties {
     public:
+        enum {
+            SELECTED = 0x01,
+            GROUPED = 0x02
+        };
+
         typedef unsigned int key_t;
+
+        class group : public properties {
+        public:
+            group() {}
+
+            void add(key_t id) {
+                members.push_back(id);
+            }
+
+            void remove(key_t id) {
+                members.remove(id);
+            }
+
+            std::string id;
+            std::list<key_t> members;
+        };
+
+        class catalog {
+        protected:
+            std::map<key_t, entity*> instances;
+            std::map<std::string, group> groups;
+
+        public:
+            catalog() {}
+
+            static catalog& getSingleton() {
+                static catalog instance;
+                return instance;
+            }
+
+            void add(key_t id, entity* reference, const std::string& grouping="") {
+                instances[id] = reference;
+                if (grouping.empty() == false) {
+                    if (groups.find(grouping) == groups.end()) {
+                        groups[grouping].id = grouping;
+                    }
+                    groups[grouping].add(id);
+                }
+            }
+
+            void remove(key_t id, const std::string& grouping = "") {
+                instances.erase(id);
+                if (grouping.empty() == false) {
+                    if (groups.find(grouping) != groups.end()) {
+                        groups[grouping].remove(id);
+                    }
+                }
+            }
+
+            void remove(entity& parent) {
+                for(auto &child: parent.instances) {
+                    remove(child.second.id, child.second.grouping);
+                }
+            }
+
+            entity* lookup(key_t id) {
+                if (instances.find(id) == instances.end()) {
+                    return NULL;
+                }
+                return instances[id];
+            }
+
+            group& lookup(const std::string& grouping) {
+                static group empty;
+                if (grouping.empty()) {
+                    return empty;
+                }
+                if (groups.find(grouping) == groups.end()) {
+                    groups[grouping].id = grouping;
+                }
+                return groups[grouping];
+            }
+
+            std::vector<std::string> groupings() {
+                std::vector<std::string> results;
+                for (auto& instance : groups) {
+                    results.push_back(instance.second.id);
+                }
+                return results;
+            }
+        };
 
         class animation {
         public:
@@ -82,10 +168,11 @@ namespace type {
 
         class instance : public properties {
         public:
-            void set(key_t i, entity* r, properties::type_t& p) {
+            void set(key_t i, entity* r, properties::type_t& p, const std::string& g) {
                 id = i;
                 parent = r;
                 variables = p;
+                grouping = g;
             }
 
             operator spatial::matrix () {
@@ -101,6 +188,8 @@ namespace type {
             spatial::position position;
             spatial::vector offset;
             float scale = 1.0;
+            std::string grouping;
+
             std::list<waypoint> path;
 
             spatial::vector::type_t distance;
@@ -114,11 +203,6 @@ namespace type {
         std::list<key_t> available;
 
         std::map<key_t, instance> instances;
-
-        class director : public spatial::position {
-
-        };
-        std::list<director> checkpoints;
 
         // http://www.opengl-tutorial.org/intermediate-tutorials/billboards-particles/particles-instancing/
         struct {
@@ -136,27 +220,36 @@ namespace type {
             std::vector<spatial::matrix> content;
         } positions;
 
+        bool grouped = false;
+
+        int baked = 0;
         void bake() {
             identifiers.content.clear();
-            identifiers.content.reserve(instances.size());
+            identifiers.content.reserve(baked);
             flags.content.clear();
-            flags.content.reserve(instances.size());
+            flags.content.reserve(baked);
             positions.content.clear();
-            positions.content.reserve(instances.size());
-            //std::sort(instances.begin(), instances.end());
+            positions.content.reserve(baked);
             for (auto& entry : instances) {
+                if (entry.second.grouping.empty() == false) {
+                    entry.second.flags |= type::entity::GROUPED;
+                }
+                else {
+                    entry.second.flags &= UINT_MAX ^ type::entity::GROUPED;
+                }
                 identifiers.content.push_back(entry.second.id);
                 flags.content.push_back(entry.second.flags);
                 positions.content.push_back(entry.second.position.scale(entry.second.scale));
             }
+            baked = instances.size();
         }
 
-        instance & add(int count=1) {
-            allocate(instances.size() + count);
-            return active(last);
+        instance & add(int count=1, const std::string& grouping = "") {
+            allocate(instances.size() + count, grouping);
+            return lookup(last);
         }
 
-        bool allocate(int count) {
+        bool allocate(int count, const std::string& grouping = "") {
             static unsigned int increment = 0;
             int current = available.size() + instances.size();
             for (int i = 0; i < count - current; i++) {
@@ -164,7 +257,8 @@ namespace type {
             }
             while (instances.size() < count) {
                 last = *available.begin();
-                instances[last].set(last, this, variables);
+                instances[last].set(last, this, variables, grouping);
+                catalog::getSingleton().add(last, this, grouping);
                 available.pop_front();
             }
             return true;
@@ -173,6 +267,7 @@ namespace type {
         void release(key_t id) {
             instances.erase(id);
             available.push_back(id);
+            catalog::getSingleton().remove(id); // TODO: this should include the group the id belongs to
         }
 
         bool play(std::string animation, key_t id=0) {
@@ -258,7 +353,7 @@ namespace type {
             return instances.find(id) != instances.end();
         }
 
-        instance& active(key_t id = 0) {
+        instance& lookup(key_t id = 0) {
             //std::lock_guard<std::mutex> scoped(lock);
             static type::entity::instance empty;
 
@@ -279,7 +374,7 @@ namespace type {
                 return empty;
             }
 
-            auto &instance = active();
+            auto &instance = lookup();
             if (instance.state.empty()) {
                 if (play("static", instance.id) == false) {
                     return empty;
