@@ -136,25 +136,27 @@ namespace platform {
         };
 
         class panel : public widget {
+        public:
             panel() : widget(widget::spec::panel) {
                 this->id = platform::interface::next();
             }
 
-            int add(interface::widget& child) {
-                if (children.size()) {
-                    child.position(children.back()->x + margin, margin);
+            int add(interface::widget* child) {
+                if (vertical) {
+                    auto offset = children.size() ? children.back()->y : 0;
+                    child->position(this->x + margin, this->y + offset + margin);
                 }
                 else {
-                    child.position(children.back()->x + margin, margin);
+                    auto offset = children.size() ? children.back()->x : 0;
+                    child->position(this->x + offset + margin, this->y + margin);
                 }
-                children.push_back(&child);
+                children.push_back(child);
                 return 0;
             }
 
             positioning alignment = positioning::right;
             float margin = 1.0;
 
-        protected:
             bool vertical = false;
         };
 
@@ -189,8 +191,8 @@ namespace platform {
         virtual void position() = 0;
         virtual void draw() = 0;
 
-        virtual widget& create(widget::spec t, int w, int h, int r, int g, int b, int a) = 0;
-        virtual widget& create(widget* instance, int w, int h, int r, int g, int b, int a) = 0;
+        virtual widget* create(widget::spec t, int w, int h, int r, int g, int b, int a) = 0;
+        virtual widget* create(widget* instance, int w, int h, int r, int g, int b, int a) = 0;
 
         virtual void print(int x, int y, const std::string& text) = 0;
 

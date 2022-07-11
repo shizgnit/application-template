@@ -74,7 +74,7 @@ namespace spatial {
 
         operator glm::vec3() const;
 
-        virtual bool value() {
+        virtual bool hasValue() const {
             return (x == 0 && y == 0 && z == 0 && w == 1) == false;
         }
 
@@ -269,7 +269,7 @@ namespace spatial {
         position(const spatial::vector& pos);
 
         operator matrix();
-        spatial::matrix scale(type_t value);
+        spatial::matrix scale(type_t value=0.0f);
 
         void identity(void);
 
@@ -313,7 +313,8 @@ namespace spatial {
             type_t yaw = 0.0f;
             type_t roll = 0.0f;
             type_t spin = 0.0f;
-        } rotation;
+            type_t scale = 1.0f;
+        } translation;
 
         vector eye;
         vector focus;

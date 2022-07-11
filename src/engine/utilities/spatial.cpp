@@ -865,7 +865,8 @@ spatial::position::operator spatial::matrix() {
 spatial::matrix spatial::position::scale(type_t value) {
     matrix result;
     result.translate(eye, focus, up);
-    return result * spatial::matrix().scale(value);
+    translation.scale += value;
+    return result * spatial::matrix().scale(translation.scale);
 }
 
 void spatial::position::identity(void) {
@@ -922,22 +923,22 @@ spatial::position& spatial::position::heave(type_t t) {
 }
 
 spatial::position& spatial::position::pitch(type_t angle) {
-    rotation.pitch += angle;
+    translation.pitch += angle;
     return rotate();
 }
 
 spatial::position& spatial::position::yaw(type_t angle) {
-    rotation.yaw += angle;
+    translation.yaw += angle;
     return rotate();
 }
 
 spatial::position& spatial::position::roll(type_t angle) {
-    rotation.roll += angle;
+    translation.roll += angle;
     return rotate();
 }
 
 spatial::position& spatial::position::spin(type_t angle) {
-    rotation.spin += angle;
+    translation.spin += angle;
     return rotate();
 }
 
@@ -950,11 +951,11 @@ spatial::position& spatial::position::rotate() {
 
     type_t radx, rady;
 
-    radx = static_cast<type_t>(rotation.pitch * (3.1415927 / 180));
+    radx = static_cast<type_t>(translation.pitch * (3.1415927 / 180));
     eye.rotate_x(radx);
     up.rotate_x(radx);
 
-    rady = static_cast<type_t>(rotation.spin * (3.1415927 / 180));
+    rady = static_cast<type_t>(translation.spin * (3.1415927 / 180));
     eye.rotate_y(rady);
     up.rotate_y(rady);
 
@@ -996,10 +997,10 @@ spatial::position& spatial::position::lookat(const vector& offset) {
     focus = forward + eye;
     up = (forward % right).unit(); 
 
-    rotation.pitch = 0;
-    rotation.roll = 0;
-    rotation.spin = 0;
-    rotation.yaw = 0;
+    translation.pitch = 0;
+    translation.roll = 0;
+    translation.spin = 0;
+    translation.yaw = 0;
 
     return *this;
 }

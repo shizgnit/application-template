@@ -259,7 +259,7 @@ void implementation::universal::interface::draw() {
     }
 }
 
-platform::interface::widget& implementation::universal::interface::create(platform::interface::widget::spec t, int w, int h, int r, int g, int b, int a) {
+platform::interface::widget* implementation::universal::interface::create(platform::interface::widget::spec t, int w, int h, int r, int g, int b, int a) {
     widget* instance = NULL;
 
     switch (t) {
@@ -277,7 +277,7 @@ platform::interface::widget& implementation::universal::interface::create(platfo
     return create(instance, w, h, r, g, b, a);
 }
 
-platform::interface::widget& implementation::universal::interface::create(widget* instance, int w, int h, int r, int g, int b, int a) {
+platform::interface::widget* implementation::universal::interface::create(widget* instance, int w, int h, int r, int g, int b, int a) {
     instance->background = spatial::quad(w, h);
     instance->background.texture.create(1, 1, r, g, b, a); // Single pixel is good enough
     instance->background.xy_projection(0, 0, w, h);
@@ -294,7 +294,7 @@ platform::interface::widget& implementation::universal::interface::create(widget
 
     instances[instance->id] = instance;
 
-    return *instance;
+    return instance;
 }
 
 void implementation::universal::interface::print(int x, int y, const std::string& text) {

@@ -32,6 +32,7 @@ public:
         virtual void keyboard_input(const platform::input::event& ev) {}
         virtual void gamepad_input(const platform::input::event& ev) {}
 
+        virtual void set(label_t label, value_t value) {}
         virtual void set(label_t entity, label_t label, value_t value) {}
 
         virtual void group(label_t identifier, label_t command) {}
@@ -40,6 +41,7 @@ public:
         virtual void dimensions(int width, int height) {}
 
         bool loaded = false;
+        bool started = false;
         bool displayed = false;
 
         //spatial::position camera;

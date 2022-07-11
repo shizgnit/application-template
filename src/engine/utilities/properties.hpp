@@ -3,6 +3,11 @@ typedef std::variant<bool, double, int, std::string, spatial::vector> value_t;
 
 class properties {
 public:
+    static properties& empty() {
+        static properties instance;
+        return instance;
+    }
+
     typedef std::map<label_t, value_t> type_t;
 
     bool flag(const label_t& label);

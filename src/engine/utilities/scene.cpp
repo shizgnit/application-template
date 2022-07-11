@@ -30,8 +30,8 @@ bool main::activate(std::string name) {
     while (scenes[name]->loaded == false && scenes[name]->load() == false) {
         scenes[name]->loaded = true;
     }
-    scenes[name]->start();
     active[name] = scenes[name];
+    scenes[name]->start();
     return true;
 }
 
@@ -273,7 +273,7 @@ value_t main::_group(parameters_t p) {
         }
     }
     if (p.size() == 3) {
-        type::entity::catalog::getSingleton().lookup(group).set(std::get<label_t>(p[1]), p[2]);
+        type::entity::catalog::getSingleton().getGroup(group).set(std::get<label_t>(p[1]), p[2]);
         for (auto scene : active) {
             scene.second->group(group, std::get<label_t>(p[1]), p[2]);
         }
@@ -296,9 +296,13 @@ value_t main::_set(parameters_t p) {
     }
     if (p.size() == 2) {
         set(std::get<label_t>(p[0]), p[1]);
+        //std::lock_guard<std::mutex> scoped(lock);
+        for (auto scene : active) {
+            scene.second->set(std::get<label_t>(p[0]), p[1]);
+        }
     }
     if (p.size() == 3) {
-        std::lock_guard<std::mutex> scoped(lock);
+        //std::lock_guard<std::mutex> scoped(lock);
         for (auto scene : active) {
             scene.second->set(std::get<label_t>(p[0]), std::get<label_t>(p[1]), p[2]);
         }

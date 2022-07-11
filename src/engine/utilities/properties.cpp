@@ -18,7 +18,7 @@ bool properties::flag(const label_t& label) {
         return std::get<std::string>(variable).empty();
     }
     if (std::holds_alternative<spatial::vector>(variable)) {
-        return std::get<spatial::vector>(variable).value();
+        return std::get<spatial::vector>(variable).hasValue();
     }
     return false;
 }

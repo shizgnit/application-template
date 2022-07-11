@@ -40,9 +40,10 @@ namespace type {
                 return instance;
             }
 
-            void add(key_t id, entity* reference, const std::string& grouping="") {
+            void add(key_t id, entity* reference, properties& props = properties::empty()) {
                 instances[id] = reference;
-                if (grouping.empty() == false) {
+                if (props.has("grouping")) {
+                    auto grouping = std::get<std::string>(props.get("grouping"));
                     if (groups.find(grouping) == groups.end()) {
                         groups[grouping].id = grouping;
                     }
@@ -50,9 +51,10 @@ namespace type {
                 }
             }
 
-            void remove(key_t id, const std::string& grouping = "") {
+            void remove(key_t id, properties& props = properties::empty()) {
                 instances.erase(id);
-                if (grouping.empty() == false) {
+                if (props.has("grouping")) {
+                    auto grouping = std::get<std::string>(props.get("grouping"));
                     if (groups.find(grouping) != groups.end()) {
                         groups[grouping].remove(id);
                     }
@@ -61,18 +63,27 @@ namespace type {
 
             void remove(entity& parent) {
                 for(auto &child: parent.instances) {
-                    remove(child.second.id, child.second.grouping);
+                    remove(child.second.id, child.second);
                 }
             }
 
-            entity* lookup(key_t id) {
+            bool hasEntity(key_t id) {
+                return instances.find(id) != instances.end();
+            }
+
+            entity& getEntity(key_t id) {
+                static entity empty;
                 if (instances.find(id) == instances.end()) {
-                    return NULL;
+                    return empty;
                 }
-                return instances[id];
+                return *instances[id];
             }
 
-            group& lookup(const std::string& grouping) {
+            bool hasGroup(const std::string& grouping) {
+                return groups.find(grouping) != groups.end();
+            }
+
+            group& getGroup(const std::string& grouping) {
                 static group empty;
                 if (grouping.empty()) {
                     return empty;
@@ -168,15 +179,14 @@ namespace type {
 
         class instance : public properties {
         public:
-            void set(key_t i, entity* r, properties::type_t& p, const std::string& g) {
+            void define(key_t i, entity* r, properties& p) {
                 id = i;
                 parent = r;
-                variables = p;
-                grouping = g;
+                (properties&)*this = p;
             }
 
             operator spatial::matrix () {
-                return position.scale(scale);
+                return position.scale();
             }
 
             key_t id = 0;
@@ -187,8 +197,6 @@ namespace type {
             std::string state;
             spatial::position position;
             spatial::vector offset;
-            float scale = 1.0;
-            std::string grouping;
 
             std::list<waypoint> path;
 
@@ -231,7 +239,7 @@ namespace type {
             positions.content.clear();
             positions.content.reserve(baked);
             for (auto& entry : instances) {
-                if (entry.second.grouping.empty() == false) {
+                if (entry.second.has("grouping")) {
                     entry.second.flags |= type::entity::GROUPED;
                 }
                 else {
@@ -239,17 +247,17 @@ namespace type {
                 }
                 identifiers.content.push_back(entry.second.id);
                 flags.content.push_back(entry.second.flags);
-                positions.content.push_back(entry.second.position.scale(entry.second.scale));
+                positions.content.push_back(entry.second.position.scale());
             }
             baked = instances.size();
         }
 
-        instance & add(int count=1, const std::string& grouping = "") {
-            allocate(instances.size() + count, grouping);
-            return lookup(last);
+        instance & add(properties& props=properties::empty(), int count = 1) {
+            allocate(props, instances.size() + count);
+            return getInstance(last);
         }
 
-        bool allocate(int count, const std::string& grouping = "") {
+        bool allocate(properties& props, int count) {
             static unsigned int increment = 0;
             int current = available.size() + instances.size();
             for (int i = 0; i < count - current; i++) {
@@ -257,8 +265,8 @@ namespace type {
             }
             while (instances.size() < count) {
                 last = *available.begin();
-                instances[last].set(last, this, variables, grouping);
-                catalog::getSingleton().add(last, this, grouping);
+                instances[last].define(last, this, props);
+                catalog::getSingleton().add(last, this, props);
                 available.pop_front();
             }
             return true;
@@ -349,11 +357,11 @@ namespace type {
 
         }
 
-        bool has(key_t id) {
+        bool hasInstance(key_t id) {
             return instances.find(id) != instances.end();
         }
 
-        instance& lookup(key_t id = 0) {
+        instance& getInstance(key_t id = 0) {
             //std::lock_guard<std::mutex> scoped(lock);
             static type::entity::instance empty;
 
@@ -374,7 +382,7 @@ namespace type {
                 return empty;
             }
 
-            auto &instance = lookup();
+            auto &instance = getInstance();
             if (instance.state.empty()) {
                 if (play("static", instance.id) == false) {
                     return empty;

@@ -353,6 +353,8 @@
     <Content Include="assets\shaders\outline.vert" />
     <Content Include="assets\shaders\picking.frag" />
     <Content Include="assets\shaders\picking.vert" />
+    <Content Include="assets\shaders\picking_grouped.frag" />
+    <Content Include="assets\shaders\picking_grouped.vert" />
     <Content Include="assets\shaders\post.frag" />
     <Content Include="assets\shaders\post.vert" />
     <Content Include="assets\shaders\shadowmap.frag" />
