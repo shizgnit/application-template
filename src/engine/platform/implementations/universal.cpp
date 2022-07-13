@@ -326,6 +326,9 @@ void implementation::universal::interface::draw(widget& instance) {
     }
 
     graphics->draw(instance.background, shader, projection, spatial::matrix(), position);
+    if (instance.foreground.vertices.size()) {
+        graphics->draw(instance.foreground, shader, projection, spatial::matrix(), position);
+    }
     if (instance.edge.vertices.size()) {
         graphics->draw(instance.edge, shader, projection, spatial::matrix(), edge, spatial::matrix(), platform::graphics::render::WIREFRAME);
     }
@@ -446,14 +449,15 @@ std::string implementation::universal::assets::load(platform::assets* instance, 
         if (object.empty() == false) {
             entity.animations["static"].frames.resize(1);
             instance->retrieve(path + "/" + object) >> format::parser::obj.d(resource + ".") >> entity.animations["static"].frames[0];
-            auto center = entity.animations["static"].frames[0].center();
-            auto min = entity.animations["static"].frames[0].min();
+            entity.object = &entity.animations["static"].frames[0];
+            auto center = entity.object->center();
+            auto min = entity.object->min();
             offset = {
                  -center.x,
                  -min.y,
                  -center.z
             };
-            entity.animations["static"].frames[0].offset(offset);
+            entity.object->offset(offset);
         }
 
         for (auto state : states) {

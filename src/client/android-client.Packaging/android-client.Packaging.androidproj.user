@@ -10,7 +10,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
     <DebuggerFlavor>AndroidDebugger</DebuggerFlavor>
-    <AndroidDeviceID>181842V01500918;</AndroidDeviceID>
+    <AndroidDeviceID>192.168.0.183:5556;c2quew</AndroidDeviceID>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <DebuggerFlavor>AndroidDebugger</DebuggerFlavor>

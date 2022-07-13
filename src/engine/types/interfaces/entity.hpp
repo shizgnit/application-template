@@ -103,6 +103,7 @@ namespace type {
             }
         };
 
+        type::object* object = NULL;
         class animation {
         public:
             double elapse = 2.0f; // TODO: this needs to come from the input file

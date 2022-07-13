@@ -75,6 +75,7 @@ namespace platform {
             platform::input events;
 
             type::object background;
+            type::object foreground;
             type::object edge;
 
             spatial::geometry bounds;

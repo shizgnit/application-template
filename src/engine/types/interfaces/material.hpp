@@ -19,6 +19,13 @@ namespace type {
 
         bool depth = false;
 
+        operator type::image* () {
+            if (color == NULL) {
+                color = new type::image;
+            }
+            return color;
+        }
+
         void create(int width, int height, char r, char g, char b, char a) {
             color = new type::image;
             color->create(width, height, r, g, b, a);

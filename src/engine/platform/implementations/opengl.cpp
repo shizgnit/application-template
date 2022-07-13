@@ -482,6 +482,9 @@ bool implementation::opengl::graphics::compile(platform::assets* assets) {
 void implementation::opengl::graphics::draw(type::object& object, type::program& shader, const spatial::matrix& projection, const spatial::matrix& view, const spatial::matrix& model, const spatial::matrix& lighting, unsigned int options) {
     // Look for the first object with vertices, just at the top level for now
     auto &target = object;
+    if (target.visible == false) {
+        return;
+    }
     if (target.vertices.size() == 0) {
         return;
     }

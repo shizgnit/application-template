@@ -99,6 +99,13 @@ namespace type {
             return constraint.max.y - constraint.min.y;
         }
 
+        int depth() {
+            if (constraint.calculated == false) {
+                calculate_constraints();
+            }
+            return constraint.max.z - constraint.min.z;
+        }
+
         spatial::vector& min() {
             if (constraint.calculated == false) {
                 calculate_constraints();
@@ -135,6 +142,8 @@ namespace type {
         unsigned int instances = 0;
 
         unsigned int flags = 0;
+
+        bool visible = true;
 
         object& operator += (const object& ref) {
             for (auto vertex : ref.vertices) {
