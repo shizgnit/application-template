@@ -31,12 +31,14 @@ namespace implementation {
 
             bool drag;
 
-            std::mutex tracking; 
+            std::mutex tracking;
+
+            std::vector<spatial::vector> points;
         };
 
         class interface : public platform::interface {
         public:
-            void raise(const input::event& ev, int x, int y);
+            bool raise(const input::event& ev, int x, int y);
             void emit();
 
             void position();

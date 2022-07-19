@@ -12,6 +12,10 @@
 
 namespace spatial {
 
+    inline float radians(float angle) {
+        return angle * (float)M_PI / 180.0f;
+    }
+
     class matrix;
 
     class vector {
@@ -49,7 +53,7 @@ namespace spatial {
 
         virtual vector& operator() (const type_t& x, const type_t& y, const type_t& z = 0.0f, const type_t& w = 1.0f);
 
-        vector& rotate(const vector& axis, type_t angle);
+        vector& rotate(const vector& axis, type_t rad);
         vector& rotate_x(type_t rad);
         vector& rotate_y(type_t rad);
         vector& rotate_z(type_t rad);
@@ -204,7 +208,7 @@ namespace spatial {
         vector interpolate(const vector& v) const;
         geometry interpolate(const geometry& g) const;
 
-        matrix& rotate(const vector& axis, type_t angle);
+        matrix& rotate(const vector& axis, type_t rad);
         matrix& rotate_x(type_t angle);
         matrix& rotate_y(type_t angle);
         matrix& rotate_z(type_t angle);
@@ -214,12 +218,12 @@ namespace spatial {
 
         matrix& translate(const vector& v);
         matrix& translate(const type_t& x, const type_t& y, const type_t& z, const type_t& w = 1.0f);
-        matrix& translate(const vector& eye, const vector& center, const vector& up);
+        matrix& translate(const vector& eye, const vector& focus, const vector& up);
 
         matrix& perspective(type_t fov, type_t aspect, type_t near=0.0f, type_t far=10.0f);
         matrix& ortho(type_t left, type_t right, type_t bottom, type_t top, type_t near=0.0f, type_t far=10.0f);
 
-        matrix& lookat(const vector& eye, const vector& center, const vector& up);
+        matrix& lookat(const vector& eye, const vector& focus, const vector& up);
 
         matrix& invert();
 
@@ -252,11 +256,11 @@ namespace spatial {
 
     /// <summary>
     /// 
-    ///     up
+    ///     up (+y)
     ///      ^
     ///      |
     ///      |
-    ///  eye . ---> focus (lookat)
+    ///  eye . ---> focus (lookat -z)
     /// 
     /// </summary>
     class position {
@@ -352,6 +356,10 @@ namespace spatial {
         plane(vector p, vector n) {
             point = p;
             normal = n;
+        }
+        plane(spatial::position& pos) {
+            point = pos.eye;
+            normal = (pos.focus - pos.eye).unit();
         }
 
         vector point;

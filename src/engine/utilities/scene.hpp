@@ -58,9 +58,9 @@ public:
         return instance;
     }
 
-    inline static main& global() {
-        static main singleton;
-        return singleton;
+    inline static main& singleton() {
+        static main instance;
+        return instance;
     }
 
     /// <summary>
@@ -69,6 +69,7 @@ public:
 
     void add(std::string name, scene* instance);
     bool toggle(std::string name);
+    bool isactive(std::string name);
     bool activate(std::string name);
     bool deactivate(std::string name);
     bool transition(std::string from, std::string to);
@@ -119,16 +120,16 @@ private:
     std::map<std::string, callback_t> events;
 
     std::map<std::string, std::pair<std::string, callback_t>> commands = {
-        { "/group",   { "/group <id> <command>\n/group <id> <label> <value>", [](parameters_t p)->value_t { return main::global()._group(p); } } },
-        { "/get",     { "/get <label>\n/get <entity> <label>", [](parameters_t p)->value_t { return main::global()._get(p); } } },
-        { "/set",     { "/set <label> <value>\n/set <entity> <label> <value>", [](parameters_t p)->value_t { return main::global()._set(p); } } },
-        { "/load",    { "/load <type> <source> [target]", [](parameters_t p)->value_t { return main::global()._load(p); } } },
-        { "/compile", { "/compile", [](parameters_t p)->value_t { return main::global()._compile(p); } } },
-        { "/play",    { "/play <entity> <state>", [](parameters_t p)->value_t { return main::global()._play(p); } } },
-        { "/create",  { "/create <type>", [](parameters_t p)->value_t { return main::global()._create(p); } } },
-        { "/show",    { "/show <type>", [](parameters_t p)->value_t { return main::global()._show(p); } } },
-        { "/save",    { "/save", [](parameters_t p)->value_t { return main::global()._save(p); } } },
-        { "/exit",    { "/exit", [](parameters_t p)->value_t { return main::global()._exit(p); } } },
+        { "/group",   { "/group <id> <command>\n/group <id> <label> <value>", [](parameters_t p)->value_t { return main::singleton()._group(p); } } },
+        { "/get",     { "/get <label>\n/get <entity> <label>", [](parameters_t p)->value_t { return main::singleton()._get(p); } } },
+        { "/set",     { "/set <label> <value>\n/set <entity> <label> <value>", [](parameters_t p)->value_t { return main::singleton()._set(p); } } },
+        { "/load",    { "/load <type> <source> [target]", [](parameters_t p)->value_t { return main::singleton()._load(p); } } },
+        { "/compile", { "/compile", [](parameters_t p)->value_t { return main::singleton()._compile(p); } } },
+        { "/play",    { "/play <entity> <state>", [](parameters_t p)->value_t { return main::singleton()._play(p); } } },
+        { "/create",  { "/create <type>", [](parameters_t p)->value_t { return main::singleton()._create(p); } } },
+        { "/show",    { "/show <type>", [](parameters_t p)->value_t { return main::singleton()._show(p); } } },
+        { "/save",    { "/save", [](parameters_t p)->value_t { return main::singleton()._save(p); } } },
+        { "/exit",    { "/exit", [](parameters_t p)->value_t { return main::singleton()._exit(p); } } },
     };
     std::map<int, callback_t> keybinds;
 

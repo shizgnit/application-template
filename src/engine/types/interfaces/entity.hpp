@@ -35,7 +35,7 @@ namespace type {
         public:
             catalog() {}
 
-            static catalog& getSingleton() {
+            static catalog& singleton() {
                 static catalog instance;
                 return instance;
             }
@@ -267,7 +267,7 @@ namespace type {
             while (instances.size() < count) {
                 last = *available.begin();
                 instances[last].define(last, this, props);
-                catalog::getSingleton().add(last, this, props);
+                catalog::singleton().add(last, this, props);
                 available.pop_front();
             }
             return true;
@@ -276,7 +276,7 @@ namespace type {
         void release(key_t id) {
             instances.erase(id);
             available.push_back(id);
-            catalog::getSingleton().remove(id); // TODO: this should include the group the id belongs to
+            catalog::singleton().remove(id); // TODO: this should include the group the id belongs to
         }
 
         bool play(std::string animation, key_t id=0) {

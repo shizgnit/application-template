@@ -30,7 +30,7 @@ namespace platform {
         virtual void draw(type::object& object, type::program& shader, const spatial::matrix& projection, const spatial::matrix& view=spatial::matrix(), const spatial::matrix& model=spatial::matrix(), const spatial::matrix& lighting=spatial::matrix(), unsigned int options = 0x00) = 0;
         virtual void draw(std::string text, type::font& font, type::program& shader, const spatial::matrix& projection, const spatial::matrix& view=spatial::matrix(), const spatial::matrix& model=spatial::matrix(), const spatial::matrix& lighting=spatial::matrix(), unsigned int options = 0x00) = 0;
 
-        virtual void ontarget(type::object* object) {}
+        virtual void ontarget(type::object& object) {}
         virtual void untarget() {}
 
         virtual void oninvert() {}
@@ -51,7 +51,7 @@ namespace platform {
 
         typedef void (graphics::* callback)();
         utilities::scoped<graphics*, callback> target(type::object& object) {
-            ontarget(&object);
+            ontarget(object);
             return utilities::scoped<graphics*, callback>(this, &graphics::untarget);
         }
 

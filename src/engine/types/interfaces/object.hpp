@@ -6,6 +6,13 @@ namespace type {
 
     class object : virtual public type::info {
     public:
+        unsigned int allocate() {
+            static unsigned int i = 0;
+            return ++i;
+        }
+
+        unsigned int instance = allocate();
+
         entity* emitter = NULL;
 
         object() : emitter(NULL) {}
@@ -14,6 +21,14 @@ namespace type {
         }
 
         typedef spatial::vector::type_t type_t;
+
+        spatial::geometry interpolate(spatial::vector offset) {
+            spatial::geometry results;
+            for (auto& vertex : vertices) {
+                results.vertices.push_back(vertex.coordinate + offset);
+            }
+            return results;
+        }
 
         void xy_projection(unsigned int x, unsigned int y, unsigned int width, unsigned int height, bool horizontal=false, bool vertical=false) {
             type_t max_x = 0.0f;
@@ -99,7 +114,7 @@ namespace type {
             return constraint.max.y - constraint.min.y;
         }
 
-        int depth() {
+        int length() {
             if (constraint.calculated == false) {
                 calculate_constraints();
             }
@@ -180,6 +195,7 @@ namespace type {
         }
 
         std::vector<object> children;
+        type::object *icon = NULL;
 
         std::string type() {
             return "type::object";
@@ -196,6 +212,9 @@ namespace type {
             calculate_constraints();
             return *this;
         }
+
+        bool depth = false;
+        std::vector<unsigned char> pixels;
 
     protected:
         void calculate_constraints() {

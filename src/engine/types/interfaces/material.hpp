@@ -4,6 +4,15 @@ namespace type {
 
     class material : virtual public type::info {
     public:
+        /* TODO: the pointers may be reused... fix this
+        ~material() {
+            if (color) {
+                delete color;
+                color = NULL;
+            }
+        }
+        */
+
         float ambient[4];
         float diffuse[4];
         float specular[4];

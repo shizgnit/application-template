@@ -123,8 +123,8 @@ spatial::vector::operator glm::vec3() const {
 }
 
 
-spatial::vector& spatial::vector::rotate(const spatial::vector& axis, type_t angle) {
-    return *this = spatial::matrix().rotate(axis, angle).interpolate(*this);
+spatial::vector& spatial::vector::rotate(const spatial::vector& axis, type_t rad) {
+    return *this = spatial::matrix().rotate(axis, rad).interpolate(*this);
 }
 
 spatial::vector& spatial::vector::rotate_x(type_t rad) {
@@ -371,10 +371,10 @@ spatial::geometry spatial::matrix::operator * (const spatial::geometry& g) const
 
 
 // http://fastgraph.com/makegames/3drotation/
-spatial::matrix& spatial::matrix::rotate(const vector& axis, type_t angle) {
+spatial::matrix& spatial::matrix::rotate(const vector& axis, type_t rad) {
 
-    type_t c = cosf(angle);
-    type_t s = sinf(angle);
+    type_t c = cosf(rad);
+    type_t s = sinf(rad);
     type_t t = 1 - c;
 
     matrix rotation;
@@ -401,7 +401,7 @@ spatial::matrix& spatial::matrix::rotate(const vector& axis, type_t angle) {
 
     return(*this *= rotation);
 }
-spatial::matrix& spatial::matrix::rotate_x(type_t angle) {
+spatial::matrix& spatial::matrix::rotate_x(type_t rad) {
     matrix rotation;
 
     rotation.r[0][0] = 1.0f;
@@ -410,13 +410,13 @@ spatial::matrix& spatial::matrix::rotate_x(type_t angle) {
     rotation.r[0][3] = 0.0f;
 
     rotation.r[1][0] = 0.0f;
-    rotation.r[1][1] = cosf(angle);
-    rotation.r[1][2] = sinf(angle);
+    rotation.r[1][1] = cosf(rad);
+    rotation.r[1][2] = sinf(rad);
     rotation.r[1][3] = 0.0f;
 
     rotation.r[2][0] = 0.0f;
-    rotation.r[2][1] = -sinf(angle);
-    rotation.r[2][2] = cosf(angle);
+    rotation.r[2][1] = -sinf(rad);
+    rotation.r[2][2] = cosf(rad);
     rotation.r[2][3] = 0.0f;
 
     rotation.r[3][0] = 0.0f;
@@ -426,12 +426,12 @@ spatial::matrix& spatial::matrix::rotate_x(type_t angle) {
 
     return(*this *= rotation);
 }
-spatial::matrix& spatial::matrix::rotate_y(type_t angle) {
+spatial::matrix& spatial::matrix::rotate_y(type_t rad) {
     matrix rotation;
 
-    rotation.r[0][0] = cosf(angle);
+    rotation.r[0][0] = cosf(rad);
     rotation.r[0][1] = 0.0f;
-    rotation.r[0][2] = -sinf(angle);
+    rotation.r[0][2] = -sinf(rad);
     rotation.r[0][3] = 0.0f;
 
     rotation.r[1][0] = 0.0f;
@@ -439,9 +439,9 @@ spatial::matrix& spatial::matrix::rotate_y(type_t angle) {
     rotation.r[1][2] = 0.0f;
     rotation.r[1][3] = 0.0f;
 
-    rotation.r[2][0] = sinf(angle);
+    rotation.r[2][0] = sinf(rad);
     rotation.r[2][1] = 0.0f;
-    rotation.r[2][2] = cosf(angle);
+    rotation.r[2][2] = cosf(rad);
     rotation.r[2][3] = 0.0f;
 
     rotation.r[3][0] = 0.0f;
@@ -451,16 +451,16 @@ spatial::matrix& spatial::matrix::rotate_y(type_t angle) {
 
     return(*this *= rotation);
 }
-spatial::matrix& spatial::matrix::rotate_z(type_t angle) {
+spatial::matrix& spatial::matrix::rotate_z(type_t rad) {
     matrix rotation;
 
-    rotation.r[0][0] = cosf(angle);
-    rotation.r[0][1] = sinf(angle);
+    rotation.r[0][0] = cosf(rad);
+    rotation.r[0][1] = sinf(rad);
     rotation.r[0][2] = 0.0f;
     rotation.r[0][3] = 0.0f;
 
-    rotation.r[1][0] = -sinf(angle);
-    rotation.r[1][1] = cosf(angle);
+    rotation.r[1][0] = -sinf(rad);
+    rotation.r[1][1] = cosf(rad);
     rotation.r[1][2] = 0.0f;
     rotation.r[1][3] = 0.0f;
 
@@ -560,10 +560,10 @@ spatial::matrix& spatial::matrix::ortho(type_t left, type_t right, type_t bottom
     return *this;
 }
 
-spatial::matrix& spatial::matrix::lookat(const vector& eye, const vector& center, const vector& up) {
+spatial::matrix& spatial::matrix::lookat(const vector& eye, const vector& focus, const vector& up) {
 #if defined _USE_GLM
     glm::vec3 e(eye.x, eye.y, eye.z);
-    glm::vec3 c(center.x, center.y, center.z);
+    glm::vec3 c(focus.x, focus.y, focus.z);
     glm::vec3 u(up.x, up.y, up.z);
 
     glm::mat4 lat = glm::lookAt(e, c, u);
@@ -572,7 +572,7 @@ spatial::matrix& spatial::matrix::lookat(const vector& eye, const vector& center
 
     return *this;
 #else
-    vector f = (center - eye).unit();
+    vector f = (focus - eye).unit();
     vector s = (f % up).unit();
     vector t = s % f;
 
@@ -592,9 +592,9 @@ spatial::matrix& spatial::matrix::lookat(const vector& eye, const vector& center
 #endif
 }
 
-spatial::matrix& spatial::matrix::translate(const vector& eye, const vector& center, const vector& up) {
-    *this = spatial::quaternion().translate(eye, center, up);
-    return position(center);
+spatial::matrix& spatial::matrix::translate(const vector& eye, const vector& focus, const vector& up) {
+    *this = spatial::quaternion().translate(eye, focus, up);
+    return position(eye);
 }
 
 spatial::matrix& spatial::matrix::invert() {
@@ -872,11 +872,11 @@ spatial::matrix spatial::position::scale(type_t value) {
 void spatial::position::identity(void) {
     eye.x = 0.0f;
     eye.y = 0.0f;
-    eye.z = 1.0f;
+    eye.z = 0.0f;
 
     focus.x = 0.0f;
     focus.y = 0.0f;
-    focus.z = 0.0f;
+    focus.z = -1.0f;
 
     up.x = 0.0f;
     up.y = 1.0f;
@@ -945,18 +945,18 @@ spatial::position& spatial::position::spin(type_t angle) {
 spatial::position& spatial::position::rotate() {
     store scope(*this);
 
-    vector offset = focus;
+    vector offset = eye;
 
     identity();
 
     type_t radx, rady;
 
     radx = static_cast<type_t>(translation.pitch * (3.1415927 / 180));
-    eye.rotate_x(radx);
+    focus.rotate_x(radx);
     up.rotate_x(radx);
 
     rady = static_cast<type_t>(translation.spin * (3.1415927 / 180));
-    eye.rotate_y(rady);
+    focus.rotate_y(rady);
     up.rotate_y(rady);
 
     eye += offset;
@@ -1184,14 +1184,14 @@ spatial::ray::ray(const vector& point, const matrix& perspective, const matrix& 
     projection(point, perspective, view, w, h);
 }
 
-spatial::ray &spatial::ray::interpolate(const vector& origin, const vector& terminus) {
+spatial::ray& spatial::ray::interpolate(const vector& origin, const vector& terminus) {
     vertices.resize(2);
     vertices[0] = origin;
     vertices[1] = terminus;
     return *this;
 }
 
-spatial::ray &spatial::ray::projection(const vector& point, const matrix& perspective, const matrix& view, const int& w, const int& h) {
+spatial::ray& spatial::ray::projection(const vector& point, const matrix& perspective, const matrix& view, const int& w, const int& h) {
     vertices.resize(2);
     vertices[0] = spatial::vector({ point.x, point.y }).unproject(perspective, view, w, h);
     vertices[1] = spatial::vector({ point.x, point.y, 1.0f }).unproject(perspective, view, w, h);
@@ -1227,9 +1227,9 @@ bool spatial::ray::intersects(const spatial::geometry& bounds) {
     return false;
 }
 
-// https://cadxfem.org/inf/Fast%20MinimumStorage%20RayTriangle%20Intersection.pdf
 bool spatial::ray::intersects(const spatial::triangle& triangle) {
 
+//#if defined _USE_GLM
     glm::vec3 r0 = vertices[0];
     glm::vec3 r1 = vertices[1];
 
@@ -1242,6 +1242,45 @@ bool spatial::ray::intersects(const spatial::triangle& triangle) {
     glm::vec3 pos;  // no current use for the barycentric coordinates
 
     return glm::intersectLineTriangle(r0, dir, v0, v1, v2, pos);
+
+/*
+#else
+    auto org = vertices[0];
+    auto dir = vertices[1].unit();
+
+    // https://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_intersection_algorithm
+    auto e1 = triangle.vertices[1] - triangle.vertices[0];
+    auto e2 = triangle.vertices[2] - triangle.vertices[0];
+
+    auto h = dir % e2;
+
+    auto a = e1.dot(h);
+    if (a > -0.000001f && a < 0.000001f) {
+        return false;
+    }
+
+    auto f = 1.0 / a;
+    auto s = org - triangle.vertices[0];
+    auto u = f * s.dot(h);
+    if (u < 0.0f || u > 1.0f) {
+        return false;
+    }
+
+    auto q = s.cross(e1);
+    auto v = f * dir.dot(q);
+    if (v < 0.0 || u + v > 1.0) {
+        return false;
+    }
+
+    auto t = f * e2.dot(q);
+    if (t > 0.000001f) {
+        auto v = org + dir * t;
+        return true;
+    }
+
+    return false;
+#endif
+*/
 }
 
 bool spatial::ray::intersects(const spatial::plane& plane) {
@@ -1289,11 +1328,10 @@ spatial::vector spatial::ray::intersection(const spatial::triangle& triangle) {
 
 // https://en.wikipedia.org/wiki/Line%E2%80%93plane_intersection
 spatial::vector spatial::ray::intersection(const spatial::plane& p) {
-    auto d = vertices[1].unit().dot(p.normal);
-    if (abs(d) > 0.0001f) {
-        auto r = vertices[0] - p.point;
-        auto t = -r.dot(p.normal);
-        return (r + p.point) + (vertices[1].unit() * (t / d));
+    auto d = vertices[1].unit().dot(p.normal.unit());
+    if (abs(d) > 0.00001f) {
+        auto t = (p.point - vertices[0]).dot(p.normal) / d;
+        return vertices[0] + vertices[1].unit() * t;
     }
     return spatial::vector();
 }

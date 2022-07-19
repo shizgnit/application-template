@@ -59,7 +59,9 @@ void implementation::universal::input::on_press(const event& ev) {
     float distance = pointers[ev.identifier].point.distance(ev.point);
 
     // Update to current
-    pointers[ev.identifier].pressed = time(NULL);
+    if (pointers[ev.identifier].pressed == 0) {
+        pointers[ev.identifier].pressed = time(NULL);
+    }
     pointers[ev.identifier].point = ev.point;
 
     // Track the event
@@ -86,7 +88,8 @@ void implementation::universal::input::on_release(const event& ev) {
     auto reference = pointers[ev.identifier].pressed;
     pointers[ev.identifier].pressed = 0;
 
-    platform::input::raise({ POINTER, drag ? RELEASE : UP, ev.identifier, time(NULL) - reference, 0.0f, ev.point });
+    platform::input::raise({ POINTER, drag ? RELEASE : UP, ev.identifier, time(NULL) - reference, 0.0f, ev.point, points });
+    points.clear();
 }
 
 void averages(const implementation::universal::input::event& ev, float& distance, spatial::vector& point) {
@@ -119,6 +122,7 @@ void implementation::universal::input::on_move(const event& ev) {
             spatial::vector current_position;
 
             averages(ev, current_distance, current_position);
+            points.push_back(current_position);
 
             if (abs(current_distance - last_distance) > threshold_travel) {
                 platform::input::raise({ POINTER, PINCH, active, time(NULL) - pointers[ev.identifier].pressed, current_distance - last_distance, current_position, ev.points });
@@ -131,7 +135,8 @@ void implementation::universal::input::on_move(const event& ev) {
             last_position = current_position;
         }
         else if(drag) {
-            platform::input::raise({ POINTER, DRAG, active, time(NULL) - pointers[ev.identifier].pressed, 0.0f, ev.point });
+            points.push_back(ev.point);
+            platform::input::raise({ POINTER, DRAG, active, time(NULL) - pointers[ev.identifier].pressed, 0.0f, ev.point, points });
         }
     }
     else {
@@ -217,7 +222,7 @@ void implementation::universal::input::emit() {
     }
 }
 
-void implementation::universal::interface::raise(const input::event& ev, int x, int y) {
+bool implementation::universal::interface::raise(const input::event& ev, int x, int y) {
     //spatial::vector relative = { (float)x, (float)(graphics->height() - y), 0.0f };
     spatial::vector relative = { (float)x, (float)y, 0.0f };
     spatial::vector position = relative.project(spatial::matrix(), spatial::matrix(), spatial::matrix());
@@ -235,12 +240,16 @@ void implementation::universal::interface::raise(const input::event& ev, int x, 
         // Pass along the events
         if (target) {
             target->events.raise(ev);
+            return target->passthrough == false;
         }
     }
 
     if (ev.input == input::KEY && selected) {
         selected->events.raise(ev);
+        return selected->passthrough == false;
     }
+
+    return false;
 }
 
 void implementation::universal::interface::emit() {
@@ -326,7 +335,7 @@ void implementation::universal::interface::draw(widget& instance) {
     }
 
     graphics->draw(instance.background, shader, projection, spatial::matrix(), position);
-    if (instance.foreground.vertices.size()) {
+    if (instance.foreground.visible && instance.foreground.vertices.size()) {
         graphics->draw(instance.foreground, shader, projection, spatial::matrix(), position);
     }
     if (instance.edge.vertices.size()) {
@@ -416,9 +425,9 @@ std::string implementation::universal::assets::load(platform::assets* instance, 
         }
         else if (ext == ".png") {
             auto& object = instance->get<type::object>(cache);
-            object = spatial::quad(256, 256);
             object.texture.color = &instance->get<type::image>(cache);
             instance->retrieve(path + ext) >> format::parser::png >> *object.texture.color;
+            object = spatial::quad(object.texture.color->properties.width, object.texture.color->properties.height);
             object.xy_projection(0, 0, object.texture.color->properties.width, object.texture.color->properties.height);
         }
         else {
@@ -430,14 +439,17 @@ std::string implementation::universal::assets::load(platform::assets* instance, 
 
         std::vector<std::string> states;
         
-        std::string object;
+        std::string object_name;
+        std::string icon_name;
 
         for (auto resource : instance->list(path)) {
-            const char* r = resource.c_str();
             auto ext = utilities::extension(resource);
             if (ext.empty() == false) {
                 if (ext == "obj") {
-                    object = resource;
+                    object_name = resource;
+                }
+                if (resource == "icon.png") {
+                    icon_name = resource;
                 }
             }
             else {
@@ -446,9 +458,9 @@ std::string implementation::universal::assets::load(platform::assets* instance, 
         }
 
         spatial::vector offset;
-        if (object.empty() == false) {
+        if (object_name.empty() == false) {
             entity.animations["static"].frames.resize(1);
-            instance->retrieve(path + "/" + object) >> format::parser::obj.d(resource + ".") >> entity.animations["static"].frames[0];
+            instance->retrieve(path + "/" + object_name) >> format::parser::obj.d(resource + ".") >> entity.animations["static"].frames[0];
             entity.object = &entity.animations["static"].frames[0];
             auto center = entity.object->center();
             auto min = entity.object->min();
@@ -458,6 +470,15 @@ std::string implementation::universal::assets::load(platform::assets* instance, 
                  -center.z
             };
             entity.object->offset(offset);
+            if (icon_name.empty() == false) {
+                auto cache = path + "/" + icon_name;
+                auto& icon = instance->get<type::object>(cache);
+                entity.object->icon = &icon;
+                icon.texture.color = &instance->get<type::image>(cache);
+                instance->retrieve(cache) >> format::parser::png >> icon.texture.color;
+                icon = spatial::quad(icon.texture.color->properties.width, icon.texture.color->properties.height);
+                icon.xy_projection(0, 0, icon.texture.color->properties.width, icon.texture.color->properties.height);
+            }
         }
 
         for (auto state : states) {

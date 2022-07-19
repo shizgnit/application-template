@@ -107,19 +107,19 @@ namespace implementation {
             void draw(type::object& object, type::program& shader, const spatial::matrix& projection, const spatial::matrix& view=spatial::matrix(), const spatial::matrix& model=spatial::matrix(), const spatial::matrix& lighting=spatial::matrix(), unsigned int options=0x00);
             void draw(std::string text, type::font& font, type::program& shader, const spatial::matrix& projection, const spatial::matrix& view=spatial::matrix(), const spatial::matrix& model=spatial::matrix(), const spatial::matrix& lighting=spatial::matrix(), unsigned int options = 0x00);
 
-            void ontarget(type::object* object);
+            void ontarget(type::object& object);
             void untarget();
 
             void oninvert();
             void uninvert();
 
             void release(type::object* object) {
-                fbos.erase(object);
+                fbos.erase(object->instance);
             }
 
             std::vector<type::object*> target;
 
-            std::map<type::object*, fbo> fbos;
+            std::map<unsigned int, fbo> fbos;
 
             int offset_vector = 0;
             int offset_matrix = 0;

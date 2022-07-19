@@ -91,7 +91,7 @@ void implementation::opengl::graphics::dimensions(int width, int height, float s
     color.texture.color->create(display_width, display_height, 0, 0, 0, 0);
     color.xy_projection(0, 0, display_width, display_height, false, true);
     compile(color);
-    fbos[&color].init(color, this);
+    fbos[color.instance].init(color, this);
 
     // Setup the scene depth buffer
     depth = spatial::quad(display_width, display_height);
@@ -100,7 +100,7 @@ void implementation::opengl::graphics::dimensions(int width, int height, float s
     //depth.texture.depth = true;
     depth.xy_projection(0, 0, display_width, display_height, false, true);
     compile(depth);
-    fbos[&depth].init(depth, this);
+    fbos[depth.instance].init(depth, this);
 
     // Setup the post process blur buffer
     blur = spatial::quad(display_width * scale, display_height * scale);
@@ -108,7 +108,7 @@ void implementation::opengl::graphics::dimensions(int width, int height, float s
     blur.texture.color->create(display_width * scale, display_height * scale, 0, 0, 0, 0);
     blur.xy_projection(0, 0, display_width * scale, display_height * scale, false, true);
     compile(blur);
-    fbos[&blur].init(blur, this);
+    fbos[blur.instance].init(blur, this);
 
     // Setup the picking buffer
     picking = spatial::quad(display_width, display_height);
@@ -117,7 +117,7 @@ void implementation::opengl::graphics::dimensions(int width, int height, float s
     picking.xy_projection(0, 0, display_width, display_height, false, true);
     compile(picking);
     pixels.resize(display_width * display_height * 4, 0);
-    fbos[&picking].init(picking, this, false, pixels.data());
+    fbos[picking.instance].init(picking, this, false, pixels.data());
 }
 
 void implementation::opengl::graphics::init(void) {
@@ -635,19 +635,19 @@ void implementation::opengl::graphics::draw(std::string text, type::font& font, 
 }
 
 
-void implementation::opengl::graphics::ontarget(type::object* object) {
-    if (fbos.find(object) == fbos.end()) {
-        fbos[object].init(*object, this);
+void implementation::opengl::graphics::ontarget(type::object& object) {
+    if (fbos.find(object.instance) == fbos.end()) {
+        fbos[object.instance].init(object, this, object.depth, object.pixels.size() ? object.pixels.data() : NULL);
     }
-    fbos[object].enable();
-    target.push_back(object);
+    fbos[object.instance].enable();
+    target.push_back(&object);
 }
 
 void implementation::opengl::graphics::untarget() {
     if (target.size() == 0) {
         return;
     }
-    fbos[target.back()].disable();
+    fbos[target.back()->instance].disable();
     target.pop_back();
 }
 

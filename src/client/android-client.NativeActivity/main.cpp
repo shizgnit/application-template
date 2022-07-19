@@ -377,6 +377,13 @@ static int32_t engine_handle_input(struct android_app* app, AInputEvent* event) 
 
 	//AMotionEvent_getPointerId
 
+	if (type == AINPUT_EVENT_TYPE_KEY && AKeyEvent_getKeyCode(event) == AKEYCODE_BACK && AKeyEvent_getAction(event) == AKEY_STATE_DOWN) {
+		if (gui->raise({ platform::input::KEY, platform::input::DOWN, 27, 0, 0.0f, { 0.0f, 0.0f, 0.0f } }, 0, 0) == false) {
+			input->raise({ platform::input::KEY, platform::input::DOWN, 27, 1, 0.0f, { 0.0f, 0.0f, 0.0f } });
+		}
+		return 1;
+	};
+
 	if (type == AINPUT_EVENT_TYPE_MOTION) {
 		engine->state.x = AMotionEvent_getX(event, 0);
 		engine->state.y = AMotionEvent_getY(event, 0);
@@ -385,28 +392,33 @@ static int32_t engine_handle_input(struct android_app* app, AInputEvent* event) 
 		for (int i = 0; i < count; i++) {
 			points.push_back({ AMotionEvent_getX(event, i), AMotionEvent_getY(event, i), 0.0f });
 		}
-		input->raise({ platform::input::POINTER, platform::input::MOVE, index, 1, 0.0f, { (float)engine->state.x, (float)engine->state.y, 0.0f }, points });
-		gui->raise({ platform::input::POINTER, platform::input::MOVE, index, 1, 0.0f, { (float)engine->state.x, (float)engine->state.y, 0.0f }, points }, (float)engine->state.x, (float)engine->state.y);
+		if (gui->raise({ platform::input::POINTER, platform::input::MOVE, index, 1, 0.0f, { (float)engine->state.x, (float)engine->state.y, 0.0f }, points }, (float)engine->state.x, (float)engine->state.y) == false) {
+			input->raise({ platform::input::POINTER, platform::input::MOVE, index, 1, 0.0f, { (float)engine->state.x, (float)engine->state.y, 0.0f }, points });
+		}
 
 		switch (action) {
 		case AMOTION_EVENT_ACTION_DOWN: // Primary pointer down (always index 0)
-			input->raise({ platform::input::POINTER, platform::input::DOWN, index, 0, 0.0f, { (float)engine->state.x, (float)engine->state.y, 0.0f } });
-			gui->raise({ platform::input::POINTER, platform::input::DOWN, index, 0, 0.0f, { (float)engine->state.x, (float)engine->state.y, 0.0f } }, (float)engine->state.x, (float)engine->state.y);
+			if (gui->raise({ platform::input::POINTER, platform::input::DOWN, index, 0, 0.0f, { (float)engine->state.x, (float)engine->state.y, 0.0f } }, (float)engine->state.x, (float)engine->state.y) == false) {
+				input->raise({ platform::input::POINTER, platform::input::DOWN, index, 0, 0.0f, { (float)engine->state.x, (float)engine->state.y, 0.0f } });
+			}
 			break;
 
 		case AMOTION_EVENT_ACTION_UP: // Primary pointer up
-			input->raise({ platform::input::POINTER, platform::input::UP, index, 0, 0.0f, { (float)engine->state.x, (float)engine->state.y, 0.0f } });
-			gui->raise({ platform::input::POINTER, platform::input::UP, index, 0, 0.0f, { (float)engine->state.x, (float)engine->state.y, 0.0f } }, (float)engine->state.x, (float)engine->state.y);
+			if (gui->raise({ platform::input::POINTER, platform::input::UP, index, 0, 0.0f, { (float)engine->state.x, (float)engine->state.y, 0.0f } }, (float)engine->state.x, (float)engine->state.y) == false) {
+				input->raise({ platform::input::POINTER, platform::input::UP, index, 0, 0.0f, { (float)engine->state.x, (float)engine->state.y, 0.0f } });
+			}
 			break;
 
 		case AMOTION_EVENT_ACTION_POINTER_DOWN: // Secondary pointer down
-			input->raise({ platform::input::POINTER, platform::input::DOWN, index, 0, 0.0f, { (float)engine->state.x, (float)engine->state.y, 0.0f } });
-			gui->raise({ platform::input::POINTER, platform::input::DOWN, index, 0, 0.0f, { (float)engine->state.x, (float)engine->state.y, 0.0f } }, (float)engine->state.x, (float)engine->state.y);
+			if (gui->raise({ platform::input::POINTER, platform::input::DOWN, index, 0, 0.0f, { (float)engine->state.x, (float)engine->state.y, 0.0f } }, (float)engine->state.x, (float)engine->state.y) == false) {
+				input->raise({ platform::input::POINTER, platform::input::DOWN, index, 0, 0.0f, { (float)engine->state.x, (float)engine->state.y, 0.0f } });
+			}
 			break;
 
 		case AMOTION_EVENT_ACTION_POINTER_UP: // Secondary pointer up
-			input->raise({ platform::input::POINTER, platform::input::UP, index, 0, 0.0f, { (float)engine->state.x, (float)engine->state.y, 0.0f } });
-			gui->raise({ platform::input::POINTER, platform::input::UP, index, 0, 0.0f, { (float)engine->state.x, (float)engine->state.y, 0.0f } }, (float)engine->state.x, (float)engine->state.y);
+			if (gui->raise({ platform::input::POINTER, platform::input::UP, index, 0, 0.0f, { (float)engine->state.x, (float)engine->state.y, 0.0f } }, (float)engine->state.x, (float)engine->state.y) == false) {
+				input->raise({ platform::input::POINTER, platform::input::UP, index, 0, 0.0f, { (float)engine->state.x, (float)engine->state.y, 0.0f } });
+			}
 			break;
 		};
 	}

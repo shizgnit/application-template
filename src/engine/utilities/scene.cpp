@@ -22,6 +22,14 @@ bool main::toggle(std::string name) {
     }
 }
 
+bool main::isactive(std::string name) {
+    std::lock_guard<std::mutex> scoped(lock);
+    if (name.empty() || scenes.find(name) == scenes.end()) {
+        return false;
+    }
+    return (active.find(name) != active.end());
+}
+
 bool main::activate(std::string name) {
     std::lock_guard<std::mutex> scoped(lock);
     if (name.empty() || scenes.find(name) == scenes.end()) {
@@ -273,7 +281,7 @@ value_t main::_group(parameters_t p) {
         }
     }
     if (p.size() == 3) {
-        type::entity::catalog::getSingleton().getGroup(group).set(std::get<label_t>(p[1]), p[2]);
+        type::entity::catalog::singleton().getGroup(group).set(std::get<label_t>(p[1]), p[2]);
         for (auto scene : active) {
             scene.second->group(group, std::get<label_t>(p[1]), p[2]);
         }

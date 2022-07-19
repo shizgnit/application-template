@@ -93,6 +93,8 @@ namespace platform {
             bool enabled = true;
             bool visible = true;
 
+            bool passthrough = false;
+
             std::vector<widget*> children;
 
         protected:
@@ -186,7 +188,7 @@ namespace platform {
             std::map<std::string, int> crossreference;
         };
 
-        virtual void raise(const input::event& ev, int x, int y) = 0;
+        virtual bool raise(const input::event& ev, int x, int y) = 0;
         virtual void emit() = 0;
 
         virtual void position() = 0;
