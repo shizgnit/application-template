@@ -489,6 +489,10 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
         return;
     }
 
+    if (target.compiled() == false) {
+        compile(target);
+    }
+
     glUseProgram(shader.context);
 
     if (target.texture.color && target.texture.color->context) {

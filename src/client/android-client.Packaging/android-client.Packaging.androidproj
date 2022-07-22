@@ -133,6 +133,7 @@
     <Content Include="assets\drawable\scale-down.png" />
     <Content Include="assets\drawable\scale-up.png" />
     <Content Include="assets\drawable\select.png" />
+    <Content Include="assets\drawable\undo.png" />
     <Content Include="assets\fonts\arial-16.fnt" />
     <Content Include="assets\fonts\arial-16_0.png" />
     <Content Include="assets\fonts\arial.fnt" />

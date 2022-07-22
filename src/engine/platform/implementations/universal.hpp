@@ -44,6 +44,7 @@ namespace implementation {
             void position();
             void draw();
 
+            widget* create(std::vector<widget*>& c);
             widget* create(widget::spec t, int w, int h, int r, int g, int b, int a);
             widget* create(widget* instance, int w, int h, int r, int g, int b, int a);
 

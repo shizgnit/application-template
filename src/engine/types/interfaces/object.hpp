@@ -22,15 +22,21 @@ namespace type {
 
         typedef spatial::vector::type_t type_t;
 
-        spatial::geometry interpolate(spatial::vector offset) {
-            spatial::geometry results;
-            for (auto& vertex : vertices) {
-                results.vertices.push_back(vertex.coordinate + offset);
+        spatial::geometry& interpolate(const spatial::matrix& model) {
+            if (interpolated.vertices.size() == 0) {
+                interpolated.vertices.reserve(vertices.size());
             }
-            return results;
+            for (int i = 0; i < vertices.size(); i++) {
+                interpolated.vertices[i] = model * vertices[i].coordinate;
+            }
+            return interpolated;
         }
 
         void xy_projection(unsigned int x, unsigned int y, unsigned int width, unsigned int height, bool horizontal=false, bool vertical=false) {
+            if (texture.color == NULL) {
+                return;
+            }
+
             type_t max_x = 0.0f;
             type_t max_y = 0.0f;
 
@@ -150,6 +156,8 @@ namespace type {
         }
 
         std::vector<spatial::vertex> vertices;
+        
+        spatial::geometry interpolated;
 
         type::material texture;
 
@@ -172,6 +180,9 @@ namespace type {
             std::copy(ref.vertices.begin(), ref.vertices.end(), std::back_inserter(this->vertices));
             constraint.calculated = false;
             compiled(false);
+            if (ref.vertices.size() == 6 && texture.color) {
+                xy_projection(0, 0, texture.color->properties.width, texture.color->properties.height);
+            }
             return *this;
         }
 

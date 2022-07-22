@@ -21,6 +21,7 @@ namespace platform {
 
         public:
             enum spec {
+                none,
                 button,
                 textbox,
                 tabbed,
@@ -34,7 +35,7 @@ namespace platform {
             ~widget() {}
 
             enum positioning {
-                none     = 0x00,
+                absolute = 0x00,
                 left     = (1u << 0),
                 right    = (1u << 1),
                 initial  = (1u << 2),
@@ -42,11 +43,10 @@ namespace platform {
                 hcenter  = (1u << 4),
                 vcenter  = (1u << 5),
                 top      = (1u << 6),
-                bottom   = (1u << 7),
-                absolute = (1u << 8)
+                bottom   = (1u << 7)
             };
 
-            virtual widget& position(int x, int y, positioning relativity=positioning::none) {
+            virtual widget& position(int x, int y, positioning relativity=positioning::absolute) {
                 this->x = x;
                 this->y = y;
 
@@ -99,8 +99,8 @@ namespace platform {
 
         protected:
             bool floating = false;
-            positioning horizontal = positioning::none;
-            positioning vertical = positioning::none;
+            positioning horizontal = positioning::absolute;
+            positioning vertical = positioning::absolute;
         };
 
         class button : public widget {
@@ -194,6 +194,8 @@ namespace platform {
         virtual void position() = 0;
         virtual void draw() = 0;
 
+        virtual widget* create(std::vector<widget *> &c) = 0;
+
         virtual widget* create(widget::spec t, int w, int h, int r, int g, int b, int a) = 0;
         virtual widget* create(widget* instance, int w, int h, int r, int g, int b, int a) = 0;
 
@@ -231,6 +233,36 @@ namespace platform {
             }
         }
 
+        virtual void spec(widget::spec spec, int w, int h, int margin) {
+            config.spec = spec;
+            config.w = w;
+            config.h = h;
+            config.margin = margin;
+        }
+
+        virtual void spec(int x, int y, widget::positioning relativity = widget::positioning::absolute) {
+            config.relativity = relativity;
+            config.x = x;
+            config.y = y;
+        }
+
+        virtual void spec(int channel, int r, int g, int b, int a) {
+            switch(channel) {
+            case(0):
+                config.background.r = r;
+                config.background.g = g;
+                config.background.b = b;
+                config.background.a = a;
+                break;
+            case(1):
+                config.edge.r = r;
+                config.edge.g = g;
+                config.edge.b = b;
+                config.edge.a = a;
+                break;
+            }
+        }
+
     protected:
         virtual void position(widget& instance) = 0;
         virtual void draw(widget& instance) = 0;
@@ -238,6 +270,28 @@ namespace platform {
         std::map<int, widget *> instances;
 
         widget* selected = NULL;
+
+        struct {
+            widget::spec spec=widget::spec::none;
+            widget::positioning relativity = widget::positioning::absolute;
+            int x = 0;
+            int y = 0;
+            int w = 0;
+            int h = 0;
+            int margin = 0;
+            struct {
+                int r = 0;
+                int g = 0;
+                int b = 0;
+                int a = 0;
+            } background;
+            struct {
+                int r = 0;
+                int g = 0;
+                int b = 0;
+                int a = 0;
+            } edge;
+        } config;
     };
 
 }

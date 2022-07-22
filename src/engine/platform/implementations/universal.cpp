@@ -268,6 +268,28 @@ void implementation::universal::interface::draw() {
     }
 }
 
+platform::interface::widget* implementation::universal::interface::create(std::vector<widget*>& c) {
+    if (config.spec == interface::widget::spec::none) {
+        return NULL;
+    }
+
+    int target_x = config.x;
+    int target_y = config.y;
+
+    int offset = (config.margin * c.size()) + config.margin;
+    if (config.relativity == interface::widget::positioning::bottom) {
+        target_y += (config.h * c.size()) + offset;
+    }
+    if (config.relativity == interface::widget::positioning::right) {
+        target_x += (config.w * c.size()) + offset;
+    }
+
+    c.push_back(create(config.spec, config.w, config.h, config.background.r, config.background.g, config.background.b, config.background.a));
+    c.back()->position(target_x, target_y);
+
+    return c.back();
+}
+
 platform::interface::widget* implementation::universal::interface::create(platform::interface::widget::spec t, int w, int h, int r, int g, int b, int a) {
     widget* instance = NULL;
 
@@ -290,16 +312,18 @@ platform::interface::widget* implementation::universal::interface::create(widget
     instance->background = spatial::quad(w, h);
     instance->background.texture.create(1, 1, r, g, b, a); // Single pixel is good enough
     instance->background.xy_projection(0, 0, w, h);
-    graphics->compile(instance->background);
+    //graphics->compile(instance->background);
 
     int l = 100;
 
     instance->edge = spatial::quad::edges(w, h);
     instance->edge.texture.create(1, 1, r+l, g+l, b+l, a+l);
     instance->edge.xy_projection(0, 0, 1, 1);
-    graphics->compile(instance->edge);
+    //graphics->compile(instance->edge);
 
     instance->bounds = spatial::quad(instance->background.vertices).project(spatial::matrix(), spatial::matrix(), projection);
+
+    instance->visible = false;
 
     instances[instance->id] = instance;
 
@@ -334,11 +358,22 @@ void implementation::universal::interface::draw(widget& instance) {
         position.scale_x(progress.value.get() / 100.0f);
     }
 
-    graphics->draw(instance.background, shader, projection, spatial::matrix(), position);
+    if (instance.background.visible && instance.background.vertices.size()) {
+        //if (instance.background.compiled() == false) {
+        //    graphics->compile(instance.background);
+        //}
+        graphics->draw(instance.background, shader, projection, spatial::matrix(), position);
+    }
     if (instance.foreground.visible && instance.foreground.vertices.size()) {
+        //if (instance.foreground.compiled() == false) {
+        //    graphics->compile(instance.foreground);
+        //}
         graphics->draw(instance.foreground, shader, projection, spatial::matrix(), position);
     }
-    if (instance.edge.vertices.size()) {
+    if (instance.edge.visible && instance.edge.vertices.size()) {
+        //if (instance.edge.compiled() == false) {
+        //    graphics->compile(instance.edge);
+        //}
         graphics->draw(instance.edge, shader, projection, spatial::matrix(), edge, spatial::matrix(), platform::graphics::render::WIREFRAME);
     }
 

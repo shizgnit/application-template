@@ -20,10 +20,10 @@
       <Filter>platform\implementations</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)utilities\spatial.cpp">
-      <Filter>types\utilities</Filter>
+      <Filter>utilities</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)utilities\common.cpp">
-      <Filter>types\utilities</Filter>
+      <Filter>utilities</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)platform\implementations\windows.cpp">
       <Filter>platform\implementations</Filter>
@@ -38,10 +38,10 @@
       <Filter>deps\miniz</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)utilities\scene.cpp">
-      <Filter>types\utilities</Filter>
+      <Filter>utilities</Filter>
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)utilities\properties.cpp">
-      <Filter>types\utilities</Filter>
+      <Filter>utilities</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -107,7 +107,7 @@
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)engine.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)utilities\type_cast.hpp">
-      <Filter>types\utilities</Filter>
+      <Filter>utilities</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\deps\zstream-cpp\izstream.hpp">
       <Filter>deps\zstream</Filter>
@@ -152,10 +152,10 @@
       <Filter>platform\interfaces</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)utilities\spatial.hpp">
-      <Filter>types\utilities</Filter>
+      <Filter>utilities</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)utilities\common.hpp">
-      <Filter>types\utilities</Filter>
+      <Filter>utilities</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)platform\implementations\windows.hpp">
       <Filter>platform\implementations</Filter>
@@ -182,10 +182,10 @@
       <Filter>deps\miniz</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)utilities\scene.hpp">
-      <Filter>types\utilities</Filter>
+      <Filter>utilities</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)utilities\properties.hpp">
-      <Filter>types\utilities</Filter>
+      <Filter>utilities</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -225,7 +225,7 @@
     <Filter Include="deps\miniz">
       <UniqueIdentifier>{b31ab9ae-202f-4735-bf7f-270a845bfcc8}</UniqueIdentifier>
     </Filter>
-    <Filter Include="types\utilities">
+    <Filter Include="utilities">
       <UniqueIdentifier>{8f4d8d4f-52c4-46d3-b232-3341d73c4d00}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
