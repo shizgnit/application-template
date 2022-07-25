@@ -23,7 +23,7 @@ void implementation::universal::input::raise(const event& ev) {
             on_move(ev);
         }
         if (ev.gesture == WHEEL) {
-            platform::input::raise({ POINTER, WHEEL, active_pointer(), time(NULL) - pointers[ev.identifier].pressed, ev.travel, ev.point });
+            platform::input::raise({ POINTER, WHEEL, active_pointer(), time(NULL) - platform::pointers[ev.identifier].pressed, ev.travel, ev.point });
         }
     }
     if (ev.input == KEY) {
@@ -41,13 +41,13 @@ int implementation::universal::input::active_pointer() {
 int implementation::universal::input::active_pointer(const event& ev) {
     auto derived = ev.identifier;
     for (int i = 0; i < 8; i++) {
-        if (derived == 0 && pointers[i].pressed) {
+        if (derived == 0 && platform::pointers[i].pressed) {
             derived = i;
             break;
         }
     }
     // Special case to simulate middle mouse... not sure if
-    if (derived == 0 && pointers[1].pressed && pointers[2].pressed) {
+    if (derived == 0 && platform::pointers[1].pressed && platform::pointers[2].pressed) {
         derived = 3;
     }
     return derived;
@@ -55,17 +55,17 @@ int implementation::universal::input::active_pointer(const event& ev) {
 
 void implementation::universal::input::on_press(const event& ev) {
     // Calculate values from prior event
-    time_t delta = time(NULL) - pointers[ev.identifier].pressed;
-    float distance = pointers[ev.identifier].point.distance(ev.point);
+    time_t delta = time(NULL) - platform::pointers[ev.identifier].pressed;
+    float distance = platform::pointers[ev.identifier].point.distance(ev.point);
 
     // Update to current
-    if (pointers[ev.identifier].pressed == 0) {
-        pointers[ev.identifier].pressed = time(NULL);
+    if (platform::pointers[ev.identifier].pressed == 0) {
+        platform::pointers[ev.identifier].pressed = time(NULL);
     }
-    pointers[ev.identifier].point = ev.point;
+    platform::pointers[ev.identifier].point = ev.point;
 
     // Track the event
-    active_pointers.push_back(&pointers[ev.identifier]);
+    active_pointers.push_back(&platform::pointers[ev.identifier]);
 
     // TODO: make the thresholds configurable
     if (delta <= 1 && distance < 1.0) {
@@ -85,8 +85,8 @@ void implementation::universal::input::on_release(const event& ev) {
     active_pointers.erase(end, active_pointers.end());
 
     // Store off the pressed so it can be cleared before raising the event
-    auto reference = pointers[ev.identifier].pressed;
-    pointers[ev.identifier].pressed = 0;
+    auto reference = platform::pointers[ev.identifier].pressed;
+    platform::pointers[ev.identifier].pressed = 0;
 
     platform::input::raise({ POINTER, drag ? RELEASE : UP, ev.identifier, time(NULL) - reference, 0.0f, ev.point, points });
     points.clear();
@@ -125,10 +125,10 @@ void implementation::universal::input::on_move(const event& ev) {
             points.push_back(current_position);
 
             if (abs(current_distance - last_distance) > threshold_travel) {
-                platform::input::raise({ POINTER, PINCH, active, time(NULL) - pointers[ev.identifier].pressed, current_distance - last_distance, current_position, ev.points });
+                platform::input::raise({ POINTER, PINCH, active, time(NULL) - platform::pointers[ev.identifier].pressed, current_distance - last_distance, current_position, ev.points });
             }
             else {
-                platform::input::raise({ POINTER, WHEEL, active, time(NULL) - pointers[ev.identifier].pressed, last_position.distance(current_position), current_position, ev.points});
+                platform::input::raise({ POINTER, WHEEL, active, time(NULL) - platform::pointers[ev.identifier].pressed, last_position.distance(current_position), current_position, ev.points});
             }
 
             last_distance = current_distance;
@@ -136,26 +136,26 @@ void implementation::universal::input::on_move(const event& ev) {
         }
         else if(drag) {
             points.push_back(ev.point);
-            platform::input::raise({ POINTER, DRAG, active, time(NULL) - pointers[ev.identifier].pressed, 0.0f, ev.point, points });
+            platform::input::raise({ POINTER, DRAG, active, time(NULL) - platform::pointers[ev.identifier].pressed, 0.0f, ev.point, points });
         }
     }
     else {
         drag = true;
         averages(ev, last_distance, last_position);
-        platform::input::raise({ POINTER, MOVE, ev.identifier, time(NULL) - pointers[ev.identifier].pressed, 0.0f, ev.point });
+        platform::input::raise({ POINTER, MOVE, ev.identifier, time(NULL) - platform::pointers[ev.identifier].pressed, 0.0f, ev.point });
     }
 }
 
 void implementation::universal::input::on_key_down(const event& ev) {
     // Calculate values from prior event
-    time_t delta = time(NULL) - pointers[ev.identifier].pressed;
+    time_t delta = time(NULL) - platform::pointers[ev.identifier].pressed;
 
     // Update to current
-    keys[ev.identifier].pressed = time(NULL);
+    platform::keys[ev.identifier].pressed = time(NULL);
 
     // Track the event
     tracking.lock();
-    active_keys.push_back(&keys[ev.identifier]);
+    active_keys.push_back(&platform::keys[ev.identifier]);
     tracking.unlock();
 
     platform::input::raise({ KEY, DOWN, ev.identifier, delta, 0.0f, { 0.0f, 0.0f, 0.0f } });
@@ -174,22 +174,22 @@ void implementation::universal::input::on_key_up(const event& ev) {
     }
 
     // Store off the pressed so it can be cleared before raising the event
-    auto reference = keys[ev.identifier].pressed;
-    keys[ev.identifier].pressed = 0;
+    auto reference = platform::keys[ev.identifier].pressed;
+    platform::keys[ev.identifier].pressed = 0;
 
     platform::input::raise({ KEY, UP, ev.identifier, time(NULL) - reference, 0.0f, { 0.0f, 0.0f, 0.0f } });
 }
 
 void implementation::universal::input::on_button_down(const event& ev) {
     // Calculate values from prior event
-    time_t delta = time(NULL) - pointers[ev.identifier].pressed;
+    time_t delta = time(NULL) - platform::pointers[ev.identifier].pressed;
 
     // Update to current
-    buttons[ev.identifier].pressed = time(NULL);
+    platform::buttons[ev.identifier].pressed = time(NULL);
 
     // Track the event
     tracking.lock();
-    active_buttons.push_back(&buttons[ev.identifier]);
+    active_buttons.push_back(&platform::buttons[ev.identifier]);
     tracking.unlock();
 
     platform::input::raise({ GAMEPAD, DOWN, ev.identifier, delta, 0.0f, { 0.0f, 0.0f, 0.0f } });
@@ -207,8 +207,8 @@ void implementation::universal::input::on_button_up(const event& ev) {
         tracking.unlock();
     }
 
-    keys[ev.identifier].pressed = 0;
-    platform::input::raise({ GAMEPAD, UP, ev.identifier, time(NULL) - buttons[ev.identifier].pressed, 0.0f, { 0.0f, 0.0f, 0.0f } });
+    platform::keys[ev.identifier].pressed = 0;
+    platform::input::raise({ GAMEPAD, UP, ev.identifier, time(NULL) - platform::buttons[ev.identifier].pressed, 0.0f, { 0.0f, 0.0f, 0.0f } });
 }
 
 void implementation::universal::input::emit() {
@@ -246,7 +246,7 @@ bool implementation::universal::interface::raise(const input::event& ev, int x, 
 
     if (ev.input == input::KEY && selected) {
         selected->events.raise(ev);
-        return selected->passthrough == false;
+        return selected == NULL || selected->passthrough == false;
     }
 
     return false;
@@ -497,14 +497,23 @@ std::string implementation::universal::assets::load(platform::assets* instance, 
             entity.animations["static"].frames.resize(1);
             instance->retrieve(path + "/" + object_name) >> format::parser::obj.d(resource + ".") >> entity.animations["static"].frames[0];
             entity.object = &entity.animations["static"].frames[0];
-            auto center = entity.object->center();
-            auto min = entity.object->min();
-            offset = {
-                 -center.x,
-                 -min.y,
-                 -center.z
-            };
-            entity.object->offset(offset);
+
+            if (entity.has("scale")) {
+                auto scale = std::get<double>(entity.get("scale"));
+                entity.object->scale(spatial::matrix().scale(scale));
+            }
+
+            if (entity.has("center") == false || std::get<bool>(entity.get("center")) == true) {
+                auto center = entity.object->center();
+                auto min = entity.object->min();
+                offset = {
+                     -center.x,
+                     -min.y,
+                     -center.z
+                };
+                entity.object->reposition(offset);
+            }
+
             if (icon_name.empty() == false) {
                 auto cache = path + "/" + icon_name;
                 auto& icon = instance->get<type::object>(cache);

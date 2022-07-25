@@ -216,9 +216,17 @@ namespace type {
             return vertices.empty() && children.empty();
         }
 
-        object& offset(spatial::vector amount) {
+        object& scale(spatial::matrix transform) {
+            for (auto& vertex : vertices) {
+                vertex.coordinate = transform * vertex.coordinate;
+            }
+            calculate_constraints();
+            return *this;
+        }
+
+        object& reposition(spatial::vector position) {
             for (auto &vertex : vertices) {
-                vertex.coordinate += amount;
+                vertex.coordinate += position;
             }
             calculate_constraints();
             return *this;

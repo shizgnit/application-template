@@ -154,7 +154,7 @@ void implementation::opengl::graphics::init(void) {
     // Setup the shadow depth map
     shadow = spatial::quad(256, 256);
     shadow.texture.color = &assets->get<type::image>("shadowmap");
-    shadow.texture.color->create(2048, 2048, 0, 0, 0, 0);
+    shadow.texture.color->create(4096, 4096, 0, 0, 0, 0);
     //shadow.texture.depth = true;
     shadow.xy_projection(0, 0, shadow.texture.color->properties.width, shadow.texture.color->properties.height);
     compile(shadow);

@@ -378,9 +378,8 @@ static int32_t engine_handle_input(struct android_app* app, AInputEvent* event) 
 	//AMotionEvent_getPointerId
 
 	if (type == AINPUT_EVENT_TYPE_KEY && AKeyEvent_getKeyCode(event) == AKEYCODE_BACK && AKeyEvent_getAction(event) == AKEY_STATE_DOWN) {
-		if (gui->raise({ platform::input::KEY, platform::input::DOWN, 27, 0, 0.0f, { 0.0f, 0.0f, 0.0f } }, 0, 0) == false) {
-			input->raise({ platform::input::KEY, platform::input::DOWN, 27, 1, 0.0f, { 0.0f, 0.0f, 0.0f } });
-		}
+		gui->raise({ platform::input::KEY, platform::input::DOWN, 27, 0, 0.0f, { 0.0f, 0.0f, 0.0f } }, 0, 0);
+		input->raise({ platform::input::KEY, platform::input::DOWN, 27, 1, 0.0f, { 0.0f, 0.0f, 0.0f } });
 		return 1;
 	};
 

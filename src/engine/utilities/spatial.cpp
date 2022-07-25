@@ -859,7 +859,7 @@ spatial::position::position(const spatial::vector& pos) {
 spatial::position::operator spatial::matrix() {
     matrix result;
     result.translate(eye, focus, up);
-    return result;
+    return result * spatial::matrix().scale(translation.scale);
 }
 
 spatial::matrix spatial::position::scale(type_t value) {

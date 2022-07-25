@@ -12,7 +12,7 @@ namespace implementation {
             void emit();
 
             std::string printable(int vkey) {
-                return keys[16].pressed || keys[160].pressed ? keys[vkey].meta : keys[vkey].character;
+                return platform::keys[16].pressed || platform::keys[160].pressed ? platform::keys[vkey].meta : platform::keys[vkey].character;
             }
 
         protected:

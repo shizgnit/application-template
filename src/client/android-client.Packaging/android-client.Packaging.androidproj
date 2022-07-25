@@ -170,6 +170,12 @@
     <Content Include="assets\objects\building.002\building.002.png" />
     <Content Include="assets\objects\building.002\icon.png" />
     <Content Include="assets\objects\bush.000\icon.png" />
+    <Content Include="assets\objects\detonator.000\detonator.000.mtl" />
+    <Content Include="assets\objects\detonator.000\detonator.000.obj" />
+    <Content Include="assets\objects\detonator.000\detonator.000.png" />
+    <Content Include="assets\objects\dynamite.000\dynamite.000.mtl" />
+    <Content Include="assets\objects\dynamite.000\dynamite.000.obj" />
+    <Content Include="assets\objects\dynamite.000\dynamite.000.png" />
     <Content Include="assets\objects\flag.000\flag.000.mtl" />
     <Content Include="assets\objects\flag.000\flag.000.obj" />
     <Content Include="assets\objects\flag.000\flag.000.png" />
@@ -189,6 +195,9 @@
     <Content Include="assets\objects\monkey.mtl" />
     <Content Include="assets\objects\monkey.obj" />
     <Content Include="assets\objects\monkey.png" />
+    <Content Include="assets\objects\plunger.000\plunger.000.mtl" />
+    <Content Include="assets\objects\plunger.000\plunger.000.obj" />
+    <Content Include="assets\objects\plunger.000\plunger.000.png" />
     <Content Include="assets\objects\poly.mtl" />
     <Content Include="assets\objects\poly.obj" />
     <Content Include="assets\objects\poly.png" />

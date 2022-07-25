@@ -404,15 +404,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
         if (rawinput.header.dwType == RIM_TYPEKEYBOARD && (rawinput.data.keyboard.Flags == 0 || rawinput.data.keyboard.Flags == 2))
         {
-            if (gui->raise({ platform::input::KEY, platform::input::DOWN, rawinput.data.keyboard.VKey, 0, 0.0f, { 0.0f, 0.0f, 0.0f } }, 0, 0) == false) {
-                input->raise({ platform::input::KEY, platform::input::DOWN, rawinput.data.keyboard.VKey, 1, 0.0f, { 0.0f, 0.0f, 0.0f } });
-            }            
+            gui->raise({ platform::input::KEY, platform::input::DOWN, rawinput.data.keyboard.VKey, 0, 0.0f, { 0.0f, 0.0f, 0.0f } }, 0, 0);
+            input->raise({ platform::input::KEY, platform::input::DOWN, rawinput.data.keyboard.VKey, 1, 0.0f, { 0.0f, 0.0f, 0.0f } });
         }
         if (rawinput.header.dwType == RIM_TYPEKEYBOARD && (rawinput.data.keyboard.Flags == 1 || rawinput.data.keyboard.Flags == 3))
         {
-            if (gui->raise({ platform::input::KEY, platform::input::UP, rawinput.data.keyboard.VKey, 0, 0.0f, { 0.0f, 0.0f, 0.0f } }, 0, 0) == false) {
-                input->raise({ platform::input::KEY, platform::input::UP, rawinput.data.keyboard.VKey, 1, 0.0f, { 0.0f, 0.0f, 0.0f } });
-            }
+            gui->raise({ platform::input::KEY, platform::input::UP, rawinput.data.keyboard.VKey, 0, 0.0f, { 0.0f, 0.0f, 0.0f } }, 0, 0);
+            input->raise({ platform::input::KEY, platform::input::UP, rawinput.data.keyboard.VKey, 1, 0.0f, { 0.0f, 0.0f, 0.0f } });
         }
 
         if (rawinput.header.dwType == RIM_TYPEMOUSE && rawinput.data.mouse.ulButtons == 0)
