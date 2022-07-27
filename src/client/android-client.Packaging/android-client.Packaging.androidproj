@@ -170,6 +170,10 @@
     <Content Include="assets\objects\building.002\building.002.png" />
     <Content Include="assets\objects\building.002\icon.png" />
     <Content Include="assets\objects\bush.000\icon.png" />
+    <Content Include="assets\objects\car.000\car.000.mtl" />
+    <Content Include="assets\objects\car.000\car.000.obj" />
+    <Content Include="assets\objects\car.000\car.000.png" />
+    <Content Include="assets\objects\car.000\icon.png" />
     <Content Include="assets\objects\detonator.000\detonator.000.mtl" />
     <Content Include="assets\objects\detonator.000\detonator.000.obj" />
     <Content Include="assets\objects\detonator.000\detonator.000.png" />
@@ -195,6 +199,10 @@
     <Content Include="assets\objects\monkey.mtl" />
     <Content Include="assets\objects\monkey.obj" />
     <Content Include="assets\objects\monkey.png" />
+    <Content Include="assets\objects\person.000\icon.png" />
+    <Content Include="assets\objects\person.000\person.000.mtl" />
+    <Content Include="assets\objects\person.000\person.000.obj" />
+    <Content Include="assets\objects\person.000\person.000.png" />
     <Content Include="assets\objects\plunger.000\plunger.000.mtl" />
     <Content Include="assets\objects\plunger.000\plunger.000.obj" />
     <Content Include="assets\objects\plunger.000\plunger.000.png" />
@@ -227,6 +235,10 @@
     <Content Include="assets\objects\suzanne\idle\suzanne.png" />
     <Content Include="assets\objects\tree.000\icon.png" />
     <Content Include="assets\objects\tree.001\icon.png" />
+    <Content Include="assets\objects\tree.002\icon.png" />
+    <Content Include="assets\objects\tree.002\tree.002.mtl" />
+    <Content Include="assets\objects\tree.002\tree.002.obj" />
+    <Content Include="assets\objects\tree.002\tree.002.png" />
     <Content Include="assets\objects\untitled.mtl" />
     <Content Include="assets\objects\untitled.obj" />
     <Content Include="assets\objects\untitled.png" />
