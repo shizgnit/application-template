@@ -86,7 +86,7 @@
 				E782872F2896213200B64B89 /* Assets.xcassets */,
 			);
 			name = "universal-engine";
-			path = "engine/universal-engine";
+			path = engine;
 			sourceTree = "<group>";
 		};
 		E78287352896213200B64B89 /* Products */ = {
