@@ -76,7 +76,7 @@ static const NSUInteger MaxBuffersInFlight = 3;
     _mtlVertexDescriptor.layouts[BufferIndexMeshGenerics].stepRate = 1;
     _mtlVertexDescriptor.layouts[BufferIndexMeshGenerics].stepFunction = MTLVertexStepFunctionPerVertex;
 
-    id<MTLLibrary> defaultLibrary = [_device newDefaultLibrary];
+    id <MTLLibrary> defaultLibrary = [_device newDefaultLibrary];
 
     id <MTLFunction> vertexFunction = [defaultLibrary newFunctionWithName:@"vertexShader"];
 
