@@ -1,8 +1,8 @@
 //
 //  main.m
-//  client iOS
+//  GLESTest2
 //
-//  Created by Dee Abbott on 7/30/22.
+//  Created by Dee Abbott on 7/31/22.
 //
 
 #import <UIKit/UIKit.h>

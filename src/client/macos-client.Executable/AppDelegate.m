@@ -1,13 +1,14 @@
 //
 //  AppDelegate.m
-//  client macOS
+//  macos-client.Executable
 //
-//  Created by Dee Abbott on 7/30/22.
+//  Created by Dee Abbott on 7/31/22.
 //
 
 #import "AppDelegate.h"
 
 @interface AppDelegate ()
+
 
 @end
 
@@ -23,7 +24,7 @@
 }
 
 
-- (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication *)sender {
+- (BOOL)applicationSupportsSecureRestorableState:(NSApplication *)app {
     return YES;
 }
 
