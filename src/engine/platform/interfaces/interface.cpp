@@ -1,6 +1,6 @@
 #include "engine.hpp"
 
-void interface::button::draw() {
+void platform::interface::button::draw() {
     graphics->clip(graphics->height() - y, -((graphics->height() - background.height()) - y), -x, x + background.width());
 
     spatial::matrix position;
@@ -10,7 +10,7 @@ void interface::button::draw() {
     graphics->draw(background, manager.get().shader, position, spatial::matrix(), manager.get().projection);
 }
 
-void interface::textbox::draw() {
+void platform::interface::textbox::draw() {
     graphics->clip(graphics->height() - y, -((graphics->height() - background.height()) - y), -x, x + background.width());
 
     spatial::matrix position;
@@ -37,7 +37,7 @@ void interface::textbox::draw() {
     graphics->noclip();
 }
 
-int interface::tabbed::add(interface::widget& button, interface::widget& content) {
+int platform::interface::tabbed::add(interface::widget& button, interface::widget& content) {
     children.push_back(button);
     crossreference[" "] = children.size();
     children.push_back(content);
@@ -45,13 +45,13 @@ int interface::tabbed::add(interface::widget& button, interface::widget& content
     return 0;
 }
 
-void interface::tabbed::select(const std::string label) {
+void platform::interface::tabbed::select(const std::string label) {
     if (crossreference.find(label) != crossreference.end()) {
         selected = crossreference[label];
     }
 }
 
-void interface::tabbed::draw() {
+void platform::interface::tabbed::draw() {
     // Draw the buttons
     for (int i = 0; i < children.size(); i += 2) {
         children[selected].get().draw();

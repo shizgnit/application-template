@@ -122,7 +122,7 @@ void implementation::opengl::graphics::dimensions(int width, int height, float s
 
 void implementation::opengl::graphics::init(void) {
     //glEnable(GL_SHADE_MODEL, GL_SMOOTH);
-    glShadeModel(GL_SMOOTH);
+    //glShadeModel(GL_SMOOTH);
 
     // Depth test
     glEnable(GL_DEPTH_TEST);

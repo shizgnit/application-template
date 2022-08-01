@@ -32,7 +32,7 @@ GLuint CompileShader(GLenum type, const std::string &source)
         glGetShaderInfoLog(shader, (GLsizei)infoLog.size(), NULL, infoLog.data());
 
         std::string errorMessage = std::string("Shader compilation failed: ");
-        errorMessage += std::string(infoLog.begin(), infoLog.end()); 
+        errorMessage += std::string(infoLog.begin(), infoLog.end());
 
         throw std::runtime_error(errorMessage.c_str());
     }
