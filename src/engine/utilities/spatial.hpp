@@ -1,6 +1,7 @@
 #pragma once
 
 /// GLM - Trying it out to potentially replace custom implementation
+#if defined _USE_GLM
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
 #include <glm/mat4x4.hpp>
@@ -9,6 +10,7 @@
 #include <glm/ext/scalar_constants.hpp>
 #include <glm/gtx/intersect.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#endif
 
 namespace spatial {
 
@@ -76,8 +78,10 @@ namespace spatial {
 
         bool encompassed_xz(const vector& v0, const vector& v1, const vector& v2) const;
 
+#if defined _USE_GLM
         operator glm::vec3() const;
-
+#endif
+        
         virtual bool hasValue() const {
             return (x == 0 && y == 0 && z == 0 && w == 1) == false;
         }

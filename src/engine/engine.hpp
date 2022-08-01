@@ -12,6 +12,16 @@
 //#define __PLATFORM_32BIT 1
 #endif
 
+#if defined __APPLE__
+#define __PLATFORM_APPLE 1
+#define __PLATFORM_IOS 1
+#endif
+
+#if defined TARGET_OS_OSX
+#define __PLATFORM_APPLE 1
+#define __PLATFORM_MACOS 1
+#endif
+
 #if defined __linux__
 #define __PLATFORM_LINUX 1
 //#define __PLATFORM_64BIT 1
@@ -67,6 +77,25 @@
 #define MAP_FILE 0
 #endif
 #endif
+
+#if defined __PLATFORM_IOS
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/mman.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <dirent.h>
+#include <utime.h>
+#include <netdb.h>
+#include <resolv.h>
+#include <cstring>
+#include <cstdlib>
+#ifndef MAP_FILE
+#define MAP_FILE 0
+#endif
+#endif
+
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -162,6 +191,23 @@ inline platform::interface* gui = new implementation::universal::interface();
 inline platform::network::client* client = new implementation::windows::network::client();
 inline platform::network::server* server = new implementation::windows::network::server();
 #endif
+
+#if defined __PLATFORM_IOS
+#include "platform/implementations/universal.hpp"
+#include "platform/implementations/opengl.hpp"
+//#include "platform/implementations/opensl.hpp"
+#include "platform/implementations/posix.hpp"
+//#include "platform/implementations/android.hpp"
+//inline platform::audio* audio = new implementation::opensl::audio();
+inline platform::filesystem* filesystem = new implementation::posix::filesystem();
+inline platform::assets* assets;// = new implementation::android::assets();
+inline platform::graphics* graphics = new implementation::opengl::graphics();
+//inline platform::input* input = new implementation::universal::input();
+inline platform::interface* gui;// = new implementation::universal::interface();
+//inline platform::network::client* client = new implementation::posix::network::client();
+//inline platform::network::server* server = new implementation::posix::network::server();
+#endif
+
 
 /// Supported Formats
 #include "types/formats/wav.hpp"

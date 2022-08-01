@@ -14,6 +14,11 @@
 #include <GLES3/gl3ext.h>
 #endif
 
+#if defined __PLATFORM_IOS
+#include <OpenGLES/gltypes.h>
+#include <OpenGLES/ES3/gl.h>
+#endif
+
 #if !defined GL_MAX_COLOR_ATTACHMENTS
 #define GL_MAX_COLOR_ATTACHMENTS 0x8CDF
 #endif
@@ -33,6 +38,8 @@ namespace implementation {
         public:
             class attachment {
             public:
+                int supported = 0;
+                
                 attachment() {
                     glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS, &supported);
                     for (int i = 0; i < supported; i++) {
@@ -54,7 +61,6 @@ namespace implementation {
                     inuse[allocation] = false;
                 }
 
-                int supported = 0;
                 std::map<GLenum, bool> inuse;
             };
 
@@ -72,9 +78,9 @@ namespace implementation {
 
         private:
             struct {
-                GLuint frame = 0;
-                GLuint render = 0;
-                GLuint depth = 0;
+                uint frame = 0;
+                uint render = 0;
+                uint depth = 0;
             } context;
 
             GLenum allocation = 0;

@@ -118,10 +118,11 @@ bool spatial::vector::operator == (const vector& operand) const {
            this->w == operand.w;
 }
 
+#if defined _USE_GLM
 spatial::vector::operator glm::vec3() const {
     return glm::vec3(x, y, z);
 }
-
+#endif
 
 spatial::vector& spatial::vector::rotate(const spatial::vector& axis, type_t rad) {
     return *this = spatial::matrix().rotate(axis, rad).interpolate(*this);
@@ -1229,7 +1230,7 @@ bool spatial::ray::intersects(const spatial::geometry& bounds) {
 
 bool spatial::ray::intersects(const spatial::triangle& triangle) {
 
-//#if defined _USE_GLM
+#if defined _USE_GLM
     glm::vec3 r0 = vertices[0];
     glm::vec3 r1 = vertices[1];
 
@@ -1242,8 +1243,6 @@ bool spatial::ray::intersects(const spatial::triangle& triangle) {
     glm::vec3 pos;  // no current use for the barycentric coordinates
 
     return glm::intersectLineTriangle(r0, dir, v0, v1, v2, pos);
-
-/*
 #else
     auto org = vertices[0];
     auto dir = vertices[1].unit();
@@ -1280,7 +1279,6 @@ bool spatial::ray::intersects(const spatial::triangle& triangle) {
 
     return false;
 #endif
-*/
 }
 
 bool spatial::ray::intersects(const spatial::plane& plane) {
