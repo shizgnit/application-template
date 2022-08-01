@@ -12,7 +12,18 @@
 //#define __PLATFORM_32BIT 1
 #endif
 
+#if defined __linux__
+#define __PLATFORM_LINUX 1
+//#define __PLATFORM_64BIT 1
+#endif
+
+#if defined _M_ARM
+#undef __PLATFORM_64BIT
+#define __PLATFORM_32BIT 1
+#endif
+
 #if defined __APPLE__
+
 #include <TargetConditionals.h>
 
 #if defined TARGET_OS_IOS
@@ -26,17 +37,6 @@
 #endif
 
 #endif
-
-#if defined __linux__
-#define __PLATFORM_LINUX 1
-//#define __PLATFORM_64BIT 1
-#endif
-
-#if defined _M_ARM
-#undef __PLATFORM_64BIT
-#define __PLATFORM_32BIT 1
-#endif
-
 
 #if defined(__PLATFORM_WINDOWS)
 #ifndef _UNICODE

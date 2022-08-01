@@ -78,9 +78,9 @@ namespace implementation {
 
         private:
             struct {
-                uint frame = 0;
-                uint render = 0;
-                uint depth = 0;
+                unsigned int frame = 0;
+                unsigned int render = 0;
+                unsigned int depth = 0;
             } context;
 
             GLenum allocation = 0;
