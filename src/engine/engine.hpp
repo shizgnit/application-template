@@ -13,6 +13,9 @@
 #endif
 
 #if defined __APPLE__
+#include <TargetConditionals.h>
+
+#if defined TARGET_OS_IOS
 #define __PLATFORM_APPLE 1
 #define __PLATFORM_IOS 1
 #endif
@@ -20,6 +23,8 @@
 #if defined TARGET_OS_OSX
 #define __PLATFORM_APPLE 1
 #define __PLATFORM_MACOS 1
+#endif
+
 #endif
 
 #if defined __linux__
