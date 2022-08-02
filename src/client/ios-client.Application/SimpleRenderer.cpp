@@ -214,12 +214,6 @@ SimpleRenderer::~SimpleRenderer()
 
 void SimpleRenderer::Draw()
 {
-    if (instance->started) {
-        instance->on_interval();
-        instance->on_draw();
-    }
-    return;
-
     glEnable(GL_DEPTH_TEST);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -257,12 +251,4 @@ void SimpleRenderer::UpdateWindowSize(GLsizei width, GLsizei height)
     glViewport(0, 0, width, height);
     mWindowWidth = width;
     mWindowHeight = height;
-        
-    instance = new app();
-    
-    assets->init();
-    
-    instance->dimensions(width, height);
-    instance->on_startup();
-    instance->started = true;
 }

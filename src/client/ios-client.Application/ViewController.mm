@@ -8,7 +8,7 @@
 #import "ViewController.h"
 #import <OpenGLES/ES3/glext.h>
 
-#import "SimpleRenderer.h"
+//#import "SimpleRenderer.h"
 
 #import "engine.hpp"
 
@@ -24,7 +24,7 @@
 
 @implementation ViewController
 {
-    SimpleRenderer* mCubeRenderer;
+    //SimpleRenderer* mCubeRenderer;
     
     application *instance;
 }
@@ -42,7 +42,7 @@
     view.context = self.context;
     view.drawableDepthFormat = GLKViewDrawableDepthFormat24;
     
-    mCubeRenderer = NULL;
+    //mCubeRenderer = NULL;
     instance = NULL;
     
     [self setupGL];
@@ -61,10 +61,10 @@
 {
     [EAGLContext setCurrentContext:self.context];
     
-    if(mCubeRenderer == NULL) {
+    //if(mCubeRenderer == NULL) {
         //mCubeRenderer = new SimpleRenderer();
         //mCubeRenderer->UpdateWindowSize(self.view.bounds.size.width, self.view.bounds.size.height);
-    }
+    //}
     
     if(instance == NULL) {
         instance = new app();
