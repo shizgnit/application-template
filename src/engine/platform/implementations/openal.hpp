@@ -2,8 +2,13 @@
 
 #define __PLATFORM_SUPPORTS_OPENAL 1
 
+#if defined __PLATFORM_APPLE
+#include <OpenAL/al.h>
+#include <OpenAL/alc.h>
+#else
 #include <AL/al.h>
 #include <AL/alc.h>
+#endif
 
 namespace implementation {
 

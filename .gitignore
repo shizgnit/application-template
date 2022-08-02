@@ -4,3 +4,5 @@ packages/
 **/Debug
 **/x86
 src/client/android-client.Packaging/assets
+src/client/ios-client.Application/assets
+

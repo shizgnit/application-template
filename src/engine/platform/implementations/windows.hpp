@@ -43,7 +43,7 @@ namespace implementation {
 
         class assets : public platform::assets {
         public:
-            void init(void* ref);
+            void init(void* ref=NULL);
 
             std::vector<std::string> list(const std::string& path);
 

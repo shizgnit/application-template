@@ -10,6 +10,7 @@ public:
     application* dimensions(int width, int height) {
         this->width = width;
         this->height = height;
+        this->on_resize();
         return(this);
     }
 

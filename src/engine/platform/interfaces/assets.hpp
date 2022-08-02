@@ -61,7 +61,7 @@ namespace platform {
             return utilities::join("/", directories);
         }
 
-        virtual void init(void *ref) { /*NULL*/ }
+        virtual void init(void *ref=NULL) { /*NULL*/ }
 
         virtual std::vector<std::string> list(const std::string& path) = 0;
 

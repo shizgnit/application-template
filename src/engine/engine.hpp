@@ -38,7 +38,7 @@
 
 #endif
 
-#if defined(__PLATFORM_WINDOWS)
+#if defined __PLATFORM_WINDOWS
 #ifndef _UNICODE
 #error Set "Use Unicode Character Set" in the general project settings
 #endif
@@ -200,15 +200,15 @@ inline platform::network::server* server = new implementation::windows::network:
 #if defined __PLATFORM_IOS
 #include "platform/implementations/universal.hpp"
 #include "platform/implementations/opengl.hpp"
-//#include "platform/implementations/opensl.hpp"
+#include "platform/implementations/openal.hpp"
 #include "platform/implementations/posix.hpp"
-//#include "platform/implementations/android.hpp"
-//inline platform::audio* audio = new implementation::opensl::audio();
+#include "platform/implementations/ios.hpp"
+inline platform::audio* audio = new implementation::openal::audio();
 inline platform::filesystem* filesystem = new implementation::posix::filesystem();
-inline platform::assets* assets;// = new implementation::android::assets();
+inline platform::assets* assets = new implementation::ios::assets();
 inline platform::graphics* graphics = new implementation::opengl::graphics();
-//inline platform::input* input = new implementation::universal::input();
-inline platform::interface* gui;// = new implementation::universal::interface();
+inline platform::input* input = new implementation::universal::input();
+inline platform::interface* gui = new implementation::universal::interface();
 //inline platform::network::client* client = new implementation::posix::network::client();
 //inline platform::network::server* server = new implementation::posix::network::server();
 #endif

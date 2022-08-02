@@ -1,10 +1,8 @@
 #pragma once
 
-#define __PLATFORM_ANDROID 1
-
 namespace implementation {
 
-    namespace android {
+    namespace ios {
 
         class assets : public platform::assets {
         public:
@@ -18,8 +16,7 @@ namespace implementation {
 
             std::string load(const std::string& type, const std::string& resource, const std::string& id = "");
 
-        private:
-            AAssetManager* assetManager;
+            std::string base;
         };
 
     }
