@@ -7,12 +7,12 @@
 /// - Configuration
 /// - Results
 /// </summary>
-class main : public properties {
+class scene : public properties {
 public:
-    class scene : public properties {
+    class handler : public properties {
     public:
-        scene() {}
-        virtual ~scene() {}
+        handler() {}
+        virtual ~handler() {}
 
         virtual bool load() { return true; }
         virtual bool save() { return false; }
@@ -58,8 +58,8 @@ public:
         return instance;
     }
 
-    inline static main& singleton() {
-        static main instance;
+    inline static scene& global() {
+        static scene instance;
         return instance;
     }
 
@@ -67,7 +67,7 @@ public:
     /// Scene management methods
     /// </summary>
 
-    void add(std::string name, scene* instance);
+    void add(std::string name, handler* instance);
     bool toggle(std::string name);
     bool isactive(std::string name);
     bool activate(std::string name);
@@ -76,7 +76,7 @@ public:
     void run();
     void draw();
 
-    std::map<std::string, scene*> current();
+    std::map<std::string, handler*> current();
 
     /// <summary>
     /// Event propagation to the active scenes, note that these have no inherent meaing.
@@ -97,8 +97,8 @@ public:
 
     void dimensions(int width, int height);
 
-    std::map<std::string, scene*> scenes;
-    std::map<std::string, scene*> active;
+    std::map<std::string, handler*> scenes;
+    std::map<std::string, handler*> active;
 
     std::mutex lock;
 
@@ -120,16 +120,16 @@ private:
     std::map<std::string, callback_t> events;
 
     std::map<std::string, std::pair<std::string, callback_t>> commands = {
-        { "/group",   { "/group <id> <command>\n/group <id> <label> <value>", [](parameters_t p)->value_t { return main::singleton()._group(p); } } },
-        { "/get",     { "/get <label>\n/get <entity> <label>", [](parameters_t p)->value_t { return main::singleton()._get(p); } } },
-        { "/set",     { "/set <label> <value>\n/set <entity> <label> <value>", [](parameters_t p)->value_t { return main::singleton()._set(p); } } },
-        { "/load",    { "/load <type> <source> [target]", [](parameters_t p)->value_t { return main::singleton()._load(p); } } },
-        { "/compile", { "/compile", [](parameters_t p)->value_t { return main::singleton()._compile(p); } } },
-        { "/play",    { "/play <entity> <state>", [](parameters_t p)->value_t { return main::singleton()._play(p); } } },
-        { "/create",  { "/create <type>", [](parameters_t p)->value_t { return main::singleton()._create(p); } } },
-        { "/show",    { "/show <type>", [](parameters_t p)->value_t { return main::singleton()._show(p); } } },
-        { "/save",    { "/save", [](parameters_t p)->value_t { return main::singleton()._save(p); } } },
-        { "/exit",    { "/exit", [](parameters_t p)->value_t { return main::singleton()._exit(p); } } },
+        { "/group",   { "/group <id> <command>\n/group <id> <label> <value>", [](parameters_t p)->value_t { return scene::global()._group(p); } } },
+        { "/get",     { "/get <label>\n/get <entity> <label>", [](parameters_t p)->value_t { return scene::global()._get(p); } } },
+        { "/set",     { "/set <label> <value>\n/set <entity> <label> <value>", [](parameters_t p)->value_t { return scene::global()._set(p); } } },
+        { "/load",    { "/load <type> <source> [target]", [](parameters_t p)->value_t { return scene::global()._load(p); } } },
+        { "/compile", { "/compile", [](parameters_t p)->value_t { return scene::global()._compile(p); } } },
+        { "/play",    { "/play <entity> <state>", [](parameters_t p)->value_t { return scene::global()._play(p); } } },
+        { "/create",  { "/create <type>", [](parameters_t p)->value_t { return scene::global()._create(p); } } },
+        { "/show",    { "/show <type>", [](parameters_t p)->value_t { return scene::global()._show(p); } } },
+        { "/save",    { "/save", [](parameters_t p)->value_t { return scene::global()._save(p); } } },
+        { "/exit",    { "/exit", [](parameters_t p)->value_t { return scene::global()._exit(p); } } },
     };
     std::map<int, callback_t> keybinds;
 
