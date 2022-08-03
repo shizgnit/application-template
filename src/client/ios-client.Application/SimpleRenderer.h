@@ -11,9 +11,6 @@
 #include <GLES2/gl2.h>
 #endif
 
-#include "engine.hpp"
-#include "application.hpp"
-
 class SimpleRenderer
 {
 public:
@@ -39,6 +36,4 @@ private:
     GLuint mIndexBuffer;
 
     int mDrawCount;
-    
-    application* instance;
 };
