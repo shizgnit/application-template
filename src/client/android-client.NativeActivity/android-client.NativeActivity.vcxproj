@@ -64,7 +64,7 @@
       <LibraryDependencies>%(LibraryDependencies);GLESv3;EGL;OpenSLES;m;GLESv1_CM</LibraryDependencies>
     </Link>
     <PreBuildEvent>
-      <Command>if not exist $(ProjectDir)..\..\..\src\client\android-client.Packaging\assets mklink /J $(ProjectDir)..\..\..\src\client\android-client.Packaging\assets $(SolutionDir)\assets </Command>
+      <Command>(if not exist $(SolutionDir)assets mkdir $(SolutionDir)assets) &amp;&amp; (if not exist $(ProjectDir)..\..\..\src\client\android-client.Packaging\assets mklink /J $(ProjectDir)..\..\..\src\client\android-client.Packaging\assets $(SolutionDir)assets) </Command>
     </PreBuildEvent>
     <PostBuildEvent>
       <Command>tree /a $(SolutionDir)assets &gt; $(SolutionDir)assets\content.txt</Command>
