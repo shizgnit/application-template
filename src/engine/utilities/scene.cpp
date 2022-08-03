@@ -1,5 +1,228 @@
 #include "engine.hpp"
 
+#include "picojson/picojson.h"
+
+bool writeProperties(properties& input, picojson::object& output) {
+    int values = 0;
+    for (auto label : input.keys()) {
+        auto value = input.get(label);
+        if (std::holds_alternative<std::string>(value)) {
+            output[label] = picojson::value(std::get<std::string>(value));
+        }
+        if (std::holds_alternative<bool>(value)) {
+            output[label] = picojson::value(std::get<bool>(value));
+        }
+        if (std::holds_alternative<double>(value)) {
+            output[label] = picojson::value(std::get<double>(value));
+        }
+        values += 1;
+    }
+    return values > 0;
+}
+
+double get(picojson::value& node, const std::string& label, double fallback = 0.0f) {
+    double value = fallback;
+    if (node.contains(label)) {
+        if (node.get(label).is<double>()) {
+            value = node.get(label).get<double>();
+        }
+    }
+    return value;
+}
+
+bool parseProperties(picojson::value& input, properties& output) {
+    if (input.is<picojson::object>() == false) {
+        return false;
+    }
+
+    for (auto& attribute : input.get<picojson::object>()) {
+        if (attribute.second.is<std::string>()) {
+            output.set(attribute.first, attribute.second.get<std::string>());
+        }
+        if (attribute.second.is<bool>()) {
+            output.set(attribute.first, attribute.second.get<bool>());
+        }
+        if (attribute.second.is<double>()) {
+            output.set(attribute.first, attribute.second.get<double>());
+        }
+    }
+
+    return true;
+}
+
+bool parse(const std::string& data) {
+    picojson::value input;
+    std::string error = picojson::parse(input, data);
+    if (error.empty() == false) {
+        return false;
+    }
+
+    auto& catalog = type::entity::catalog::singleton();
+
+    if (input.get("entities").is<picojson::object>() == false) {
+        return false;
+    }
+    auto& entities = input.get("entities").get<picojson::object>();
+
+    if (input.get("groups").is<picojson::object>() == false) {
+        return false;
+    }
+    auto& groups = input.get("groups").get<picojson::object>();
+
+    float increment = 99 / (float)(entities.size() + groups.size());
+    float percentage = 0;
+
+    for (auto& entity : entities) {
+        auto& reference = assets->get<type::entity>(entity.first);
+        if (entity.second.contains("properties")) {
+            parseProperties(entity.second.get("properties"), reference);
+        }
+        scene::global().call("/load entity " + entity.first);
+
+        if (entity.second.contains("instances") == false || entity.second.get("instances").get<picojson::array>().size() == 0) {
+            properties props;
+            props.set("virtual", true);
+            auto& added = reference.add(props);
+            added.position.reposition({ 0.0f, -100.0f, 0.0f });
+        }
+        else {
+            for (auto& instance : entity.second.get("instances").get<picojson::array>()) {
+                auto& position = instance.get("position");
+                spatial::vector::type_t x = get(position, "x");
+                spatial::vector::type_t y = get(position, "y");
+                spatial::vector::type_t z = get(position, "z");
+
+                properties props;
+                if (instance.contains("properties")) {
+                    parseProperties(instance.get("properties"), props);
+                }
+
+                auto& added = reference.add(props);
+                if (props.has("spin")) {
+                    added.position.spin(std::get<double>(props.get("spin")));
+                }
+                if (props.has("scale")) {
+                    added.position.scale(std::get<double>(props.get("scale")));
+                }
+                added.position.reposition({ x, y, z });
+            }
+        }
+        if (reference.instances.size()) {
+            scene::global().call("/play " + entity.first + " static");
+        }
+
+        percentage += increment;
+        scene::global().progress().value.set(percentage);
+    }
+
+    for (auto& group : groups) {
+        parseProperties(group.second, catalog.getGroup(group.first));
+        percentage += increment;
+        scene::global().progress().value.set(percentage);
+    }
+
+    return true;
+}
+
+
+scene::persistence::persistence() {
+    _file = filesystem->join({ filesystem->appdata(), "democo", "map.json" });
+}
+
+bool scene::persistence::write() {
+    auto path = filesystem->dirname(_file);
+    if (path.empty()) {
+        return false;
+    }
+
+    if (filesystem->mkpath(path) == false) {
+        // TODO capture errors
+        //console::trace() << "failed creating output directory";
+        return false;
+    }
+
+    auto& catalog = type::entity::catalog::singleton();
+
+    picojson::object output;
+    picojson::object entities;
+    for (auto& entity : assets->get<type::entity>()) {
+        picojson::object spec;
+
+        picojson::array instances;
+        for (auto& instance : entity->instances) {
+            picojson::object entry;
+            if (instance.second.position.translation.spin != 0.0f) {
+                instance.second.set("spin", instance.second.position.translation.spin);
+            }
+            if (instance.second.position.translation.scale != 1.0f) {
+                instance.second.set("scale", instance.second.position.translation.scale);
+            }
+            picojson::object position;
+            position["x"] = picojson::value(instance.second.position.eye.x);
+            position["y"] = picojson::value(instance.second.position.eye.y);
+            position["z"] = picojson::value(instance.second.position.eye.z);
+            entry["position"] = picojson::value(position);
+
+            picojson::object spec;
+            if (writeProperties(instance.second, spec)) {
+                entry["properties"] = picojson::value(spec);
+            }
+
+            instances.push_back(picojson::value(entry));
+        }
+        spec["instances"] = picojson::value(instances);
+
+        picojson::object properties;
+        if (writeProperties(*entity, properties)) {
+            spec["properties"] = picojson::value(properties);
+        }
+
+        entities[entity->id()] = picojson::value(spec);
+    }
+    picojson::object groups;
+    for (auto grouping : catalog.groupings()) {
+        picojson::object group;
+        if (writeProperties(catalog.getGroup(grouping), group)) {
+            groups[grouping] = picojson::value(group);
+        }
+    }
+    output["entities"] = picojson::value(entities);
+    output["groups"] = picojson::value(groups);
+
+    try {
+        //std::ofstream stream("/data/local/tmp/" + _file);
+        std::ofstream stream(_file);
+        stream << picojson::value(output).serialize();
+        stream.close();
+        return true;
+    }
+    catch (...) {
+        // TODO capture errors
+        //console::trace() << "failed writing output";
+    }
+    return false;
+}
+
+bool scene::persistence::read() {
+    std::stringstream buffer;
+    if (filesystem->exists(_file)) {
+        std::ifstream stream(_file);
+        buffer << stream.rdbuf();
+    }
+    else {
+        buffer << assets->retrieve(utilities::basename(_file)).rdbuf();
+    }
+    try {
+        return parse(buffer.str());
+    }
+    catch (...) {
+        // TODO capture errors
+        //console::trace() << "failed reading input";
+    }
+    return false;
+}
+
+
 void scene::add(std::string name, handler* instance) {
     std::lock_guard<std::mutex> scoped(lock);
     scenes[name] = instance;

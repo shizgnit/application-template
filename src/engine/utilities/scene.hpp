@@ -48,6 +48,16 @@ public:
         spatial::position freelook;
     };
 
+    class persistence {
+        std::string _file;
+
+    public:
+        persistence();
+        bool write();
+        bool read();
+    };
+
+
     static platform::interface::textbox& debug() {
         static platform::interface::textbox instance;
         return instance;
