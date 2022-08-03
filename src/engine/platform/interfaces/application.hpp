@@ -2,10 +2,10 @@
 
 class application {
 public:
-    virtual void on_startup() = 0;
-    virtual void on_resize() = 0;
-    virtual void on_draw() = 0;
-    virtual void on_interval() = 0;
+    virtual void on_startup() {};
+    virtual void on_resize() {};
+    virtual void on_draw() {};
+    virtual void on_interval() {};
 
     application* dimensions(int width, int height) {
         this->width = width;
