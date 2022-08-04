@@ -1244,10 +1244,11 @@ bool spatial::ray::intersects(const spatial::triangle& triangle) {
 
     return glm::intersectLineTriangle(r0, dir, v0, v1, v2, pos);
 #else
-    auto org = vertices[0];
-    auto dir = vertices[1].unit();
-
     // https://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_intersection_algorithm
+
+    auto org = vertices[0];
+    auto dir = (vertices[1] - vertices[0]).unit();
+
     auto e1 = triangle.vertices[1] - triangle.vertices[0];
     auto e2 = triangle.vertices[2] - triangle.vertices[0];
 
