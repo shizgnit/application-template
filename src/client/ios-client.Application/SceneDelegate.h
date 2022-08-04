@@ -1,6 +1,6 @@
 //
 //  SceneDelegate.h
-//  GLESTest2
+//  ios-client.Application
 //
 //  Created by Dee Abbott on 7/31/22.
 //
