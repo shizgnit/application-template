@@ -8,8 +8,6 @@
 #import "ViewController.h"
 #import <OpenGLES/ES3/glext.h>
 
-//#import "SimpleRenderer.h"
-
 #import "engine.hpp"
 
 #import "application.hpp"
@@ -24,8 +22,6 @@
 
 @implementation ViewController
 {
-    //SimpleRenderer* mCubeRenderer;
-    
     application *instance;
 }
 
@@ -42,7 +38,6 @@
     view.context = self.context;
     view.drawableDepthFormat = GLKViewDrawableDepthFormat24;
     
-    //mCubeRenderer = NULL;
     instance = NULL;
     
     [self setupGL];
@@ -60,11 +55,6 @@
 - (void)setupGL
 {
     [EAGLContext setCurrentContext:self.context];
-    
-    //if(mCubeRenderer == NULL) {
-        //mCubeRenderer = new SimpleRenderer();
-        //mCubeRenderer->UpdateWindowSize(self.view.bounds.size.width, self.view.bounds.size.height);
-    //}
     
     if(instance == NULL) {
         instance = new app();
@@ -101,17 +91,10 @@
 - (void)tearDownGL
 {
     [EAGLContext setCurrentContext:self.context];
-    
-    //if(mCubeRenderer != NULL) {
-    //    delete mCubeRenderer;
-    //    mCubeRenderer = NULL;
-    //}
 }
 
 - (void)glkView:(GLKView *)view drawInRect:(CGRect)rect
 {
-    //mCubeRenderer->Draw();
-    
     if (instance->started) {
         instance->on_interval();
         instance->on_draw();
@@ -145,4 +128,28 @@
     NSLog(@"count: %i", (int)event.allTouches.count);
 }
 
+- (void)pressesBegan:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event {
+    //NSLog(@"presses type: %i", (int)event.type);
+    for (UIPress* press in presses) {
+        if(press.type == UIPressTypeMenu) {
+         
+        }
+        int key = platform::keys[press.key.keyCode].xref;
+        NSLog(@"key: 0x%02x, 0x%02x", key, press.key.keyCode);
+        gui->raise({ platform::input::KEY, platform::input::DOWN, key, 0, 0.0f, { 0.0f, 0.0f, 0.0f } }, 0, 0);
+        input->raise({ platform::input::KEY, platform::input::DOWN, key, 1, 0.0f, { 0.0f, 0.0f, 0.0f } });
+    }
+    [super pressesBegan: presses withEvent: event];
+ }
+
+ - (void)pressesEnded:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event {
+     //NSLog(@"presses type: %i", (int)event.type);
+     for (UIPress* press in presses) {
+         int key = platform::keys[press.key.keyCode].xref;
+         //NSLog(@"key: %i, %i", key, press.key.keyCode);
+         gui->raise({ platform::input::KEY, platform::input::UP, key, 0, 0.0f, { 0.0f, 0.0f, 0.0f } }, 0, 0);
+         input->raise({ platform::input::KEY, platform::input::UP, key, 1, 0.0f, { 0.0f, 0.0f, 0.0f } });
+     }
+     [super pressesEnded: presses withEvent: event];
+ }
 @end
