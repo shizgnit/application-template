@@ -228,6 +228,11 @@ void scene::add(std::string name, handler* instance) {
     scenes[name] = instance;
 }
 
+bool scene::load(std::string name) {
+    scenes[name]->loaded = scenes[name]->load();
+    return scenes[name]->loaded;
+}
+
 bool scene::toggle(std::string name) {
     bool isactive = false;
     {

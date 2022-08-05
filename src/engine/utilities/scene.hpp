@@ -78,6 +78,7 @@ public:
     /// </summary>
 
     void add(std::string name, handler* instance);
+    bool load(std::string name);
     bool toggle(std::string name);
     bool isactive(std::string name);
     bool activate(std::string name);
