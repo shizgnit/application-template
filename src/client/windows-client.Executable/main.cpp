@@ -156,11 +156,19 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    int width = 800;
    int height = 1200;
 
-   HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, 0, width, height + 60, nullptr, nullptr, hInstance, nullptr);
+   // TODO: Add fullscreen, borderless fullscreen and variable resolutions
+   HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, 0, width, height, nullptr, nullptr, hInstance, nullptr);
    if (!hWnd)
    {
       return false;
    }
+
+   RECT rcClient, rcWind;
+   POINT ptDiff;
+   GetClientRect(hWnd, &rcClient);
+   GetWindowRect(hWnd, &rcWind);
+   width -= (rcWind.right - rcWind.left) - rcClient.right;
+   height -= (rcWind.bottom - rcWind.top) - rcClient.bottom;
 
    auto HDC = GetDC(hWnd);
 
