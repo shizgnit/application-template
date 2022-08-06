@@ -105,7 +105,7 @@ namespace utilities {
 
     class text {
     public:
-        text(int entries = 40) {
+        text(int entries = 60) {
             buffer = entries;
         }
 
