@@ -271,7 +271,7 @@ static int engine_init_display(struct engine* engine) {
 	filesystem->appdata("/sdcard");
 
 	assets->init(engine->app->activity->assetManager);
-	assets->set("shader", "shaders.es320");
+	assets->set("shader", std::string("shaders-es320"));
 
 	instance->dimensions(w, h);
 	instance->on_resize();

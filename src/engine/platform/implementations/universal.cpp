@@ -418,7 +418,11 @@ void implementation::universal::interface::position(widget& instance) {
 }
 
 std::string implementation::universal::assets::load(platform::assets* instance, const std::string& type, const std::string& resource, const std::string& id) {
-    auto path = has(type) ? (std::get<std::string>(get(type)) + "/" + resource) : resource;
+    auto path = resource;
+    if (has(type)) {
+        auto source = get(type);
+        path = std::get<std::string>(source) + "/" + resource;
+    }
 
     int dot = path.find_last_of(".");
     int slash = path.find_last_of("/");
