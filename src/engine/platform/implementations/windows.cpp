@@ -268,6 +268,7 @@ void implementation::windows::assets::release() {
 std::string implementation::windows::assets::load(const std::string& type, const std::string& resource, const std::string& id) {
     if (loader == NULL) {
         loader = new implementation::universal::assets();
+        loader->copy(*this);
     }
     return loader->load(this, type, resource, id);
 }

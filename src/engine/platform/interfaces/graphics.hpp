@@ -1,7 +1,7 @@
 #pragma once
 
 namespace platform {
-    class graphics {
+    class graphics : public properties {
     public:
         enum render {
             UNDEFINED = 0x00,

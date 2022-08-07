@@ -62,7 +62,7 @@ namespace utilities {
 
     std::vector<std::string> tokenize(std::string input, std::string delimiter = "", int tokens=0);
 
-    std::string resolve(std::string input, std::string variable, std::string value);
+    std::string replace(std::string input, std::string label, std::string value);
 
 //    std::string substitute(std::string input, std::string expression, std::string replacement, bool global = true);
 //    std::string substitute(std::string input, std::vector<std::string>& replacement);

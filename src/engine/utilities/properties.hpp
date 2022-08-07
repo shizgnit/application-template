@@ -23,6 +23,10 @@ public:
         return results;
     }
 
+    void copy(const properties& ref) {
+        variables = ref.variables;
+    }
+
 protected:
     type_t variables;
 };
