@@ -15,9 +15,6 @@
 @interface ViewController ()
 @property (strong, nonatomic) EAGLContext *context;
 
-- (void)setupGL;
-- (void)tearDownGL;
-
 @end
 
 @implementation ViewController
@@ -40,64 +37,33 @@
     
     instance = NULL;
     
-    [self setupGL];
+    [EAGLContext setCurrentContext:self.context];
 }
 
 - (void)dealloc
 {
-    [self tearDownGL];
-    
+    [EAGLContext setCurrentContext:self.context];
+
     if ([EAGLContext currentContext] == self.context) {
         [EAGLContext setCurrentContext:nil];
     }
 }
 
-- (void)setupGL
+- (void)glkView:(GLKView *)view drawInRect:(CGRect)rect
 {
-    [EAGLContext setCurrentContext:self.context];
-    
     if(instance == NULL) {
         instance = new app();
     }
     
-    assets->init();
-    
-    instance->dimensions(self.view.bounds.size.width, self.view.bounds.size.height);
-    instance->on_startup();
-    instance->started = true;
-    
-    /*
-     NSString *directory = [NSString stringWithFormat:@"Intro"];
-     NSArray *intros = [[NSBundle mainBundle] pathsForResourcesOfType:@"png" inDirectory:directory];
-     NSLog(@"%@", intros);
-     
-     
-     NSBundle *b = [NSBundle mainBundle];
-     NSString *dir = [b resourcePath];
-     NSArray *parts = [NSArray arrayWithObjects:
-                       dir, @"assets", @"shaders", @"ortho2d.vert", (void *)nil];
-     NSString *path = [NSString pathWithComponents:parts];
-     const char *cpath = [path fileSystemRepresentation];
-     std::string vertFile(cpath);
-     std::ifstream vertFStream(vertFile);
-     
-     
-     NSURL *filepath = [[NSBundle mainBundle] URLForResource:@"files" withExtension:@"plist"];
-     NSMutableDictionary *allXCAssetsImages = [NSMutableDictionary dictionaryWithContentsOfFile:filepath.path];
-     */
-    
-}
-
-- (void)tearDownGL
-{
-    [EAGLContext setCurrentContext:self.context];
-}
-
-- (void)glkView:(GLKView *)view drawInRect:(CGRect)rect
-{
     if (instance->started) {
         instance->on_interval();
         instance->on_draw();
+    }
+    else {
+        assets->init();
+        instance->dimensions(self.view.bounds.size.width, self.view.bounds.size.height);
+        instance->on_startup();
+        instance->started = true;
     }
 }
 
@@ -129,11 +95,7 @@
 }
 
 - (void)pressesBegan:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event {
-    //NSLog(@"presses type: %i", (int)event.type);
     for (UIPress* press in presses) {
-        if(press.type == UIPressTypeMenu) {
-         
-        }
         int key = platform::keys[press.key.keyCode].xref;
         NSLog(@"key: 0x%02x, 0x%02x", key, press.key.keyCode);
         gui->raise({ platform::input::KEY, platform::input::DOWN, key, 0, 0.0f, { 0.0f, 0.0f, 0.0f } }, 0, 0);
@@ -143,10 +105,8 @@
  }
 
  - (void)pressesEnded:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event {
-     //NSLog(@"presses type: %i", (int)event.type);
      for (UIPress* press in presses) {
          int key = platform::keys[press.key.keyCode].xref;
-         //NSLog(@"key: %i, %i", key, press.key.keyCode);
          gui->raise({ platform::input::KEY, platform::input::UP, key, 0, 0.0f, { 0.0f, 0.0f, 0.0f } }, 0, 0);
          input->raise({ platform::input::KEY, platform::input::UP, key, 1, 0.0f, { 0.0f, 0.0f, 0.0f } });
      }
