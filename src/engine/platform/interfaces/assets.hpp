@@ -2,7 +2,7 @@
 
 namespace platform {
 
-    class assets {
+    class assets : public properties {
     public:
         assets() {};
         virtual ~assets() {
@@ -29,6 +29,10 @@ namespace platform {
             std::string status = errors.front();
             errors.pop_front();
             return status;
+        }
+
+        virtual void search(std::string type, std::string path) {
+            paths[type] = path;
         }
 
         struct source {
@@ -114,12 +118,14 @@ namespace platform {
             return results;
         }
 
-        class common {
+        class common : public properties {
         public:
             virtual std::string load(platform::assets *, const std::string& type, const std::string& resource, const std::string& id) = 0;
         };
 
     protected:
+        std::map<std::string, std::string> paths;
+
         std::list<std::string> errors;
 
         std::map<std::string, std::map<std::string, type::info*>> cache;

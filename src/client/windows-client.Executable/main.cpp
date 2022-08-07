@@ -217,6 +217,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
    auto assetPath = filesystem->dirname(executablePath) + "\\..\\..\\assets";
    assets->init((void *)assetPath.c_str());
+   assets->set("shader", std::string("shaders-es320"));
 
    instance->dimensions(width, height)->on_startup();
 

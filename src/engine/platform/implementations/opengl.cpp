@@ -529,26 +529,26 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
         glBindTexture(GL_TEXTURE_2D, blur.texture.color->context);
     }
 
-    glUniformMatrix4fv(shader.u_ProjectionMatrix, 1, GL_FALSE, (GLfloat*)projection.data());
-    glUniformMatrix4fv(shader.u_ViewMatrix, 1, GL_FALSE, (GLfloat*)view.data());
-    glUniformMatrix4fv(shader.u_ModelMatrix, 1, GL_FALSE, (GLfloat*)model.data());
-    glUniformMatrix4fv(shader.u_LightingMatrix, 1, GL_FALSE, (GLfloat*)lighting.data());
-
     glUniform1i(shader.u_SurfaceTextureUnit, 0);
     glUniform1i(shader.u_NormalTextureUnit, 1);
     glUniform1i(shader.u_ShadowTextureUnit, 2);
     glUniform1i(shader.u_DepthTextureUnit, 3);
     glUniform1i(shader.u_BlurTextureUnit, 4);
 
+    glUniformMatrix4fv(shader.u_ProjectionMatrix, 1, GL_FALSE, (GLfloat*)projection.data());
+    glUniformMatrix4fv(shader.u_ViewMatrix, 1, GL_FALSE, (GLfloat*)view.data());
+    glUniformMatrix4fv(shader.u_ModelMatrix, 1, GL_FALSE, (GLfloat*)model.data());
+    glUniformMatrix4fv(shader.u_LightingMatrix, 1, GL_FALSE, (GLfloat*)lighting.data());
+
     glUniform4f(shader.u_AmbientLightPosition, ambient.position.eye.x, ambient.position.eye.y, ambient.position.eye.z, ambient.position.eye.w);
     glUniform4f(shader.u_AmbientLightColor, ambient.color.x, ambient.color.y, ambient.color.z, ambient.color.w);
-
     glUniform1f(shader.u_AmbientLightBias, ambient.bias);
     glUniform1f(shader.u_AmbientLightStrength, ambient.strength);
 
     glUniform4f(shader.u_Clipping, clip_top[clip_top.size()-1], clip_bottom[clip_bottom.size() - 1], clip_left[clip_left.size() - 1], clip_right[clip_right.size() - 1]);
 
     glUniform1ui(shader.u_Flags, object.flags);
+
     glUniformMatrix4fv(shader.u_Parameters, 1, GL_FALSE, (GLfloat*)parameters.data());
 
     glBindBuffer(GL_ARRAY_BUFFER, target.context);
