@@ -6,7 +6,6 @@
 //
 
 #import "ViewController.h"
-#import <OpenGLES/ES3/glext.h>
 
 #import "engine.hpp"
 
