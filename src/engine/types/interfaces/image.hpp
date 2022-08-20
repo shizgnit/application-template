@@ -21,8 +21,6 @@ namespace type {
         std::vector<char> colormap;
         std::vector<char> raster;
 
-        reference_t resource;
-
         friend type::image& operator>>(type::image& input, type::image* instance) {
             *instance = input;
             return *instance;
