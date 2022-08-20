@@ -2,6 +2,11 @@
 
 #if defined __PLATFORM_SUPPORTS_OPENGL
 
+struct type::info::opaque_t {
+    unsigned int context {0};
+};
+
+
 bool implementation::opengl::fbo::init(type::object& object, platform::graphics *ref, bool depth, unsigned char *collector) {
     if (allocation == 0) {
         allocation = object.texture.depth ? GL_DEPTH_ATTACHMENT : attachments().allocate();
@@ -23,10 +28,10 @@ bool implementation::opengl::fbo::init(type::object& object, platform::graphics 
 
     glGenFramebuffers(1, &context.frame);
     glBindFramebuffer(GL_FRAMEBUFFER, context.frame);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, allocation, GL_TEXTURE_2D, object.texture.color->context, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, allocation, GL_TEXTURE_2D, object.texture.color->resource->context, 0);
 
     glGenRenderbuffers(1, &context.render);
-    glBindRenderbuffer(GL_RENDERBUFFER, context.render);j
+    glBindRenderbuffer(GL_RENDERBUFFER, context.render);
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, object.texture.color->properties.width, object.texture.color->properties.height);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, context.render);
 
@@ -62,7 +67,7 @@ void implementation::opengl::fbo::disable() {
         glReadPixels(0, 0, target->texture.color->properties.width, target->texture.color->properties.height, GL_RGBA, GL_UNSIGNED_BYTE, collect);
     }
     if (!target->texture.depth) {
-        glBindTexture(GL_TEXTURE_2D, target->texture.color->context);
+        glBindTexture(GL_TEXTURE_2D, target->texture.color->resource->context);
         glGenerateMipmap(GL_TEXTURE_2D);
         glBindTexture(GL_TEXTURE_2D, 0);
     }
@@ -336,12 +341,15 @@ bool implementation::opengl::graphics::compile(type::material& material) {
     }
 
     if (material.color) {
-        if (material.color->context) {
-            glDeleteTextures(1, &material.color->context);
+        if (material.color->resource == NULL) {
+            material.color->resource = new type::info::opaque_t;
+        }
+        if (material.color->resource->context) {
+            glDeleteTextures(1, &material.color->resource->context);
         }
         if (material.depth) {
-            glGenTextures(1, &material.color->context);
-            glBindTexture(GL_TEXTURE_2D, material.color->context);
+            glGenTextures(1, &material.color->resource->context);
+            glBindTexture(GL_TEXTURE_2D, material.color->resource->context);
             glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, material.color->properties.width, material.color->properties.height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -349,8 +357,8 @@ bool implementation::opengl::graphics::compile(type::material& material) {
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         }
         else {
-            glGenTextures(1, &material.color->context);
-            glBindTexture(GL_TEXTURE_2D, material.color->context);
+            glGenTextures(1, &material.color->resource->context);
+            glBindTexture(GL_TEXTURE_2D, material.color->resource->context);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, material.color->properties.width, material.color->properties.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, material.color->raster.data());
@@ -359,11 +367,14 @@ bool implementation::opengl::graphics::compile(type::material& material) {
     }
 
     if (material.normal) {
-        if (material.normal->context) {
-            glDeleteTextures(1, &material.normal->context);
+        if (material.normal->resource == NULL) {
+            material.normal->resource = new type::info::opaque_t;
         }
-        glGenTextures(1, &material.normal->context);
-        glBindTexture(GL_TEXTURE_2D, material.normal->context);
+        if (material.normal->resource->context) {
+            glDeleteTextures(1, &material.normal->resource->context);
+        }
+        glGenTextures(1, &material.normal->resource->context);
+        glBindTexture(GL_TEXTURE_2D, material.normal->resource->context);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, material.normal->properties.width, material.normal->properties.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, material.normal->raster.data());
@@ -508,25 +519,25 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
 
     glUseProgram(shader.context);
 
-    if (target.texture.color && target.texture.color->context) {
+    if (target.texture.color && target.texture.color->resource->context) {
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, target.texture.color->context);
+        glBindTexture(GL_TEXTURE_2D, target.texture.color->resource->context);
     }
-    if (target.texture.normal && target.texture.normal->context) {
+    if (target.texture.normal && target.texture.normal->resource->context) {
         glActiveTexture(GL_TEXTURE0 + 1);
-        glBindTexture(GL_TEXTURE_2D, target.texture.normal->context);
+        glBindTexture(GL_TEXTURE_2D, target.texture.normal->resource->context);
     }
-    if (shadow.texture.color && shadow.texture.color->context) {
+    if (shadow.texture.color && shadow.texture.color->resource->context) {
         glActiveTexture(GL_TEXTURE0 + 2);
-        glBindTexture(GL_TEXTURE_2D, shadow.texture.color->context);
+        glBindTexture(GL_TEXTURE_2D, shadow.texture.color->resource->context);
     }
-    if (depth.texture.color && depth.texture.color->context) {
+    if (depth.texture.color && depth.texture.color->resource->context) {
         glActiveTexture(GL_TEXTURE0 + 3);
-        glBindTexture(GL_TEXTURE_2D, depth.texture.color->context);
+        glBindTexture(GL_TEXTURE_2D, depth.texture.color->resource->context);
     }
-    if (blur.texture.color && blur.texture.color->context) {
+    if (blur.texture.color && blur.texture.color->resource->context) {
         glActiveTexture(GL_TEXTURE0 + 4);
-        glBindTexture(GL_TEXTURE_2D, blur.texture.color->context);
+        glBindTexture(GL_TEXTURE_2D, blur.texture.color->resource->context);
     }
 
     glUniform1i(shader.u_SurfaceTextureUnit, 0);
