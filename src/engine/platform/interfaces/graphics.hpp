@@ -1,6 +1,7 @@
 #pragma once
 
 namespace platform {
+
     class graphics : public properties {
     public:
         enum render {
