@@ -168,6 +168,15 @@ void implementation::opengl::graphics::init(void) {
             break;
         }
     }
+    
+    auto size_vertex = sizeof(spatial::vertex);
+    auto size_vector = sizeof(spatial::vector);
+    
+    auto size_type = sizeof(spatial::vector::type_t);
+    
+    auto sum_type = size_type * 3;
+    auto sum_vector = size_vector * 3;
+    
     spatial::matrix matrix({ {256.0f} });
     unsigned char* matrix_ptr = (unsigned char*)&matrix;
     for (int i = 0; i < sizeof(spatial::matrix); i++) {
@@ -382,7 +391,7 @@ bool implementation::opengl::graphics::compile(type::object& object) {
     else {
         glGenBuffers(1, &object.context);
         glBindBuffer(GL_ARRAY_BUFFER, object.context);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(spatial::vertex) * object.vertices.size(), object.vertices.data(), GL_DYNAMIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(spatial::vertex) * object.vertices.size(), object.vertices.data(), GL_STATIC_DRAW);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
 
@@ -416,7 +425,7 @@ bool implementation::opengl::graphics::compile(type::entity& entity) {
     else if (entity.identifiers.content.size()) {
         glGenBuffers(1, &entity.identifiers.context);
         glBindBuffer(GL_ARRAY_BUFFER, entity.identifiers.context);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(unsigned int) * 1024, NULL, GL_STREAM_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(unsigned int) * 1024, NULL, GL_STATIC_DRAW);
         glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(unsigned int) * entity.identifiers.content.size(), entity.identifiers.content.data());
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
@@ -429,7 +438,7 @@ bool implementation::opengl::graphics::compile(type::entity& entity) {
     else if (entity.flags.content.size()) {
         glGenBuffers(1, &entity.flags.context);
         glBindBuffer(GL_ARRAY_BUFFER, entity.flags.context);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(unsigned int) * 1024, NULL, GL_STREAM_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(unsigned int) * 1024, NULL, GL_STATIC_DRAW);
         glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(unsigned int) * entity.flags.content.size(), entity.flags.content.data());
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
@@ -442,7 +451,7 @@ bool implementation::opengl::graphics::compile(type::entity& entity) {
     else if (entity.positions.content.size()) {
         glGenBuffers(1, &entity.positions.context);
         glBindBuffer(GL_ARRAY_BUFFER, entity.positions.context);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(spatial::matrix) * 1024, NULL, GL_STREAM_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(spatial::matrix) * 1024, NULL, GL_STATIC_DRAW);
         glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(spatial::matrix) * entity.positions.content.size(), entity.positions.content.data());
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
@@ -480,6 +489,10 @@ bool implementation::opengl::graphics::compile(platform::assets* assets) {
 }
 
 void implementation::opengl::graphics::draw(type::object& object, type::program& shader, const spatial::matrix& projection, const spatial::matrix& view, const spatial::matrix& model, const spatial::matrix& lighting, unsigned int options) {
+    static std::mutex lockgl;
+    
+    std::lock_guard<std::mutex> scoped(lockgl);
+    
     // Look for the first object with vertices, just at the top level for now
     auto &target = object;
     if (target.visible == false) {
@@ -541,8 +554,8 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
     glBindBuffer(GL_ARRAY_BUFFER, target.context);
 
     glVertexAttribPointer(shader.a_Vertex, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::vertex), BUFFER_OFFSET(offset_vector));
-    glVertexAttribPointer(shader.a_Texture, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::vertex), BUFFER_OFFSET(offset_vector + sizeof(spatial::vector)));
-    glVertexAttribPointer(shader.a_Normal, 4, GL_FLOAT, GL_TRUE, sizeof(spatial::vertex), BUFFER_OFFSET(offset_vector + (sizeof(spatial::vector) * 2)));
+    glVertexAttribPointer(shader.a_Texture, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::vertex), BUFFER_OFFSET(sizeof(spatial::vector) + offset_vector));
+    glVertexAttribPointer(shader.a_Normal, 4, GL_FLOAT, GL_TRUE, sizeof(spatial::vertex), BUFFER_OFFSET((sizeof(spatial::vector) * 2) + offset_vector));
 
     glEnableVertexAttribArray(shader.a_Vertex);
     glEnableVertexAttribArray(shader.a_Texture);
@@ -599,12 +612,12 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
     // Draw either the solids or wireframes
     if (target.vertices.size() == 2 || options & render::WIREFRAME) {
         //glDrawArrays(GL_LINES, 0, target.vertices.size());
-        glDrawArraysInstanced(GL_LINE_LOOP, 0, target.vertices.size(), instances);
+        glDrawArraysInstanced(GL_LINE_LOOP, 0, (int)target.vertices.size(), instances);
         frame.lines += target.vertices.size() / 2;
     }
     else {
         //glDrawArrays(GL_TRIANGLES, 0, target.vertices.size());
-        glDrawArraysInstanced(GL_TRIANGLES, 0, target.vertices.size(), instances);
+        glDrawArraysInstanced(GL_TRIANGLES, 0, (int)target.vertices.size(), instances);
         frame.triangles += target.vertices.size() / 3;
     }
     frame.vertices += target.vertices.size();

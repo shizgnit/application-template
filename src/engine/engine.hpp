@@ -26,12 +26,12 @@
 
 #include <TargetConditionals.h>
 
-#if defined TARGET_OS_IOS
+#if defined TARGET_OS_IOS && TARGET_OS_IOS == 1
 #define __PLATFORM_APPLE 1
 #define __PLATFORM_IOS 1
 #endif
 
-#if defined TARGET_OS_OSX
+#if defined TARGET_OS_OSX && TARGET_OS_OSX == 1
 #define __PLATFORM_APPLE 1
 #define __PLATFORM_MACOS 1
 #endif
@@ -65,7 +65,7 @@
 #define HAVE_STRUCT_TIMESPEC
 #endif
 
-#if defined __PLATFORM_ANDROID
+#if defined __PLATFORM_ANDROID || __PLATFORM_MACOS
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/mman.h>
@@ -206,6 +206,22 @@ inline platform::network::server* server = new implementation::windows::network:
 inline platform::audio* audio = new implementation::openal::audio();
 inline platform::filesystem* filesystem = new implementation::posix::filesystem();
 inline platform::assets* assets = new implementation::ios::assets();
+inline platform::graphics* graphics = new implementation::opengl::graphics();
+inline platform::input* input = new implementation::universal::input();
+inline platform::interface* gui = new implementation::universal::interface();
+//inline platform::network::client* client = new implementation::posix::network::client();
+//inline platform::network::server* server = new implementation::posix::network::server();
+#endif
+
+#if defined __PLATFORM_MACOS
+#include "platform/implementations/universal.hpp"
+#include "platform/implementations/opengl.hpp"
+#include "platform/implementations/openal.hpp"
+#include "platform/implementations/posix.hpp"
+//#include "platform/implementations/macos.hpp"
+inline platform::audio* audio = new implementation::openal::audio();
+inline platform::filesystem* filesystem = new implementation::posix::filesystem();
+inline platform::assets* assets;// = new implementation::macos::assets();
 inline platform::graphics* graphics = new implementation::opengl::graphics();
 inline platform::input* input = new implementation::universal::input();
 inline platform::interface* gui = new implementation::universal::interface();

@@ -19,6 +19,10 @@
 #include <OpenGLES/ES3/gl.h>
 #endif
 
+#if defined __PLATFORM_MACOS
+#include "OpenGL/gl3.h"
+#endif
+
 #if !defined GL_MAX_COLOR_ATTACHMENTS
 #define GL_MAX_COLOR_ATTACHMENTS 0x8CDF
 #endif
