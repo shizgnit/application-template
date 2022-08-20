@@ -26,7 +26,7 @@ bool implementation::opengl::fbo::init(type::object& object, platform::graphics 
     glFramebufferTexture2D(GL_FRAMEBUFFER, allocation, GL_TEXTURE_2D, object.texture.color->context, 0);
 
     glGenRenderbuffers(1, &context.render);
-    glBindRenderbuffer(GL_RENDERBUFFER, context.render);
+    glBindRenderbuffer(GL_RENDERBUFFER, context.render);j
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, object.texture.color->properties.width, object.texture.color->properties.height);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, context.render);
 
@@ -226,7 +226,7 @@ bool implementation::opengl::graphics::compile(type::shader& shader) {
     glShaderSource(shader.context, 1, (const GLchar**)&text, &length);
 
     glCompileShader(shader.context);
-
+    
     GLint compiled = GL_FALSE;
     glGetShaderiv(shader.context, GL_COMPILE_STATUS, &compiled);
     if (compiled == GL_FALSE) {

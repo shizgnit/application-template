@@ -114,7 +114,7 @@ std::string implementation::android::assets::load(const std::string& type, const
     if (loader == NULL) {
         loader = new implementation::universal::assets();
     }
-    return loader->load(this, type, resource, id);
+    return loader->load(this, type, jresource, id);
 }
 
 
