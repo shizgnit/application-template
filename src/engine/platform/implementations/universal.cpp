@@ -445,7 +445,7 @@ std::string implementation::universal::assets::load(platform::assets* instance, 
         instance->retrieve(path + (ext.empty() ? ".png" : ext)) >> format::parser::png >> instance->get<type::image>(cache);
     }
     if (type == "audio") {
-        instance->retrieve(path + (ext.empty() ? ".wav" : ext)) >> format::parser::wav >> instance->get<type::audio>(cache);
+        instance->retrieve(path + (ext.empty() ? ".wav" : ext)) >> format::parser::wav >> instance->get<type::sound>(cache);
     }
     if (type == "shader") {
         auto& shader = instance->get<type::program>(cache);

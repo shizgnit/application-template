@@ -167,7 +167,7 @@ void implementation::opensl::audio::init(int players) { //DEBUG_SCOPE;
     bgPlayers = players;
 }
 
-void implementation::opensl::audio::compile(type::audio &sound) { //DEBUG_SCOPE;
+void implementation::opensl::audio::compile(type::sound &sound) { //DEBUG_SCOPE;
 
 	if(bgPlayersCreated == 0) {
 		for(int i=0; i < bgPlayers; i++) {
@@ -335,7 +335,7 @@ void implementation::opensl::audio::shutdown(void) { //DEBUG_SCOPE;
 
 }
 
-int implementation::opensl::audio::start(type::audio& sound) { //DEBUG_SCOPE;
+int implementation::opensl::audio::start(type::sound& sound) { //DEBUG_SCOPE;
 	SLresult result;
 
 	//DEBUG_TRACE << "selecting" << std::endl;

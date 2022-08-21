@@ -2,7 +2,7 @@
 
 namespace format {
 
-    class wav : public type::audio {
+    class wav : public type::sound {
     public:
         wav() : type::info({ { "wav" }, type::format::FORMAT_WAV }) {
             /* NULL */
@@ -15,7 +15,7 @@ namespace format {
             }
         }
 
-        friend type::audio& operator>>(std::istream& input, format::wav &instance) {
+        friend type::sound& operator>>(std::istream& input, format::wav &instance) {
             /// ignore any non-good stream states
             if (input.good() == false) {
                 assets->release();

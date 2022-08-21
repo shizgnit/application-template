@@ -9,11 +9,11 @@ namespace platform {
     public:
         virtual void init(int sources = audio::default_channels) = 0;
 
-        virtual void compile(type::audio& sound) = 0;
+        virtual void compile(type::sound& sound) = 0;
 
         virtual void shutdown(void) = 0;
 
-        virtual int start(type::audio& sound) = 0;
+        virtual int start(type::sound& sound) = 0;
         virtual void stop(int id) = 0;
 
     };

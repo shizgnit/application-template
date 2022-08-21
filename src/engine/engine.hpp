@@ -142,7 +142,7 @@
 
 /// Types
 #include "types/interfaces/info.hpp"
-#include "types/interfaces/audio.hpp"
+#include "types/interfaces/sound.hpp"
 #include "types/interfaces/shader.hpp"
 #include "types/interfaces/program.hpp"
 #include "types/interfaces/image.hpp"

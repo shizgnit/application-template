@@ -2,7 +2,7 @@
 
 namespace type {
 
-    class audio : virtual public type::info {
+    class sound : virtual public type::info {
     public:
         struct {
             unsigned short channels;
@@ -15,9 +15,8 @@ namespace type {
 
         std::vector<char> buffer;
         unsigned int size = 0;
-        unsigned int context;
 
-        friend type::audio& operator>>(type::audio& input, type::audio& instance) {
+        friend type::sound& operator>>(type::sound& input, type::sound& instance) {
             instance = input;
             return instance;
         }

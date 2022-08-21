@@ -12,10 +12,10 @@ namespace implementation {
         class audio : public platform::audio {
         public:
             void init(int sources);
-            void compile(type::audio& sound);
+            void compile(type::sound& sound);
             void shutdown(void);
 
-            int start(type::audio& sound);
+            int start(type::sound& sound);
             void stop(int id);
 
         protected:

@@ -223,35 +223,39 @@ bool implementation::opengl::graphics::compile(type::shader& shader) {
         return false;
     }
 
+    if (shader.resource == NULL) {
+        shader.resource = new type::info::opaque_t;
+    }
+
     switch (shader.format()) {
     case(type::format::FORMAT_VERT):
-        shader.context = glCreateShader(GL_VERTEX_SHADER);
+        shader.resource->context = glCreateShader(GL_VERTEX_SHADER);
         break;
     case(type::format::FORMAT_FRAG):
-        shader.context = glCreateShader(GL_FRAGMENT_SHADER);
+        shader.resource->context = glCreateShader(GL_FRAGMENT_SHADER);
         break;
     }
-    if (!shader.context) {
+    if (!shader.resource->context) {
         return false;
     }
 
     GLchar* text = (GLchar*)shader.text.c_str();
     GLint length = strlen(text);
-    glShaderSource(shader.context, 1, (const GLchar**)&text, &length);
+    glShaderSource(shader.resource->context, 1, (const GLchar**)&text, &length);
 
-    glCompileShader(shader.context);
+    glCompileShader(shader.resource->context);
     
     GLint compiled = GL_FALSE;
-    glGetShaderiv(shader.context, GL_COMPILE_STATUS, &compiled);
+    glGetShaderiv(shader.resource->context, GL_COMPILE_STATUS, &compiled);
     if (compiled == GL_FALSE) {
-        glGetShaderiv(shader.context, GL_INFO_LOG_LENGTH, &length);
+        glGetShaderiv(shader.resource->context, GL_INFO_LOG_LENGTH, &length);
         if (length) {
             char* info = (char*)malloc(length);
-            glGetShaderInfoLog(shader.context, length, NULL, info);
+            glGetShaderInfoLog(shader.resource->context, length, NULL, info);
             errors.push_back(info);
             free(info);
-            glDeleteShader(shader.context);
-            shader.context = 0;
+            glDeleteShader(shader.resource->context);
+            shader.resource->context = 0;
             return false;
         }
     }
@@ -271,63 +275,67 @@ bool implementation::opengl::graphics::compile(type::program& program) {
         return false;
     }
 
-    program.context = glCreateProgram();
-    if (!program.context) {
+    if (program.resource == NULL) {
+        program.resource = new type::info::opaque_t;
+    }
+
+    program.resource->context = glCreateProgram();
+    if (!program.resource->context) {
         return false;
     }
 
-    glAttachShader(program.context, program.vertex.context);
-    glAttachShader(program.context, program.fragment.context);
+    glAttachShader(program.resource->context, program.vertex.resource->context);
+    glAttachShader(program.resource->context, program.fragment.resource->context);
 
-    glLinkProgram(program.context);
+    glLinkProgram(program.resource->context);
 
     GLint linked = GL_FALSE;
-    glGetProgramiv(program.context, GL_LINK_STATUS, &linked);
+    glGetProgramiv(program.resource->context, GL_LINK_STATUS, &linked);
     if (linked != GL_TRUE) {
         GLint length = 0;
-        glGetProgramiv(program.context, GL_INFO_LOG_LENGTH, &length);
+        glGetProgramiv(program.resource->context, GL_INFO_LOG_LENGTH, &length);
         if (length) {
             char* info = (char*)malloc(length);
-            glGetProgramInfoLog(program.context, length, NULL, info);
+            glGetProgramInfoLog(program.resource->context, length, NULL, info);
             errors.push_back(info);
             free(info);
         }
-        glDeleteProgram(program.context);
-        program.context = 0;
+        glDeleteProgram(program.resource->context);
+        program.resource->context = 0;
     }
 
-    glUseProgram(program.context);
+    glUseProgram(program.resource->context);
 
-    program.a_ModelMatrix = glGetAttribLocation(program.context, "a_ModelMatrix");
+    program.a_ModelMatrix = glGetAttribLocation(program.resource->context, "a_ModelMatrix");
 
-    program.a_Identifier = glGetAttribLocation(program.context, "a_Identifier");
-    program.a_Flags = glGetAttribLocation(program.context, "a_Flags");
+    program.a_Identifier = glGetAttribLocation(program.resource->context, "a_Identifier");
+    program.a_Flags = glGetAttribLocation(program.resource->context, "a_Flags");
 
-    program.a_Vertex = glGetAttribLocation(program.context, "a_Vertex");
-    program.a_Texture = glGetAttribLocation(program.context, "a_Texture");
-    program.a_Normal = glGetAttribLocation(program.context, "a_Normal");
+    program.a_Vertex = glGetAttribLocation(program.resource->context, "a_Vertex");
+    program.a_Texture = glGetAttribLocation(program.resource->context, "a_Texture");
+    program.a_Normal = glGetAttribLocation(program.resource->context, "a_Normal");
 
-    program.u_ProjectionMatrix = glGetUniformLocation(program.context, "u_ProjectionMatrix");
-    program.u_ViewMatrix = glGetUniformLocation(program.context, "u_ViewMatrix");
-    program.u_ModelMatrix = glGetUniformLocation(program.context, "u_ModelMatrix");
-    program.u_LightingMatrix = glGetUniformLocation(program.context, "u_LightingMatrix");
+    program.u_ProjectionMatrix = glGetUniformLocation(program.resource->context, "u_ProjectionMatrix");
+    program.u_ViewMatrix = glGetUniformLocation(program.resource->context, "u_ViewMatrix");
+    program.u_ModelMatrix = glGetUniformLocation(program.resource->context, "u_ModelMatrix");
+    program.u_LightingMatrix = glGetUniformLocation(program.resource->context, "u_LightingMatrix");
 
-    program.u_Clipping = glGetUniformLocation(program.context, "u_Clipping");
+    program.u_Clipping = glGetUniformLocation(program.resource->context, "u_Clipping");
 
-    program.u_AmbientLightPosition = glGetUniformLocation(program.context, "u_AmbientLightPosition");
-    program.u_AmbientLightColor = glGetUniformLocation(program.context, "u_AmbientLightColor");
-    program.u_AmbientLightBias = glGetUniformLocation(program.context, "u_AmbientLightBias");
-    program.u_AmbientLightStrength = glGetUniformLocation(program.context, "u_AmbientLightStrength");
+    program.u_AmbientLightPosition = glGetUniformLocation(program.resource->context, "u_AmbientLightPosition");
+    program.u_AmbientLightColor = glGetUniformLocation(program.resource->context, "u_AmbientLightColor");
+    program.u_AmbientLightBias = glGetUniformLocation(program.resource->context, "u_AmbientLightBias");
+    program.u_AmbientLightStrength = glGetUniformLocation(program.resource->context, "u_AmbientLightStrength");
 
-    program.u_Flags = glGetUniformLocation(program.context, "u_Flags");
-    program.u_Parameters = glGetUniformLocation(program.context, "u_Parameters");
+    program.u_Flags = glGetUniformLocation(program.resource->context, "u_Flags");
+    program.u_Parameters = glGetUniformLocation(program.resource->context, "u_Parameters");
 
-    program.u_SurfaceTextureUnit = glGetUniformLocation(program.context, "u_SurfaceTextureUnit");
-    program.u_NormalTextureUnit = glGetUniformLocation(program.context, "u_NormalTextureUnit");
-    program.u_ShadowTextureUnit = glGetUniformLocation(program.context, "u_ShadowTextureUnit");
-    program.u_DepthTextureUnit = glGetUniformLocation(program.context, "u_DepthTextureUnit");
-    program.u_BlurTextureUnit = glGetUniformLocation(program.context, "u_BlurTextureUnit");
-    program.u_PickingTextureUnit = glGetUniformLocation(program.context, "u_PickingTextureUnit");
+    program.u_SurfaceTextureUnit = glGetUniformLocation(program.resource->context, "u_SurfaceTextureUnit");
+    program.u_NormalTextureUnit = glGetUniformLocation(program.resource->context, "u_NormalTextureUnit");
+    program.u_ShadowTextureUnit = glGetUniformLocation(program.resource->context, "u_ShadowTextureUnit");
+    program.u_DepthTextureUnit = glGetUniformLocation(program.resource->context, "u_DepthTextureUnit");
+    program.u_BlurTextureUnit = glGetUniformLocation(program.resource->context, "u_BlurTextureUnit");
+    program.u_PickingTextureUnit = glGetUniformLocation(program.resource->context, "u_PickingTextureUnit");
 
     return true;
 }
@@ -394,14 +402,18 @@ bool implementation::opengl::graphics::compile(type::object& object) {
         return false;
     }
 
-    if (object.context) {
-        glBindBuffer(GL_ARRAY_BUFFER, object.context);
+    if (object.resource == NULL) {
+        object.resource = new type::info::opaque_t;
+    }
+
+    if (object.resource->context) {
+        glBindBuffer(GL_ARRAY_BUFFER, object.resource->context);
         glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(spatial::vertex) * object.vertices.size(), object.vertices.data());
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
     else {
-        glGenBuffers(1, &object.context);
-        glBindBuffer(GL_ARRAY_BUFFER, object.context);
+        glGenBuffers(1, &object.resource->context);
+        glBindBuffer(GL_ARRAY_BUFFER, object.resource->context);
         glBufferData(GL_ARRAY_BUFFER, sizeof(spatial::vertex) * object.vertices.size(), object.vertices.data(), GL_STATIC_DRAW);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
@@ -517,7 +529,7 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
         compile(target);
     }
 
-    glUseProgram(shader.context);
+    glUseProgram(shader.resource->context);
 
     if (target.texture.color && target.texture.color->resource->context) {
         glActiveTexture(GL_TEXTURE0);
@@ -562,7 +574,7 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
 
     glUniformMatrix4fv(shader.u_Parameters, 1, GL_FALSE, (GLfloat*)parameters.data());
 
-    glBindBuffer(GL_ARRAY_BUFFER, target.context);
+    glBindBuffer(GL_ARRAY_BUFFER, target.resource->context);
 
     glVertexAttribPointer(shader.a_Vertex, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::vertex), BUFFER_OFFSET(offset_vector));
     glVertexAttribPointer(shader.a_Texture, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::vertex), BUFFER_OFFSET(sizeof(spatial::vector) + offset_vector));

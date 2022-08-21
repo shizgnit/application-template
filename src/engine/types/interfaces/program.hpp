@@ -9,8 +9,6 @@ namespace type {
         
         type::shader universal;
 
-        unsigned int context;
-
         int a_Vertex;
         int a_Texture;
         int a_Normal;

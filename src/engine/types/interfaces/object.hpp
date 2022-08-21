@@ -164,7 +164,6 @@ namespace type {
 
         type::material texture;
 
-        unsigned int context = 0;
         unsigned int instances = 0;
 
         unsigned int flags = 0;

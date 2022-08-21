@@ -2,6 +2,11 @@
 
 #if defined __PLATFORM_SUPPORTS_OPENAL
 
+struct type::info::opaque_t {
+    unsigned int context{ 0 };
+};
+
+
 void implementation::openal::audio::init(int sources) {
     ALCint attributes[] = { ALC_FREQUENCY, 44100, 0 };
 
@@ -22,10 +27,14 @@ void implementation::openal::audio::init(int sources) {
     alGenSources(this->sources, this->identifiers);
 }
 
-void implementation::openal::audio::compile(type::audio& sound) {
-    alGenBuffers(1, &sound.context);
+void implementation::openal::audio::compile(type::sound& sound) {
+    if (sound.resource == NULL) {
+        sound.resource = new type::info::opaque_t;
+    }
 
-    alBufferData(sound.context, AL_FORMAT_MONO16, sound.buffer.data(), sound.size, 44100);
+    alGenBuffers(1, &sound.resource->context);
+
+    alBufferData(sound.resource->context, AL_FORMAT_MONO16, sound.buffer.data(), sound.size, 44100);
     //alBufferData(sound.context, AL_FORMAT_MONO8, (const ALvoid *)sound.buffer.data(), sound.size, 11000);
 }
 
@@ -36,7 +45,7 @@ void implementation::openal::audio::shutdown(void) {
     //alcCloseDevice(device);
 }
 
-int implementation::openal::audio::start(type::audio& sound) {
+int implementation::openal::audio::start(type::sound& sound) {
     unsigned int selection;
     for (selection = 0; selection < this->sources; selection++) {
         ALenum state;
@@ -54,7 +63,7 @@ int implementation::openal::audio::start(type::audio& sound) {
     alSource3f(id, AL_VELOCITY, 0.0f, 0.0f, 0.0f);
     alSourcei(id, AL_LOOPING, AL_FALSE);
 
-    alSourcei(id, AL_BUFFER, sound.context);
+    alSourcei(id, AL_BUFFER, sound.resource->context);
     alSourcePlay(id);
     alSource3f(id, AL_POSITION, 0.0f, 0.0f, -1.0f);
     //alSource3f(id, AL_VELOCITY, 0.0f, 0.0f, -1.0f);

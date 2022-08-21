@@ -81,7 +81,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)platform\implementations\opensl.hpp">
       <Filter>platform\implementations</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)types\interfaces\audio.hpp">
+    <ClInclude Include="$(MSBuildThisFileDirectory)types\interfaces\sound.hpp">
       <Filter>types\interfaces</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)types\interfaces\entity.hpp">

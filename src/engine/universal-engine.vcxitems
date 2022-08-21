@@ -48,7 +48,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)types\formats\tga.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)types\formats\vert.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)types\formats\wav.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)types\interfaces\audio.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)types\interfaces\sound.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)types\interfaces\entity.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)types\interfaces\font.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)types\interfaces\image.hpp" />

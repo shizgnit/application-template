@@ -5,7 +5,6 @@
 #include "windows-client.Executable.h"
 
 #include "engine.hpp"
-
 #include "application.hpp"
 
 inline application* instance = new app();
