@@ -22,7 +22,7 @@ namespace type {
         }
 
         std::string type() {
-            return "type::audio";
+            return "type::sound";
         }
 
         bool empty() {
