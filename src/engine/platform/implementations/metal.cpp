@@ -2,6 +2,11 @@
 
 #if defined __PLATFORM_SUPPORTS_METAL
 
+struct type::info::opaque_t {
+    void *ptr;
+};
+
+
 void implementation::metal::graphics::projection(int fov) {
     ortho = spatial::matrix().ortho(0, display_width, 0, display_height);
     perspective = spatial::matrix().perspective(fov, (float)display_width / (float)display_height, 0.0f, 100.0f);

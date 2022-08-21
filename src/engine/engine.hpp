@@ -240,7 +240,7 @@ inline platform::interface* gui = new implementation::universal::interface();
 #include "types/formats/mtl.hpp"
 #include "types/formats/obj.hpp"
 #include "types/formats/fbx.hpp"
-
+#include "types/formats/metal.hpp"
 
 #include "utilities/scene.hpp"
 

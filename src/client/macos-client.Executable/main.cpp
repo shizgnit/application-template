@@ -27,6 +27,9 @@
 
 #include <simd/simd.h>
 
+#include "engine.hpp"
+#include "application.hpp"
+
 static constexpr size_t kInstanceRows = 10;
 static constexpr size_t kInstanceColumns = 10;
 static constexpr size_t kInstanceDepth = 10;
@@ -703,7 +706,7 @@ void Renderer::draw( MTK::View* pView )
 
     MTL::Buffer* pCameraDataBuffer = _pCameraDataBuffer[ _frame ];
     shader_types::CameraData* pCameraData = reinterpret_cast< shader_types::CameraData *>( pCameraDataBuffer->contents() );
-    pCameraData->perspectiveTransform = math::makePerspective( 45.f * M_PI / 180.f, 1.f, 0.03f, 500.0f ) ;
+    pCameraData->perspectiveTransform = math::makePerspective( 45.f * M_PI / 180.f, 1.f, 0.03f, 500.0f );
     pCameraData->worldTransform = math::makeIdentity();
     pCameraData->worldNormalTransform = math::discardTranslation( pCameraData->worldTransform );
     pCameraDataBuffer->didModifyRange( NS::Range::Make( 0, sizeof( shader_types::CameraData ) ) );

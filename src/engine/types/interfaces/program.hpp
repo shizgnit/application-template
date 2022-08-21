@@ -6,6 +6,8 @@ namespace type {
     public:
         type::shader fragment;
         type::shader vertex;
+        
+        type::shader universal;
 
         unsigned int context;
 

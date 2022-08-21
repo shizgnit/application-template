@@ -451,6 +451,7 @@ std::string implementation::universal::assets::load(platform::assets* instance, 
         auto& shader = instance->get<type::program>(cache);
         instance->retrieve(path + ".vert") >> format::parser::vert >> shader.vertex;
         instance->retrieve(path + ".frag") >> format::parser::frag >> shader.fragment;
+        instance->retrieve(path + ".metal") >> format::parser::metal >> shader.universal;
         shader.compiled(false);
     }
     if (type == "font") {
