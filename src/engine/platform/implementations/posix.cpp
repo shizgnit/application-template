@@ -273,6 +273,58 @@ std::string implementation::posix::filesystem::appdata(const std::string& path) 
     return value ? value : "";
 }
 
+void implementation::posix::assets::init(void* ref) {
+    base = (char*)ref;
+}
+
+std::vector<std::string> implementation::posix::assets::list(const std::string& path) {
+    return filesystem().read_directory(filesystem().join({ base, path}));
+}
+
+std::istream& implementation::posix::assets::retrieve(const std::string& path) {
+    auto file = new std::ifstream();
+    if (file == NULL) {
+        // TODO : care about this
+    }
+
+    std::vector<std::string> directories = { base };
+    for (auto path : utilities::tokenize(resolve(path), "/")) {
+        directories.push_back(path);
+    }
+    auto asset = filesystem().join(directories);
+
+    file->open(asset.c_str(), std::ios::in | std::ios::binary);
+    if (file->is_open() == false) {
+        auto error = strerror(errno);
+        errors.push_back(asset + ", failed to retrieve asset");
+    }
+
+    // push onto the stack regardless of success or failure
+    assets::source entry = { utilities::dirname(path), file };
+    stack.push_back(entry);
+
+    return *file;
+}
+
+void implementation::posix::assets::release() {
+    if (stack.size() == 0) {
+        return;
+    }
+    std::ifstream *ref = (std::ifstream *)stack.back().stream;
+    if (ref != NULL) {
+        ref->close();
+        delete ref;
+    }
+    stack.pop_back();
+}
+
+std::string implementation::posix::assets::load(const std::string& type, const std::string& resource, const std::string& id) {
+    if (loader == NULL) {
+        loader = new implementation::universal::assets();
+        loader->copy(*this);
+    }
+    return loader->load(this, type, resource, id);
+}
 
 
 std::string implementation::posix::network::hostname() {

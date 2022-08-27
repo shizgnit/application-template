@@ -3,6 +3,7 @@
 #define __PLATFORM_SUPPORTS_METAL 1
 
 #include <Metal/Metal.hpp>
+#include <MetalKit/MetalKit.hpp>
 
 #include <simd/simd.h>
 
@@ -51,7 +52,13 @@ namespace implementation {
             int offset_vector = 0;
             int offset_matrix = 0;
             
-            MTL::Device* _pDevice;
+            MTL::Device* _pDevice = NULL;
+            MTL::CommandQueue* _pCommandQueue = NULL;
+            
+            MTL::DepthStencilState* _pDepthStencilState;
+            
+            MTK::View* _pView = NULL;
+            MTL::CommandBuffer* _pCmd = NULL;
         };
 
     }

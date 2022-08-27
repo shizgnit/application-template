@@ -218,10 +218,10 @@ inline platform::interface* gui = new implementation::universal::interface();
 #include "platform/implementations/metal.hpp"
 #include "platform/implementations/openal.hpp"
 #include "platform/implementations/posix.hpp"
-//#include "platform/implementations/macos.hpp"
+#include "platform/implementations/macos.hpp"
 inline platform::audio* audio = new implementation::openal::audio();
 inline platform::filesystem* filesystem = new implementation::posix::filesystem();
-inline platform::assets* assets;// = new implementation::macos::assets();
+inline platform::assets* assets = new implementation::macos::assets();
 inline platform::graphics* graphics = new implementation::metal::graphics();
 inline platform::input* input = new implementation::universal::input();
 inline platform::interface* gui = new implementation::universal::interface();

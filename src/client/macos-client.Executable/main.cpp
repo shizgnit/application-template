@@ -27,14 +27,21 @@
 
 #include <simd/simd.h>
 
+#include <pwd.h>
+#include <mach-o/dyld.h>
+#include <limits.h>
+
 #include "engine.hpp"
 #include "application.hpp"
+
+inline application* instance = new app();
+
 
 static constexpr size_t kInstanceRows = 10;
 static constexpr size_t kInstanceColumns = 10;
 static constexpr size_t kInstanceDepth = 10;
 static constexpr size_t kNumInstances = (kInstanceRows * kInstanceColumns * kInstanceDepth);
-static constexpr size_t kMaxFramesInFlight = 3;
+static constexpr size_t kMaxFramesInFlight = 1;
 
 
 #pragma region Declarations {
@@ -198,8 +205,10 @@ void MyAppDelegate::applicationDidFinishLaunching( NS::Notification* pNotificati
         NS::WindowStyleMaskClosable|NS::WindowStyleMaskTitled,
         NS::BackingStoreBuffered,
         false );
-
+    
     _pDevice = MTL::CreateSystemDefaultDevice();
+    
+    reinterpret_cast< implementation::metal::graphics * >( graphics )->_pDevice = _pDevice;
 
     _pMtkView = MTK::View::alloc()->init( frame, _pDevice );
     _pMtkView->setColorPixelFormat( MTL::PixelFormat::PixelFormatBGRA8Unorm_sRGB );
@@ -217,6 +226,50 @@ void MyAppDelegate::applicationDidFinishLaunching( NS::Notification* pNotificati
 
     NS::Application* pApp = reinterpret_cast< NS::Application* >( pNotification->object() );
     pApp->activateIgnoringOtherApps( true );
+
+    char buf [PATH_MAX];
+    uint32_t bufsize = PATH_MAX;
+    
+    if(_NSGetExecutablePath(buf, &bufsize)) {
+        // TODO throw an error
+    }
+    
+    auto bundle = CFBundleGetMainBundle();
+    CFURLRef bundleURL = CFBundleCopyBundleURL(bundle);
+    char path[PATH_MAX];
+    Boolean success = CFURLGetFileSystemRepresentation(bundleURL, TRUE, (UInt8 *)path, PATH_MAX);
+
+    auto passwd = getpwuid(getuid());
+    
+    //auto assetPath = filesystem->dirname(buf) + "\\..\\..\\assets";
+    //auto assetPath = std::string("/Users/") + passwd->pw_name + "/Projects/public/assets";
+    
+    //std::string assetPath = "assets";
+    
+    std::string assetPath = std::string(path) + "/assets";
+
+    CFBundleRef bbundle = CFBundleGetMainBundle();
+    CFURLRef url = CFBundleCopyResourceURL(bbundle, CFSTR("assets/content"), CFSTR("txt"), NULL);
+    CFStringRef bpath = CFURLCopyFileSystemPath(url, kCFURLPOSIXPathStyle);
+
+    CFStringEncoding encoding = kCFStringEncodingUTF8;
+    CFIndex length = CFStringGetLength(bpath);
+    CFIndex size = CFStringGetMaximumSizeForEncoding(length, encoding);
+
+    char *filename = (char *)malloc(size + 1);
+
+    CFStringGetCString(bpath, filename, size, encoding);
+
+    if(filesystem->exists(filename) == false) {
+        throw("failed to locate asset bundle");
+    }
+
+    auto base = filesystem->dirname(filename);
+    
+    assets->init();
+    assets->set("shader", std::string("shaders-metal"));
+
+    instance->dimensions(1024, 1024)->on_startup();
 }
 
 bool MyAppDelegate::applicationShouldTerminateAfterLastWindowClosed( NS::Application* pSender )
@@ -339,7 +392,7 @@ namespace math
 #pragma mark - Renderer
 #pragma region Renderer {
 
-const int Renderer::kMaxFramesInFlight = 3;
+const int Renderer::kMaxFramesInFlight = 1;
 
 Renderer::Renderer( MTL::Device* pDevice )
 : _pDevice( pDevice->retain() )
@@ -353,6 +406,8 @@ Renderer::Renderer( MTL::Device* pDevice )
     buildBuffers();
 
     _semaphore = dispatch_semaphore_create( Renderer::kMaxFramesInFlight );
+    
+    reinterpret_cast< implementation::metal::graphics * >( graphics )->_pCommandQueue = _pCommandQueue;
 }
 
 Renderer::~Renderer()
@@ -712,31 +767,37 @@ void Renderer::draw( MTK::View* pView )
     pCameraDataBuffer->didModifyRange( NS::Range::Make( 0, sizeof( shader_types::CameraData ) ) );
 
     // Begin render pass:
+    
+    reinterpret_cast< implementation::metal::graphics * >( graphics )->_pView = pView;
+    reinterpret_cast< implementation::metal::graphics * >( graphics )->_pCmd = pCmd;    
+    
+    if(1) {
+        instance->on_draw();
+    }
+    else {
+        MTL::RenderPassDescriptor* pRpd = pView->currentRenderPassDescriptor();
+        MTL::RenderCommandEncoder* pEnc = pCmd->renderCommandEncoder( pRpd );
+        
+        pEnc->setDepthStencilState( _pDepthStencilState );
 
-    MTL::RenderPassDescriptor* pRpd = pView->currentRenderPassDescriptor();
-    MTL::RenderCommandEncoder* pEnc = pCmd->renderCommandEncoder( pRpd );
+        pEnc->setRenderPipelineState( _pPSO );
 
-    pEnc->setRenderPipelineState( _pPSO );
-    pEnc->setDepthStencilState( _pDepthStencilState );
+        pEnc->setVertexBuffer( _pVertexDataBuffer, /* offset */ 0, /* index */ 0 );
+        pEnc->setVertexBuffer( pInstanceDataBuffer, /* offset */ 0, /* index */ 1 );
+        pEnc->setVertexBuffer( pCameraDataBuffer, /* offset */ 0, /* index */ 2 );
 
-    pEnc->setVertexBuffer( _pVertexDataBuffer, /* offset */ 0, /* index */ 0 );
-    pEnc->setVertexBuffer( pInstanceDataBuffer, /* offset */ 0, /* index */ 1 );
-    pEnc->setVertexBuffer( pCameraDataBuffer, /* offset */ 0, /* index */ 2 );
+        pEnc->setFragmentTexture( _pTexture, /* index */ 0 );
 
-    pEnc->setFragmentTexture( _pTexture, /* index */ 0 );
+        pEnc->setCullMode( MTL::CullModeBack );
+        pEnc->setFrontFacingWinding( MTL::Winding::WindingCounterClockwise );
 
-    pEnc->setCullMode( MTL::CullModeBack );
-    pEnc->setFrontFacingWinding( MTL::Winding::WindingCounterClockwise );
+        pEnc->drawIndexedPrimitives( MTL::PrimitiveType::PrimitiveTypeTriangle, 6 * 6, MTL::IndexType::IndexTypeUInt16, _pIndexBuffer, 0, kNumInstances );
 
-    pEnc->drawIndexedPrimitives( MTL::PrimitiveType::PrimitiveTypeTriangle,
-                                6 * 6, MTL::IndexType::IndexTypeUInt16,
-                                _pIndexBuffer,
-                                0,
-                                kNumInstances );
-
-    pEnc->endEncoding();
-    pCmd->presentDrawable( pView->currentDrawable() );
-    pCmd->commit();
+        pEnc->endEncoding();
+        
+        pCmd->presentDrawable( pView->currentDrawable() );
+        pCmd->commit();
+    }
 
     pPool->release();
 }

@@ -226,7 +226,7 @@ void implementation::windows::assets::init(void* ref) {
 }
 
 std::vector<std::string> implementation::windows::assets::list(const std::string& path) {
-    return filesystem().read_directory(utilities::join("\\", std::vector<std::string>({ base, path, "\\*"})));
+    return filesystem().read_directory(filesystem().join({ base, path, "\\*"}));
 }
 
 std::istream& implementation::windows::assets::retrieve(const std::string& path) {
@@ -239,7 +239,7 @@ std::istream& implementation::windows::assets::retrieve(const std::string& path)
     for (auto path : utilities::tokenize(resolve(path), "/")) {
         directories.push_back(path);
     }
-    auto asset = utilities::join("\\", directories);
+    auto asset = filesystem().join(directories);
 
     file->open(asset.c_str(), std::ios::in | std::ios::binary);
     if (file->is_open() == false) {

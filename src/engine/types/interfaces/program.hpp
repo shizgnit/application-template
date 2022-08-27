@@ -7,7 +7,7 @@ namespace type {
         type::shader fragment;
         type::shader vertex;
         
-        type::shader universal;
+        type::shader unified;
 
         int a_Vertex;
         int a_Texture;

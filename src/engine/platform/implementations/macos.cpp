@@ -1,12 +1,12 @@
 #include "engine.hpp"
 
-#if defined __PLATFORM_IOS
+#if defined __PLATFORM_MACOS
 
 #include <CoreFoundation/CoreFoundation.h>
 
 #include <malloc/malloc.h>
 
-void implementation::ios::assets::init(void* ref) {
+void implementation::macos::assets::init(void* ref) {
     if(ref != NULL) {
         base = (char *)ref;
         return;
@@ -44,11 +44,11 @@ void implementation::ios::assets::init(void* ref) {
     }
 }
 
-std::vector<std::string> implementation::ios::assets::list(const std::string& path) {
+std::vector<std::string> implementation::macos::assets::list(const std::string& path) {
     return filesystem->read_directory(utilities::join("/", std::vector<std::string>({ base, path })));
 }
 
-std::istream& implementation::ios::assets::retrieve(const std::string& path) {
+std::istream& implementation::macos::assets::retrieve(const std::string& path) {
     auto file = new std::ifstream();
     if (file == NULL) {
         // TODO : care about this
@@ -72,7 +72,7 @@ std::istream& implementation::ios::assets::retrieve(const std::string& path) {
     return *file;
 }
 
-void implementation::ios::assets::release() {
+void implementation::macos::assets::release() {
     if (stack.size() == 0) {
         return;
     }
@@ -84,7 +84,7 @@ void implementation::ios::assets::release() {
     stack.pop_back();
 }
 
-std::string implementation::ios::assets::load(const std::string& type, const std::string& resource, const std::string& id) {
+std::string implementation::macos::assets::load(const std::string& type, const std::string& resource, const std::string& id) {
     if (loader == NULL) {
         loader = new implementation::universal::assets();
         loader->copy(*this);
