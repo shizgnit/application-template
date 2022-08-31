@@ -97,7 +97,9 @@ namespace spatial {
 
     public:
 
-        float padding[2];
+#if defined _VECTOR_PADDING
+        float padding[_VECTOR_PADDING];
+#endif
         
         union {
             struct {
@@ -193,7 +195,9 @@ namespace spatial {
         }
 
     private:
-        float padding[2];
+#if defined _MATRIX_PADDING
+        float padding[_MATRIX_PADDING];
+#endif
         matrix_t r;
 
     public:

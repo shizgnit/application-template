@@ -443,14 +443,14 @@ bool implementation::opengl::graphics::compile(type::entity& entity) {
     if (entity.identifiers.resource == NULL) {
         entity.identifiers.resource = new type::info::opaque_t;
     }
-    if (entity.identifiers.resource.context) {
-        glBindBuffer(GL_ARRAY_BUFFER, entity.identifiers.resource.context);
+    if (entity.identifiers.resource->context) {
+        glBindBuffer(GL_ARRAY_BUFFER, entity.identifiers.resource->context);
         glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(unsigned int) * entity.identifiers.content.size(), entity.identifiers.content.data());
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
     else if (entity.identifiers.content.size()) {
-        glGenBuffers(1, &entity.identifiers.resource.context);
-        glBindBuffer(GL_ARRAY_BUFFER, entity.identifiers.resource.context);
+        glGenBuffers(1, &entity.identifiers.resource->context);
+        glBindBuffer(GL_ARRAY_BUFFER, entity.identifiers.resource->context);
         glBufferData(GL_ARRAY_BUFFER, sizeof(unsigned int) * 1024, NULL, GL_STATIC_DRAW);
         glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(unsigned int) * entity.identifiers.content.size(), entity.identifiers.content.data());
         glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -459,14 +459,14 @@ bool implementation::opengl::graphics::compile(type::entity& entity) {
     if (entity.flags.resource == NULL) {
         entity.flags.resource = new type::info::opaque_t;
     }
-    if (entity.flags.resource.context) {
-        glBindBuffer(GL_ARRAY_BUFFER, entity.flags.resource.context);
+    if (entity.flags.resource->context) {
+        glBindBuffer(GL_ARRAY_BUFFER, entity.flags.resource->context);
         glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(unsigned int) * entity.flags.content.size(), entity.flags.content.data());
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
     else if (entity.flags.content.size()) {
-        glGenBuffers(1, &entity.flags.resource.context);
-        glBindBuffer(GL_ARRAY_BUFFER, entity.flags.resource.context);
+        glGenBuffers(1, &entity.flags.resource->context);
+        glBindBuffer(GL_ARRAY_BUFFER, entity.flags.resource->context);
         glBufferData(GL_ARRAY_BUFFER, sizeof(unsigned int) * 1024, NULL, GL_STATIC_DRAW);
         glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(unsigned int) * entity.flags.content.size(), entity.flags.content.data());
         glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -475,14 +475,14 @@ bool implementation::opengl::graphics::compile(type::entity& entity) {
     if (entity.positions.resource == NULL) {
         entity.positions.resource = new type::info::opaque_t;
     }
-    if (entity.positions.resource.context) {
-        glBindBuffer(GL_ARRAY_BUFFER, entity.positions.resource.context);
+    if (entity.positions.resource->context) {
+        glBindBuffer(GL_ARRAY_BUFFER, entity.positions.resource->context);
         glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(spatial::matrix) * entity.positions.content.size(), entity.positions.content.data());
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
     else if (entity.positions.content.size()) {
-        glGenBuffers(1, &entity.positions.resource.context);
-        glBindBuffer(GL_ARRAY_BUFFER, entity.positions.resource.context);
+        glGenBuffers(1, &entity.positions.resource->context);
+        glBindBuffer(GL_ARRAY_BUFFER, entity.positions.resource->context);
         glBufferData(GL_ARRAY_BUFFER, sizeof(spatial::matrix) * 1024, NULL, GL_STATIC_DRAW);
         glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(spatial::matrix) * entity.positions.content.size(), entity.positions.content.data());
         glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -540,23 +540,23 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
 
     glUseProgram(shader.resource->context);
 
-    if (target.texture.color && target.texture.color->resource->context) {
+    if (target.texture.color && target.texture.color->resource && target.texture.color->resource->context) {
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, target.texture.color->resource->context);
     }
-    if (target.texture.normal && target.texture.normal->resource->context) {
+    if (target.texture.normal && target.texture.normal->resource && target.texture.normal->resource->context) {
         glActiveTexture(GL_TEXTURE0 + 1);
         glBindTexture(GL_TEXTURE_2D, target.texture.normal->resource->context);
     }
-    if (shadow.texture.color && shadow.texture.color->resource->context) {
+    if (shadow.texture.color && shadow.texture.color->resource && shadow.texture.color->resource->context) {
         glActiveTexture(GL_TEXTURE0 + 2);
         glBindTexture(GL_TEXTURE_2D, shadow.texture.color->resource->context);
     }
-    if (depth.texture.color && depth.texture.color->resource->context) {
+    if (depth.texture.color && depth.texture.color->resource && depth.texture.color->resource->context) {
         glActiveTexture(GL_TEXTURE0 + 3);
         glBindTexture(GL_TEXTURE_2D, depth.texture.color->resource->context);
     }
-    if (blur.texture.color && blur.texture.color->resource->context) {
+    if (blur.texture.color && blur.texture.color->resource && blur.texture.color->resource->context) {
         glActiveTexture(GL_TEXTURE0 + 4);
         glBindTexture(GL_TEXTURE_2D, blur.texture.color->resource->context);
     }
@@ -595,8 +595,8 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
 
     int instances = 1;
     if (object.emitter) {
-        if (shader.a_ModelMatrix >= 0 && object.emitter->positions.context) {
-            glBindBuffer(GL_ARRAY_BUFFER, object.emitter->positions.context);
+        if (shader.a_ModelMatrix >= 0 && object.emitter->positions.resource && object.emitter->positions.resource->context) {
+            glBindBuffer(GL_ARRAY_BUFFER, object.emitter->positions.resource->context);
 
             glVertexAttribPointer(shader.a_ModelMatrix + 0, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::matrix), BUFFER_OFFSET(offset_matrix + sizeof(float) * 0));
             glVertexAttribPointer(shader.a_ModelMatrix + 1, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::matrix), BUFFER_OFFSET(offset_matrix + sizeof(float) * 4));
@@ -614,16 +614,16 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
             glVertexAttribDivisor(shader.a_ModelMatrix + 3, 1);
         }
 
-        if (shader.a_Identifier >= 0 && object.emitter->identifiers.context) {
-            glBindBuffer(GL_ARRAY_BUFFER, object.emitter->identifiers.context);
+        if (shader.a_Identifier >= 0 && object.emitter->identifiers.resource && object.emitter->identifiers.resource->context) {
+            glBindBuffer(GL_ARRAY_BUFFER, object.emitter->identifiers.resource->context);
 
             glVertexAttribPointer(shader.a_Identifier, 1, GL_FLOAT, GL_FALSE, sizeof(unsigned int), BUFFER_OFFSET(0));
             glEnableVertexAttribArray(shader.a_Identifier);
             glVertexAttribDivisor(shader.a_Identifier, 1);
         }
 
-        if (shader.a_Flags >= 0 && object.emitter->flags.context) {
-            glBindBuffer(GL_ARRAY_BUFFER, object.emitter->flags.context);
+        if (shader.a_Flags >= 0 && object.emitter->flags.resource && object.emitter->flags.resource->context) {
+            glBindBuffer(GL_ARRAY_BUFFER, object.emitter->flags.resource->context);
 
             glVertexAttribPointer(shader.a_Flags, 1, GL_FLOAT, GL_FALSE, sizeof(unsigned int), BUFFER_OFFSET(0));
             glEnableVertexAttribArray(shader.a_Flags);
