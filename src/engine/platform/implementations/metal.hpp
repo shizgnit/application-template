@@ -59,6 +59,24 @@ namespace implementation {
             
             MTK::View* _pView = NULL;
             MTL::CommandBuffer* _pCmd = NULL;
+            
+            struct vertexData
+            {
+                simd::float4 position;
+                simd::float4 texcoord;
+                simd::float4 normal;
+            };
+            
+            struct cameraData {
+                simd::float4x4 projection;
+                simd::float4x4 view;
+                simd::float4x4 model;
+                simd::float4x4 light;
+            };
+            
+            MTL::Buffer* _pCameraDataBuffer = NULL;
+            
+            int kNumInstances;
         };
 
     }

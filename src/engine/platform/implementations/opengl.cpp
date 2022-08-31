@@ -440,40 +440,49 @@ bool implementation::opengl::graphics::compile(type::font& font) {
 bool implementation::opengl::graphics::compile(type::entity& entity) {
     entity.bake();
 
-    if (entity.identifiers.context) {
-        glBindBuffer(GL_ARRAY_BUFFER, entity.identifiers.context);
+    if (entity.identifiers.resource == NULL) {
+        entity.identifiers.resource = new type::info::opaque_t;
+    }
+    if (entity.identifiers.resource.context) {
+        glBindBuffer(GL_ARRAY_BUFFER, entity.identifiers.resource.context);
         glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(unsigned int) * entity.identifiers.content.size(), entity.identifiers.content.data());
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
     else if (entity.identifiers.content.size()) {
-        glGenBuffers(1, &entity.identifiers.context);
-        glBindBuffer(GL_ARRAY_BUFFER, entity.identifiers.context);
+        glGenBuffers(1, &entity.identifiers.resource.context);
+        glBindBuffer(GL_ARRAY_BUFFER, entity.identifiers.resource.context);
         glBufferData(GL_ARRAY_BUFFER, sizeof(unsigned int) * 1024, NULL, GL_STATIC_DRAW);
         glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(unsigned int) * entity.identifiers.content.size(), entity.identifiers.content.data());
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
 
-    if (entity.flags.context) {
-        glBindBuffer(GL_ARRAY_BUFFER, entity.flags.context);
+    if (entity.flags.resource == NULL) {
+        entity.flags.resource = new type::info::opaque_t;
+    }
+    if (entity.flags.resource.context) {
+        glBindBuffer(GL_ARRAY_BUFFER, entity.flags.resource.context);
         glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(unsigned int) * entity.flags.content.size(), entity.flags.content.data());
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
     else if (entity.flags.content.size()) {
-        glGenBuffers(1, &entity.flags.context);
-        glBindBuffer(GL_ARRAY_BUFFER, entity.flags.context);
+        glGenBuffers(1, &entity.flags.resource.context);
+        glBindBuffer(GL_ARRAY_BUFFER, entity.flags.resource.context);
         glBufferData(GL_ARRAY_BUFFER, sizeof(unsigned int) * 1024, NULL, GL_STATIC_DRAW);
         glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(unsigned int) * entity.flags.content.size(), entity.flags.content.data());
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
 
-    if (entity.positions.context) {
-        glBindBuffer(GL_ARRAY_BUFFER, entity.positions.context);
+    if (entity.positions.resource == NULL) {
+        entity.positions.resource = new type::info::opaque_t;
+    }
+    if (entity.positions.resource.context) {
+        glBindBuffer(GL_ARRAY_BUFFER, entity.positions.resource.context);
         glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(spatial::matrix) * entity.positions.content.size(), entity.positions.content.data());
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
     else if (entity.positions.content.size()) {
-        glGenBuffers(1, &entity.positions.context);
-        glBindBuffer(GL_ARRAY_BUFFER, entity.positions.context);
+        glGenBuffers(1, &entity.positions.resource.context);
+        glBindBuffer(GL_ARRAY_BUFFER, entity.positions.resource.context);
         glBufferData(GL_ARRAY_BUFFER, sizeof(spatial::matrix) * 1024, NULL, GL_STATIC_DRAW);
         glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(spatial::matrix) * entity.positions.content.size(), entity.positions.content.data());
         glBindBuffer(GL_ARRAY_BUFFER, 0);

@@ -215,18 +215,18 @@ namespace type {
 
         // http://www.opengl-tutorial.org/intermediate-tutorials/billboards-particles/particles-instancing/
         struct {
-            unsigned int context = 0;
             std::vector<unsigned int> content;
+            type::info::opaque_t *resource = nullptr;
         } identifiers;
 
         struct {
-            unsigned int context = 0;
             std::vector<unsigned int> content;
+            type::info::opaque_t *resource = nullptr;
         } flags;
 
         struct {
-            unsigned int context = 0;
             std::vector<spatial::matrix> content;
+            type::info::opaque_t *resource = nullptr;
         } positions;
 
         bool grouped = false;
@@ -282,7 +282,8 @@ namespace type {
         bool play(std::string animation, key_t id=0) {
             //std::lock_guard<std::mutex> scoped(lock);
             if (instances.size() == 0) {
-                return false;
+                //return false;
+                add();
             }
 
             key_t key = (id == 0) ? instances.begin()->first : id;
@@ -367,7 +368,8 @@ namespace type {
             static type::entity::instance empty;
 
             if (instances.size() == 0) {
-                return empty;
+                //return empty;
+                add();
             }
             key_t key = (id == 0) ? instances.begin()->first : id;
             if (instances.find(key) == instances.end()) {

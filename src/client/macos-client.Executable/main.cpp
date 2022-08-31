@@ -434,9 +434,9 @@ namespace shader_types
 {
     struct VertexData
     {
-        simd::float3 position;
-        simd::float3 normal;
-        simd::float2 texcoord;
+        simd::float4 position;
+        simd::float4 texcoord;
+        simd::float4 normal;
     };
 
     struct InstanceData
@@ -472,9 +472,9 @@ void Renderer::buildShaders()
 
         struct VertexData
         {
-            float3 position;
-            float3 normal;
-            float2 texcoord;
+            float4 position;
+            float4 texcoord;
+            float4 normal;
         };
 
         struct InstanceData
@@ -500,14 +500,15 @@ void Renderer::buildShaders()
             v2f o;
 
             const device VertexData& vd = vertexData[ vertexId ];
-            float4 pos = float4( vd.position, 1.0 );
+            float4 pos = vd.position;
             pos = instanceData[ instanceId ].instanceTransform * pos;
             pos = cameraData.perspectiveTransform * cameraData.worldTransform * pos;
             o.position = pos;
 
-            float3 normal = instanceData[ instanceId ].instanceNormalTransform * vd.normal;
+            float3 normal = instanceData[ instanceId ].instanceNormalTransform * vd.normal.xyz;
             normal = cameraData.worldNormalTransform * normal;
-            o.normal = normal;
+            //o.normal = normal;
+            o.normal = float3(1.0, 0.0, 0.0);
 
             o.texcoord = vd.texcoord.xy;
 
@@ -618,62 +619,69 @@ void Renderer::buildBuffers()
     const float s = 0.5f;
 
     shader_types::VertexData verts[] = {
-        //                                         Texture
-        //   Positions           Normals         Coordinates
-        { { -s, -s, +s }, {  0.f,  0.f,  1.f }, { 0.f, 1.f } },
-        { { +s, -s, +s }, {  0.f,  0.f,  1.f }, { 1.f, 1.f } },
-        { { +s, +s, +s }, {  0.f,  0.f,  1.f }, { 1.f, 0.f } },
-        { { -s, +s, +s }, {  0.f,  0.f,  1.f }, { 0.f, 0.f } },
+        { { -s, -s, +s, 1.0 }, { 0.f, 1.f, 0.f, 0.f }, {  0.f,  0.f,  1.f, 1.f } }, // 0
+        { { +s, -s, +s, 1.0 }, { 1.f, 1.f, 0.f, 0.f }, {  0.f,  0.f,  1.f, 1.f } }, // 1
+        { { +s, +s, +s, 1.0 }, { 1.f, 0.f, 0.f, 0.f }, {  0.f,  0.f,  1.f, 1.f } }, // 2
 
-        { { +s, -s, +s }, {  1.f,  0.f,  0.f }, { 0.f, 1.f } },
-        { { +s, -s, -s }, {  1.f,  0.f,  0.f }, { 1.f, 1.f } },
-        { { +s, +s, -s }, {  1.f,  0.f,  0.f }, { 1.f, 0.f } },
-        { { +s, +s, +s }, {  1.f,  0.f,  0.f }, { 0.f, 0.f } },
+        { { +s, +s, +s, 1.0 }, { 1.f, 0.f, 0.f, 0.f }, {  0.f,  0.f,  1.f, 1.f } }, // 2
+        { { -s, +s, +s, 1.0 }, { 0.f, 0.f, 0.f, 0.f }, {  0.f,  0.f,  1.f, 1.f } }, // 3
+        { { -s, -s, +s, 1.0 }, { 0.f, 1.f, 0.f, 0.f }, {  0.f,  0.f,  1.f, 1.f } }, // 0
+        
+        { { +s, -s, +s, 1.0 }, { 0.f, 1.f, 0.f, 0.f }, {  1.f,  0.f,  0.f, 1.f } }, // 4
+        { { +s, -s, -s, 1.0 }, { 1.f, 1.f, 0.f, 0.f }, {  1.f,  0.f,  0.f, 1.f } }, // 5
+        { { +s, +s, -s, 1.0 }, { 1.f, 0.f, 0.f, 0.f }, {  1.f,  0.f,  0.f, 1.f } }, // 6
 
-        { { +s, -s, -s }, {  0.f,  0.f, -1.f }, { 0.f, 1.f } },
-        { { -s, -s, -s }, {  0.f,  0.f, -1.f }, { 1.f, 1.f } },
-        { { -s, +s, -s }, {  0.f,  0.f, -1.f }, { 1.f, 0.f } },
-        { { +s, +s, -s }, {  0.f,  0.f, -1.f }, { 0.f, 0.f } },
+        { { +s, +s, -s, 1.0 }, { 1.f, 0.f, 0.f, 0.f }, {  1.f,  0.f,  0.f, 1.f } }, // 6
+        { { +s, +s, +s, 1.0 }, { 0.f, 0.f, 0.f, 0.f }, {  1.f,  0.f,  0.f, 1.f } }, // 7
+        { { +s, -s, +s, 1.0 }, { 0.f, 1.f, 0.f, 0.f }, {  1.f,  0.f,  0.f, 1.f } }, // 4
 
-        { { -s, -s, -s }, { -1.f,  0.f,  0.f }, { 0.f, 1.f } },
-        { { -s, -s, +s }, { -1.f,  0.f,  0.f }, { 1.f, 1.f } },
-        { { -s, +s, +s }, { -1.f,  0.f,  0.f }, { 1.f, 0.f } },
-        { { -s, +s, -s }, { -1.f,  0.f,  0.f }, { 0.f, 0.f } },
+        { { +s, -s, -s, 1.0 }, { 0.f, 1.f, 0.f, 0.f }, {  0.f,  0.f, -1.f, 1.f } }, // 8
+        { { -s, -s, -s, 1.0 }, { 1.f, 1.f, 0.f, 0.f }, {  0.f,  0.f, -1.f, 1.f } }, // 9
+        { { -s, +s, -s, 1.0 }, { 1.f, 0.f, 0.f, 0.f }, {  0.f,  0.f, -1.f, 1.f } }, // 10
 
-        { { -s, +s, +s }, {  0.f,  1.f,  0.f }, { 0.f, 1.f } },
-        { { +s, +s, +s }, {  0.f,  1.f,  0.f }, { 1.f, 1.f } },
-        { { +s, +s, -s }, {  0.f,  1.f,  0.f }, { 1.f, 0.f } },
-        { { -s, +s, -s }, {  0.f,  1.f,  0.f }, { 0.f, 0.f } },
+        { { -s, +s, -s, 1.0 }, { 1.f, 0.f, 0.f, 0.f }, {  0.f,  0.f, -1.f, 1.f } }, // 10
+        { { +s, +s, -s, 1.0 }, { 0.f, 0.f, 0.f, 0.f }, {  0.f,  0.f, -1.f, 1.f } }, // 11
+        { { +s, -s, -s, 1.0 }, { 0.f, 1.f, 0.f, 0.f }, {  0.f,  0.f, -1.f, 1.f } }, // 8
+        
+        { { -s, -s, -s, 1.0 }, { 0.f, 1.f, 0.f, 0.f }, { -1.f,  0.f,  0.f, 1.f } }, // 12
+        { { -s, -s, +s, 1.0 }, { 1.f, 1.f, 0.f, 0.f }, { -1.f,  0.f,  0.f, 1.f } }, // 13
+        { { -s, +s, +s, 1.0 }, { 1.f, 0.f, 0.f, 0.f }, { -1.f,  0.f,  0.f, 1.f } }, // 14
 
-        { { -s, -s, -s }, {  0.f, -1.f,  0.f }, { 0.f, 1.f } },
-        { { +s, -s, -s }, {  0.f, -1.f,  0.f }, { 1.f, 1.f } },
-        { { +s, -s, +s }, {  0.f, -1.f,  0.f }, { 1.f, 0.f } },
-        { { -s, -s, +s }, {  0.f, -1.f,  0.f }, { 0.f, 0.f } }
-    };
+        { { -s, +s, +s, 1.0 }, { 1.f, 0.f, 0.f, 0.f }, { -1.f,  0.f,  0.f, 1.f } }, // 14
+        { { -s, +s, -s, 1.0 }, { 0.f, 0.f, 0.f, 0.f }, { -1.f,  0.f,  0.f, 1.f } }, // 15
+        { { -s, -s, -s, 1.0 }, { 0.f, 1.f, 0.f, 0.f }, { -1.f,  0.f,  0.f, 1.f } }, // 12
+        
+        { { -s, +s, +s, 1.0 }, { 0.f, 1.f, 0.f, 0.f }, {  0.f,  1.f,  0.f, 1.f } }, // 16
+        { { +s, +s, +s, 1.0 }, { 1.f, 1.f, 0.f, 0.f }, {  0.f,  1.f,  0.f, 1.f } }, // 17
+        { { +s, +s, -s, 1.0 }, { 1.f, 0.f, 0.f, 0.f }, {  0.f,  1.f,  0.f, 1.f } }, // 18
 
-    uint16_t indices[] = {
-         0,  1,  2,  2,  3,  0, /* front */
-         4,  5,  6,  6,  7,  4, /* right */
-         8,  9, 10, 10, 11,  8, /* back */
-        12, 13, 14, 14, 15, 12, /* left */
-        16, 17, 18, 18, 19, 16, /* top */
-        20, 21, 22, 22, 23, 20, /* bottom */
+        { { +s, +s, -s, 1.0 }, { 1.f, 0.f, 0.f, 0.f }, {  0.f,  1.f,  0.f, 1.f } }, // 18
+        { { -s, +s, -s, 1.0 }, { 0.f, 0.f, 0.f, 0.f }, {  0.f,  1.f,  0.f, 1.f } }, // 19
+        { { -s, +s, +s, 1.0 }, { 0.f, 1.f, 0.f, 0.f }, {  0.f,  1.f,  0.f, 1.f } }, // 16
+        
+        { { -s, -s, -s, 1.0 }, { 0.f, 1.f, 0.f, 0.f }, {  0.f, -1.f,  0.f, 1.f } }, // 20
+        { { +s, -s, -s, 1.0 }, { 1.f, 1.f, 0.f, 0.f }, {  0.f, -1.f,  0.f, 1.f } }, // 21
+        { { +s, -s, +s, 1.0 }, { 1.f, 0.f, 0.f, 0.f }, {  0.f, -1.f,  0.f, 1.f } }, // 22
+
+        { { +s, -s, +s, 1.0 }, { 1.f, 0.f, 0.f, 0.f }, {  0.f, -1.f,  0.f, 1.f } }, // 22
+        { { -s, -s, +s, 1.0 }, { 0.f, 0.f, 0.f, 0.f }, {  0.f, -1.f,  0.f, 1.f } }, // 23
+        { { -s, -s, -s, 1.0 }, { 0.f, 1.f, 0.f, 0.f }, {  0.f, -1.f,  0.f, 1.f } } // 20
     };
 
     const size_t vertexDataSize = sizeof( verts );
-    const size_t indexDataSize = sizeof( indices );
+    //const size_t indexDataSize = sizeof( indices );
 
     MTL::Buffer* pVertexBuffer = _pDevice->newBuffer( vertexDataSize, MTL::ResourceStorageModeManaged );
-    MTL::Buffer* pIndexBuffer = _pDevice->newBuffer( indexDataSize, MTL::ResourceStorageModeManaged );
+    //MTL::Buffer* pIndexBuffer = _pDevice->newBuffer( indexDataSize, MTL::ResourceStorageModeManaged );
 
     _pVertexDataBuffer = pVertexBuffer;
-    _pIndexBuffer = pIndexBuffer;
+    //_pIndexBuffer = pIndexBuffer;
 
     memcpy( _pVertexDataBuffer->contents(), verts, vertexDataSize );
-    memcpy( _pIndexBuffer->contents(), indices, indexDataSize );
+    //memcpy( _pIndexBuffer->contents(), indices, indexDataSize );
 
     _pVertexDataBuffer->didModifyRange( NS::Range::Make( 0, _pVertexDataBuffer->length() ) );
-    _pIndexBuffer->didModifyRange( NS::Range::Make( 0, _pIndexBuffer->length() ) );
+    //_pIndexBuffer->didModifyRange( NS::Range::Make( 0, _pIndexBuffer->length() ) );
 
     const size_t instanceDataSize = kMaxFramesInFlight * kNumInstances * sizeof( shader_types::InstanceData );
     for ( size_t i = 0; i < kMaxFramesInFlight; ++i )
@@ -772,6 +780,7 @@ void Renderer::draw( MTK::View* pView )
     reinterpret_cast< implementation::metal::graphics * >( graphics )->_pCmd = pCmd;    
     
     if(1) {
+        instance->on_interval();
         instance->on_draw();
     }
     else {
@@ -790,8 +799,10 @@ void Renderer::draw( MTK::View* pView )
 
         pEnc->setCullMode( MTL::CullModeBack );
         pEnc->setFrontFacingWinding( MTL::Winding::WindingCounterClockwise );
-
-        pEnc->drawIndexedPrimitives( MTL::PrimitiveType::PrimitiveTypeTriangle, 6 * 6, MTL::IndexType::IndexTypeUInt16, _pIndexBuffer, 0, kNumInstances );
+        
+        pEnc->drawPrimitives( MTL::PrimitiveType::PrimitiveTypeTriangle, 0, 6 * 6, kNumInstances );
+        
+        //pEnc->drawIndexedPrimitives( MTL::PrimitiveType::PrimitiveTypeTriangle, 6 * 6, MTL::IndexType::IndexTypeUInt16, _pIndexBuffer, 0, kNumInstances );
 
         pEnc->endEncoding();
         

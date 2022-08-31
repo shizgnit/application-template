@@ -653,6 +653,18 @@ spatial::matrix& spatial::matrix::invert() {
 #endif
 }
 
+spatial::matrix& spatial::matrix::pivot() {
+    type_t t;
+    int c, r;
+    for(c=0; c<4; c++) for(r=0; r<4; r++) {
+        t = this->r[r][c];
+        this->r[r][c] = this->r[c][r];
+        this->r[c][r] = t;
+    }
+    return *this;
+}
+
+
 spatial::matrix& spatial::matrix::set(int row, int col, type_t value) {
     r[row][col] = value;
     return *this;

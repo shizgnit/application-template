@@ -97,6 +97,8 @@ namespace spatial {
 
     public:
 
+        float padding[2];
+        
         union {
             struct {
                 type_t x;
@@ -191,6 +193,7 @@ namespace spatial {
         }
 
     private:
+        float padding[2];
         matrix_t r;
 
     public:
@@ -230,6 +233,7 @@ namespace spatial {
         matrix& lookat(const vector& eye, const vector& focus, const vector& up);
 
         matrix& invert();
+        matrix& pivot();
 
         matrix& set(int row, int col, type_t value);
     };
