@@ -145,7 +145,7 @@ void implementation::metal::graphics::flush(void) {
 }
 
 bool implementation::metal::graphics::compile(type::shader& shader) {
-    if (shader.compile() == false) {
+    if (shader.compiled()) {
         return false;
     }
 
@@ -163,11 +163,11 @@ bool implementation::metal::graphics::compile(type::shader& shader) {
 
     shader.resource->ptr = pLibrary;
     
-    return true;
+    return shader.compiled(true);
 }
 
 bool implementation::metal::graphics::compile(type::program& program) {
-    if (program.compile() == false) {
+    if (program.compiled()) {
         return false;
     }
 
@@ -203,11 +203,11 @@ bool implementation::metal::graphics::compile(type::program& program) {
     pFragFn->release();
     pDesc->release();
     
-    return true;
+    return program.compiled(true);
 }
 
 bool implementation::metal::graphics::compile(type::material& material) {
-    if (material.compile() == false) {
+    if (material.compiled()) {
         return false;
     }
     if (material.color == NULL && material.normal == NULL) {
@@ -273,14 +273,14 @@ bool implementation::metal::graphics::compile(type::material& material) {
 
     pTexture->replaceRegion( MTL::Region( 0, 0, 0, tw, th, 1 ), 0, (uint8_t*)material.color->raster.data(), tw * 4 );
     
-    return true;
+    return material.compiled(true);
 }
 
 bool implementation::metal::graphics::compile(type::object& object) {
     for (auto &child : object.children) {
         compile(child);
     }
-    if (object.compile() == false || object.vertices.size() == 0) {
+    if (object.compiled() || object.vertices.size() == 0) {
         return false;
     }
 
@@ -383,11 +383,11 @@ bool implementation::metal::graphics::compile(type::object& object) {
     
     compile(object.texture);
     
-    return true;
+    return object.compiled(true);
 }
 
 bool implementation::metal::graphics::compile(type::font& font) {
-    if (font.compile() == false) {
+    if (font.compiled()) {
         return false;
     }
 
@@ -397,127 +397,25 @@ bool implementation::metal::graphics::compile(type::font& font) {
         }
     }
 
-    return true;
+    return font.compiled(true);
 }
 
 bool implementation::metal::graphics::compile(type::entity& entity) {
-    entity.bake();
+    if(entity.bake() == false && entity.compiled()) {
+        return false;
+    }
 
     if(entity.object) {
         compile(*entity.object);
     }
     
-    if (entity.positions.content.size() == 0 || entity.compile() == false) {
+    if(entity.instances.size() == 0) {
         return false;
     }
-    
+
     if (entity.positions.resource == NULL) {
         entity.positions.resource = new type::info::opaque_t;
     }
-
-/*
-    static int kInstanceRows = 10;
-    static int kInstanceColumns = 10;
-    static int kInstanceDepth = 10;
-
-    kNumInstances = kInstanceRows * kInstanceColumns * kInstanceDepth;
-    
-    const size_t instanceDataSize = sizeof(simd::float4x4) * kNumInstances;
-
-    MTL::Buffer* pInstanceBuffer = _pDevice->newBuffer( instanceDataSize, MTL::ResourceStorageModeManaged );
-
-    entity.positions.resource->ptr = (type::info::opaque_t *)pInstanceBuffer;
-
-    static float _angle = 0.0f;
-    _angle += 0.002f;
-
-    const float scl = 0.2f;
-    auto pInstanceData = reinterpret_cast< simd::float4x4 * >( pInstanceBuffer->contents() );
-
-    simd::float3 objectPosition = { 0.f, 0.f, -10.f };
-
-    simd::float4x4 rt = math2::makeTranslate( objectPosition );
-    simd::float4x4 rr1 = math2::makeYRotate( -_angle );
-    simd::float4x4 rr0 = math2::makeXRotate( _angle * 0.5 );
-    simd::float4x4 rtInv = math2::makeTranslate( { -objectPosition.x, -objectPosition.y, -objectPosition.z } );
-    simd::float4x4 fullObjectRot = rt * rr1 * rr0 * rtInv;
-
-    size_t ix = 0;
-    size_t iy = 0;
-    size_t iz = 0;
-    for ( size_t i = 0; i < kNumInstances; ++i )
-    {
-        if ( ix == kInstanceRows )
-        {
-            ix = 0;
-            iy += 1;
-        }
-        if ( iy == kInstanceColumns )
-        {
-            iy = 0;
-            iz += 1;
-        }
-
-        simd::float4x4 scale = math2::makeScale( (simd::float3){ scl, scl, scl } );
-        simd::float4x4 zrot = math2::makeZRotate( _angle * sinf((float)ix) );
-        simd::float4x4 yrot = math2::makeYRotate( _angle * cosf((float)iy));
-
-        float x = ((float)ix - (float)kInstanceRows/2.f) * (2.f * scl) + scl;
-        float y = ((float)iy - (float)kInstanceColumns/2.f) * (2.f * scl) + scl;
-        float z = ((float)iz - (float)kInstanceDepth/2.f) * (2.f * scl);
-        simd::float4x4 translate = math2::makeTranslate( math2::add( objectPosition, { x, y, z } ) );
-
-        pInstanceData[i] = fullObjectRot * translate * yrot * zrot * scale;
-        //pInstanceBuffer->[ i ].instanceNormalTransform = math2::discardTranslation( pInstanceBuffer->[ i ].instanceTransform );
-
-        float iDivNumInstances = i / (float)kNumInstances;
-        float r = iDivNumInstances;
-        float g = 1.0f - r;
-        float b = sinf( M_PI * 2.0f * iDivNumInstances );
-        
-        //pInstanceData[ i ].instanceColor = (simd::float4){ r, g, b, 1.0f };
-
-        ix += 1;
-    }
-    
-    pInstanceBuffer->didModifyRange( NS::Range::Make( 0, pInstanceBuffer->length() ) );
-*/
-    
-    static int kInstanceRows = 10;
-    static int kInstanceColumns = 10;
-    static int kInstanceDepth = 10;
-
-    kNumInstances = kInstanceRows * kInstanceColumns * kInstanceDepth;
-    
-    static float _angle = 0.0f;
-
-    const float scl = 0.2f;
-
-    simd::float3 objectPosition = { 0.f, 0.f, -10.f };
-
-    simd::float4x4 rt = math2::makeTranslate( objectPosition );
-    simd::float4x4 rr1 = math2::makeYRotate( -_angle );
-    simd::float4x4 rr0 = math2::makeXRotate( _angle * 0.5 );
-    simd::float4x4 rtInv = math2::makeTranslate( { -objectPosition.x, -objectPosition.y, -objectPosition.z } );
-    simd::float4x4 fullObjectRot = rt * rr1 * rr0 * rtInv;
-
-    size_t ix = 0;
-    size_t iy = 0;
-    size_t iz = 0;
-    
-    simd::float4x4 scale = math2::makeScale( (simd::float3){ scl, scl, scl } );
-    simd::float4x4 zrot = math2::makeZRotate( _angle * sinf((float)ix) );
-    simd::float4x4 yrot = math2::makeYRotate( _angle * cosf((float)iy));
-
-    float x = ((float)ix - (float)kInstanceRows/2.f) * (2.f * scl) + scl;
-    float y = ((float)iy - (float)kInstanceColumns/2.f) * (2.f * scl) + scl;
-    float z = ((float)iz - (float)kInstanceDepth/2.f) * (2.f * scl);
-    simd::float4x4 translate = math2::makeTranslate( math2::add( objectPosition, { x, y, z } ) );
-
-    auto result = fullObjectRot * translate * yrot * zrot * scale;
-    
-    float simd[1024];
-    memcpy(simd, &result, sizeof(result));
     
     const size_t instanceDataSize = sizeof(spatial::matrix) * entity.positions.content.size();
 
@@ -528,9 +426,6 @@ bool implementation::metal::graphics::compile(type::entity& entity) {
     memcpy( pInstanceBuffer->contents(), (void*)entity.positions.content.data(), instanceDataSize );
 
     pInstanceBuffer->didModifyRange( NS::Range::Make( 0, pInstanceBuffer->length() ) );
-  
-    float temp[2048];
-    memcpy(temp, entity.positions.content.data(), instanceDataSize);
     
     return true;
 }

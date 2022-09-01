@@ -100,7 +100,7 @@ namespace spatial {
 #if defined _VECTOR_PADDING
         float padding[_VECTOR_PADDING];
 #endif
-        
+
         union {
             struct {
                 type_t x;
@@ -316,8 +316,6 @@ namespace spatial {
         vector tanget();
 
     public:
-        bool view;
-
         struct {
             bool x = false;
             bool y = false;
@@ -340,8 +338,23 @@ namespace spatial {
 
         double rate = 1.0f;
 
+        bool modified() {
+            return dirty;
+        }
+        
     protected:
+        bool view = false;
+        bool dirty = true;
+        
+        spatial::matrix state;
+        spatial::matrix& serialize();
+        
         position& rotate();
+        
+        position& modify() {
+            dirty = true;
+            return *this;
+        }
     };
 
     class store {

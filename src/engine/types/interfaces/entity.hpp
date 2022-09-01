@@ -232,7 +232,20 @@ namespace type {
         bool grouped = false;
 
         int baked = 0;
-        void bake() {
+        bool bake() {
+            bool modified = false;
+            for (auto& entry : instances) {
+                if(entry.second.position.modified()) {
+                    modified = true;
+                    break;
+                }
+            }
+            if(modified == false) {
+                return false;
+            }
+            
+            baked = instances.size();
+            
             identifiers.content.clear();
             identifiers.content.reserve(baked);
             flags.content.clear();
@@ -250,7 +263,8 @@ namespace type {
                 flags.content.push_back(entry.second.flags);
                 positions.content.push_back(entry.second.position.scale());
             }
-            baked = instances.size();
+            
+            return true;
         }
 
         instance & add(properties& props=properties::empty(), int count = 1) {

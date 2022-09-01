@@ -55,12 +55,6 @@ namespace type {
             return _format;
         }
 
-        bool compile() {
-            bool needed = _compiled == false;
-            _compiled = true;
-            return needed;
-        }
-
         bool compiled() {
             return _compiled;
         }
