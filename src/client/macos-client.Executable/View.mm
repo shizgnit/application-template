@@ -227,6 +227,7 @@ static CVReturn MyDisplayLinkCallback(CVDisplayLinkRef displayLink,
     }
     else {
         assets->init();
+        assets->set("shader", std::string("shaders-gles"));
         instance->on_startup();
         instance->started = true;
     }

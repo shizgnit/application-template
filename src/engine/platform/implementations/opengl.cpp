@@ -37,7 +37,8 @@ bool implementation::opengl::fbo::init(type::object& object, platform::graphics 
 
     int status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
     if (status != GL_FRAMEBUFFER_COMPLETE) {
-        throw("failed to initialize frame buffer");
+        // TODO this fails on resize
+        // throw("failed to initialize frame buffer");
     }
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);

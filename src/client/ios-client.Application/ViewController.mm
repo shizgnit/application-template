@@ -59,6 +59,7 @@
     }
     else {
         assets->init();
+        assets->set("shader", std::string("shaders-gles"));
         instance->dimensions(self.view.bounds.size.width, self.view.bounds.size.height);
         instance->on_startup();
         instance->started = true;

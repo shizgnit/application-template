@@ -16,6 +16,13 @@ public:
 
     bool started = false;
 
+    int getWidth() const {
+        return width;
+    }
+    int getHeight() const {
+        return height;
+    }
+
 protected:
 
     char* resources;
