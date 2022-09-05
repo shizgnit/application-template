@@ -6,48 +6,50 @@
 //
 
 #import "ViewController.h"
+#import "Renderer.h"
 
-#import "engine.hpp"
-
-#import "application.hpp"
+//#include "engine.hpp"
 
 @interface ViewController ()
-@property (strong, nonatomic) EAGLContext *context;
+@property (strong, nonatomic) MTKView *context;
 
 @end
 
 @implementation ViewController
 {
-    application *instance;
+    MTKView *_view;
+    Renderer *_renderer;
+    //application *instance;
 }
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    
-    self.context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES3];
-    
-    if(!self.context) {
-        NSLog(@"failed to create ES context");
+
+    _view = (MTKView *)self.view;
+
+    _view.device = MTLCreateSystemDefaultDevice();
+    _view.backgroundColor = UIColor.blackColor;
+
+    if(!_view.device)
+    {
+        NSLog(@"Metal is not supported on this device");
+        self.view = [[UIView alloc] initWithFrame:self.view.frame];
+        return;
     }
-    
-    GLKView *view = (GLKView *)self.view;
-    view.context = self.context;
-    view.drawableDepthFormat = GLKViewDrawableDepthFormat24;
-    
-    instance = NULL;
-    
-    [EAGLContext setCurrentContext:self.context];
+
+    _renderer = [[Renderer alloc] initWithMetalKitView:_view];
+
+    [_renderer mtkView:_view drawableSizeWillChange:_view.bounds.size];
+
+    _view.delegate = _renderer;
+    //instance = NULL;
 }
 
 - (void)dealloc
 {
-    [EAGLContext setCurrentContext:self.context];
-
-    if ([EAGLContext currentContext] == self.context) {
-        [EAGLContext setCurrentContext:nil];
-    }
 }
 
+/*
 - (void)glkView:(GLKView *)view drawInRect:(CGRect)rect
 {
     if(instance == NULL) {
@@ -65,17 +67,18 @@
         instance->started = true;
     }
 }
+*/
 
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
     NSLog(@"began type: %i", (int)event.type);
     NSLog(@"count: %i", (int)event.allTouches.count);
 
-    self.paused = !self.paused;
+//    self.paused = !self.paused;
     
-    NSLog(@"timeSinceLastUpdate: %f", self.timeSinceLastUpdate);
-    NSLog(@"timeSinceLastDraw: %f", self.timeSinceLastDraw);
-    NSLog(@"timeSinceFirstResume: %f", self.timeSinceFirstResume);
-    NSLog(@"timeSinceLastResume: %f", self.timeSinceLastResume);
+//    NSLog(@"timeSinceLastUpdate: %f", self.timeSinceLastUpdate);
+//    NSLog(@"timeSinceLastDraw: %f", self.timeSinceLastDraw);
+//    NSLog(@"timeSinceFirstResume: %f", self.timeSinceFirstResume);
+//    NSLog(@"timeSinceLastResume: %f", self.timeSinceLastResume);
 }
 
 - (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event {
@@ -95,19 +98,19 @@
 
 - (void)pressesBegan:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event {
     for (UIPress* press in presses) {
-        int key = platform::keys[press.key.keyCode].xref;
-        NSLog(@"key: 0x%02x, 0x%02x", key, press.key.keyCode);
-        gui->raise({ platform::input::KEY, platform::input::DOWN, key, 0, 0.0f, { 0.0f, 0.0f, 0.0f } }, 0, 0);
-        input->raise({ platform::input::KEY, platform::input::DOWN, key, 1, 0.0f, { 0.0f, 0.0f, 0.0f } });
+        //int key = platform::keys[press.key.keyCode].xref;
+        //NSLog(@"key: 0x%02x, 0x%02x", key, press.key.keyCode);
+        //gui->raise({ platform::input::KEY, platform::input::DOWN, key, 0, 0.0f, { 0.0f, 0.0f, 0.0f } }, 0, 0);
+        //input->raise({ platform::input::KEY, platform::input::DOWN, key, 1, 0.0f, { 0.0f, 0.0f, 0.0f } });
     }
     [super pressesBegan: presses withEvent: event];
  }
 
  - (void)pressesEnded:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event {
      for (UIPress* press in presses) {
-         int key = platform::keys[press.key.keyCode].xref;
-         gui->raise({ platform::input::KEY, platform::input::UP, key, 0, 0.0f, { 0.0f, 0.0f, 0.0f } }, 0, 0);
-         input->raise({ platform::input::KEY, platform::input::UP, key, 1, 0.0f, { 0.0f, 0.0f, 0.0f } });
+         //int key = platform::keys[press.key.keyCode].xref;
+         //gui->raise({ platform::input::KEY, platform::input::UP, key, 0, 0.0f, { 0.0f, 0.0f, 0.0f } }, 0, 0);
+         //input->raise({ platform::input::KEY, platform::input::UP, key, 1, 0.0f, { 0.0f, 0.0f, 0.0f } });
      }
      [super pressesEnded: presses withEvent: event];
  }
