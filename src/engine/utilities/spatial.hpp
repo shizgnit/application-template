@@ -91,10 +91,10 @@ namespace spatial {
             ss << "{" << x << "," << y << "," << z << "," << w << "}";
             return ss.str();
         }
-
+        
         vector lerp(const vector& to, const type_t t);
         vector slerp(const vector& to, const type_t t);
-
+        
     public:
 
 #if defined _VECTOR_PADDING
@@ -193,6 +193,19 @@ namespace spatial {
             ss << "}";
             return ss.str();
         }
+        
+        operator bool() const {
+            spatial::matrix ident;
+            type_t *ref = ident.r[0];
+            type_t *ptr = r[0];
+            for(int i=0; i<16; i++) {
+                if(ref[i] != ptr[i]) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
 
     private:
 #if defined _MATRIX_PADDING

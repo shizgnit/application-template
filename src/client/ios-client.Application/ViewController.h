@@ -6,12 +6,16 @@
 //
 
 #import <UIKit/UIKit.h>
-#import <GLKit/GLKit.h>
 
-#import <GLKit/GLKView.h>
+#define NS_PRIVATE_IMPLEMENTATION
+#define MTL_PRIVATE_IMPLEMENTATION
+#define CA_PRIVATE_IMPLEMENTATION
+#define MTK_PRIVATE_IMPLEMENTATION
 
-@interface ViewController : GLKViewController
+#import <Metal/Metal.h>
+#import <MetalKit/MetalKit.h>
 
+@interface ViewController : UIViewController
 
 @end
 

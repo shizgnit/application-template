@@ -401,31 +401,35 @@ bool implementation::metal::graphics::compile(type::font& font) {
 }
 
 bool implementation::metal::graphics::compile(type::entity& entity) {
-    if(entity.bake() == false && entity.compiled()) {
-        return false;
+    if(entity.bake()) {
+        if (entity.positions.resource == NULL) {
+            entity.positions.resource = new type::info::opaque_t;
+        }
+        
+        const size_t instanceDataSize = sizeof(spatial::matrix) * entity.positions.content.size();
+
+        MTL::Buffer* pInstanceBuffer = _pDevice->newBuffer( instanceDataSize, MTL::ResourceStorageModeManaged );
+
+        entity.positions.resource->ptr = (type::info::opaque_t *)pInstanceBuffer;
+
+        memcpy( pInstanceBuffer->contents(), (void*)entity.positions.content.data(), instanceDataSize );
+
+        pInstanceBuffer->didModifyRange( NS::Range::Make( 0, pInstanceBuffer->length() ) );
     }
 
+    if(entity.compiled()) {
+        return false;
+    }
+    
     if(entity.object) {
         compile(*entity.object);
     }
     
-    if(entity.instances.size() == 0) {
-        return false;
+    for (auto& animation : entity.animations) {
+        for (auto& frame : animation.second.frames) {
+            compile(frame);
+        }
     }
-
-    if (entity.positions.resource == NULL) {
-        entity.positions.resource = new type::info::opaque_t;
-    }
-    
-    const size_t instanceDataSize = sizeof(spatial::matrix) * entity.positions.content.size();
-
-    MTL::Buffer* pInstanceBuffer = _pDevice->newBuffer( instanceDataSize, MTL::ResourceStorageModeManaged );
-
-    entity.positions.resource->ptr = (type::info::opaque_t *)pInstanceBuffer;
-
-    memcpy( pInstanceBuffer->contents(), (void*)entity.positions.content.data(), instanceDataSize );
-
-    pInstanceBuffer->didModifyRange( NS::Range::Make( 0, pInstanceBuffer->length() ) );
     
     return true;
 }
