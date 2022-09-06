@@ -23,7 +23,7 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
         
-    self.context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
+    self.context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES3];
     
     if(!self.context) {
         NSLog(@"failed to create ES context");
@@ -59,7 +59,8 @@
     }
     else {
         assets->init();
-        assets->set("shader", std::string("shaders-gles"));
+        assets->set("shader.path", std::string("shaders-gl"));
+        assets->set("shader.version", std::string("#version 300 es"));
         instance->dimensions(self.view.bounds.size.width, self.view.bounds.size.height);
         instance->on_startup();
         instance->started = true;

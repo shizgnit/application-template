@@ -12,6 +12,7 @@
 #import "application.hpp"
 
 #define SUPPORT_RETINA_RESOLUTION 1
+#define ESSENTIAL_GL_PRACTICES_SUPPORT_GL3 1
 
 @interface View ()
 {
@@ -58,7 +59,7 @@ static CVReturn MyDisplayLinkCallback(CVDisplayLinkRef displayLink,
 #endif
 		0
 	};
-	
+    
 	NSOpenGLPixelFormat *pf = [[NSOpenGLPixelFormat alloc] initWithAttributes:attrs];
 	
 	if (!pf)
@@ -227,7 +228,8 @@ static CVReturn MyDisplayLinkCallback(CVDisplayLinkRef displayLink,
     }
     else {
         assets->init();
-        assets->set("shader", std::string("shaders-gles"));
+        assets->set("shader.path", std::string("shaders-gl"));
+        assets->set("shader.version", std::string("#version 410 core"));
         instance->on_startup();
         instance->started = true;
     }

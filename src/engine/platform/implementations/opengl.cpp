@@ -3,6 +3,7 @@
 #if defined __PLATFORM_SUPPORTS_OPENGL
 
 struct type::info::opaque_t {
+    unsigned int vao {0};
     unsigned int context {0};
 };
 
@@ -148,7 +149,7 @@ void implementation::opengl::graphics::init(void) {
 
     auto glsl = glGetString(GL_SHADING_LANGUAGE_VERSION);
 
-    auto str = utilities::tokenize((const char*)glGetString(GL_EXTENSIONS), " ");
+    //auto str = utilities::tokenize((const char*)glGetString(GL_EXTENSIONS), " ");
 
     // Setup the ray used for drawing normals
     ray = spatial::ray(spatial::vector(0.0, 0.0, 0.0), spatial::vector(2.0, 0.0, 0.0));
@@ -338,6 +339,8 @@ bool implementation::opengl::graphics::compile(type::program& program) {
     program.u_BlurTextureUnit = glGetUniformLocation(program.resource->context, "u_BlurTextureUnit");
     program.u_PickingTextureUnit = glGetUniformLocation(program.resource->context, "u_PickingTextureUnit");
 
+    program.u_TextureSize = glGetUniformLocation(program.resource->context, "u_TextureSize");
+    
     return program.compiled(true);
 }
 
@@ -413,10 +416,15 @@ bool implementation::opengl::graphics::compile(type::object& object) {
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
     else {
+        glGenVertexArrays(1, &object.resource->vao);
+        glBindVertexArray(object.resource->vao);
+
         glGenBuffers(1, &object.resource->context);
         glBindBuffer(GL_ARRAY_BUFFER, object.resource->context);
         glBufferData(GL_ARRAY_BUFFER, sizeof(spatial::vertex) * object.vertices.size(), object.vertices.data(), GL_STATIC_DRAW);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
+        
+        glBindVertexArray(0);
     }
 
     compile(object.texture);
@@ -567,6 +575,8 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
     glUniform1i(shader.u_DepthTextureUnit, 3);
     glUniform1i(shader.u_BlurTextureUnit, 4);
 
+    glUniform2f(shader.u_TextureSize, object.texture.color->properties.width, object.texture.color->properties.width);
+    
     glUniformMatrix4fv(shader.u_ProjectionMatrix, 1, GL_FALSE, (GLfloat*)projection.data());
     glUniformMatrix4fv(shader.u_ViewMatrix, 1, GL_FALSE, (GLfloat*)view.data());
     glUniformMatrix4fv(shader.u_ModelMatrix, 1, GL_FALSE, (GLfloat*)model.data());
@@ -583,12 +593,14 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
 
     glUniformMatrix4fv(shader.u_Parameters, 1, GL_FALSE, (GLfloat*)parameters.data());
 
+    if(object.resource->vao) {
+        glBindVertexArray(object.resource->vao);
+    }
     glBindBuffer(GL_ARRAY_BUFFER, object.resource->context);
-
     glVertexAttribPointer(shader.a_Vertex, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::vertex), BUFFER_OFFSET(offset_vector));
     glVertexAttribPointer(shader.a_Texture, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::vertex), BUFFER_OFFSET(sizeof(spatial::vector) + offset_vector));
     glVertexAttribPointer(shader.a_Normal, 4, GL_FLOAT, GL_TRUE, sizeof(spatial::vertex), BUFFER_OFFSET((sizeof(spatial::vector) * 2) + offset_vector));
-
+    
     glEnableVertexAttribArray(shader.a_Vertex);
     glEnableVertexAttribArray(shader.a_Texture);
     glEnableVertexAttribArray(shader.a_Normal);
@@ -657,6 +669,7 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
     frame.vertices += object.vertices.size();
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
 
     // Primary object has been drawn, draw out the normals if requested.  Mostly for debugging.
     if (options & render::NORMALS) {
