@@ -39,8 +39,9 @@ namespace type {
             _extensions = extensions;
             _format = spec;
         }
+        virtual ~info() {}
 
-        std::string id(std::string id = "") {
+        virtual std::string id(std::string id = "") {
             if (id.empty() == false) {
                 _id = id;
             }
@@ -51,21 +52,21 @@ namespace type {
             return "type::undefined";
         }
 
-        type::format format() {
+        virtual type::format format() {
             return _format;
         }
 
-        bool compile() {
+        virtual bool compile() {
             bool needed = _compiled == false;
             _compiled = true;
             return needed;
         }
 
-        bool compiled() {
+        virtual bool compiled() {
             return _compiled;
         }
 
-        bool compiled(bool flag) {
+        virtual bool compiled(bool flag) {
             return _compiled = flag;
         }
 
