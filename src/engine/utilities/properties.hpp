@@ -27,6 +27,11 @@ public:
         variables = ref.variables;
     }
 
+    size_t events();
+    void event(const std::string &);
+    std::string event();
+    
 protected:
     type_t variables;
+    std::list<std::string> _events;
 };

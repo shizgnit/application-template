@@ -2,7 +2,7 @@
 
 namespace platform {
 
-    class filesystem {
+    class filesystem : public properties {
     public:
         virtual std::string seperator() = 0;
 

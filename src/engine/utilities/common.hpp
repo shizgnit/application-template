@@ -1,5 +1,38 @@
 namespace utilities {
 
+    class string {
+    public:
+        string() {}
+        
+        string & operator << (const std::string &s) {
+            str << s;
+            return *this;
+        }
+        string & operator << (const char *s) {
+            str << s;
+            return *this;
+        }
+        string & operator << (int i) {
+            str << i;
+            return *this;
+        }
+        string & operator << (unsigned int ui) {
+            str << ui;
+            return *this;
+        }
+        string & operator << (float f) {
+            str << f;
+            return *this;
+        }
+
+        operator std::string() {
+            return str.str();
+        }
+        
+    protected:
+        std::stringstream str;
+    };
+
     template <class type, class method>
     class scoped {
     public:

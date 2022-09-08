@@ -18,19 +18,6 @@ namespace platform {
             }
         }
 
-        virtual int messages() {
-            return errors.size();
-        }
-
-        virtual std::string message() {
-            if (errors.size() == 0) {
-                return "";
-            }
-            std::string status = errors.front();
-            errors.pop_front();
-            return status;
-        }
-
         virtual void search(std::string type, std::string path) {
             paths[type] = path;
         }
@@ -125,8 +112,6 @@ namespace platform {
 
     protected:
         std::map<std::string, std::string> paths;
-
-        std::list<std::string> errors;
 
         std::map<std::string, std::map<std::string, type::info*>> cache;
 

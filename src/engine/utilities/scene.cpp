@@ -553,16 +553,16 @@ value_t scene::_load(parameters_t p) {
     if (p.size() == 3) {
         assets->load(std::get<std::string>(p[0]), std::get<std::string>(p[1]), std::get<std::string>(p[2]));
     }
-    while (assets->messages()) {
-        scene::debug().content.add(assets->message());
+    while (assets->events()) {
+        scene::debug().content.add(assets->event());
     }
     return 0;
 }
 
 value_t scene::_compile(parameters_t p) {
     graphics->compile(assets);
-    while (graphics->messages()) {
-        scene::debug().content.add(graphics->message());
+    while (graphics->events()) {
+        scene::debug().content.add(graphics->event());
     }
     return 0;
 }

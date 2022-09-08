@@ -1,7 +1,8 @@
 #pragma once
 
 namespace platform {
-    class input {
+    
+    class input : public properties {
     public:
         enum type {
             POINTER,

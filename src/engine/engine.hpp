@@ -29,15 +29,16 @@
 #if defined TARGET_OS_IOS && TARGET_OS_IOS == 1
 #define __PLATFORM_APPLE 1
 #define __PLATFORM_IOS 1
-//#define _VECTOR_PADDING 2
-//#define _MATRIX_PADDING 2
 #endif
 
 #if defined TARGET_OS_OSX && TARGET_OS_OSX == 1
 #define __PLATFORM_APPLE 1
 #define __PLATFORM_MACOS 1
-//#define _VECTOR_PADDING 2
-//#define _MATRIX_PADDING 2
+#endif
+
+#if defined __METAL_SUPPORT
+#define _VECTOR_PADDING 2
+#define _MATRIX_PADDING 2
 #endif
 
 #endif

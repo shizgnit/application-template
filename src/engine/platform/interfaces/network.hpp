@@ -1,7 +1,8 @@
 #pragma once
 
 namespace platform {
-    class network {
+
+    class network : public properties {
     public:
         virtual std::string hostname() = 0;
         virtual std::string ip(std::string hostname="") = 0;

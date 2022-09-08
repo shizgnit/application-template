@@ -2,7 +2,7 @@
 
 namespace platform {
 
-    class audio {
+    class audio : public properties {
     protected:
         const static int default_channels = 4;
 
