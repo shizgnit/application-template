@@ -419,8 +419,8 @@ void implementation::universal::interface::position(widget& instance) {
 
 std::string implementation::universal::assets::load(platform::assets* instance, const std::string& type, const std::string& resource, const std::string& id) {
     auto path = resource;
-    if (has(type)) {
-        auto source = get(type);
+    if (has(type + ".path")) {
+        auto source = get(type + ".path");
         path = std::get<std::string>(source) + "/" + resource;
     }
 
@@ -451,7 +451,18 @@ std::string implementation::universal::assets::load(platform::assets* instance, 
         auto& shader = instance->get<type::program>(cache);
         instance->retrieve(path + ".vert") >> format::parser::vert >> shader.vertex;
         instance->retrieve(path + ".frag") >> format::parser::frag >> shader.fragment;
-        instance->retrieve(path + ".metal") >> format::parser::metal >> shader.unified;
+        //instance->retrieve(path + ".metal") >> format::parser::metal >> shader.unified;
+        
+        if(has("shader.version")) {
+            std::string version = std::get<std::string>(get("shader.version"));
+            if(shader.vertex.text.empty() == false) {
+                shader.vertex.text = version + "\n" + shader.vertex.text;
+            }
+            if(shader.fragment.text.empty() == false) {
+                shader.fragment.text = version + "\n" + shader.fragment.text;
+            }
+        }
+
         shader.compiled(false);
     }
     if (type == "font") {

@@ -857,12 +857,12 @@ spatial::quaternion spatial::quaternion::slerp(const quaternion& q, const type_t
 
 
 spatial::position::position(void) {
-    view = false;
     identity();
 }
 
 spatial::position::position(const position& ref) {
     *this = ref;
+    this->modify();
 }
 
 spatial::position::position(const spatial::vector& pos) {
@@ -880,6 +880,14 @@ spatial::matrix spatial::position::scale(type_t value) {
     result.translate(eye, focus, up);
     translation.scale += value;
     return result * spatial::matrix().scale(translation.scale);
+}
+
+spatial::matrix& spatial::position::serialize() {
+    state.identity();
+    state.translate(eye, focus, up);
+    state *= spatial::matrix().scale(translation.scale);
+    dirty = false;
+    return state;
 }
 
 void spatial::position::identity(void) {
@@ -908,7 +916,7 @@ spatial::position& spatial::position::surge(type_t t) {
     focus += diff;
     eye += diff;
 
-    return *this;
+    return this->modify();
 }
 
 spatial::position& spatial::position::sway(type_t t) {
@@ -921,7 +929,7 @@ spatial::position& spatial::position::sway(type_t t) {
     focus += diff;
     eye += diff;
 
-    return *this;
+    return this->modify();
 }
 
 spatial::position& spatial::position::heave(type_t t) {
@@ -932,7 +940,7 @@ spatial::position& spatial::position::heave(type_t t) {
     focus += diff;
     eye += diff;
 
-    return *this;
+    return this->modify();
 }
 
 spatial::position& spatial::position::pitch(type_t angle) {
@@ -975,7 +983,7 @@ spatial::position& spatial::position::rotate() {
     eye += offset;
     focus += offset;
 
-    return *this;
+    return this->modify();
 }
 
 void spatial::position::project(const vector& offset, const vector& projection) {
@@ -998,7 +1006,7 @@ spatial::position& spatial::position::reposition(const vector& offset) {
     focus += offset - eye;
     eye = offset;
 
-    return *this;
+    return this->modify();
 }
 
 spatial::position& spatial::position::lookat(const vector& offset) {
@@ -1015,7 +1023,7 @@ spatial::position& spatial::position::lookat(const vector& offset) {
     translation.spin = 0;
     translation.yaw = 0;
 
-    return *this;
+    return this->modify();
 }
 
 void spatial::position::constrain(bool x, bool y, bool z) {
@@ -1040,6 +1048,7 @@ void spatial::position::apply(const spatial::position& reference) {
         this->focus.z = reference.focus.z;
         this->up.z = reference.up.z;
     }
+    this->modify();
 }
 
 spatial::vector spatial::position::x(type_t magnitude) {

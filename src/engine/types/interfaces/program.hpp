@@ -32,6 +32,8 @@ namespace type {
         int u_BlurTextureUnit;
         int u_PickingTextureUnit;
 
+        int u_TextureSize;
+        
         int u_AmbientLightPosition;
         int u_AmbientLightColor;
         int u_AmbientLightBias;

@@ -56,13 +56,7 @@ namespace type {
             return _format;
         }
 
-        virtual bool compile() {
-            bool needed = _compiled == false;
-            _compiled = true;
-            return needed;
-        }
-
-        virtual bool compiled() {
+        bool compiled() {
             return _compiled;
         }
 

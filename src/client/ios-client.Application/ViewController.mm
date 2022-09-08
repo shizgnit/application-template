@@ -8,7 +8,6 @@
 #import "ViewController.h"
 
 #import "engine.hpp"
-
 #import "application.hpp"
 
 @interface ViewController ()
@@ -23,7 +22,7 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    
+        
     self.context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES3];
     
     if(!self.context) {
@@ -60,6 +59,8 @@
     }
     else {
         assets->init();
+        assets->set("shader.path", std::string("shaders-gl"));
+        assets->set("shader.version", std::string("#version 300 es"));
         instance->dimensions(self.view.bounds.size.width, self.view.bounds.size.height);
         instance->on_startup();
         instance->started = true;

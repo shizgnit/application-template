@@ -27,6 +27,24 @@
 #define GL_MAX_COLOR_ATTACHMENTS 0x8CDF
 #endif
 
+std::string glGetErrorString(GLenum err);
+
+#define GL_REPORT_ERROR(_call, _error) \
+    ::graphics->event(utilities::string() << #_call << ", " << _error << ", " << __LINE__ << ", " << __FILE__)
+
+#define GL_TEST(_call) \
+    { \
+        GLenum _error; \
+        while((_error = glGetError()) != GL_NO_ERROR) { } \
+        _call; \
+        std::stringstream str; \
+        int errors = 0; \
+        while((_error = glGetError()) != GL_NO_ERROR) { \
+            str << glGetErrorString(_error); \
+            errors += 1; \
+        } \
+        if(errors) GL_REPORT_ERROR(_call, str.str()); \
+    }
 
 namespace implementation {
 

@@ -37,19 +37,6 @@ namespace platform {
         virtual void oninvert() {}
         virtual void uninvert() {}
 
-        virtual int messages() {
-            return errors.size();
-        }
-
-        virtual std::string message() {
-            if (errors.size() == 0) {
-                return "";
-            }
-            std::string status = errors.front();
-            errors.pop_front();
-            return status;
-        }
-
         typedef void (graphics::* callback)();
         utilities::scoped<graphics*, callback> target(type::object& object) {
             ontarget(object);
@@ -139,8 +126,6 @@ namespace platform {
 
     protected:
         spatial::matrix parameters;
-
-        std::list<std::string> errors;
 
         std::vector<float> clip_top = { 10000.0f };
         std::vector<float> clip_bottom = { 10000.0f };

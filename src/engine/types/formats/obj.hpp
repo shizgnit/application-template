@@ -121,7 +121,7 @@ namespace format {
                 if (command == "usemtl") { //material
                     std::string id = assets->resolve(arguments[1]);
                     if (assets->has<type::material>(id) == false) {
-                        int x = 0;
+                        assets->event(utilities::string() << id << " failed to load reference material");
                     }
                     instance.children.back().texture = assets->get<type::material>(id);
                 }

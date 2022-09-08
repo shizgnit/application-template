@@ -29,13 +29,14 @@
 #if defined TARGET_OS_IOS && TARGET_OS_IOS == 1
 #define __PLATFORM_APPLE 1
 #define __PLATFORM_IOS 1
-#define _VECTOR_PADDING 2
-#define _MATRIX_PADDING 2
 #endif
 
 #if defined TARGET_OS_OSX && TARGET_OS_OSX == 1
 #define __PLATFORM_APPLE 1
 #define __PLATFORM_MACOS 1
+#endif
+
+#if defined __METAL_SUPPORT
 #define _VECTOR_PADDING 2
 #define _MATRIX_PADDING 2
 #endif
@@ -146,7 +147,7 @@
 
 /// Types
 #include "types/interfaces/info.hpp"
-#include "types/interfaces/sound.hpp"
+#include "types/interfaces/audio.hpp"
 #include "types/interfaces/shader.hpp"
 #include "types/interfaces/program.hpp"
 #include "types/interfaces/image.hpp"
@@ -203,14 +204,14 @@ inline platform::network::server* server = new implementation::windows::network:
 
 #if defined __PLATFORM_IOS
 #include "platform/implementations/universal.hpp"
-#include "platform/implementations/metal.hpp"
+#include "platform/implementations/opengl.hpp"
 #include "platform/implementations/openal.hpp"
 #include "platform/implementations/posix.hpp"
 #include "platform/implementations/ios.hpp"
 inline platform::audio* audio = new implementation::openal::audio();
 inline platform::filesystem* filesystem = new implementation::posix::filesystem();
 inline platform::assets* assets = new implementation::ios::assets();
-inline platform::graphics* graphics = new implementation::metal::graphics();
+inline platform::graphics* graphics = new implementation::opengl::graphics();
 inline platform::input* input = new implementation::universal::input();
 inline platform::interface* gui = new implementation::universal::interface();
 //inline platform::network::client* client = new implementation::posix::network::client();
@@ -219,14 +220,14 @@ inline platform::interface* gui = new implementation::universal::interface();
 
 #if defined __PLATFORM_MACOS
 #include "platform/implementations/universal.hpp"
-#include "platform/implementations/metal.hpp"
+#include "platform/implementations/opengl.hpp"
 #include "platform/implementations/openal.hpp"
 #include "platform/implementations/posix.hpp"
 #include "platform/implementations/macos.hpp"
 inline platform::audio* audio = new implementation::openal::audio();
 inline platform::filesystem* filesystem = new implementation::posix::filesystem();
 inline platform::assets* assets = new implementation::macos::assets();
-inline platform::graphics* graphics = new implementation::metal::graphics();
+inline platform::graphics* graphics = new implementation::opengl::graphics();
 inline platform::input* input = new implementation::universal::input();
 inline platform::interface* gui = new implementation::universal::interface();
 //inline platform::network::client* client = new implementation::posix::network::client();

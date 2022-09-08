@@ -35,3 +35,20 @@ value_t properties::set(const label_t& label, value_t value) {
     variables[label] = value;
     return value;
 }
+
+size_t properties::events() {
+    return _events.size();
+}
+
+void properties::event(const std::string &e) {
+    _events.push_back(e);
+}
+
+std::string properties::event() {
+    if (_events.size() == 0) {
+        return "";
+    }
+    std::string status = _events.front();
+    _events.pop_front();
+    return status;
+}
