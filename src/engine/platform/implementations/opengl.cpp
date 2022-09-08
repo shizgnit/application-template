@@ -264,7 +264,7 @@ bool implementation::opengl::graphics::compile(type::shader& shader) {
     }
 
     if (shader.resource == NULL) {
-        shader.resource = new type::info::opaque_t;
+        shader.resource = new type::info::opaque_t();
     }
 
     switch (shader.format()) {
@@ -316,7 +316,7 @@ bool implementation::opengl::graphics::compile(type::program& program) {
     }
 
     if (program.resource == NULL) {
-        program.resource = new type::info::opaque_t;
+        program.resource = new type::info::opaque_t();
     }
 
     program.resource->context = glCreateProgram();
@@ -392,7 +392,7 @@ bool implementation::opengl::graphics::compile(type::material& material) {
 
     if (material.color) {
         if (material.color->resource == NULL) {
-            material.color->resource = new type::info::opaque_t;
+            material.color->resource = new type::info::opaque_t();
         }
         if (material.color->resource->context) {
             GL_TEST(glDeleteTextures(1, &material.color->resource->context));
@@ -418,7 +418,7 @@ bool implementation::opengl::graphics::compile(type::material& material) {
 
     if (material.normal) {
         if (material.normal->resource == NULL) {
-            material.normal->resource = new type::info::opaque_t;
+            material.normal->resource = new type::info::opaque_t();
         }
         if (material.normal->resource->context) {
             GL_TEST(glDeleteTextures(1, &material.normal->resource->context));
@@ -445,10 +445,10 @@ bool implementation::opengl::graphics::compile(type::object& object) {
     }
 
     if (object.resource == NULL) {
-        object.resource = new type::info::opaque_t;
+        object.resource = new type::info::opaque_t();
     }
 
-    if (object.resource->context) {
+    if (object.resource->context != 0) {
         GL_TEST(glBindBuffer(GL_ARRAY_BUFFER, object.resource->context));
         GL_TEST(glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(spatial::vertex) * object.vertices.size(), object.vertices.data()));
         GL_TEST(glBindBuffer(GL_ARRAY_BUFFER, 0));
@@ -488,7 +488,7 @@ bool implementation::opengl::graphics::compile(type::entity& entity) {
     if (entity.bake()) {
 
         if (entity.identifiers.resource == NULL) {
-            entity.identifiers.resource = new type::info::opaque_t;
+            entity.identifiers.resource = new type::info::opaque_t();
         }
         if (entity.identifiers.resource->context) {
             GL_TEST(glBindBuffer(GL_ARRAY_BUFFER, entity.identifiers.resource->context));
@@ -504,7 +504,7 @@ bool implementation::opengl::graphics::compile(type::entity& entity) {
         }
 
         if (entity.flags.resource == NULL) {
-            entity.flags.resource = new type::info::opaque_t;
+            entity.flags.resource = new type::info::opaque_t();
         }
         if (entity.flags.resource->context) {
             GL_TEST(glBindBuffer(GL_ARRAY_BUFFER, entity.flags.resource->context));
@@ -520,7 +520,7 @@ bool implementation::opengl::graphics::compile(type::entity& entity) {
         }
 
         if (entity.positions.resource == NULL) {
-            entity.positions.resource = new type::info::opaque_t;
+            entity.positions.resource = new type::info::opaque_t();
         }
         if (entity.positions.resource->context) {
             GL_TEST(glBindBuffer(GL_ARRAY_BUFFER, entity.positions.resource->context));

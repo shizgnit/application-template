@@ -39,7 +39,7 @@ std::vector<std::string> implementation::android::assets::list(const std::string
     // Compensation for AAssetDir not listing directories
     AAsset* asset = AAssetManager_open(assetManager, "content.txt", AASSET_MODE_BUFFER);
     if (!asset) {
-        errors.push_back("failed to retrieve asset list from the content.txt");
+        event("failed to retrieve asset list from the content.txt");
         return results;
     }
     auto contents = std::string((char*)AAsset_getBuffer(asset), AAsset_getLength(asset));
@@ -87,7 +87,7 @@ std::istream &implementation::android::assets::retrieve(const std::string& path)
         ss->write((char*)AAsset_getBuffer(asset), AAsset_getLength(asset));
     }
     else {
-        errors.push_back(fullpath + ", failed to retrieve asset");
+        event(fullpath + ", failed to retrieve asset");
     }
     AAsset_close(asset);
 

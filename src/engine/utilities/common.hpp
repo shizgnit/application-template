@@ -4,20 +4,16 @@ namespace utilities {
     public:
         string() {}
         
-        string & operator << (const std::string &s) {
+        string & operator << (std::string s) {
             str << s;
             return *this;
         }
-        string & operator << (const char *s) {
-            str << s;
-            return *this;
-        }
-        string & operator << (int i) {
+        string& operator << (int i) {
             str << i;
             return *this;
         }
-        string & operator << (unsigned int ui) {
-            str << ui;
+        string & operator << (long i) {
+            str << i;
             return *this;
         }
         string & operator << (float f) {

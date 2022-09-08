@@ -243,7 +243,7 @@ std::istream& implementation::windows::assets::retrieve(const std::string& path)
 
     file->open(asset.c_str(), std::ios::in | std::ios::binary);
     if (file->is_open() == false) {
-        errors.push_back(asset + ", failed to retrieve asset");
+        event(asset + ", failed to retrieve asset");
     }
 
     // push onto the stack regardless of success or failure
