@@ -31,8 +31,6 @@ std::string glGetErrorString(GLenum err) {
 static GLint defaultFramebuffer = 0;
 
 bool implementation::opengl::fbo::init(type::object& object, platform::graphics *ref, bool depth, unsigned char *collector) {
-    glGetIntegerv(GL_FRAMEBUFFER_BINDING, &defaultFramebuffer);
-    
     if (allocation == 0) {
         allocation = object.texture.depth ? GL_DEPTH_ATTACHMENT : attachments().allocate();
         if (allocation == 0 || object.texture.color == NULL) {
@@ -44,11 +42,15 @@ bool implementation::opengl::fbo::init(type::object& object, platform::graphics 
 
     parent = ref;
 
-    if (context.frame) {
-        GL_TEST(glDeleteFramebuffers(1, &context.frame));
-    }
     if (context.render) {
+        //GL_TEST(glBindRenderbuffer(GL_RENDERBUFFER, context.render));
+        //GL_TEST(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, 0));
         GL_TEST(glDeleteRenderbuffers(1, &context.render));
+    }
+    if (context.frame) {
+        //GL_TEST(glBindFramebuffer(GL_FRAMEBUFFER, context.frame));
+        //GL_TEST(glFramebufferTexture2D(GL_FRAMEBUFFER, allocation, GL_TEXTURE_2D, 0, 0));
+        GL_TEST(glDeleteFramebuffers(1, &context.frame));
     }
 
     GL_TEST(glGenFramebuffers(1, &context.frame));
@@ -118,16 +120,26 @@ void implementation::opengl::graphics::projection(int fov) {
 }
 
 void implementation::opengl::graphics::dimensions(int width, int height, float scale) {
-    if(width == display_width && height == display_height) {
+    if(width == 0 || height == 0) {
         return;
     }
     
-    bool init = (display_width == 0 && display_height == 0);
-
-    display_width = width;
-    display_height = height;
-
-    // TODO: this will not block render attempts... needs to wait until the framebuffer is ready
+    if(display_width == 0 && display_height == 0) {
+        glGetIntegerv(GL_FRAMEBUFFER_BINDING, &defaultFramebuffer);
+        
+        GLint dims[4] = {0};
+        glGetIntegerv(GL_VIEWPORT, dims);
+        
+        display_width = dims[2];
+        display_height = dims[3];
+    }
+    else {
+        display_width = width;
+        display_height = height;
+    }
+            
+    event(utilities::string() << "glViewport(" << display_width << "x" << display_height << ")");
+    
     GL_TEST(glViewport(0, 0, display_width, display_height));
 
     // Setup the render buffer
@@ -166,9 +178,6 @@ void implementation::opengl::graphics::dimensions(int width, int height, float s
 }
 
 void implementation::opengl::graphics::init(void) {
-    //glEnable(GL_SHADE_MODEL, GL_SMOOTH);
-    //glShadeModel(GL_SMOOTH);
-
     // Depth test
     GL_TEST(glEnable(GL_DEPTH_TEST));
     GL_TEST(glDepthFunc(GL_LEQUAL));
