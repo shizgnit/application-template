@@ -113,6 +113,7 @@ void implementation::android::assets::release() {
 std::string implementation::android::assets::load(const std::string& type, const std::string& resource, const std::string& id) {
     if (loader == NULL) {
         loader = new implementation::universal::assets();
+        loader->copy(*this);
     }
     return loader->load(this, type, resource, id);
 }
