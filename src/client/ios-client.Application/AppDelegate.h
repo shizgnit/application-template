@@ -1,13 +1,16 @@
 //
 //  AppDelegate.h
-//  ios-client.Application
+//  private iOS
 //
-//  Created by Dee Abbott on 7/31/22.
+//  Created by Dee Abbott on 9/10/22.
 //
 
 #import <UIKit/UIKit.h>
 
 @interface AppDelegate : UIResponder <UIApplicationDelegate>
+
+@property (strong, nonatomic) UIWindow *window;
+                        
 
 @end
 
