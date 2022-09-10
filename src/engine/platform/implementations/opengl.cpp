@@ -30,6 +30,20 @@ std::string glGetErrorString(GLenum err) {
 
 static GLint defaultFramebuffer = 0;
 
+bool implementation::opengl::fbo::deinit() {
+    if (context.render) {
+        GL_TEST(glBindRenderbuffer(GL_RENDERBUFFER, context.render));
+        GL_TEST(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, 0));
+        GL_TEST(glDeleteRenderbuffers(1, &context.render));
+    }
+    if (context.frame) {
+        GL_TEST(glBindFramebuffer(GL_FRAMEBUFFER, context.frame));
+        GL_TEST(glFramebufferTexture2D(GL_FRAMEBUFFER, allocation, GL_TEXTURE_2D, 0, 0));
+        GL_TEST(glDeleteFramebuffers(1, &context.frame));
+    }
+    return true;
+}
+
 bool implementation::opengl::fbo::init(type::object& object, platform::graphics *ref, bool depth, unsigned char *collector) {
     if (allocation == 0) {
         allocation = object.texture.depth ? GL_DEPTH_ATTACHMENT : attachments().allocate();
@@ -41,17 +55,6 @@ bool implementation::opengl::fbo::init(type::object& object, platform::graphics 
     collect = collector;
 
     parent = ref;
-
-    if (context.render) {
-        //GL_TEST(glBindRenderbuffer(GL_RENDERBUFFER, context.render));
-        //GL_TEST(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, 0));
-        GL_TEST(glDeleteRenderbuffers(1, &context.render));
-    }
-    if (context.frame) {
-        //GL_TEST(glBindFramebuffer(GL_FRAMEBUFFER, context.frame));
-        //GL_TEST(glFramebufferTexture2D(GL_FRAMEBUFFER, allocation, GL_TEXTURE_2D, 0, 0));
-        GL_TEST(glDeleteFramebuffers(1, &context.frame));
-    }
 
     GL_TEST(glGenFramebuffers(1, &context.frame));
     GL_TEST(glBindFramebuffer(GL_FRAMEBUFFER, context.frame));
@@ -116,7 +119,7 @@ void implementation::opengl::fbo::disable() {
 
 void implementation::opengl::graphics::projection(int fov) {
     ortho = spatial::matrix().ortho(0, display_width, 0, display_height);
-    perspective = spatial::matrix().perspective(fov, (float)display_width / (float)display_height, 0.0f, 100.0f);
+    perspective = spatial::matrix().perspective(fov, (float)display_width / (float)display_height, 0.0f, 10.0f);
 }
 
 void implementation::opengl::graphics::dimensions(int width, int height, float scale) {
@@ -143,6 +146,7 @@ void implementation::opengl::graphics::dimensions(int width, int height, float s
     GL_TEST(glViewport(0, 0, display_width, display_height));
 
     // Setup the render buffer
+    fbos[color.instance].deinit();
     color = spatial::quad(display_width, display_height);
     color.texture.color = &assets->get<type::image>("color");
     color.texture.color->create(display_width, display_height, 0, 0, 0, 0);
@@ -151,6 +155,7 @@ void implementation::opengl::graphics::dimensions(int width, int height, float s
     fbos[color.instance].init(color, this);
 
     // Setup the scene depth buffer
+    fbos[depth.instance].deinit();
     depth = spatial::quad(display_width, display_height);
     depth.texture.color = &assets->get<type::image>("depth");
     depth.texture.color->create(display_width, display_height, 0, 0, 0, 0);
@@ -160,6 +165,7 @@ void implementation::opengl::graphics::dimensions(int width, int height, float s
     fbos[depth.instance].init(depth, this);
 
     // Setup the post process blur buffer
+    fbos[blur.instance].deinit();
     blur = spatial::quad(display_width * scale, display_height * scale);
     blur.texture.color = &assets->get<type::image>("blur");
     blur.texture.color->create(display_width * scale, display_height * scale, 0, 0, 0, 0);
@@ -168,6 +174,7 @@ void implementation::opengl::graphics::dimensions(int width, int height, float s
     fbos[blur.instance].init(blur, this);
 
     // Setup the picking buffer
+    fbos[picking.instance].deinit();
     picking = spatial::quad(display_width, display_height);
     picking.texture.color = &assets->get<type::image>("picking");
     picking.texture.color->create(display_width, display_height, 0, 0, 0, 0);
@@ -592,6 +599,14 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
     }
 
     compile(object);
+    
+    if(object.resource->vao) {
+        GL_TEST(glBindVertexArray(object.resource->vao));
+    }
+    
+    if (object.emitter) {
+        compile(*object.emitter);
+    }
 
     GL_TEST(glUseProgram(shader.resource->context));
 
@@ -642,9 +657,6 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
 
     GL_TEST(glUniformMatrix4fv(shader.u_Parameters, 1, GL_FALSE, (GLfloat*)parameters.data()));
 
-    if(object.resource->vao) {
-        GL_TEST(glBindVertexArray(object.resource->vao));
-    }
     GL_TEST(glBindBuffer(GL_ARRAY_BUFFER, object.resource->context));
     GL_TEST(glVertexAttribPointer(shader.a_Vertex, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::vertex), BUFFER_OFFSET(offset_vector)));
     GL_TEST(glVertexAttribPointer(shader.a_Texture, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::vertex), BUFFER_OFFSET(sizeof(spatial::vector) + offset_vector)));
@@ -656,8 +668,6 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
 
     int instances = 1;
     if (object.emitter) {
-        compile(*object.emitter);
-
         if (shader.a_ModelMatrix >= 0 && object.emitter->positions.resource && object.emitter->positions.resource->context) {
             GL_TEST(glBindBuffer(GL_ARRAY_BUFFER, object.emitter->positions.resource->context));
 

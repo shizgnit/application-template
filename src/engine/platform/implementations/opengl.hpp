@@ -97,6 +97,7 @@ namespace implementation {
 
             fbo() { }
 
+            bool deinit();
             bool init(type::object& object, platform::graphics *ref, bool depth = false, unsigned char *collector=NULL);
 
             void enable(bool clear = false);
