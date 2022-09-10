@@ -599,14 +599,6 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
     }
 
     compile(object);
-    
-    if(object.resource->vao) {
-        GL_TEST(glBindVertexArray(object.resource->vao));
-    }
-    
-    if (object.emitter) {
-        compile(*object.emitter);
-    }
 
     GL_TEST(glUseProgram(shader.resource->context));
 
@@ -657,6 +649,10 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
 
     GL_TEST(glUniformMatrix4fv(shader.u_Parameters, 1, GL_FALSE, (GLfloat*)parameters.data()));
 
+    if(object.resource->vao) {
+        GL_TEST(glBindVertexArray(object.resource->vao));
+    }
+    
     GL_TEST(glBindBuffer(GL_ARRAY_BUFFER, object.resource->context));
     GL_TEST(glVertexAttribPointer(shader.a_Vertex, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::vertex), BUFFER_OFFSET(offset_vector)));
     GL_TEST(glVertexAttribPointer(shader.a_Texture, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::vertex), BUFFER_OFFSET(sizeof(spatial::vector) + offset_vector)));
@@ -668,6 +664,8 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
 
     int instances = 1;
     if (object.emitter) {
+        compile(*object.emitter);
+
         if (shader.a_ModelMatrix >= 0 && object.emitter->positions.resource && object.emitter->positions.resource->context) {
             GL_TEST(glBindBuffer(GL_ARRAY_BUFFER, object.emitter->positions.resource->context));
 
