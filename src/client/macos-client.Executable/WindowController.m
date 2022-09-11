@@ -8,6 +8,7 @@
 
 #import "WindowController.h"
 #import "Window.h"
+#import "AppDelegate.h"
 
 @interface WindowController ()
 {
@@ -68,6 +69,7 @@
 	// Show the window and make it the key window for input
 	[_fullscreenWindow makeKeyAndOrderFront:self];
 
+    //self.contentViewController.view
 }
 
 - (void) goWindow

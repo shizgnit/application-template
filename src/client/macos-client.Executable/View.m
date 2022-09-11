@@ -7,17 +7,13 @@
  */
 
 #import "View.h"
-
-#import "engine.hpp"
-#import "application.hpp"
+#import "AppDelegate.h"
 
 #define SUPPORT_RETINA_RESOLUTION 1
 #define ESSENTIAL_GL_PRACTICES_SUPPORT_GL3 1
 
 @interface View ()
-{
-    application *instance;
-}
+
 @end
 
 @implementation View
@@ -138,9 +134,6 @@ static CVReturn MyDisplayLinkCallback(CVDisplayLinkRef displayLink,
 	// Synchronize buffer swaps with vertical refresh rate
 	GLint swapInt = 1;
 	[[self openGLContext] setValues:&swapInt forParameter:NSOpenGLCPSwapInterval];
-	
-	// Init our application instance.
-    instance = new app();
 }
 
 - (void)reshape
@@ -184,8 +177,8 @@ static CVReturn MyDisplayLinkCallback(CVDisplayLinkRef displayLink,
 #endif // !SUPPORT_RETINA_RESOLUTION
     
 	// Set the new dimensions in our renderer
-    instance->dimensions(viewRectPixels.size.width, viewRectPixels.size.height);
-	
+    [Application resize:&viewRectPixels];
+    
 	CGLUnlockContext([[self openGLContext] CGLContextObj]);
 }
 
@@ -222,17 +215,7 @@ static CVReturn MyDisplayLinkCallback(CVDisplayLinkRef displayLink,
 	// simultaneously when resizing
 	CGLLockContext([[self openGLContext] CGLContextObj]);
 
-    if (instance->started) {
-        instance->on_interval();
-        instance->on_draw();
-    }
-    else {
-        assets->init();
-        assets->set("shader.path", std::string("shaders-gl"));
-        assets->set("shader.version", std::string("#version 410 core"));
-        instance->on_startup();
-        instance->started = true;
-    }
+    [Application draw];
 
 	CGLFlushDrawable([[self openGLContext] CGLContextObj]);
 	CGLUnlockContext([[self openGLContext] CGLContextObj]);

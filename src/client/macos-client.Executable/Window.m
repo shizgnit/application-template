@@ -10,6 +10,7 @@
  */
 
 #import "Window.h"
+#import "AppDelegate.h"
 
 @implementation Window
 
@@ -47,6 +48,23 @@
 	// Implement keyDown since controller will not get [ESC] key event which
 	// the controller uses to kill fullscreen
 	[[self windowController] keyDown:event];
+    [Application keyDown:event];
 }
+
+- (void)mouseDown:(NSEvent *)event
+{
+    [Application mouseDown:event];
+}
+
+- (void)mouseDragged:(NSEvent *)event
+{
+    [Application mouseDragged:event];
+}
+
+- (void)mouseUp:(NSEvent *)event
+{
+    [Application mouseUp:event];
+}
+
 
 @end

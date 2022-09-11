@@ -6,9 +6,7 @@
 //
 
 #import "ViewController.h"
-
-#import "engine.hpp"
-#import "application.hpp"
+#import "AppDelegate.h"
 
 @interface ViewController ()
 @property (strong, nonatomic) EAGLContext *context;
@@ -17,7 +15,7 @@
 
 @implementation ViewController
 {
-    application *instance;
+    bool started;
 }
 
 - (void)viewDidLoad {
@@ -33,9 +31,9 @@
     view.context = self.context;
     view.drawableDepthFormat = GLKViewDrawableDepthFormat24;
     
-    instance = NULL;
-    
     [EAGLContext setCurrentContext:self.context];
+    
+    started = false;
 }
 
 - (void)dealloc
@@ -49,22 +47,12 @@
 
 - (void)glkView:(GLKView *)view drawInRect:(CGRect)rect
 {
-    if(instance == NULL) {
-        instance = new app();
+    if(started == false) {
+        CGRect window = self.view.bounds;
+        [Application resize:&window];
+        started = true;
     }
-    
-    if (instance->started) {
-        instance->on_interval();
-        instance->on_draw();
-    }
-    else {
-        assets->init();
-        assets->set("shader.path", std::string("shaders-gl"));
-        assets->set("shader.version", std::string("#version 300 es"));
-        instance->dimensions(self.view.bounds.size.width, self.view.bounds.size.height);
-        instance->on_startup();
-        instance->started = true;
-    }
+    [Application draw];
 }
 
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
@@ -72,6 +60,8 @@
     NSLog(@"count: %i", (int)event.allTouches.count);
 
     self.paused = !self.paused;
+    
+    [Application mouseDown:event];
     
     NSLog(@"timeSinceLastUpdate: %f", self.timeSinceLastUpdate);
     NSLog(@"timeSinceLastDraw: %f", self.timeSinceLastDraw);
@@ -82,6 +72,8 @@
 - (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event {
     NSLog(@"moved type: %i", (int)event.type);
     NSLog(@"count: %i", (int)event.allTouches.count);
+    
+    [Application mouseDragged:event];
 }
 
 - (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {
@@ -95,21 +87,12 @@
 }
 
 - (void)pressesBegan:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event {
-    for (UIPress* press in presses) {
-        int key = platform::keys[press.key.keyCode].xref;
-        NSLog(@"key: 0x%02x, 0x%02x", key, press.key.keyCode);
-        gui->raise({ platform::input::KEY, platform::input::DOWN, key, 0, 0.0f, { 0.0f, 0.0f, 0.0f } }, 0, 0);
-        input->raise({ platform::input::KEY, platform::input::DOWN, key, 1, 0.0f, { 0.0f, 0.0f, 0.0f } });
-    }
     [super pressesBegan: presses withEvent: event];
+    [Application keyDown:event];
  }
 
  - (void)pressesEnded:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event {
-     for (UIPress* press in presses) {
-         int key = platform::keys[press.key.keyCode].xref;
-         gui->raise({ platform::input::KEY, platform::input::UP, key, 0, 0.0f, { 0.0f, 0.0f, 0.0f } }, 0, 0);
-         input->raise({ platform::input::KEY, platform::input::UP, key, 1, 0.0f, { 0.0f, 0.0f, 0.0f } });
-     }
-     [super pressesEnded: presses withEvent: event];
+    [super pressesEnded: presses withEvent: event];
+    [Application keyUp:event];
  }
 @end
