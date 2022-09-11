@@ -5,10 +5,10 @@
 //  Created by Dee Abbott on 9/10/22.
 //
 
-#import "GameViewController.h"
+#import "ViewController.h"
 #import "Renderer.h"
 
-@implementation GameViewController
+@implementation ViewController
 {
     MTKView *_view;
 
