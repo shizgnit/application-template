@@ -66,7 +66,7 @@
 }
 
 - (void) keyDown:(UIPressesEvent *)event {
-    for (UIPress* press in event) {
+    for (UIPress* press in event.allPresses) {
         int key = platform::keys[press.key.keyCode].xref;
         NSLog(@"key: 0x%02x, 0x%02x", key, press.key.keyCode);
         gui->raise({ platform::input::KEY, platform::input::DOWN, key, 0, 0.0f, { 0.0f, 0.0f, 0.0f } }, 0, 0);
@@ -74,7 +74,7 @@
     }
 }
 - (void) keyUp:(UIPressesEvent *)event {
-    for (UIPress* press in event) {
+    for (UIPress* press in event.allPresses) {
         int key = platform::keys[press.key.keyCode].xref;
         gui->raise({ platform::input::KEY, platform::input::UP, key, 0, 0.0f, { 0.0f, 0.0f, 0.0f } }, 0, 0);
         input->raise({ platform::input::KEY, platform::input::UP, key, 1, 0.0f, { 0.0f, 0.0f, 0.0f } });

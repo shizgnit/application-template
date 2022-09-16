@@ -58,10 +58,17 @@
 }
 
 - (void) keyDown:(NSEvent *)event {
-    
+    //unichar hid = [[event charactersIgnoringModifiers] characterAtIndex:0];
+    int keyCode = event.keyCode;
+    int key = platform::keys[keyCode].vkey;
+    gui->raise({ platform::input::KEY, platform::input::DOWN, key, 0, 0.0f, { 0.0f, 0.0f, 0.0f } }, 0, 0);
+    input->raise({ platform::input::KEY, platform::input::DOWN, key, 1, 0.0f, { 0.0f, 0.0f, 0.0f } });
 }
 - (void) keyUp:(NSEvent *)event {
-    
+    unichar hid = [[event charactersIgnoringModifiers] characterAtIndex:0];
+    int key = platform::keys[hid].vkey;
+    gui->raise({ platform::input::KEY, platform::input::UP, key, 0, 0.0f, { 0.0f, 0.0f, 0.0f } }, 0, 0);
+    input->raise({ platform::input::KEY, platform::input::UP, key, 1, 0.0f, { 0.0f, 0.0f, 0.0f } });
 }
 
 - (void) mouseDown:(NSEvent *)event {

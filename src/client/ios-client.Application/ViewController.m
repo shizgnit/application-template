@@ -58,11 +58,8 @@
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
     NSLog(@"began type: %i", (int)event.type);
     NSLog(@"count: %i", (int)event.allTouches.count);
-
     self.paused = !self.paused;
-    
     [Application mouseDown:event];
-    
     NSLog(@"timeSinceLastUpdate: %f", self.timeSinceLastUpdate);
     NSLog(@"timeSinceLastDraw: %f", self.timeSinceLastDraw);
     NSLog(@"timeSinceFirstResume: %f", self.timeSinceFirstResume);
@@ -72,7 +69,6 @@
 - (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event {
     NSLog(@"moved type: %i", (int)event.type);
     NSLog(@"count: %i", (int)event.allTouches.count);
-    
     [Application mouseDragged:event];
 }
 
