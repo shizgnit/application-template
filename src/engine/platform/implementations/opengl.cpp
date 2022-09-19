@@ -2,11 +2,6 @@
 
 #if defined __PLATFORM_SUPPORTS_OPENGL
 
-struct type::info::opaque_t {
-    unsigned int vao {0};
-    unsigned int context {0};
-};
-
 std::string glGetErrorString(GLenum err) {
     std::stringstream str;
     str << err;
@@ -456,34 +451,56 @@ bool implementation::opengl::graphics::compile(type::object& object) {
     for (auto &child : object.children) {
         compile(child);
     }
+    
     if (object.compiled() || object.vertices.size() == 0) {
         return false;
     }
+    
+    compile(object.texture);
 
     if (object.resource == NULL) {
         object.resource = new type::info::opaque_t();
     }
 
-    if (object.resource->context != 0) {
+    type::program* shader = NULL;
+    for(auto ptr=renderer.rbegin(); shader == NULL && ptr != renderer.rend(); ptr++) {
+        shader = *ptr;
+    }
+    if(shader == NULL) {
+        return false;
+    }
+    
+    if (object.resource->context != 0 && object.resource->vao.find(shader) != object.resource->vao.end()) {
         GL_TEST(glBindBuffer(GL_ARRAY_BUFFER, object.resource->context));
         GL_TEST(glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(spatial::vertex) * object.vertices.size(), object.vertices.data()));
         GL_TEST(glBindBuffer(GL_ARRAY_BUFFER, 0));
+        return true;
+    }
+    
+    GL_TEST(glGenVertexArrays(1, &object.resource->vao[shader]));
+    GL_TEST(glBindVertexArray(object.resource->vao[shader]));
+
+    GL_TEST(glGenBuffers(1, &object.resource->context));
+    GL_TEST(glBindBuffer(GL_ARRAY_BUFFER, object.resource->context));
+    GL_TEST(glBufferData(GL_ARRAY_BUFFER, sizeof(spatial::vertex) * object.vertices.size(), object.vertices.data(), GL_STATIC_DRAW));
+    GL_TEST(glBindBuffer(GL_ARRAY_BUFFER, 0));
+    
+    GL_TEST(glVertexAttribPointer(shader->a_Vertex, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::vertex), BUFFER_OFFSET(offset_vector)));
+    GL_TEST(glVertexAttribPointer(shader->a_Texture, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::vertex), BUFFER_OFFSET(sizeof(spatial::vector) + offset_vector)));
+    GL_TEST(glVertexAttribPointer(shader->a_Normal, 4, GL_FLOAT, GL_TRUE, sizeof(spatial::vertex), BUFFER_OFFSET((sizeof(spatial::vector) * 2) + offset_vector)));
+    
+    GL_TEST(glEnableVertexAttribArray(shader->a_Vertex));
+    GL_TEST(glEnableVertexAttribArray(shader->a_Texture));
+    GL_TEST(glEnableVertexAttribArray(shader->a_Normal));
+
+    if(object.emitter) {
+        return compile(*object.emitter);
     }
     else {
-        GL_TEST(glGenVertexArrays(1, &object.resource->vao));
-        GL_TEST(glBindVertexArray(object.resource->vao));
-
-        GL_TEST(glGenBuffers(1, &object.resource->context));
-        GL_TEST(glBindBuffer(GL_ARRAY_BUFFER, object.resource->context));
-        GL_TEST(glBufferData(GL_ARRAY_BUFFER, sizeof(spatial::vertex) * object.vertices.size(), object.vertices.data(), GL_STATIC_DRAW));
-        GL_TEST(glBindBuffer(GL_ARRAY_BUFFER, 0));
-        
         GL_TEST(glBindVertexArray(0));
     }
 
-    compile(object.texture);
-
-    return object.compiled(true);
+    return true;
 }
 
 bool implementation::opengl::graphics::compile(type::font& font) {
@@ -501,6 +518,15 @@ bool implementation::opengl::graphics::compile(type::font& font) {
 }
 
 bool implementation::opengl::graphics::compile(type::entity& entity) {
+    
+    type::program* shader = NULL;
+    for(auto ptr=renderer.rbegin(); shader == NULL && ptr != renderer.rend(); ptr++) {
+        shader = *ptr;
+    }
+    if(shader == NULL) {
+        return false;
+    }
+
     if (entity.bake()) {
 
         if (entity.identifiers.resource == NULL) {
@@ -552,6 +578,41 @@ bool implementation::opengl::graphics::compile(type::entity& entity) {
         }
 
     }
+    
+    if (shader->a_ModelMatrix >= 0 && entity.positions.resource && entity.positions.resource->context) {
+        GL_TEST(glBindBuffer(GL_ARRAY_BUFFER, entity.positions.resource->context));
+
+        GL_TEST(glVertexAttribPointer(shader->a_ModelMatrix + 0, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::matrix), BUFFER_OFFSET(offset_matrix + sizeof(float) * 0)));
+        GL_TEST(glVertexAttribPointer(shader->a_ModelMatrix + 1, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::matrix), BUFFER_OFFSET(offset_matrix + sizeof(float) * 4)));
+        GL_TEST(glVertexAttribPointer(shader->a_ModelMatrix + 2, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::matrix), BUFFER_OFFSET(offset_matrix + sizeof(float) * 8)));
+        GL_TEST(glVertexAttribPointer(shader->a_ModelMatrix + 3, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::matrix), BUFFER_OFFSET(offset_matrix + sizeof(float) * 12)));
+
+        GL_TEST(glEnableVertexAttribArray(shader->a_ModelMatrix + 0));
+        GL_TEST(glEnableVertexAttribArray(shader->a_ModelMatrix + 1));
+        GL_TEST(glEnableVertexAttribArray(shader->a_ModelMatrix + 2));
+        GL_TEST(glEnableVertexAttribArray(shader->a_ModelMatrix + 3));
+
+        GL_TEST(glVertexAttribDivisor(shader->a_ModelMatrix + 0, 1));
+        GL_TEST(glVertexAttribDivisor(shader->a_ModelMatrix + 1, 1));
+        GL_TEST(glVertexAttribDivisor(shader->a_ModelMatrix + 2, 1));
+        GL_TEST(glVertexAttribDivisor(shader->a_ModelMatrix + 3, 1));
+    }
+
+    if (shader->a_Identifier >= 0 && entity.identifiers.resource && entity.identifiers.resource->context) {
+        GL_TEST(glBindBuffer(GL_ARRAY_BUFFER, entity.identifiers.resource->context));
+
+        GL_TEST(glVertexAttribPointer(shader->a_Identifier, 1, GL_FLOAT, GL_FALSE, sizeof(unsigned int), BUFFER_OFFSET(0)));
+        GL_TEST(glEnableVertexAttribArray(shader->a_Identifier));
+        GL_TEST(glVertexAttribDivisor(shader->a_Identifier, 1));
+    }
+
+    if (shader->a_Flags >= 0 && entity.flags.resource && entity.flags.resource->context) {
+        GL_TEST(glBindBuffer(GL_ARRAY_BUFFER, entity.flags.resource->context));
+
+        GL_TEST(glVertexAttribPointer(shader->a_Flags, 1, GL_FLOAT, GL_FALSE, sizeof(unsigned int), BUFFER_OFFSET(0)));
+        GL_TEST(glEnableVertexAttribArray(shader->a_Flags));
+        GL_TEST(glVertexAttribDivisor(shader->a_Flags, 1));
+    }
 
     if (entity.compiled()) {
         return false;
@@ -585,6 +646,12 @@ bool implementation::opengl::graphics::compile(platform::assets* assets) {
     return true;
 }
 
+/*
+void implementation::opengl::graphics::shader(type::program &instance) {
+    renderer.push_back(&instance);
+}
+*/
+
 void implementation::opengl::graphics::draw(type::object& object, type::program& shader, const spatial::matrix& projection, const spatial::matrix& view, const spatial::matrix& model, const spatial::matrix& lighting, unsigned int options) {
     static std::mutex lockgl;
     
@@ -598,7 +665,13 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
         return;
     }
 
+    renderer.push_back(&shader);
     compile(object);
+    renderer.pop_back();
+    
+    if(object.resource->vao.find(&shader) != object.resource->vao.end()) {
+        GL_TEST(glBindVertexArray(object.resource->vao[&shader]));
+    }
 
     GL_TEST(glUseProgram(shader.resource->context));
 
@@ -648,68 +721,24 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
     GL_TEST(glUniform1ui(shader.u_Flags, object.flags));
 
     GL_TEST(glUniformMatrix4fv(shader.u_Parameters, 1, GL_FALSE, (GLfloat*)parameters.data()));
-
-    if(object.resource->vao) {
-        GL_TEST(glBindVertexArray(object.resource->vao));
-    }
     
-    GL_TEST(glBindBuffer(GL_ARRAY_BUFFER, object.resource->context));
-    GL_TEST(glVertexAttribPointer(shader.a_Vertex, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::vertex), BUFFER_OFFSET(offset_vector)));
-    GL_TEST(glVertexAttribPointer(shader.a_Texture, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::vertex), BUFFER_OFFSET(sizeof(spatial::vector) + offset_vector)));
-    GL_TEST(glVertexAttribPointer(shader.a_Normal, 4, GL_FLOAT, GL_TRUE, sizeof(spatial::vertex), BUFFER_OFFSET((sizeof(spatial::vector) * 2) + offset_vector)));
+    // relocated object arrays
     
-    GL_TEST(glEnableVertexAttribArray(shader.a_Vertex));
-    GL_TEST(glEnableVertexAttribArray(shader.a_Texture));
-    GL_TEST(glEnableVertexAttribArray(shader.a_Normal));
-
     int instances = 1;
     if (object.emitter) {
-        compile(*object.emitter);
+        //compile(*object.emitter);
 
-        if (shader.a_ModelMatrix >= 0 && object.emitter->positions.resource && object.emitter->positions.resource->context) {
-            GL_TEST(glBindBuffer(GL_ARRAY_BUFFER, object.emitter->positions.resource->context));
-
-            GL_TEST(glVertexAttribPointer(shader.a_ModelMatrix + 0, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::matrix), BUFFER_OFFSET(offset_matrix + sizeof(float) * 0)));
-            GL_TEST(glVertexAttribPointer(shader.a_ModelMatrix + 1, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::matrix), BUFFER_OFFSET(offset_matrix + sizeof(float) * 4)));
-            GL_TEST(glVertexAttribPointer(shader.a_ModelMatrix + 2, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::matrix), BUFFER_OFFSET(offset_matrix + sizeof(float) * 8)));
-            GL_TEST(glVertexAttribPointer(shader.a_ModelMatrix + 3, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::matrix), BUFFER_OFFSET(offset_matrix + sizeof(float) * 12)));
-
-            GL_TEST(glEnableVertexAttribArray(shader.a_ModelMatrix + 0));
-            GL_TEST(glEnableVertexAttribArray(shader.a_ModelMatrix + 1));
-            GL_TEST(glEnableVertexAttribArray(shader.a_ModelMatrix + 2));
-            GL_TEST(glEnableVertexAttribArray(shader.a_ModelMatrix + 3));
-
-            GL_TEST(glVertexAttribDivisor(shader.a_ModelMatrix + 0, 1));
-            GL_TEST(glVertexAttribDivisor(shader.a_ModelMatrix + 1, 1));
-            GL_TEST(glVertexAttribDivisor(shader.a_ModelMatrix + 2, 1));
-            GL_TEST(glVertexAttribDivisor(shader.a_ModelMatrix + 3, 1));
-        }
-
-        if (shader.a_Identifier >= 0 && object.emitter->identifiers.resource && object.emitter->identifiers.resource->context) {
-            GL_TEST(glBindBuffer(GL_ARRAY_BUFFER, object.emitter->identifiers.resource->context));
-
-            GL_TEST(glVertexAttribPointer(shader.a_Identifier, 1, GL_FLOAT, GL_FALSE, sizeof(unsigned int), BUFFER_OFFSET(0)));
-            GL_TEST(glEnableVertexAttribArray(shader.a_Identifier));
-            GL_TEST(glVertexAttribDivisor(shader.a_Identifier, 1));
-        }
-
-        if (shader.a_Flags >= 0 && object.emitter->flags.resource && object.emitter->flags.resource->context) {
-            GL_TEST(glBindBuffer(GL_ARRAY_BUFFER, object.emitter->flags.resource->context));
-
-            GL_TEST(glVertexAttribPointer(shader.a_Flags, 1, GL_FLOAT, GL_FALSE, sizeof(unsigned int), BUFFER_OFFSET(0)));
-            GL_TEST(glEnableVertexAttribArray(shader.a_Flags));
-            GL_TEST(glVertexAttribDivisor(shader.a_Flags, 1));
-        }
+        // relocated entity arrays
 
         instances = object.emitter->baked;
     }
     else {
-        if (shader.a_Identifier >= 0) {
-            GL_TEST(glDisableVertexAttribArray(shader.a_Identifier));
-        }
-        if (shader.a_Flags >= 0) {
-            GL_TEST(glDisableVertexAttribArray(shader.a_Flags));
-        }
+        //if (shader.a_Identifier >= 0) {
+        //    GL_TEST(glDisableVertexAttribArray(shader.a_Identifier));
+        //}
+        //if (shader.a_Flags >= 0) {
+        //    GL_TEST(glDisableVertexAttribArray(shader.a_Flags));
+        //}
     }
 
     // Draw either the solids or wireframes
@@ -725,7 +754,7 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
     }
     frame.vertices += object.vertices.size();
 
-    GL_TEST(glBindBuffer(GL_ARRAY_BUFFER, 0));
+    //GL_TEST(glBindBuffer(GL_ARRAY_BUFFER, 0));
     GL_TEST(glBindVertexArray(0));
 
     // Primary object has been drawn, draw out the normals if requested.  Mostly for debugging.

@@ -50,6 +50,12 @@ std::string glGetErrorString(GLenum err);
 #define GL_TEST(_call) _call;
 #endif
 
+class type::info::opaque_t {
+public:
+    std::map<type::program*, unsigned int> vao;
+    unsigned int context;
+};
+
 namespace implementation {
 
     namespace opengl {
@@ -151,6 +157,7 @@ namespace implementation {
             }
 
             std::vector<type::object*> target;
+            std::vector<type::program*> renderer;
 
             std::map<unsigned int, fbo> fbos;
 
