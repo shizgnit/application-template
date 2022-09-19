@@ -28,8 +28,6 @@ namespace platform {
 
         virtual bool compile(platform::assets* assets) = 0;
 
-        //virtual void shader(type::program &shader);
-        
         virtual void draw(type::object& object, type::program& shader, const spatial::matrix& projection, const spatial::matrix& view=spatial::matrix(), const spatial::matrix& model=spatial::matrix(), const spatial::matrix& lighting=spatial::matrix(), unsigned int options = 0x00) = 0;
         virtual void draw(std::string text, type::font& font, type::program& shader, const spatial::matrix& projection, const spatial::matrix& view=spatial::matrix(), const spatial::matrix& model=spatial::matrix(), const spatial::matrix& lighting=spatial::matrix(), unsigned int options = 0x00) = 0;
 

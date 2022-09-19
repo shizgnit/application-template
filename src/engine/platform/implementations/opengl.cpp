@@ -473,7 +473,6 @@ bool implementation::opengl::graphics::compile(type::object& object) {
     if (object.resource->context != 0 && object.resource->vao.find(shader) != object.resource->vao.end()) {
         GL_TEST(glBindBuffer(GL_ARRAY_BUFFER, object.resource->context));
         GL_TEST(glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(spatial::vertex) * object.vertices.size(), object.vertices.data()));
-        GL_TEST(glBindBuffer(GL_ARRAY_BUFFER, 0));
         return true;
     }
     
@@ -483,7 +482,6 @@ bool implementation::opengl::graphics::compile(type::object& object) {
     GL_TEST(glGenBuffers(1, &object.resource->context));
     GL_TEST(glBindBuffer(GL_ARRAY_BUFFER, object.resource->context));
     GL_TEST(glBufferData(GL_ARRAY_BUFFER, sizeof(spatial::vertex) * object.vertices.size(), object.vertices.data(), GL_STATIC_DRAW));
-    GL_TEST(glBindBuffer(GL_ARRAY_BUFFER, 0));
     
     GL_TEST(glVertexAttribPointer(shader->a_Vertex, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::vertex), BUFFER_OFFSET(offset_vector)));
     GL_TEST(glVertexAttribPointer(shader->a_Texture, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::vertex), BUFFER_OFFSET(sizeof(spatial::vector) + offset_vector)));
@@ -535,14 +533,12 @@ bool implementation::opengl::graphics::compile(type::entity& entity) {
         if (entity.identifiers.resource->context) {
             GL_TEST(glBindBuffer(GL_ARRAY_BUFFER, entity.identifiers.resource->context));
             GL_TEST(glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(unsigned int) * entity.identifiers.content.size(), entity.identifiers.content.data()));
-            GL_TEST(glBindBuffer(GL_ARRAY_BUFFER, 0));
         }
         else if (entity.identifiers.content.size()) {
             GL_TEST(glGenBuffers(1, &entity.identifiers.resource->context));
             GL_TEST(glBindBuffer(GL_ARRAY_BUFFER, entity.identifiers.resource->context));
             GL_TEST(glBufferData(GL_ARRAY_BUFFER, sizeof(unsigned int) * 1024, NULL, GL_STATIC_DRAW));
             GL_TEST(glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(unsigned int) * entity.identifiers.content.size(), entity.identifiers.content.data()));
-            GL_TEST(glBindBuffer(GL_ARRAY_BUFFER, 0));
         }
 
         if (entity.flags.resource == NULL) {
@@ -551,14 +547,12 @@ bool implementation::opengl::graphics::compile(type::entity& entity) {
         if (entity.flags.resource->context) {
             GL_TEST(glBindBuffer(GL_ARRAY_BUFFER, entity.flags.resource->context));
             GL_TEST(glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(unsigned int) * entity.flags.content.size(), entity.flags.content.data()));
-            GL_TEST(glBindBuffer(GL_ARRAY_BUFFER, 0));
         }
         else if (entity.flags.content.size()) {
             GL_TEST(glGenBuffers(1, &entity.flags.resource->context));
             GL_TEST(glBindBuffer(GL_ARRAY_BUFFER, entity.flags.resource->context));
             GL_TEST(glBufferData(GL_ARRAY_BUFFER, sizeof(unsigned int) * 1024, NULL, GL_STATIC_DRAW));
             GL_TEST(glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(unsigned int) * entity.flags.content.size(), entity.flags.content.data()));
-            GL_TEST(glBindBuffer(GL_ARRAY_BUFFER, 0));
         }
 
         if (entity.positions.resource == NULL) {
@@ -567,14 +561,12 @@ bool implementation::opengl::graphics::compile(type::entity& entity) {
         if (entity.positions.resource->context) {
             GL_TEST(glBindBuffer(GL_ARRAY_BUFFER, entity.positions.resource->context));
             GL_TEST(glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(spatial::matrix) * entity.positions.content.size(), entity.positions.content.data()));
-            GL_TEST(glBindBuffer(GL_ARRAY_BUFFER, 0));
         }
         else if (entity.positions.content.size()) {
             GL_TEST(glGenBuffers(1, &entity.positions.resource->context));
             GL_TEST(glBindBuffer(GL_ARRAY_BUFFER, entity.positions.resource->context));
             GL_TEST(glBufferData(GL_ARRAY_BUFFER, sizeof(spatial::matrix) * 1024, NULL, GL_STATIC_DRAW));
             GL_TEST(glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(spatial::matrix) * entity.positions.content.size(), entity.positions.content.data()));
-            GL_TEST(glBindBuffer(GL_ARRAY_BUFFER, 0));
         }
 
     }
@@ -646,12 +638,6 @@ bool implementation::opengl::graphics::compile(platform::assets* assets) {
     return true;
 }
 
-/*
-void implementation::opengl::graphics::shader(type::program &instance) {
-    renderer.push_back(&instance);
-}
-*/
-
 void implementation::opengl::graphics::draw(type::object& object, type::program& shader, const spatial::matrix& projection, const spatial::matrix& view, const spatial::matrix& model, const spatial::matrix& lighting, unsigned int options) {
     static std::mutex lockgl;
     
@@ -722,39 +708,18 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
 
     GL_TEST(glUniformMatrix4fv(shader.u_Parameters, 1, GL_FALSE, (GLfloat*)parameters.data()));
     
-    // relocated object arrays
-    
-    int instances = 1;
-    if (object.emitter) {
-        //compile(*object.emitter);
-
-        // relocated entity arrays
-
-        instances = object.emitter->baked;
-    }
-    else {
-        //if (shader.a_Identifier >= 0) {
-        //    GL_TEST(glDisableVertexAttribArray(shader.a_Identifier));
-        //}
-        //if (shader.a_Flags >= 0) {
-        //    GL_TEST(glDisableVertexAttribArray(shader.a_Flags));
-        //}
-    }
-
     // Draw either the solids or wireframes
+    int instances = object.emitter ? object.emitter->baked : 1;
     if (object.vertices.size() == 2 || options & render::WIREFRAME) {
-        //glDrawArrays(GL_LINES, 0, object.vertices.size());
         GL_TEST(glDrawArraysInstanced(GL_LINE_LOOP, 0, (int)object.vertices.size(), instances));
         frame.lines += object.vertices.size() / 2;
     }
     else {
-        //glDrawArrays(GL_TRIANGLES, 0, object.vertices.size());
         GL_TEST(glDrawArraysInstanced(GL_TRIANGLES, 0, (int)object.vertices.size(), instances));
         frame.triangles += object.vertices.size() / 3;
     }
     frame.vertices += object.vertices.size();
 
-    //GL_TEST(glBindBuffer(GL_ARRAY_BUFFER, 0));
     GL_TEST(glBindVertexArray(0));
 
     // Primary object has been drawn, draw out the normals if requested.  Mostly for debugging.
