@@ -32,7 +32,7 @@ namespace type {
         std::string _id;
 
     public:
-        struct opaque_t;
+        class opaque_t;
         opaque_t *resource = nullptr;
 
         info(std::vector<std::string> extensions, format spec) {

@@ -16,9 +16,10 @@ namespace type {
 
         unsigned int instance = allocate();
 
+        program* renderer = NULL;
         entity* emitter = NULL;
 
-        object() : emitter(NULL) {}
+        object() : renderer(NULL), emitter(NULL) {}
         object(const spatial::geometry& ref) {
             *this = ref;
         }

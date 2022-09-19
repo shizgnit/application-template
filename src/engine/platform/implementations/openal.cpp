@@ -2,11 +2,6 @@
 
 #if defined __PLATFORM_SUPPORTS_OPENAL
 
-struct type::info::opaque_t {
-    unsigned int context{ 0 };
-};
-
-
 void implementation::openal::audio::init(int sources) {
     ALCint attributes[] = { ALC_FREQUENCY, 44100, 0 };
 
@@ -29,7 +24,7 @@ void implementation::openal::audio::init(int sources) {
 
 void implementation::openal::audio::compile(type::sound& sound) {
     if (sound.resource == NULL) {
-        sound.resource = new type::info::opaque_t;
+        sound.resource = new type::info::opaque_t();
     }
 
     alGenBuffers(1, &sound.resource->context);
