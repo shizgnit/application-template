@@ -45,15 +45,25 @@
 
 - (void)keyDown:(NSEvent *)event
 {
-	// Implement keyDown since controller will not get [ESC] key event which
-	// the controller uses to kill fullscreen
 	[[self windowController] keyDown:event];
     [Application keyDown:event];
 }
 
+- (void)keyUp:(NSEvent *)event
+{
+    [[self windowController] keyUp:event];
+    [Application keyUp:event];
+}
+
 - (void)mouseDown:(NSEvent *)event
 {
+    [self setAcceptsMouseMovedEvents:YES];
     [Application mouseDown:event];
+}
+
+- (void)mouseMoved:(NSEvent *)event
+{
+    [Application mouseMoved:event];
 }
 
 - (void)mouseDragged:(NSEvent *)event
@@ -68,3 +78,4 @@
 
 
 @end
+

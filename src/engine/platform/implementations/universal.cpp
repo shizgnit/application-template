@@ -67,6 +67,8 @@ void implementation::universal::input::on_press(const event& ev) {
     // Track the event
     active_pointers.push_back(&platform::pointers[ev.identifier]);
 
+    drag = true;
+    
     // TODO: make the thresholds configurable
     if (delta <= 1 && distance < 1.0) {
         platform::input::raise({ POINTER, DOUBLE, ev.identifier, delta, 0.0f, ev.point });

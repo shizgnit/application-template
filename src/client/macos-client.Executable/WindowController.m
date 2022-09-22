@@ -31,7 +31,7 @@
 		// Initialize to nil since it indicates app is not fullscreen
 		_fullscreenWindow = nil;
     }
-
+    
 	return self;
 }
 
@@ -61,7 +61,7 @@
 	// Hide non-fullscreen window so it doesn't show up when switching out
 	// of this app (i.e. with CMD-TAB)
 	[_standardWindow orderOut:self];
-
+    
 	// Set controller to the fullscreen window so that all input will go to
 	// this controller (self)
 	[self setWindow:_fullscreenWindow];
@@ -90,14 +90,14 @@
 	// Set controller to the standard window so that all input will go to
 	// this controller (self)
 	[self setWindow:_standardWindow];
-
+    
 	// Set the content of the orginal window to the view
 	[[self window] setContentView:_fullscreenWindow.contentView];
 
 	// Show the window and make it the key window for input
 	[[self window] makeKeyAndOrderFront:self];
 
-	// Ensure we set fullscreen Window to nil so our checks for 
+	// Ensure we set fullscreen Window to nil so our checks for
 	// windowed vs. fullscreen mode elsewhere are correct
 	_fullscreenWindow = nil;
 }
@@ -130,7 +130,7 @@
 	}
 
 	// Allow other character to be handled (or not and beep)
-	[super keyDown:event];
+	//[super keyDown:event];
 }
 
 @end

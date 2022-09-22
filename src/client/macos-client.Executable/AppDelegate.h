@@ -16,6 +16,7 @@
 - (void) keyUp:(NSEvent *)event;
 
 - (void) mouseDown:(NSEvent *)event;
+- (void) mouseMoved:(NSEvent *)event;
 - (void) mouseDragged:(NSEvent *)event;
 - (void) mouseUp:(NSEvent *)event;
 

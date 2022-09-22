@@ -13,11 +13,20 @@
 #define ESSENTIAL_GL_PRACTICES_SUPPORT_GL3 1
 
 @interface View ()
+{
+    NSTrackingRectTag trackingRect;
+    CGRect eyeBox;
+}
 
 @end
 
 @implementation View
 
+- (void)viewDidMoveToWindow {
+    // trackingRect is an NSTrackingRectTag instance variable
+    // eyeBox is a region of the view (instance variable)
+    trackingRect = [self addTrackingRect:eyeBox owner:self userData:NULL assumeInside:NO];
+}
 
 - (CVReturn) getFrameForTime:(const CVTimeStamp*)outputTime
 {

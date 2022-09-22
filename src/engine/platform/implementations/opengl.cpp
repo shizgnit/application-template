@@ -122,20 +122,20 @@ void implementation::opengl::graphics::dimensions(int width, int height, float s
         return;
     }
     
-    if(display_width == 0 && display_height == 0) {
-        glGetIntegerv(GL_FRAMEBUFFER_BINDING, &defaultFramebuffer);
+    //if(display_width == 0 && display_height == 0) {
+    //    glGetIntegerv(GL_FRAMEBUFFER_BINDING, &defaultFramebuffer);
         
-        GLint dims[4] = {0};
-        glGetIntegerv(GL_VIEWPORT, dims);
+    //    GLint dims[4] = {0};
+    //    glGetIntegerv(GL_VIEWPORT, dims);
         
-        display_width = dims[2];
-        display_height = dims[3];
-    }
-    else {
+    //    display_width = dims[2];
+    //    display_height = dims[3];
+    //}
+    //else {
         display_width = width;
         display_height = height;
-    }
-            
+    //}
+    
     event(utilities::string() << "glViewport(" << display_width << "x" << display_height << ")");
     
     GL_TEST(glViewport(0, 0, display_width, display_height));
