@@ -228,30 +228,37 @@ namespace type {
             std::vector<spatial::matrix> content;
             type::info::opaque_t *resource = nullptr;
         } positions;
-
+        
         bool grouped = false;
 
-        int baked = 0;
-        bool bake() {
-            bool modified = false;
-            for (auto& entry : instances) {
-                if(entry.second.position.modified()) {
-                    modified = true;
-                    break;
-                }
-            }
-            if(modified == false) {
+        int size = 0;
+        int capacity = 1024;
+        
+        type::info::opaque_t *resource = nullptr;
+
+        bool compile() {
+            // No need to compile if there aren't any instances
+            auto allocation = instances.size();
+            if(allocation == 0 && size == 0) {
                 return false;
             }
             
-            baked = instances.size();
-            
+            // Determine if the contents resized and/or need reallocation
+            bool resized = allocation != size;
+            size = allocation;
+
+            bool reallocate = allocation > capacity;
+            if(reallocate) {
+                capacity = allocation;
+            }
+                                    
+            // Gather all the data for a compilation pass
             identifiers.content.clear();
-            identifiers.content.reserve(baked);
+            identifiers.content.reserve(size);
             flags.content.clear();
-            flags.content.reserve(baked);
+            flags.content.reserve(size);
             positions.content.clear();
-            positions.content.reserve(baked);
+            positions.content.reserve(size);
             for (auto& entry : instances) {
                 if (entry.second.has("grouping")) {
                     entry.second.flags |= type::entity::GROUPED;
@@ -264,7 +271,8 @@ namespace type {
                 positions.content.push_back(entry.second.position.scale());
             }
             
-            return true;
+            // If reallocation isn't required and already compiled, okay to leave it compiled
+            return reallocate || (compiled() == false);
         }
 
         instance & add(properties& props=properties::empty(), int count = 1) {
