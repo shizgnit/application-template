@@ -465,7 +465,7 @@ std::string implementation::universal::assets::load(platform::assets* instance, 
             }
         }
 
-        shader.compiled(false);
+        //shader.compiled(false);
     }
     if (type == "font") {
         instance->retrieve(path + (ext.empty() ? ".fnt" : ext)) >> format::parser::fnt >> instance->get<type::font>(cache);

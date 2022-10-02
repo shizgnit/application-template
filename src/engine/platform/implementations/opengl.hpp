@@ -139,8 +139,7 @@ namespace implementation {
             bool compile(type::material& material);
             bool compile(type::object& object);
             bool compile(type::font& font);
-            bool compile(type::entity& entity);
-
+            
             bool compile(platform::assets* assets);
 
             void draw(type::object& object, type::program& shader, const spatial::matrix& projection, const spatial::matrix& view=spatial::matrix(), const spatial::matrix& model=spatial::matrix(), const spatial::matrix& lighting=spatial::matrix(), unsigned int options=0x00);
