@@ -314,14 +314,12 @@ platform::interface::widget* implementation::universal::interface::create(widget
     instance->background = spatial::quad(w, h);
     instance->background.texture.create(1, 1, r, g, b, a); // Single pixel is good enough
     instance->background.xy_projection(0, 0, w, h);
-    //graphics->compile(instance->background);
 
     int l = 100;
 
     instance->edge = spatial::quad::edges(w, h);
     instance->edge.texture.create(1, 1, r+l, g+l, b+l, a+l);
     instance->edge.xy_projection(0, 0, 1, 1);
-    //graphics->compile(instance->edge);
 
     instance->bounds = spatial::quad(instance->background.vertices).project(spatial::matrix(), spatial::matrix(), projection);
 
@@ -361,21 +359,12 @@ void implementation::universal::interface::draw(widget& instance) {
     }
 
     if (instance.background.visible && instance.background.vertices.size()) {
-        //if (instance.background.compiled() == false) {
-        //    graphics->compile(instance.background);
-        //}
         graphics->draw(instance.background, shader, projection, spatial::matrix(), position);
     }
     if (instance.foreground.visible && instance.foreground.vertices.size()) {
-        //if (instance.foreground.compiled() == false) {
-        //    graphics->compile(instance.foreground);
-        //}
         graphics->draw(instance.foreground, shader, projection, spatial::matrix(), position);
     }
     if (instance.edge.visible && instance.edge.vertices.size()) {
-        //if (instance.edge.compiled() == false) {
-        //    graphics->compile(instance.edge);
-        //}
         graphics->draw(instance.edge, shader, projection, spatial::matrix(), edge, spatial::matrix(), platform::graphics::render::WIREFRAME);
     }
 
@@ -464,8 +453,6 @@ std::string implementation::universal::assets::load(platform::assets* instance, 
                 shader.fragment.text = version + "\n" + shader.fragment.text;
             }
         }
-
-        //shader.compiled(false);
     }
     if (type == "font") {
         instance->retrieve(path + (ext.empty() ? ".fnt" : ext)) >> format::parser::fnt >> instance->get<type::font>(cache);
@@ -566,10 +553,6 @@ std::string implementation::universal::assets::load(platform::assets* instance, 
                 frame++;
             }
         }
-
-        // if (entity.animations.size() == 1) {
-        //      entity.play(entity.animations.begin()->first);
-        // }
     }
 
     return cache;

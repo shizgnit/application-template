@@ -4,6 +4,8 @@ namespace type {
 
     class font : virtual public type::info {
     public:
+        typedef spatial::vector::type_t type_t;
+
         class glyph {
         public:
             int identifier;
@@ -36,6 +38,37 @@ namespace type {
         std::vector<glyph> glyphs;
         std::vector<kerning> kernings;
 
+        font& operator=(const font& ref) {
+            pages = ref.pages;
+            glyphs = ref.glyphs;
+            kernings = ref.kernings;
+            
+            identifier = ref.identifier;
+
+            name = ref.name;
+
+            size = ref.size;
+
+            bold = ref.bold;
+            italic = ref.italic;
+
+            padding_top = ref.padding_top;
+            padding_left = ref.padding_left;
+            padding_bottom = ref.padding_bottom;
+            padding_right = ref.padding_right;
+
+            spacing_left = ref.spacing_left;
+            spacing_right = ref.spacing_right;
+
+            glyph_height = ref.glyph_height;
+            glyph_width = ref.glyph_width;
+
+            line_leading = ref.line_leading;
+            
+            return *this;
+        }
+        
+        
         int kern(int left, int right) {
             for (auto kern : kernings) {
                 if (kern.left == left && kern.right == right) {

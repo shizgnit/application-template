@@ -6,6 +6,12 @@ namespace type {
     public:
         std::string text;
 
+        shader& operator=(const shader& ref) {
+            type::info::operator=(ref);
+            text = ref.text;
+            return *this;
+        }
+        
         friend type::shader& operator>>(type::shader& input, type::shader& instance) {
             instance = input;
             return instance;

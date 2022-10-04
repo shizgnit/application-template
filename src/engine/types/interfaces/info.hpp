@@ -31,6 +31,17 @@ namespace type {
 
         std::string _id;
 
+        info& operator=(const info& ref) {
+            _extensions = ref._extensions;
+            _format = ref._format;
+            _compiled = ref._compiled;
+            _id = ref._id;
+            
+            resource = ref.resource;
+            
+            return *this;
+        }
+        
     public:
         class opaque_t;
         opaque_t *resource = nullptr;

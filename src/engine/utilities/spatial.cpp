@@ -1016,7 +1016,7 @@ spatial::position& spatial::position::lookat(const vector& offset) {
     auto right = forward == vector(0, -1, 0) ? vector(-1, 0, 0) : vector(0, 1, 0) % forward;
 
     focus = forward + eye;
-    up = (forward % right).unit(); 
+    up = (forward % right).unit();
 
     translation.pitch = 0;
     translation.roll = 0;
@@ -1072,6 +1072,22 @@ spatial::vector spatial::position::down() {
 spatial::vector spatial::position::tanget() {
     vector normal = eye - focus;
     return (normal % up) + focus;
+}
+
+spatial::position& spatial::position::operator=(const spatial::position& ref) {
+    this->eye = ref.eye;
+    this->focus = ref.focus;
+    this->up = ref.up;
+
+    this->constraint = ref.constraint;
+    this->translation = ref.translation;
+    
+    this->rate = ref.rate;
+    this->view = ref.view;
+    
+    this->dirty = true;
+    
+    return *this;
 }
 
 spatial::sphere::sphere(int horizontal, int vertical) : sphere() {

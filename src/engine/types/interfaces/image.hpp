@@ -21,6 +21,13 @@ namespace type {
         std::vector<char> colormap;
         std::vector<char> raster;
 
+        image& operator=(const image& ref) {
+            memcpy(&properties, &ref.properties, sizeof(properties));
+            colormap = ref.colormap;
+            raster = ref.raster;
+            return *this;
+        }
+        
         friend type::image& operator>>(type::image& input, type::image* instance) {
             *instance = input;
             return *instance;

@@ -285,7 +285,7 @@ namespace spatial {
     ///      ^
     ///      |
     ///      |
-    ///  eye . ---> focus (lookat -z)
+    ///   eye . ---> focus (lookat -z)
     /// 
     /// </summary>
     class position {
@@ -328,6 +328,8 @@ namespace spatial {
         vector down();
         vector tanget();
 
+        position& operator=(const position& ref);
+        
     public:
         struct {
             bool x = false;
