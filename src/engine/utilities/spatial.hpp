@@ -233,9 +233,9 @@ namespace spatial {
         geometry interpolate(const geometry& g) const;
 
         matrix& rotate(const vector& axis, type_t rad);
-        matrix& rotate_x(type_t angle);
-        matrix& rotate_y(type_t angle);
-        matrix& rotate_z(type_t angle);
+        matrix& rotate_x(type_t rad);
+        matrix& rotate_y(type_t rad);
+        matrix& rotate_z(type_t rad);
 
         matrix& position(const vector& v);
         matrix& position(const type_t& x, const type_t& y, const type_t& z, const type_t& w = 1.0f);

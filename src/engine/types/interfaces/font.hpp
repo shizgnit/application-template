@@ -13,13 +13,13 @@ namespace type {
             int x;
             int y;
 
-            int width;
-            int height;
+            type_t width;
+            type_t height;
 
-            int xoffset;
-            int yoffset;
+            type_t xoffset;
+            type_t yoffset;
 
-            int xadvance;
+            type_t xadvance;
 
             int page;
             int channel;
@@ -31,13 +31,31 @@ namespace type {
         public:
             int left;
             int right;
-            int amount;
+            type_t amount;
         };
 
         std::vector<image> pages;
         std::vector<glyph> glyphs;
         std::vector<kerning> kernings;
 
+        void scale(type_t scale) {
+            for(auto& glyph: glyphs) {
+                glyph.width *= scale;
+                glyph.height *= scale;
+                
+                glyph.xoffset *= scale;
+                glyph.yoffset *= scale;
+                
+                glyph.xadvance *= scale;
+                
+                glyph.quad = glyph.quad.scale(spatial::matrix().scale(scale));
+            }
+            
+            for(auto& kerning: kernings) {
+                kerning.amount *= scale;
+            }
+        }
+        
         font& operator=(const font& ref) {
             pages = ref.pages;
             glyphs = ref.glyphs;

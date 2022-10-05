@@ -193,9 +193,9 @@ void implementation::opengl::graphics::init(void) {
     GL_TEST(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
     // Backface culling, makes GLES rendering of objects easier since they don't need to be drawn back to front
-    //GL_TEST(glEnable(GL_CULL_FACE));
-    //GL_TEST(glFrontFace(GL_CCW));
-    //GL_TEST(glCullFace(GL_BACK));
+    GL_TEST(glEnable(GL_CULL_FACE));
+    GL_TEST(glFrontFace(GL_CCW));
+    GL_TEST(glCullFace(GL_BACK));
 
     auto glsl = glGetString(GL_SHADING_LANGUAGE_VERSION);
 
