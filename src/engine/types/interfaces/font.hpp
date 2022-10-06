@@ -57,9 +57,23 @@ namespace type {
         }
         
         font& operator=(const font& ref) {
-            pages = ref.pages;
-            glyphs = ref.glyphs;
-            kernings = ref.kernings;
+            type::info::operator=(ref);
+            
+            pages.resize(ref.pages.size());
+            for(int i=0; i<ref.pages.size(); i++) {
+                pages[i] = ref.pages[i];
+            }
+            
+            glyphs.resize(ref.glyphs.size());
+            for(int i=0; i<ref.glyphs.size(); i++) {
+                glyphs[i] = ref.glyphs[i];
+                glyphs[i].quad.texture.color = &pages[glyphs[i].page];
+            }
+            
+            kernings.resize(ref.kernings.size());
+            for(int i=0; i<ref.kernings.size(); i++) {
+                kernings[i] = ref.kernings[i];
+            }
             
             identifier = ref.identifier;
 

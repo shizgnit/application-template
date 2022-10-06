@@ -27,7 +27,12 @@ namespace format {
                 assets->release();
                 return instance;
             }
-
+            
+            /// Clear out the instance
+            instance.pages.clear();
+            instance.glyphs.clear();
+            instance.kernings.clear();
+            
             /// Preallocate the glyphs
             instance.glyphs.resize(256);
 

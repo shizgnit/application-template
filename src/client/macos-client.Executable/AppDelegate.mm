@@ -60,15 +60,17 @@
     //unichar hid = [[event charactersIgnoringModifiers] characterAtIndex:0];
     int keyCode = event.keyCode;
     int key = platform::keys[keyCode].vkey;
-    gui->raise({ platform::input::KEY, platform::input::DOWN, key, 0, 0.0f, { 0.0f, 0.0f, 0.0f } }, 0, 0);
-    input->raise({ platform::input::KEY, platform::input::DOWN, key, 1, 0.0f, { 0.0f, 0.0f, 0.0f } });
+    if(gui->raise({ platform::input::KEY, platform::input::DOWN, key, 0, 0.0f, { 0.0f, 0.0f, 0.0f } }, 0, 0) == false) {
+        input->raise({ platform::input::KEY, platform::input::DOWN, key, 1, 0.0f, { 0.0f, 0.0f, 0.0f } });
+    }
 }
 - (void) keyUp:(NSEvent *)event {
     //unichar hid = [[event charactersIgnoringModifiers] characterAtIndex:0];
     int keyCode = event.keyCode;
     int key = platform::keys[keyCode].vkey;
-    gui->raise({ platform::input::KEY, platform::input::UP, key, 0, 0.0f, { 0.0f, 0.0f, 0.0f } }, 0, 0);
-    input->raise({ platform::input::KEY, platform::input::UP, key, 1, 0.0f, { 0.0f, 0.0f, 0.0f } });
+    if(gui->raise({ platform::input::KEY, platform::input::UP, key, 0, 0.0f, { 0.0f, 0.0f, 0.0f } }, 0, 0) == false) {
+        input->raise({ platform::input::KEY, platform::input::UP, key, 1, 0.0f, { 0.0f, 0.0f, 0.0f } });
+    }
 }
 - (void) mouseDown:(NSEvent *)event {
     NSPoint global = [NSEvent mouseLocation];
@@ -77,30 +79,33 @@
     
     NSUInteger button = [NSEvent pressedMouseButtons];
     
-    gui->raise({ platform::input::POINTER, platform::input::DOWN, 1, 0, 0.0f, { point.x, point.y, 0.0f } }, point.x, point.y);
-    input->raise({ platform::input::POINTER, platform::input::DOWN, 1, 0, 0.0f, { point.x, point.y, 0.0f } });
+    if(gui->raise({ platform::input::POINTER, platform::input::DOWN, 1, 0, 0.0f, { point.x, point.y, 0.0f } }, point.x, point.y) == false) {
+        input->raise({ platform::input::POINTER, platform::input::DOWN, 1, 0, 0.0f, { point.x, point.y, 0.0f } });
+    }
 }
 - (void) mouseMoved:(NSEvent *)event {
     NSPoint point = [event locationInWindow];
     point.y = instance->getHeight() - point.y;
     
-    gui->raise({ platform::input::POINTER, platform::input::MOVE, 0, 0, 0.0f, { point.x, point.y, 0.0f } }, point.x, point.y);
-    input->raise({ platform::input::POINTER, platform::input::MOVE, 0, 1, 0.0f, { point.x, point.y, 0.0f } });
+    if(gui->raise({ platform::input::POINTER, platform::input::MOVE, 0, 0, 0.0f, { point.x, point.y, 0.0f } }, point.x, point.y) == false) {
+        input->raise({ platform::input::POINTER, platform::input::MOVE, 0, 1, 0.0f, { point.x, point.y, 0.0f } });
+    }
 }
 - (void) mouseDragged:(NSEvent *)event {
     NSPoint point = [event locationInWindow];
     point.y = instance->getHeight() - point.y;
     
-    gui->raise({ platform::input::POINTER, platform::input::MOVE, 0, 0, 0.0f, { point.x, point.y, 0.0f } }, point.x, point.y);
-    input->raise({ platform::input::POINTER, platform::input::MOVE, 0, 1, 0.0f, { point.x, point.y, 0.0f } });
+    if(gui->raise({ platform::input::POINTER, platform::input::MOVE, 0, 0, 0.0f, { point.x, point.y, 0.0f } }, point.x, point.y) == false) {
+        input->raise({ platform::input::POINTER, platform::input::MOVE, 0, 1, 0.0f, { point.x, point.y, 0.0f } });
+    }
 }
 - (void) mouseUp:(NSEvent *)event {
     NSPoint point = [event locationInWindow];
     point.y = instance->getHeight() - point.y;
     
-    gui->raise({ platform::input::POINTER, platform::input::UP, 1, 0, 0.0f, { point.x, point.y, 0.0f } }, point.x, point.y);
-    input->raise({ platform::input::POINTER, platform::input::UP, 1, 0, 0.0f, { point.x, point.y, 0.0f } });
-
+    if(gui->raise({ platform::input::POINTER, platform::input::UP, 1, 0, 0.0f, { point.x, point.y, 0.0f } }, point.x, point.y) == false) {
+        input->raise({ platform::input::POINTER, platform::input::UP, 1, 0, 0.0f, { point.x, point.y, 0.0f } });
+    }
 }
 
 @end

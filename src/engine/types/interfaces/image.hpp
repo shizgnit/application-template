@@ -22,6 +22,7 @@ namespace type {
         std::vector<char> raster;
 
         image& operator=(const image& ref) {
+            type::info::operator=(ref);
             memcpy(&properties, &ref.properties, sizeof(properties));
             colormap = ref.colormap;
             raster = ref.raster;

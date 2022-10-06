@@ -232,7 +232,7 @@ bool implementation::universal::interface::raise(const input::event& ev, int x, 
 
     widget* target = NULL;
     if (ev.input == input::POINTER && ev.gesture == platform::input::DOWN) {
-        // See is any widgets were selected
+        // See if any widgets were selected
         for (auto instance : instances) {
             if (instance.second->enabled && instance.second->visible && ray.intersects(instance.second->bounds)) {
                 target = instance.second;
