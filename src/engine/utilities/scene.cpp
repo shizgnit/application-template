@@ -126,7 +126,8 @@ bool parse(const std::string& data) {
 
 
 scene::persistence::persistence() {
-    _file = filesystem->join({ filesystem->appdata(), "democo", "map.json" });
+    _file = "/Users/codeneko/Downloads/map.json";
+    //_file = filesystem->join({ filesystem->appdata(), "democo", "map.json" });
 }
 
 bool scene::persistence::write() {
