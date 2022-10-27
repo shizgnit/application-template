@@ -27,13 +27,13 @@ static GLint defaultFramebuffer = 0;
 
 bool implementation::opengl::fbo::deinit() {
     if (context.render) {
-        GL_TEST(glBindRenderbuffer(GL_RENDERBUFFER, context.render));
-        GL_TEST(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, 0));
+        //GL_TEST(glBindRenderbuffer(GL_RENDERBUFFER, context.render));
+        //GL_TEST(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, 0));
         GL_TEST(glDeleteRenderbuffers(1, &context.render));
     }
     if (context.frame) {
-        GL_TEST(glBindFramebuffer(GL_FRAMEBUFFER, context.frame));
-        GL_TEST(glFramebufferTexture2D(GL_FRAMEBUFFER, allocation, GL_TEXTURE_2D, 0, 0));
+        //GL_TEST(glBindFramebuffer(GL_FRAMEBUFFER, context.frame));
+        //GL_TEST(glFramebufferTexture2D(GL_FRAMEBUFFER, allocation, GL_TEXTURE_2D, 0, 0));
         GL_TEST(glDeleteFramebuffers(1, &context.frame));
     }
     return true;

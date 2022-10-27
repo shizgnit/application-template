@@ -15,6 +15,20 @@ bool writeProperties(properties& input, picojson::object& output) {
         if (std::holds_alternative<double>(value)) {
             output[label] = picojson::value(std::get<double>(value));
         }
+        if (std::holds_alternative<int>(value)) {
+            output[label] = picojson::value((double)std::get<int>(value));
+        }
+        if (std::holds_alternative<spatial::vector>(value)) {
+            auto position = std::get<spatial::vector>(value);
+            
+            picojson::object vector;
+            vector["x"] = picojson::value(position.x);
+            vector["y"] = picojson::value(position.y);
+            vector["z"] = picojson::value(position.z);
+            vector["w"] = picojson::value(position.w);
+            
+            output[label] = picojson::value(vector);
+        }
         values += 1;
     }
     return values > 0;
@@ -44,6 +58,26 @@ bool parseProperties(picojson::value& input, properties& output) {
         }
         if (attribute.second.is<double>()) {
             output.set(attribute.first, attribute.second.get<double>());
+        }
+        if (attribute.second.is<picojson::object>()) {
+            spatial::vector value;
+            
+            for(auto& property: attribute.second.get<picojson::object>()) {
+                if(property.first == "x") {
+                    value.x = property.second.get<double>();
+                }
+                if(property.first == "y") {
+                    value.y = property.second.get<double>();
+                }
+                if(property.first == "z") {
+                    value.z = property.second.get<double>();
+                }
+                if(property.first == "w") {
+                    value.x = property.second.get<double>();
+                }
+            }
+            
+            output.set(attribute.first, value);
         }
     }
 
