@@ -37,17 +37,20 @@
 }
 
 - (void) resize:(NSRect *)rect {
-    if(instance == nil) {
+    if(true && instance == nil) {
         assets->init();
         assets->set("shader.path", std::string("shaders-gl"));
         assets->set("shader.version", std::string("#version 410 core"));
         
         instance = new app();
+//        instance->dimensions(1600, 2400);
         instance->dimensions(rect->size.width / 2, rect->size.height / 2);
+//        instance->dimensions(rect->size.width, rect->size.height);
         instance->on_startup();
         instance->started = true;
     }
     else {
+//        instance->dimensions(1600, 2400);
         instance->dimensions(rect->size.width, rect->size.height);
     }
 }
