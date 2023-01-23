@@ -822,13 +822,13 @@ spatial::quaternion::operator spatial::matrix() {
 
     matrix result;
     
-    result[0][0] = 1.0f - 2.0f * (y * y + z * z);
+    result[0][0] = 1.0f; // 1.0f - 2.0f * (y * y + z * z);
     result[0][1] = 2.0f * (x * y + w * z);
     result[0][2] = 2.0f * (x * z - w * y);
     result[0][3] = 0.0f;
 
     result[1][0] = 2.0f * (x * y - w * z);
-    result[1][1] = 1.0f - 2.0f * (x * x + z * z);
+    result[1][1] = 1.0f; // 1.0f - 2.0f * (x * x + z * z);
     result[1][2] = 2.0f * (y * z + w * x);
     result[1][3] = 0.0f;
 
@@ -872,7 +872,7 @@ spatial::position::position(const spatial::vector& pos) {
 spatial::position::operator spatial::matrix() {
     matrix result;
     result.translate(eye, focus, up);
-    return result * spatial::matrix().scale(translation.scale);
+    return result; //  * spatial::matrix().scale(translation.scale);
 }
 
 spatial::matrix spatial::position::scale(type_t value) {

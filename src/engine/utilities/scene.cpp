@@ -112,7 +112,7 @@ bool parse(const std::string& data) {
             parseProperties(entity.second.get("properties"), reference);
         }
         scene::global().call("/load entity " + entity.first);
-
+        
         if (entity.second.contains("instances") == false || entity.second.get("instances").get<picojson::array>().size() == 0) {
             properties props;
             props.set("virtual", true);
