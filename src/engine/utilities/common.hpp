@@ -251,4 +251,5 @@ namespace utilities {
     using months_t = std::chrono::duration<double, std::ratio<2629746>>;
     using years_t = std::chrono::duration<double, std::ratio<31556952>>;
 
+    float perlin(float x, float y);
 }
