@@ -250,4 +250,5 @@ inline platform::interface* gui = new implementation::universal::interface();
 #include "types/formats/metal.hpp"
 
 #include "utilities/scene.hpp"
+#include "utilities/grid.hpp"
 
