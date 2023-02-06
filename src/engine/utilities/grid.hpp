@@ -88,14 +88,20 @@ public:
             left.resize(types.size());
         }
         left[required].push_back(adding);
-        addRightConstraint(required, adding);
+        if(right.size() < types.size()) {
+            right.resize(types.size());
+        }
+        right[adding].push_back(required);
     }
     void addRightConstraint(identifier_t adding, identifier_t required) {
         if(right.size() < types.size()) {
             right.resize(types.size());
         }
         right[required].push_back(adding);
-        addLeftConstraint(required, adding);
+        if(left.size() < types.size()) {
+            left.resize(types.size());
+        }
+        left[adding].push_back(required);
     }
     void addBehindConstraint(identifier_t adding, identifier_t required) {
         if(behind.size() < types.size()) {
