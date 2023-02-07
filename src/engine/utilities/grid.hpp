@@ -82,6 +82,14 @@ public:
         types.push_back({types.size(), weight, c});
         return types.size()-1;
     }
+
+    void addSeed(int x, int y, identifier_t i) {
+        seeds[i] = { x, y };
+    }
+    
+    void addLimit(int x, int y, identifier_t i) {
+        limits[i] = { x, y };
+    }
     
     void addLeftConstraint(identifier_t adding, identifier_t required) {
         if(left.size() < types.size()) {
@@ -108,6 +116,10 @@ public:
             behind.resize(types.size());
         }
         behind[required].push_back(adding);
+        if(ahead.size() < types.size()) {
+            ahead.resize(types.size());
+        }
+        ahead[adding].push_back(required);
     }
     
     void generateRow(int y) {
@@ -123,6 +135,10 @@ public:
     }
     
     bool generateQuadrant(quadrant_t q) {
+        
+        if(q.first < 0 || q.first >= width) {
+            return false;
+        }
     
         auto bi = peekBehind(q);
         auto li = peekLeft(q);
@@ -130,13 +146,16 @@ public:
 
         std::vector<identifier_t> candidates;
         for(identifier_t i=0; i<types.size(); i++) {
-            if(bi > 0 && behind[bi].size() && std::find(behind[bi].begin(), behind[bi].end(), i) == behind[bi].end()) {
+            if(bi > 0 && (behind[bi].size() == 0 || std::find(behind[bi].begin(), behind[bi].end(), i) == behind[bi].end())) {
                 continue;
             }
-            if(li > 0 && left[li].size() && std::find(left[li].begin(), left[li].end(), i) == left[li].end()) {
+            if(li > 0 && (left[li].size() == 0 || std::find(left[li].begin(), left[li].end(), i) == left[li].end())) {
                 continue;
             }
-            if(ri > 0 && right[ri].size() && std::find(right[ri].begin(), right[ri].end(), i) == right[ri].end()) {
+            if(ri > 0 && (right[ri].size() == 0 || std::find(right[ri].begin(), right[ri].end(), i) == right[ri].end())) {
+                continue;
+            }
+            if(bi == 0 && ahead[i].size()) {
                 continue;
             }
             candidates.push_back(i);
@@ -145,12 +164,26 @@ public:
             return false;
         }
         
-        setQuadrant(q, *candidates.begin());
+        int selection = candidates.size() * ((utilities::perlin(q.first, q.second) * 0.5) + 0.5);
+        //int selection = rand() % candidates.size();
         
+        identifier_t added = candidates[selection];
+        setQuadrant(q, added);
+        
+        if(li == 0 && right[added].size()) {
+            generateQuadrant({ q.first - 1, q.second });
+        }
+        if(ri == 0 && left[added].size()) {
+            generateQuadrant({ q.first + 1, q.second });
+        }
+
         return true;
     }
     
 protected:
+    std::map<identifier_t, std::pair<int, int>> seeds;
+    std::map<identifier_t, std::pair<int, int>> limits;
+
     struct type {
         identifier_t id;
         float weight;
@@ -163,7 +196,8 @@ protected:
     std::vector<std::vector<identifier_t>> left;
     std::vector<std::vector<identifier_t>> right;
     std::vector<std::vector<identifier_t>> behind;
-    
+    std::vector<std::vector<identifier_t>> ahead;
+
     int width = 0;
     
     int x_offset = 0;
