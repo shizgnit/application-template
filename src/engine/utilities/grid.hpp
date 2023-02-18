@@ -11,8 +11,22 @@ public:
     
     typedef unsigned long identifier_t;
     typedef std::pair<int, int> quadrant_t;
-    typedef std::function<void(grid &, quadrant_t)> callback_t;
+    typedef std::function<bool(grid &, quadrant_t &)> callback_t;
 
+    struct type_t {
+        identifier_t id = 0;
+        int group = -1;
+        callback_t factory = NULL;
+    } type_empty_t;
+
+    struct context_t {
+        type_t behind;
+        type_t left;
+        type_t right;
+    };
+    
+    typedef std::function<bool(grid &, quadrant_t &, identifier_t &, context_t &)> limit_t;
+    
     quadrant_t getQuadrant(float x, float z) {
         int nx = floor(x + x_offset);
         int nz = floor(z + y_offset);
@@ -29,7 +43,7 @@ public:
         return spatial::position({ nx, y, nz });
     }
     
-    void setQuadrant(quadrant_t q, identifier_t instance) {
+    void setQuadrant(quadrant_t q, type_t instance) {
         if(data.size() <= q.second) {
             data.resize(q.second + 1);
         }
@@ -37,99 +51,115 @@ public:
             data[q.second].resize(width + 1);
         }
         data[q.second][q.first] = instance;
-        types[instance].factory(*this, q);
+        types[instance.id].factory(*this, q);
     }
     
-    identifier_t inQuadrant(quadrant_t q) {
-        if(data.size() > q.second && data[q.second].size() > q.first) {
+    type_t &inQuadrant(quadrant_t q) {
+        if(data.size() > q.second && data[q.second].size() > q.first && q.second && q.first) {
             return data[q.second][q.first];
         }
-        return 0;
+        return type_empty_t;
     }
     
-    identifier_t peekLeft(quadrant_t q) {
-        if(q.second < data.size() && q.first > 0) {
-            return data[q.second][q.first - 1];
+    type_t &peekLeft(quadrant_t q, int group = -1) {
+        auto &result = inQuadrant({ q.first - 1, q.second });
+        if(group != -1 && result.group != group) {
+            return type_empty_t;
         }
-        return 0;
+        return result;
     }
 
-    identifier_t peekRight(quadrant_t q) {
-        if(q.second < data.size() && q.first < (width-1)) {
-            return data[q.second][q.first + 1];
+    type_t &peekRight(quadrant_t q, int group = -1) {
+        auto &result = inQuadrant({ q.first + 1, q.second });
+        if(group != -1 && result.group != group) {
+            return type_empty_t;
         }
-        return 0;
-    }
+        return result;
+   }
 
-    identifier_t peekBehind(quadrant_t q) {
-        if(q.second <= data.size() && q.second > 0) {
-            return data[q.second - 1][q.first];
+    type_t &peekBehind(quadrant_t q, int group = -1) {
+        auto &result = inQuadrant({ q.first, q.second - 1 });
+        if(group != -1 && result.group != group) {
+            return type_empty_t;
         }
-        return 0;
+        return result;
     }
     
-    identifier_t peekForward(quadrant_t q) {
-        if(data.size() > (q.second + 1)) {
-            return data[q.second +1][q.first];
+    type_t &peekForward(quadrant_t q, int group = -1) {
+        auto &result = inQuadrant({ q.first, q.second + 1 });
+        if(group != -1 && result.group != group) {
+            return type_empty_t;
         }
-        return 0;
+        return result;
     }
 
-    identifier_t addType(callback_t c, float weight = 1.0f) {
+    type_t &addType(int g, callback_t c) {
         if(types.size() == 0) {
             types.resize(1);
         }
-        types.push_back({types.size(), weight, c});
-        return types.size()-1;
+        types.push_back({types.size(), g, c});
+        identifier_t added = types.size()-1;
+        groups[g].push_back(added);
+        return types[added];
     }
 
-    void addSeed(int x, int y, identifier_t i) {
-        seeds[i] = { x, y };
+    type_t &addType(int g, callback_t c, limit_t limit) {
+        auto &added = addType(g, c);
+        limits[added.id] = limit;
+        return added;
+    }
+
+    void addLeftConstraint(type_t adding, type_t required) {
+        left[required.id].push_back(adding.id);
+        right[adding.id].push_back(required.id);
+    }
+    void addRightConstraint(type_t adding, type_t required) {
+        right[required.id].push_back(adding.id);
+        left[adding.id].push_back(required.id);
+    }
+    void addBehindConstraint(type_t adding, type_t required) {
+        behind[required.id].push_back(adding.id);
+        ahead[adding.id].push_back(required.id);
+    }
+   
+    bool hasLeftConstraint(identifier_t l, identifier_t r) {
+        return(left.find(l) != left.end() && std::find(left[l].begin(), left[l].end(), r) != left[l].end());
     }
     
-    void addLimit(int x, int y, identifier_t i) {
-        limits[i] = { x, y };
+    bool hasRightConstraint(identifier_t r, identifier_t l) {
+        return(right.find(r) != right.end() && std::find(right[r].begin(), right[r].end(), l) != right[r].end());
     }
     
-    void addLeftConstraint(identifier_t adding, identifier_t required) {
-        if(left.size() < types.size()) {
-            left.resize(types.size());
-        }
-        left[required].push_back(adding);
-        if(right.size() < types.size()) {
-            right.resize(types.size());
-        }
-        right[adding].push_back(required);
+    bool hasBehindConstraint(identifier_t b, identifier_t a) {
+        return(behind.find(b) != behind.end() && std::find(behind[b].begin(), behind[b].end(), a) != behind[b].end());
     }
-    void addRightConstraint(identifier_t adding, identifier_t required) {
-        if(right.size() < types.size()) {
-            right.resize(types.size());
-        }
-        right[required].push_back(adding);
-        if(left.size() < types.size()) {
-            left.resize(types.size());
-        }
-        left[adding].push_back(required);
+    
+    bool hasAheadConstraint(identifier_t a, identifier_t b) {
+        return(ahead.find(a) != ahead.end() && std::find(ahead[a].begin(), ahead[a].end(), b) != ahead[a].end());
     }
-    void addBehindConstraint(identifier_t adding, identifier_t required) {
-        if(behind.size() < types.size()) {
-            behind.resize(types.size());
-        }
-        behind[required].push_back(adding);
-        if(ahead.size() < types.size()) {
-            ahead.resize(types.size());
-        }
-        ahead[adding].push_back(required);
+  
+    bool hasAheadConstraint(identifier_t a) {
+        return(ahead.find(a) != ahead.end() && ahead[a].size());
     }
     
     void generateRow(int y) {
         for(; watermark<=y; watermark++) {
             for(int x=0; x<width; x++) {
                 quadrant_t q({x, watermark});
+                if(inQuadrant(q).id) {
+                    continue;
+                }
                 auto i = peekBehind(q);
-                if(i && behind.size() && behind[i].size()) {
+                if(i.id && behind.size() && behind[i.id].size()) {
                     generateQuadrant(q);
                 }
+            }
+            for(int x=0; x<width; x++) {
+                quadrant_t q({x, watermark});
+                if(inQuadrant(q).id) {
+                    continue;
+                }
+                generateQuadrant(q);
             }
         }
     }
@@ -140,25 +170,24 @@ public:
             return false;
         }
     
-        auto bi = peekBehind(q);
-        auto li = peekLeft(q);
-        auto ri = peekRight(q);
-
         std::vector<identifier_t> candidates;
-        for(identifier_t i=0; i<types.size(); i++) {
-            if(bi > 0 && (behind[bi].size() == 0 || std::find(behind[bi].begin(), behind[bi].end(), i) == behind[bi].end())) {
-                continue;
+        
+        for(auto g: groups) {
+            context_t context = {
+                peekBehind(q, g.first),
+                peekLeft(q, g.first),
+                peekRight(q, g.first)
+            };
+
+            for(identifier_t i: g.second) {
+                if(limits.find(i) != limits.end() && limits[i](*this, q, i, context) == false) {
+                    continue;
+                }
+                candidates.push_back(i);
             }
-            if(li > 0 && (left[li].size() == 0 || std::find(left[li].begin(), left[li].end(), i) == left[li].end())) {
-                continue;
+            if(candidates.size() > 0) {
+                break;
             }
-            if(ri > 0 && (right[ri].size() == 0 || std::find(right[ri].begin(), right[ri].end(), i) == right[ri].end())) {
-                continue;
-            }
-            if(bi == 0 && ahead[i].size()) {
-                continue;
-            }
-            candidates.push_back(i);
         }
         if(candidates.size() == 0) {
             return false;
@@ -167,13 +196,13 @@ public:
         int selection = candidates.size() * ((utilities::perlin(q.first, q.second) * 0.5) + 0.5);
         //int selection = rand() % candidates.size();
         
-        identifier_t added = candidates[selection];
+        auto added = types[candidates[selection]];
         setQuadrant(q, added);
         
-        if(li == 0 && right[added].size()) {
+        if(peekLeft(q).id == 0 && right.find(added.id) != right.end()) {
             generateQuadrant({ q.first - 1, q.second });
         }
-        if(ri == 0 && left[added].size()) {
+        if(peekRight(q).id == 0 && left.find(added.id) != left.end()) {
             generateQuadrant({ q.first + 1, q.second });
         }
 
@@ -181,23 +210,19 @@ public:
     }
     
 protected:
-    std::map<identifier_t, std::pair<int, int>> seeds;
-    std::map<identifier_t, std::pair<int, int>> limits;
+    std::map<identifier_t, limit_t> limits;
 
-    struct type {
-        identifier_t id;
-        float weight;
-        callback_t factory;
-    };
-    std::vector<type> types;
+    std::vector<type_t> types;
     
-    std::vector<std::vector<identifier_t>> data;
+    std::map<int, std::vector<identifier_t>> groups;
+    
+    std::vector<std::vector<type_t>> data;
 
-    std::vector<std::vector<identifier_t>> left;
-    std::vector<std::vector<identifier_t>> right;
-    std::vector<std::vector<identifier_t>> behind;
-    std::vector<std::vector<identifier_t>> ahead;
-
+    std::map<identifier_t, std::vector<identifier_t>> left;
+    std::map<identifier_t, std::vector<identifier_t>> right;
+    std::map<identifier_t, std::vector<identifier_t>> behind;
+    std::map<identifier_t, std::vector<identifier_t>> ahead;
+    
     int width = 0;
     
     int x_offset = 0;
