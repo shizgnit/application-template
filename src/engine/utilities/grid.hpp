@@ -20,9 +20,9 @@ public:
     } type_empty_t;
 
     struct context_t {
-        type_t behind;
-        type_t left;
-        type_t right;
+        grid::type_t behind;
+        grid::type_t left;
+        grid::type_t right;
     };
    
     struct {
@@ -30,7 +30,7 @@ public:
         std::map<identifier_t, int> last_seen;
     } stats;
     
-    typedef std::function<bool(grid &, quadrant_t &, type_t &, context_t &)> limit_t;
+    typedef std::function<bool(grid &, quadrant_t &, grid::type_t &, context_t &)> limit_t;
     
     quadrant_t getQuadrant(float x, float z) {
         int nx = floor(x + x_offset);
@@ -48,7 +48,7 @@ public:
         return spatial::position({ nx, y, nz });
     }
     
-    void setQuadrant(quadrant_t q, type_t instance) {
+    void setQuadrant(quadrant_t q, grid::type_t instance) {
         if(data.size() <= q.second) {
             data.resize(q.second + 1);
         }
@@ -59,14 +59,14 @@ public:
         types[instance.id].factory(*this, q);
     }
     
-    type_t &inQuadrant(quadrant_t q) {
+    grid::type_t &inQuadrant(quadrant_t q) {
         if(data.size() > q.second && data[q.second].size() > q.first && q.second && q.first) {
             return data[q.second][q.first];
         }
         return type_empty_t;
     }
     
-    type_t &peekLeft(quadrant_t q, int group = -1) {
+    grid::type_t &peekLeft(quadrant_t q, int group = -1) {
         auto &result = inQuadrant({ q.first - 1, q.second });
         if(group != -1 && result.group != group) {
             return type_empty_t;
@@ -74,7 +74,7 @@ public:
         return result;
     }
 
-    type_t &peekRight(quadrant_t q, int group = -1) {
+    grid::type_t &peekRight(quadrant_t q, int group = -1) {
         auto &result = inQuadrant({ q.first + 1, q.second });
         if(group != -1 && result.group != group) {
             return type_empty_t;
@@ -82,7 +82,7 @@ public:
         return result;
    }
 
-    type_t &peekBehind(quadrant_t q, int group = -1) {
+    grid::type_t &peekBehind(quadrant_t q, int group = -1) {
         auto &result = inQuadrant({ q.first, q.second - 1 });
         if(group != -1 && result.group != group) {
             return type_empty_t;
@@ -90,7 +90,7 @@ public:
         return result;
     }
     
-    type_t &peekForward(quadrant_t q, int group = -1) {
+    grid::type_t &peekForward(quadrant_t q, int group = -1) {
         auto &result = inQuadrant({ q.first, q.second + 1 });
         if(group != -1 && result.group != group) {
             return type_empty_t;
@@ -98,31 +98,31 @@ public:
         return result;
     }
 
-    type_t &addType(int g, callback_t c) {
+    grid::type_t &addType(int g, callback_t c) {
         if(types.size() == 0) {
             types.resize(1);
         }
-        types.push_back({types.size(), g, c});
+        types.push_back({(identifier_t)types.size(), g, c});
         identifier_t added = types.size()-1;
         groups[g].push_back(types[added]);
         return types[added];
     }
 
-    type_t &addType(int g, callback_t c, limit_t limit) {
+    grid::type_t &addType(int g, callback_t c, limit_t limit) {
         auto &added = addType(g, c);
         limits[added.id] = limit;
         return added;
     }
 
-    void addLeftConstraint(type_t adding, type_t required) {
+    void addLeftConstraint(grid::type_t adding, grid::type_t required) {
         left[required.id].push_back(adding.id);
         right[adding.id].push_back(required.id);
     }
-    void addRightConstraint(type_t adding, type_t required) {
+    void addRightConstraint(grid::type_t adding, grid::type_t required) {
         right[required.id].push_back(adding.id);
         left[adding.id].push_back(required.id);
     }
-    void addBehindConstraint(type_t adding, type_t required) {
+    void addBehindConstraint(grid::type_t adding, grid::type_t required) {
         behind[required.id].push_back(adding.id);
         ahead[adding.id].push_back(required.id);
     }
@@ -177,7 +177,7 @@ public:
             peekRight(q)
         };
         
-        for(type_t i: groups[group]) {
+        for(grid::type_t i: groups[group]) {
             if(limits.find(i.id) != limits.end() && limits[i.id](*this, q, i, context) == false) {
                 continue;
             }
@@ -208,11 +208,11 @@ public:
 protected:
     std::map<identifier_t, limit_t> limits;
 
-    std::vector<type_t> types;
+    std::vector<grid::type_t> types;
     
-    std::map<int, std::vector<type_t>> groups;
+    std::map<int, std::vector<grid::type_t>> groups;
     
-    std::vector<std::vector<type_t>> data;
+    std::vector<std::vector<grid::type_t>> data;
 
     std::map<identifier_t, std::vector<identifier_t>> left;
     std::map<identifier_t, std::vector<identifier_t>> right;
