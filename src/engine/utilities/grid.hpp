@@ -24,8 +24,13 @@ public:
         type_t left;
         type_t right;
     };
+   
+    struct {
+        std::map<int, int> created_groups;
+        std::map<identifier_t, int> last_seen;
+    } stats;
     
-    typedef std::function<bool(grid &, quadrant_t &, identifier_t &, context_t &)> limit_t;
+    typedef std::function<bool(grid &, quadrant_t &, type_t &, context_t &)> limit_t;
     
     quadrant_t getQuadrant(float x, float z) {
         int nx = floor(x + x_offset);
@@ -99,7 +104,7 @@ public:
         }
         types.push_back({types.size(), g, c});
         identifier_t added = types.size()-1;
-        groups[g].push_back(added);
+        groups[g].push_back(types[added]);
         return types[added];
     }
 
@@ -144,50 +149,39 @@ public:
     
     void generateRow(int y) {
         for(; watermark<=y; watermark++) {
-            for(int x=0; x<width; x++) {
-                quadrant_t q({x, watermark});
-                if(inQuadrant(q).id) {
-                    continue;
+            stats.created_groups.clear();
+            for(auto group: groups) {
+                for(int x=0; x<width; x++) {
+                    quadrant_t q({x, watermark});
+                    if(inQuadrant(q).id) {
+                        continue;
+                    }
+                    if(generateQuadrant(q, group.first)) {
+                        stats.created_groups[group.first] += 1;
+                    }
                 }
-                auto i = peekBehind(q);
-                if(i.id && behind.size() && behind[i.id].size()) {
-                    generateQuadrant(q);
-                }
-            }
-            for(int x=0; x<width; x++) {
-                quadrant_t q({x, watermark});
-                if(inQuadrant(q).id) {
-                    continue;
-                }
-                generateQuadrant(q);
             }
         }
     }
     
-    bool generateQuadrant(quadrant_t q) {
-        
+    bool generateQuadrant(quadrant_t q, int group) {
         if(q.first < 0 || q.first >= width) {
             return false;
         }
     
         std::vector<identifier_t> candidates;
         
-        for(auto g: groups) {
-            context_t context = {
-                peekBehind(q, g.first),
-                peekLeft(q, g.first),
-                peekRight(q, g.first)
-            };
-
-            for(identifier_t i: g.second) {
-                if(limits.find(i) != limits.end() && limits[i](*this, q, i, context) == false) {
-                    continue;
-                }
-                candidates.push_back(i);
+        context_t context = {
+            peekBehind(q),
+            peekLeft(q),
+            peekRight(q)
+        };
+        
+        for(type_t i: groups[group]) {
+            if(limits.find(i.id) != limits.end() && limits[i.id](*this, q, i, context) == false) {
+                continue;
             }
-            if(candidates.size() > 0) {
-                break;
-            }
+            candidates.push_back(i.id);
         }
         if(candidates.size() == 0) {
             return false;
@@ -199,11 +193,13 @@ public:
         auto added = types[candidates[selection]];
         setQuadrant(q, added);
         
+        stats.last_seen[added.id] = q.second;
+        
         if(peekLeft(q).id == 0 && right.find(added.id) != right.end()) {
-            generateQuadrant({ q.first - 1, q.second });
+            generateQuadrant({ q.first - 1, q.second }, group);
         }
         if(peekRight(q).id == 0 && left.find(added.id) != left.end()) {
-            generateQuadrant({ q.first + 1, q.second });
+            generateQuadrant({ q.first + 1, q.second }, group);
         }
 
         return true;
@@ -214,7 +210,7 @@ protected:
 
     std::vector<type_t> types;
     
-    std::map<int, std::vector<identifier_t>> groups;
+    std::map<int, std::vector<type_t>> groups;
     
     std::vector<std::vector<type_t>> data;
 
