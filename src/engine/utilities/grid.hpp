@@ -210,7 +210,7 @@ protected:
 
     std::vector<grid::type_t> types;
     
-    std::map<int, std::vector<grid::type_t>> groups;
+    std::map<identifier_t, std::vector<grid::type_t>> groups;
     
     std::vector<std::vector<grid::type_t>> data;
 
