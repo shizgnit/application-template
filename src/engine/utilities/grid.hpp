@@ -2,11 +2,12 @@
 
 class grid {
 public:
-    void define(int w, int x, int y, int l) {
+    void define(int w, int x, int y, int l, int m) {
         width = w;
         x_offset = x;
         y_offset = y;
         watermark = l;
+        margin = m;
     }
     
     typedef unsigned long identifier_t;
@@ -32,6 +33,10 @@ public:
     
     typedef std::function<bool(grid &, quadrant_t &, grid::type_t &, context_t &)> limit_t;
     
+    int getWidth() {
+        return width;
+    }
+
     quadrant_t getQuadrant(float x, float z) {
         int nx = floor(x + x_offset);
         int nz = floor(z + y_offset);
@@ -151,7 +156,7 @@ public:
         for(; watermark<=y; watermark++) {
             stats.created_groups.clear();
             for(auto group: groups) {
-                for(int x=0; x<width; x++) {
+                for(int x=margin; x<(width - margin); x++) {
                     quadrant_t q({x, watermark});
                     if(inQuadrant(q).id) {
                         continue;
@@ -225,5 +230,6 @@ protected:
     int y_offset = 0;
     
     int watermark = 0;
+    int margin = 0;
 };
 
