@@ -306,6 +306,7 @@ namespace type {
         }
 
         void release(key_t id) {
+            // TODO: This doesn't decrement the size... and it will leave gaps in the render context
             if (instances.find(id) == instances.end()) {
                 return;
             }
