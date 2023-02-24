@@ -186,11 +186,20 @@ namespace type {
                 (properties&)*this = p;
             }
 
+            void reference(size_t i) {
+                index = i;
+                v_identifier = &parent->identifiers.content[i];
+                v_flag = &parent->flags.content[i];
+                v_position = &parent->positions.content[i];
+            }
+
             operator spatial::matrix () {
-                return position.scale();
+                return position.serialize();
             }
 
             key_t id = 0;
+
+            size_t index = 0;
 
             unsigned int flags = 0;
             int frame = 0;
@@ -207,9 +216,13 @@ namespace type {
             }
 
             type::entity* parent = NULL;
+
+            unsigned int* v_identifier = NULL;
+            unsigned int* v_flag = NULL;
+            spatial::matrix* v_position = NULL;
         };
 
-        std::list<key_t> available;
+        std::list<std::pair<key_t, size_t>> available;
 
         std::map<key_t, instance> instances;
 
@@ -231,73 +244,73 @@ namespace type {
         
         bool grouped = false;
 
-        int size = 0;
-        int capacity = 1024;
+        size_t size = 0;
+        size_t capacity = 0;
+        size_t growth = 1024;
         
         type::info::opaque_t *resource = nullptr;
 
         bool compile() {
-            // No need to compile if there aren't any instances
-            auto allocation = instances.size();
-            if(allocation == 0 && size == 0) {
-                return false;
-            }
-            
-            // Determine if the contents resized and/or need reallocation
-            bool resized = allocation != size;
-            size = allocation;
-
-            bool reallocate = allocation > capacity;
-            if(reallocate) {
-                capacity = allocation;
-            }
-                                    
-            // Gather all the data for a compilation pass
-            identifiers.content.clear();
-            identifiers.content.reserve(size);
-            flags.content.clear();
-            flags.content.reserve(size);
-            positions.content.clear();
-            positions.content.reserve(size);
-            for (auto& entry : instances) {
+           for (auto& entry : instances) {
                 if (entry.second.has("grouping")) {
                     entry.second.flags |= type::entity::GROUPED;
                 }
                 else {
                     entry.second.flags &= UINT_MAX ^ type::entity::GROUPED;
                 }
-                identifiers.content.push_back(entry.second.id);
-                flags.content.push_back(entry.second.flags);
-                positions.content.push_back(entry.second.position.scale());
+                identifiers.content[entry.second.index] = entry.second.id;
+                flags.content[entry.second.index] = entry.second.flags;
+                positions.content[entry.second.index] = entry.second.position.serialize();
             }
             
-            // If reallocation isn't required and already compiled, okay to leave it compiled
-            return reallocate || (compiled() == false);
+            return true;
         }
 
         instance & add(properties& props=properties::empty(), int count = 1) {
-            allocate(props, instances.size() + count);
+            allocate(props, count);
+            size = instances.size();
             return getInstance(last);
         }
 
         bool allocate(properties& props, int count) {
             static unsigned int increment = 0;
-            int current = available.size() + instances.size();
-            for (int i = 0; i < count - current; i++) {
-                available.push_back(++increment);
+            if (count > available.size()) {
+				size_t size = available.size() + instances.size();
+				size_t needed = count - available.size();
+				size_t allocation = 0;
+				while((size + needed) > capacity) {
+					allocation += growth;
+					capacity += growth;
+				}
+				if (allocation) {
+					identifiers.content.clear();
+					identifiers.content.resize(capacity);
+					flags.content.clear();
+					flags.content.resize(capacity);
+					positions.content.clear();
+					positions.content.resize(capacity);
+				}
+				for (int i = 0; i < allocation; i++) {
+					available.push_back({ ++increment, capacity - allocation + i });
+				}
             }
-            while (instances.size() < count) {
-                last = *available.begin();
+            while (count) {
+                last = available.begin()->first;
                 instances[last].define(last, this, props);
+                instances[last].reference(available.begin()->second);
                 catalog::singleton().add(last, this, props);
                 available.pop_front();
+                count -= 1;
             }
             return true;
         }
 
         void release(key_t id) {
+            if (instances.find(id) == instances.end()) {
+                return;
+            }
+            available.push_back({ id, instances[id].index });
             instances.erase(id);
-            available.push_back(id);
             catalog::singleton().remove(id); // TODO: this should include the group the id belongs to
         }
 

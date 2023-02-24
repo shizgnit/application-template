@@ -885,10 +885,12 @@ spatial::matrix spatial::position::scale(type_t value) {
 }
 
 spatial::matrix& spatial::position::serialize() {
-    state.identity();
-    state.translate(eye, focus, up);
-    state *= spatial::matrix().scale(translation.scale);
-    dirty = false;
+    if (dirty) {
+		state.identity();
+		state.translate(eye, focus, up);
+		state *= spatial::matrix().scale(translation.scale);
+		dirty = false;
+	}
     return state;
 }
 

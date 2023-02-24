@@ -356,13 +356,14 @@ namespace spatial {
         bool modified() {
             return dirty;
         }
+
+        spatial::matrix& serialize();
         
     protected:
         bool view = false;
         bool dirty = true;
         
         spatial::matrix state;
-        spatial::matrix& serialize();
         
         position& rotate();
         
