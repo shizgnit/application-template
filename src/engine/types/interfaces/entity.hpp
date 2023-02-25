@@ -246,12 +246,12 @@ namespace type {
 
         size_t size = 0;
         size_t capacity = 0;
-        size_t growth = 1024;
+        size_t growth = 256;
         
         type::info::opaque_t *resource = nullptr;
 
         bool compile() {
-           for (auto& entry : instances) {
+            for (auto& entry : instances) {
                 if (entry.second.has("grouping")) {
                     entry.second.flags |= type::entity::GROUPED;
                 }
@@ -262,8 +262,7 @@ namespace type {
                 flags.content[entry.second.index] = entry.second.flags;
                 positions.content[entry.second.index] = entry.second.position.serialize();
             }
-            
-            return true;
+            return compiled() == false;
         }
 
         instance & add(properties& props=properties::empty(), int count = 1) {
@@ -289,10 +288,11 @@ namespace type {
 					flags.content.resize(capacity);
 					positions.content.clear();
 					positions.content.resize(capacity);
-				}
-				for (int i = 0; i < allocation; i++) {
-					available.push_back({ ++increment, capacity - allocation + i });
-				}
+	                for (int i = 0; i < allocation; i++) {
+                        available.push_back({ ++increment, capacity - allocation + i });
+                    }
+                    compiled(false);
+                }
             }
             while (count) {
                 last = available.begin()->first;

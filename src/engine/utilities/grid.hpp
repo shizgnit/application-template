@@ -41,15 +41,15 @@ public:
         int nx = floor(x + x_offset);
         int nz = floor(z + y_offset);
         
-        float tx = (nx % 2 ? nx + 1: nx + 2) / 2;
-        float tz = (nz % 2 ? nz + 1: nz + 2) / 2;
+        float tx = (nx % 2 ? nx + 1: nx + 2) / 2.0f;
+        float tz = (nz % 2 ? nz + 1: nz + 2) / 2.0f;
         
         return { tx, tz * -1 };
     }
     
     spatial::position getQuadrantPosition(quadrant_t q, float y=0.0) {
-        float nx = (q.first * 2) - 1 - x_offset;
-        float nz = (q.second * -2) - 1 - y_offset;
+        float nx = (q.first * 2.0f) - 1 - x_offset;
+        float nz = (q.second * -2.0f) - 1 - y_offset;
         return spatial::position({ nx, y, nz });
     }
     
@@ -192,8 +192,8 @@ public:
             return false;
         }
         
-        int selection = candidates.size() * ((utilities::perlin(q.first, q.second) * 0.5) + 0.5);
-        //int selection = rand() % candidates.size();
+        //int selection = candidates.size() * ((utilities::perlin(q.first, q.second) * 0.5) + 0.5);
+        int selection = rand() % candidates.size();
         
         auto added = types[candidates[selection]];
         setQuadrant(q, added);

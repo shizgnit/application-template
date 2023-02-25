@@ -513,7 +513,7 @@ bool implementation::opengl::graphics::compile(type::object& object) {
         }
 
         if(entity.compile()) {
-            //entity.resource->vao.clear();
+            entity.resource->vao.clear();
         }
         
         if(entity.resource->vao.find(shader) != entity.resource->vao.end()) {
