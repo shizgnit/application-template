@@ -1,5 +1,7 @@
 #pragma once
 
+namespace stage {
+
 /// <summary>
 /// Organizes the resources, interface and actions that are currently active
 /// as well as transations between them.
@@ -57,16 +59,8 @@ public:
         bool read();
     };
 
-
-    static platform::interface::textbox& debug() {
-        static platform::interface::textbox instance;
-        return instance;
-    }
-
-    static platform::interface::progress& progress() {
-        static platform::interface::progress instance;
-        return instance;
-    }
+    platform::interface::textbox debug;
+    platform::interface::progress progress;
 
     inline static scene& global() {
         static scene instance;
@@ -155,3 +149,5 @@ private:
     value_t _save(parameters_t p);
     value_t _exit(parameters_t p);
 };
+
+}

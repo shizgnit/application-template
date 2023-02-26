@@ -252,3 +252,6 @@ inline platform::interface* gui = new implementation::universal::interface();
 #include "utilities/scene.hpp"
 #include "utilities/grid.hpp"
 
+#include "utilities/test.hpp"
+
+inline stage::scene* scene = &stage::scene::global();

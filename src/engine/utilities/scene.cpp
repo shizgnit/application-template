@@ -111,7 +111,7 @@ bool parse(const std::string& data) {
         if (entity.second.contains("properties")) {
             parseProperties(entity.second.get("properties"), reference);
         }
-        scene::global().call("/load entity " + entity.first);
+        stage::scene::global().call("/load entity " + entity.first);
         
         if (entity.second.contains("instances") == false || entity.second.get("instances").get<picojson::array>().size() == 0) {
             properties props;
@@ -142,29 +142,29 @@ bool parse(const std::string& data) {
             }
         }
         if (reference.instances.size()) {
-            scene::global().call("/play " + entity.first + " static");
+            stage::scene::global().call("/play " + entity.first + " static");
         }
 
         percentage += increment;
-        scene::global().progress().value.set(percentage);
+        stage::scene::global().progress.value.set(percentage);
     }
 
     for (auto& group : groups) {
         parseProperties(group.second, catalog.getGroup(group.first));
         percentage += increment;
-        scene::global().progress().value.set(percentage);
+        stage::scene::global().progress.value.set(percentage);
     }
 
     return true;
 }
 
 
-scene::persistence::persistence() {
+stage::scene::persistence::persistence() {
     _file = "/Users/codeneko/Downloads/map.json";
     //_file = filesystem->join({ filesystem->appdata(), "democo", "map.json" });
 }
 
-bool scene::persistence::write() {
+bool stage::scene::persistence::write() {
     auto path = filesystem->dirname(_file);
     if (path.empty()) {
         return false;
@@ -238,7 +238,7 @@ bool scene::persistence::write() {
     return false;
 }
 
-bool scene::persistence::read() {
+bool stage::scene::persistence::read() {
     std::stringstream buffer;
     if (filesystem->exists(_file)) {
         std::ifstream stream(_file);
@@ -258,17 +258,17 @@ bool scene::persistence::read() {
 }
 
 
-void scene::add(std::string name, handler* instance) {
+void stage::scene::add(std::string name, handler* instance) {
     std::lock_guard<std::mutex> scoped(lock);
     scenes[name] = instance;
 }
 
-bool scene::load(std::string name) {
+bool stage::scene::load(std::string name) {
     scenes[name]->loaded = scenes[name]->load();
     return scenes[name]->loaded;
 }
 
-bool scene::toggle(std::string name) {
+bool stage::scene::toggle(std::string name) {
     bool isactive = false;
     {
         std::lock_guard<std::mutex> scoped(lock);
@@ -285,7 +285,7 @@ bool scene::toggle(std::string name) {
     }
 }
 
-bool scene::isactive(std::string name) {
+bool stage::scene::isactive(std::string name) {
     std::lock_guard<std::mutex> scoped(lock);
     if (name.empty() || scenes.find(name) == scenes.end()) {
         return false;
@@ -293,7 +293,7 @@ bool scene::isactive(std::string name) {
     return (active.find(name) != active.end());
 }
 
-bool scene::activate(std::string name) {
+bool stage::scene::activate(std::string name) {
     std::lock_guard<std::mutex> scoped(lock);
     if (name.empty() || scenes.find(name) == scenes.end()) {
         return false;
@@ -306,7 +306,7 @@ bool scene::activate(std::string name) {
     return true;
 }
 
-bool scene::deactivate(std::string name) {
+bool stage::scene::deactivate(std::string name) {
     std::lock_guard<std::mutex> scoped(lock);
     if (name.empty() || active.find(name) == active.end()) {
         return false;
@@ -317,7 +317,7 @@ bool scene::deactivate(std::string name) {
     return true;
 }
 
-bool scene::transition(std::string from, std::string to) {
+bool stage::scene::transition(std::string from, std::string to) {
     transitions.clear();
     if (to.empty() || scenes.find(to) == scenes.end()) {
         return false;
@@ -332,14 +332,14 @@ bool scene::transition(std::string from, std::string to) {
     return true;
 }
 
-void scene::draw() {
+void stage::scene::draw() {
     auto list = active;
     for (auto scene : list) {
         scene.second->draw();
     }
 }
 
-void scene::run() {
+void stage::scene::run() {
     if (transitions.size()) {
         transition(transitions.front().first, transitions.front().second);
     }
@@ -349,7 +349,7 @@ void scene::run() {
     }
 }
 
-std::map<std::string, scene::handler*> scene::current() {
+std::map<std::string, stage::scene::handler*> stage::scene::current() {
     return active;
 }
 
@@ -357,47 +357,47 @@ std::map<std::string, scene::handler*> scene::current() {
 /// Event propagation to the active scenes
 /// </summary>
 
-void scene::freelook_start(const platform::input::event& ev) {
+void stage::scene::freelook_start(const platform::input::event& ev) {
     for (auto scene : active) {
         scene.second->freelook_start(ev);
     }
 }
-void scene::freelook_move(const platform::input::event& ev) {
+void stage::scene::freelook_move(const platform::input::event& ev) {
     for (auto scene : active) {
         scene.second->freelook_move(ev);
     }
 }
-void scene::freelook_zoom(const platform::input::event& ev) {
+void stage::scene::freelook_zoom(const platform::input::event& ev) {
     for (auto scene : active) {
         scene.second->freelook_zoom(ev);
     }
 }
-void scene::mouse_click(const platform::input::event& ev) {
+void stage::scene::mouse_click(const platform::input::event& ev) {
     for (auto scene : active) {
         scene.second->mouse_click(ev);
     }
 }
-void scene::mouse_move(const platform::input::event& ev) {
+void stage::scene::mouse_move(const platform::input::event& ev) {
     for (auto scene : active) {
         scene.second->mouse_move(ev);
     }
 }
-void scene::mouse_drag(const platform::input::event& ev) {
+void stage::scene::mouse_drag(const platform::input::event& ev) {
     for (auto scene : active) {
         scene.second->mouse_drag(ev);
     }
 }
-void scene::mouse_release(const platform::input::event& ev) {
+void stage::scene::mouse_release(const platform::input::event& ev) {
     for (auto scene : active) {
         scene.second->mouse_release(ev);
     }
 }
-void scene::mouse_scroll(const platform::input::event& ev) {
+void stage::scene::mouse_scroll(const platform::input::event& ev) {
     for (auto scene : active) {
         scene.second->mouse_scroll(ev);
     }
 }
-void scene::keyboard_input(const platform::input::event& ev) {
+void stage::scene::keyboard_input(const platform::input::event& ev) {
     if (ev.gesture == platform::input::UP && ev.identifier == 192) {
         toggle("debug");
     }
@@ -405,20 +405,20 @@ void scene::keyboard_input(const platform::input::event& ev) {
         scene.second->keyboard_input(ev);
     }
 }
-void scene::gamepad_input(const platform::input::event& ev) {
+void stage::scene::gamepad_input(const platform::input::event& ev) {
     for (auto scene : active) {
         scene.second->gamepad_input(ev);
     }
 }
 
-void scene::dimensions(int width, int height) {
+void stage::scene::dimensions(int width, int height) {
     std::lock_guard<std::mutex> scoped(lock);
     for (auto scene : current()) {
         scene.second->dimensions(width, height);
     }
 }
 
-value_t scene::call(const std::string& input) {
+value_t stage::scene::call(const std::string& input) {
     auto tokens = utilities::tokenize(input, " ");
     if (tokens.empty() || commands.find(tokens[0]) == commands.end()) {
         std::vector<std::string> list;
@@ -427,7 +427,7 @@ value_t scene::call(const std::string& input) {
         }
         std::stringstream ss;
         ss << "commands: " << utilities::join(", ", list);
-        scene::debug().content.add(ss.str());
+        stage::scene::global().debug.content.add(ss.str());
         return 0;
     }
     parameters_t params;
@@ -517,12 +517,12 @@ value_t scene::call(const std::string& input) {
         auto& v = std::get<spatial::vector>(result);
         ss << "(" << v.x << "," << v.y << "," << v.z << "," << v.w << ")";
     }
-    scene::debug().content.add(ss.str());
+    stage::scene::global().debug.content.add(ss.str());
 
     return result;
 }
 
-value_t scene::set(label_t label, value_t value) {
+value_t stage::scene::set(label_t label, value_t value) {
     properties::set(label, value);
     if (events.find(label) != events.end()) {
         events[label](parameters_t()); // TODO: actually pass in the value
@@ -530,9 +530,9 @@ value_t scene::set(label_t label, value_t value) {
     return value;
 }
 
-value_t scene::_group(parameters_t p) {
+value_t stage::scene::_group(parameters_t p) {
     if (p.size() < 2) {
-        scene::debug().content.add(commands["group"].first);
+        stage::scene::global().debug.content.add(commands["group"].first);
         return 0;
     }
     std::lock_guard<std::mutex> scoped(lock);
@@ -552,17 +552,17 @@ value_t scene::_group(parameters_t p) {
     return p[1];
 }
 
-value_t scene::_get(parameters_t p) {
+value_t stage::scene::_get(parameters_t p) {
     if (p.size() < 1) {
-        scene::debug().content.add(commands["get"].first);
+        stage::scene::global().debug.content.add(commands["get"].first);
         return 0;
     }
     return properties::get(std::get<label_t>(p[0]));
 }
 
-value_t scene::_set(parameters_t p) {
+value_t stage::scene::_set(parameters_t p) {
     if (p.size() < 2) {
-        scene::debug().content.add(commands["set"].first);
+        stage::scene::global().debug.content.add(commands["set"].first);
         return 0;
     }
     if (p.size() == 2) {
@@ -581,7 +581,7 @@ value_t scene::_set(parameters_t p) {
     return p[1];
 }
 
-value_t scene::_load(parameters_t p) {
+value_t stage::scene::_load(parameters_t p) {
     if (p.size() == 2) {
         assets->load(std::get<std::string>(p[0]), std::get<std::string>(p[1]));
     }
@@ -589,20 +589,20 @@ value_t scene::_load(parameters_t p) {
         assets->load(std::get<std::string>(p[0]), std::get<std::string>(p[1]), std::get<std::string>(p[2]));
     }
     while (assets->events()) {
-        scene::debug().content.add(assets->event());
+        stage::scene::global().debug.content.add(assets->event());
     }
     return 0;
 }
 
-value_t scene::_compile(parameters_t p) {
+value_t stage::scene::_compile(parameters_t p) {
     graphics->compile(assets);
     while (graphics->events()) {
-        scene::debug().content.add(graphics->event());
+        stage::scene::global().debug.content.add(graphics->event());
     }
     return 0;
 }
 
-value_t scene::_play(parameters_t p) {
+value_t stage::scene::_play(parameters_t p) {
     if (p.size() == 2) {
         auto name = std::get<label_t>(p[0]);
         auto animation = std::get<label_t>(p[1]);
@@ -612,13 +612,13 @@ value_t scene::_play(parameters_t p) {
     return 0;
 }
 
-value_t scene::_create(parameters_t p) {
+value_t stage::scene::_create(parameters_t p) {
     return 0;
 }
 
-value_t scene::_show(parameters_t p) {
+value_t stage::scene::_show(parameters_t p) {
     if (p.size() == 0) {
-        scene::debug().content.add("/show [commands|variables|assets|loaded|entities]");
+        stage::scene::global().debug.content.add("/show [commands|variables|assets|loaded|entities]");
         return 0;
     }
 
@@ -627,14 +627,14 @@ value_t scene::_show(parameters_t p) {
         for (auto entry : assets->get<type::object>()) {
             std::stringstream ss;
             ss << "objects(" << entry->id() << ")";
-            scene::debug().content.add(ss.str());
+            stage::scene::global().debug.content.add(ss.str());
         }
     }
     if (type == "entities") {
         for (auto entry : assets->get<type::entity>()) {
             std::stringstream ss;
             ss << "entity(" << entry->id() << ")";
-            scene::debug().content.add(ss.str());
+            stage::scene::global().debug.content.add(ss.str());
         }
     }
     if (type == "variables") {
@@ -653,30 +653,30 @@ value_t scene::_show(parameters_t p) {
                 auto v = std::get<spatial::vector>(variable.second);
                 ss << variable.first << ": (" << v.x << "," << v.y << "," << v.z << "," << v.w << ")";
             }
-            scene::debug().content.add(ss.str());
+            stage::scene::global().debug.content.add(ss.str());
         }
     }
     if (type == "commands") {
         for (auto command : commands) {
-            scene::debug().content.add(command.second.first);
+            stage::scene::global().debug.content.add(command.second.first);
         }
     }
     if (type == "assets") {
         if (p.size() == 2) {
             auto path = std::get<std::string>(p[1]);
             for (auto asset : assets->list(path)) {
-                scene::debug().content.add(asset);
+                stage::scene::global().debug.content.add(asset);
             }
         }
         else {
-            scene::debug().content.add("/show assets [path]");
+            stage::scene::global().debug.content.add("/show assets [path]");
         }
     }
 
     return 0;
 }
 
-value_t scene::_save(parameters_t p) {
+value_t stage::scene::_save(parameters_t p) {
     auto list = active;
     for (auto scene : list) {
         scene.second->save();
@@ -684,7 +684,7 @@ value_t scene::_save(parameters_t p) {
     return 0;
 }
 
-value_t scene::_exit(parameters_t p) {
-    scene::debug().content.add("goodbye");
+value_t stage::scene::_exit(parameters_t p) {
+    stage::scene::global().debug.content.add("goodbye");
     ::exit(0);
 }
