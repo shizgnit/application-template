@@ -43,6 +43,9 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)utilities\properties.cpp">
       <Filter>utilities</Filter>
     </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)utilities\test.cpp">
+      <Filter>utilities</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\deps\lodepng\lodepng.h">
@@ -185,6 +188,9 @@
       <Filter>utilities</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)utilities\properties.hpp">
+      <Filter>utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)utilities\test.hpp">
       <Filter>utilities</Filter>
     </ClInclude>
   </ItemGroup>

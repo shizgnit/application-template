@@ -61,6 +61,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)utilities\properties.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)utilities\scene.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)utilities\spatial.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)utilities\test.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)utilities\type_cast.hpp" />
   </ItemGroup>
   <ItemGroup>
@@ -78,5 +79,6 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)utilities\properties.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)utilities\scene.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)utilities\spatial.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)utilities\test.cpp" />
   </ItemGroup>
 </Project>

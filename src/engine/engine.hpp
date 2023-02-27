@@ -250,8 +250,9 @@ inline platform::interface* gui = new implementation::universal::interface();
 #include "types/formats/metal.hpp"
 
 #include "utilities/scene.hpp"
+inline stage::scene* scene = &stage::scene::global();
 #include "utilities/grid.hpp"
 
 #include "utilities/test.hpp"
+inline utilities::test* tests = &utilities::test::singleton();
 
-inline stage::scene* scene = &stage::scene::global();
