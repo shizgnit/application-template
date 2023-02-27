@@ -16,8 +16,11 @@ namespace utilities {
             return ++count;
         }
 
-        void run() {
+        void run(std::string subset="") {
             for (auto group : callbacks) {
+                if (subset.empty() == false && group.first != subset) {
+                    continue;
+                }
                 for (auto test : callbacks[group.first]) {
                     try {
                         test.second();
