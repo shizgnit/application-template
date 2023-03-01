@@ -689,20 +689,27 @@ value_t stage::scene::_exit(parameters_t p) {
     ::exit(0);
 }
 
+void _output_test_results(std::string entry, std::pair<bool, std::string> results) {
+    if (results.first) {
+        stage::scene::global().debug.content.add("[ PASSED ] " + entry); 
+    }
+    else {
+        stage::scene::global().debug.content.add("[ FAILED ] " + entry);
+        stage::scene::global().debug.content.add("... " + results.second);
+    }
+}
+
 value_t stage::scene::_test(parameters_t p) {
     if (p.size() >= 1) {
         auto command = std::get<std::string>(p[0]);
         if (command == "run") {
             stage::scene::global().debug.content.add("running test");
-            for (auto entry : tests->list()) {
-                auto results = tests->run(entry);
-                if (results.first) {
-                    stage::scene::global().debug.content.add("[ PASSED ] " + entry); 
-                }
-                else {
-                    stage::scene::global().debug.content.add("[ FAILED ] " + entry);
-                    stage::scene::global().debug.content.add("... " + results.second);
-                }
+            if (p.size() == 2) {
+                auto entry = std::get<std::string>(p[1]);
+                _output_test_results(entry, tests->run(entry));
+            }
+            else for (auto entry : tests->list()) {
+                _output_test_results(entry, tests->run(entry));
             }
         }
         if (command == "list") {
