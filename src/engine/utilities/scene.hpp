@@ -135,6 +135,7 @@ private:
         { "/show",    { "/show <type>", [](parameters_t p)->value_t { return scene::global()._show(p); } } },
         { "/save",    { "/save", [](parameters_t p)->value_t { return scene::global()._save(p); } } },
         { "/exit",    { "/exit", [](parameters_t p)->value_t { return scene::global()._exit(p); } } },
+        { "/test",    { "/test <command> [group]", [](parameters_t p)->value_t { return scene::global()._test(p); } } },
     };
     std::map<int, callback_t> keybinds;
 
@@ -148,6 +149,7 @@ private:
     value_t _show(parameters_t p);
     value_t _save(parameters_t p);
     value_t _exit(parameters_t p);
+    value_t _test(parameters_t p);
 };
 
 }

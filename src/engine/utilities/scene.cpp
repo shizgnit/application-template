@@ -688,3 +688,32 @@ value_t stage::scene::_exit(parameters_t p) {
     stage::scene::global().debug.content.add("goodbye");
     ::exit(0);
 }
+
+value_t stage::scene::_test(parameters_t p) {
+    if (p.size() >= 1) {
+        auto command = std::get<std::string>(p[0]);
+        if (command == "run") {
+            stage::scene::global().debug.content.add("running test");
+            for (auto entry : tests->list()) {
+                auto results = tests->run(entry);
+                if (results.first) {
+                    stage::scene::global().debug.content.add("[ PASSED ] " + entry); 
+                }
+                else {
+                    stage::scene::global().debug.content.add("[ FAILED ] " + entry);
+                    stage::scene::global().debug.content.add("... " + results.second);
+                }
+            }
+        }
+        if (command == "list") {
+            for (auto entry : tests->list()) {
+                stage::scene::global().debug.content.add("  " + entry);
+            }
+            return (int)tests->list().size();
+        }
+    }
+    else {
+        stage::scene::global().debug.content.add("/test <command> [group]");
+    }
+    return 0;
+}

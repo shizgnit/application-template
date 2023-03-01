@@ -191,7 +191,7 @@ std::vector<std::string> utilities::tokenize(std::string input, std::string deli
         else {
             results.push_back(input.substr(start, end - start));
         }
-        start = end + 1;
+        start = end + delimiter.length();
     }
     results.push_back(input.substr(start, input.length() - start));
 
