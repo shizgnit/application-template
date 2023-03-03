@@ -42,6 +42,8 @@ namespace implementation {
             void emit();
 
             void position();
+            widget* reposition(std::vector<widget*>& c);
+
             void draw();
 
             widget* create(std::vector<widget*>& c);

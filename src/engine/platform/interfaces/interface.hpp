@@ -192,6 +192,8 @@ namespace platform {
         virtual void emit() = 0;
 
         virtual void position() = 0;
+        virtual widget* reposition(std::vector<widget*>& c) = 0;
+
         virtual void draw() = 0;
 
         virtual widget* create(std::vector<widget *> &c) = 0;

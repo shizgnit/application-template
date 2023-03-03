@@ -264,6 +264,30 @@ void implementation::universal::interface::position() {
     }
 }
 
+platform::interface::widget* implementation::universal::interface::reposition(std::vector<widget*>& c) {
+    if (config.spec == interface::widget::spec::none) {
+        return NULL;
+    }
+
+    for (auto w = c.begin(); w != c.end(); w++) {
+        int size = std::distance(c.begin(), w) + 1;
+
+        int target_x = config.x;
+        int target_y = config.y;
+
+        int offset = (config.margin * size) + config.margin;
+        if (config.relativity == interface::widget::positioning::bottom) {
+            target_y += (config.h * size) + offset;
+        }
+        if (config.relativity == interface::widget::positioning::right) {
+            target_x += (config.w * size) + offset;
+        }
+
+        (*w)->position(target_x, target_y);
+    }
+    return c.back();
+}
+
 void implementation::universal::interface::draw() {
     for (auto instance : instances) {
         draw(*instance.second);
