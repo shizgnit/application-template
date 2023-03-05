@@ -136,7 +136,7 @@ namespace utilities {
 
     class text {
     public:
-        text(int entries = 60) {
+        text(int entries = 60) { // TODO: this is so limited because of performance issued
             buffer = entries;
         }
 

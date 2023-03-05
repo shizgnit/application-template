@@ -630,14 +630,14 @@ value_t stage::scene::_show(parameters_t p) {
             stage::scene::global().debug.content.add(ss.str());
         }
     }
-    if (type == "entities") {
+    else if (type == "entities") {
         for (auto entry : assets->get<type::entity>()) {
             std::stringstream ss;
             ss << "entity(" << entry->id() << ")";
             stage::scene::global().debug.content.add(ss.str());
         }
     }
-    if (type == "variables") {
+    else if (type == "variables") {
         for (auto variable : variables) {
             std::stringstream ss;
             if (std::holds_alternative<int>(variable.second)) {
@@ -656,12 +656,12 @@ value_t stage::scene::_show(parameters_t p) {
             stage::scene::global().debug.content.add(ss.str());
         }
     }
-    if (type == "commands") {
+    else if (type == "commands") {
         for (auto command : commands) {
             stage::scene::global().debug.content.add(command.second.first);
         }
     }
-    if (type == "assets") {
+    else if (type == "assets") {
         if (p.size() == 2) {
             auto path = std::get<std::string>(p[1]);
             for (auto asset : assets->list(path)) {
@@ -670,6 +670,12 @@ value_t stage::scene::_show(parameters_t p) {
         }
         else {
             stage::scene::global().debug.content.add("/show assets [path]");
+        }
+    }
+    else {
+        auto list = active;
+        for (auto scene : list) {
+            scene.second->show(type);
         }
     }
 

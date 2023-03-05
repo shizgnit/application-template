@@ -460,7 +460,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             case(RI_MOUSE_WHEEL):
                 //(float)rawinput.data.mouse.usButtonData == 0xFF88 ? 0.1f : -0.1f
                 short travel = rawinput.data.mouse.usButtonData;
-                input->raise({ platform::input::POINTER, platform::input::WHEEL, 3, 0, (float)travel, { 0.0f, 0.0f, 0.0f } });
+                if (gui->raise({ platform::input::POINTER, platform::input::WHEEL, 0, 0, (float)travel, { (float)p.x, (float)p.y, 0.0f } }, p.x, p.y) == false) {
+                    input->raise({ platform::input::POINTER, platform::input::WHEEL, 3, 0, (float)travel, { (float)p.x, (float)p.y, 0.0f } });
+                }
                 break;
             };
         }

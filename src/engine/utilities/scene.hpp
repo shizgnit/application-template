@@ -42,6 +42,8 @@ public:
 
         virtual void dimensions(int width, int height) {}
 
+        virtual void show(label_t label) {}
+
         bool loaded = false;
         bool started = false;
         bool displayed = false;
