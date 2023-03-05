@@ -225,20 +225,22 @@ void implementation::universal::input::emit() {
 }
 
 bool implementation::universal::interface::raise(const input::event& ev, int x, int y) {
-    //spatial::vector relative = { (float)x, (float)(graphics->height() - y), 0.0f };
-    spatial::vector relative = { (float)x, (float)y, 0.0f };
-    spatial::vector position = relative.project(spatial::matrix(), spatial::matrix(), spatial::matrix());
-    spatial::ray ray(position - spatial::vector(0,0,100), position - spatial::vector(0,0,-100));
-
     widget* target = NULL;
-    if (ev.input == input::POINTER && ev.gesture == platform::input::DOWN) {
+    if (ev.input == input::POINTER) {
+        //spatial::vector relative = { (float)x, (float)(graphics->height() - y), 0.0f };
+        spatial::vector relative = { (float)x, (float)y, 0.0f };
+        spatial::vector position = relative.project(spatial::matrix(), spatial::matrix(), spatial::matrix());
+        spatial::ray ray(position - spatial::vector(0,0,100), position - spatial::vector(0,0,-100));
+
         // See if any widgets were selected
         for (auto instance : instances) {
             if (instance.second->enabled && instance.second->visible && ray.intersects(instance.second->bounds)) {
                 target = instance.second;
             }
         }
-        select(target);
+        if(ev.gesture == platform::input::DOWN) {
+            select(target);
+        }
         // Pass along the events
         if (target) {
             target->events.raise(ev);

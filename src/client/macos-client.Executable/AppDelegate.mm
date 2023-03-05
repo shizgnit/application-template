@@ -107,5 +107,12 @@
         input->raise({ platform::input::POINTER, platform::input::UP, 1, 0, 0.0f, { point.x, point.y, 0.0f } });
     }
 }
+- (void) scrollWheel:(NSEvent *)event {
+    NSPoint point = [event locationInWindow];
+    CGFloat travel = [event scrollingDeltaY];
+    if(gui->raise({ platform::input::POINTER, platform::input::WHEEL, 0, 0, (float)travel, { point.x, point.y, 0.0f } }, point.x, point.y) == false) {
+        input->raise({ platform::input::POINTER, platform::input::WHEEL, 0, 0, (float)travel, { point.x, point.y, 0.0f } });
+    }
+}
 
 @end

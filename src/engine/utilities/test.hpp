@@ -66,8 +66,8 @@ namespace utilities {
 
 }
 
-#define EXPECT_TRUE(_condition_) if ((_condition_) != true) { throw std::exception(#_condition_); }
-#define EXPECT_FALSE(_condition_) if ((_condition_) != false) { throw std::exception(#_condition_); }
+#define EXPECT_TRUE(_condition_) if ((_condition_) != true) { throw std::exception(); }
+#define EXPECT_FALSE(_condition_) if ((_condition_) != false) { throw std::exception(); }
 
 #define EXPECT(_condition_) EXPECT_TRUE(_condition_);
 #define EXPECT_STREQ(_left_, _right_) EXPECT_TRUE(std::string(_left_).compare(std::string(_right_)) == 0)

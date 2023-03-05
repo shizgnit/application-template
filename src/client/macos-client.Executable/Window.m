@@ -76,6 +76,10 @@
     [Application mouseUp:event];
 }
 
+- (void)scrollWheel:(NSEvent *)event
+{
+    [Application scrollWheel:event];
+}
 
 @end
 

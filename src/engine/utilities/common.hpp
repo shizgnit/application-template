@@ -184,6 +184,7 @@ namespace utilities {
             else {
                 current->erase(current->size() - count, count);
             }
+            
         }
 
         std::vector<std::string> get() {
@@ -196,7 +197,10 @@ namespace utilities {
                     continue;
                 }
                 contents.push_back(message);
-                if (limit && ++count >= limit) {
+                if (limit && contents.size() >= limit) {
+                    break;
+                }
+                if(offset && ((data.size() - contents.size()) <= offset)) {
                     break;
                 }
             }
@@ -212,7 +216,7 @@ namespace utilities {
             data.clear();
         }
 
-        int position(int amount=0) {
+        int scroll(int amount=0) {
             offset += amount;
 
             if (offset < 0) {
@@ -222,11 +226,13 @@ namespace utilities {
                 offset = data.size() - 1;
             }
 
-            index = (data.size() - 1) - offset;
-
             return offset;
         }
 
+        int position(int amount=0) {
+            index = (data.size() - 1) - scroll(amount);
+            return offset;
+        }
         int buffer;
 
         int index = 0;
