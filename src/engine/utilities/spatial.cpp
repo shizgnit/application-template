@@ -263,8 +263,6 @@ spatial::vector spatial::vector::slerp(const vector& to, const type_t t)
     return result;
 }
 
-
-
 spatial::matrix::matrix() {
     identity();
 }
@@ -561,6 +559,51 @@ spatial::matrix& spatial::matrix::ortho(type_t left, type_t right, type_t bottom
     return *this;
 }
 
+double dot(double v[4]) {
+    int x = 0, y = 1, z = 2, w = 3;
+    return(v[x] * v[x] + v[y] * v[y] + v[z] * v[z]);
+}
+
+double length(double v[4]) {
+    return(sqrt(dot(v)));
+}
+
+void subtract(double *r, double v1[4], double v2[4]) {
+    int x = 0, y = 1, z = 2, w = 3;
+    r[x] = v1[x] - v2[x];
+    r[y] = v1[y] - v2[y];
+    r[z] = v1[z] - v2[z];
+    r[w] = v1[w];
+}
+
+void divide(double *r, double v1[4], double v2) {
+    int x = 0, y = 1, z = 2, w = 3;
+    r[x] = v1[x] / (v2 ? v2 : 1.0f);
+    r[y] = v1[y] / (v2 ? v2 : 1.0f);
+    r[z] = v1[z] / (v2 ? v2 : 1.0f);
+    r[w] = v1[w];
+}
+
+void divide(double *r, double v1[4], double v2[4]) {
+    int x = 0, y = 1, z = 2, w = 3;
+    r[x] = v1[x] / (v2[x] ? v2[x] : 1.0f);
+    r[y] = v1[y] / (v2[y] ? v2[y] : 1.0f);
+    r[z] = v1[z] / (v2[z] ? v2[z] : 1.0f);
+    r[w] = v1[w];
+}
+
+void cross(double* r, double v1[4], double v2[4]) {
+    int x = 0, y = 1, z = 2, w = 3;
+    r[x] = (v1[y] * v2[z]) - (v1[z] * v2[y]);
+    r[y] = (v1[z] * v2[x]) - (v1[x] * v2[z]);
+    r[z] = (v1[x] * v2[y]) - (v1[y] * v2[x]);
+    r[w] = v1[w];
+}
+
+void unit(double* r) {
+    divide(r, r, length(r));
+}
+
 spatial::matrix& spatial::matrix::lookat(const vector& eye, const vector& focus, const vector& up) {
 #if defined _USE_GLM
     glm::vec3 e(eye.x, eye.y, eye.z);
@@ -589,8 +632,63 @@ spatial::matrix& spatial::matrix::lookat(const vector& eye, const vector& focus,
     r[1][2] = -f.y;
     r[2][2] = -f.z;
 
-    return this->translate(eye * -1.0f);
+   // return this->translate(eye * -1.0f);
 #endif
+    int sf = sizeof(float);
+    int sd = sizeof(double);
+
+    int x = 0, y = 1, z = 2, w = 3;
+
+    double eye_d[4] = { eye.x, eye.y, eye.z, eye.w };
+    double focus_d[4] = { focus.x, focus.y, focus.z, focus.w };
+    double up_d[4] = { up.x, up.y, up.z, up.w };
+
+    double f_d[4];
+
+    subtract(f_d, focus_d, eye_d);
+    unit(f_d);
+
+    double s_d[4];
+
+    cross(s_d, f_d, up_d);
+    unit(f_d);
+   
+    double t_d[4];
+
+    cross(t_d, s_d, f_d);
+   
+    double r_d[4][4];
+
+    r_d[0][0] = s_d[x];
+    r_d[1][0] = s_d[y];
+    r_d[2][0] = s_d[z];
+
+    r_d[0][1] = t_d[x];
+    r_d[1][1] = t_d[y];
+    r_d[2][1] = t_d[z];
+
+    r_d[0][2] = -f_d[x];
+    r_d[1][2] = -f_d[y];
+    r_d[2][2] = -f_d[z];
+
+    r[0][0] = r_d[0][0];
+    r[1][0] = r_d[1][0];
+    r[2][0] = r_d[2][0];
+    
+    r[0][1] = r_d[0][1];
+    r[1][1] = r_d[1][1];
+    r[2][1] = r_d[2][1];
+ 
+    r[0][2] = r_d[0][2];
+    r[1][2] = r_d[1][2];
+    r[2][2] = r_d[2][2];
+   
+    r[3][0] = eye_d[x] * r_d[0][0] + eye_d[y] * r_d[1][0] + eye_d[z] * r_d[2][0] + eye_d[w] * r[3][0];
+    r[3][1] = eye_d[x] * r_d[0][1] + eye_d[y] * r_d[1][1] + eye_d[z] * r_d[2][1] + eye_d[w] * r[3][1];
+    r[3][2] = eye_d[x] * r_d[0][2] + eye_d[y] * r_d[1][2] + eye_d[z] * r_d[2][2] + eye_d[w] * r[3][2];
+    r[3][3] = eye_d[x] * r_d[0][3] + eye_d[y] * r_d[1][3] + eye_d[z] * r_d[2][3] + eye_d[w] * r[3][3];
+
+    return *this;
 }
 
 spatial::matrix& spatial::matrix::translate(const vector& eye, const vector& focus, const vector& up) {

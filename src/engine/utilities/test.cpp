@@ -443,6 +443,12 @@ TEST(SpatialTest, GeometryReplication, []() {
     EXPECT_EQ(o1.vertices.size(), 6);
 });
 
+TEST(SpatialTest, LookAt, []() {
+
+    auto result = spatial::matrix().lookat({5.39245, 15.1404, -1959.04, 1}, {-0.453372, 0.862182, -0.226043, 1}, {4.62085, 14.6338, -1959.43, 1});
+
+});
+
 TEST(FormatTest, WAV, []() {
     format::wav test(tests->data() + "GLaDOS.wav");
     EXPECT_EQ(test.size, 238200);
