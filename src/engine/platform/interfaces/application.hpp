@@ -7,9 +7,10 @@ public:
     virtual void on_draw() {};
     virtual void on_interval() {};
 
-    application* dimensions(int width, int height) {
+    application* dimensions(int width, int height, float scale=1.0f) {
         this->width = width;
         this->height = height;
+        this->scale = scale;
         this->on_resize();
         return(this);
     }
@@ -22,6 +23,9 @@ public:
     int getHeight() const {
         return height;
     }
+    float getScale() const {
+        return scale;
+    }
 
 protected:
 
@@ -29,4 +33,6 @@ protected:
 
     int width;
     int height;
+    
+    float scale = 1.0f;
 };

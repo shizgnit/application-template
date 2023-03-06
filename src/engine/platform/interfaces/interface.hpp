@@ -72,8 +72,6 @@ namespace platform {
                 return *this;
             }
 
-            std::string label;
-
             platform::input events;
 
             type::object background;
