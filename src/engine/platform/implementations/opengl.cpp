@@ -536,10 +536,10 @@ bool implementation::opengl::graphics::compile(type::object& object) {
             if(entity.positions.resource->context) {
                 GL_TEST(glBindBuffer(GL_ARRAY_BUFFER, entity.positions.resource->context));
                 GL_TEST(glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(spatial::matrix) * entity.size, entity.positions.content.data()));
-                GL_TEST(glVertexAttribPointer(shader->a_ModelMatrix + 0, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::matrix), BUFFER_OFFSET(offset_matrix + sizeof(float) * 0)));
-                GL_TEST(glVertexAttribPointer(shader->a_ModelMatrix + 1, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::matrix), BUFFER_OFFSET(offset_matrix + sizeof(float) * 4)));
-                GL_TEST(glVertexAttribPointer(shader->a_ModelMatrix + 2, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::matrix), BUFFER_OFFSET(offset_matrix + sizeof(float) * 8)));
-                GL_TEST(glVertexAttribPointer(shader->a_ModelMatrix + 3, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::matrix), BUFFER_OFFSET(offset_matrix + sizeof(float) * 12)));
+                GL_TEST(glVertexAttribPointer(shader->a_ModelMatrix + 0, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::matrix), BUFFER_OFFSET(offset_matrix + sizeof(spatial::vector::type_t) * 0)));
+                GL_TEST(glVertexAttribPointer(shader->a_ModelMatrix + 1, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::matrix), BUFFER_OFFSET(offset_matrix + sizeof(spatial::vector::type_t) * 4)));
+                GL_TEST(glVertexAttribPointer(shader->a_ModelMatrix + 2, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::matrix), BUFFER_OFFSET(offset_matrix + sizeof(spatial::vector::type_t) * 8)));
+                GL_TEST(glVertexAttribPointer(shader->a_ModelMatrix + 3, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::matrix), BUFFER_OFFSET(offset_matrix + sizeof(spatial::vector::type_t) * 12)));
 
                 GL_TEST(glEnableVertexAttribArray(shader->a_ModelMatrix + 0));
                 GL_TEST(glEnableVertexAttribArray(shader->a_ModelMatrix + 1));
@@ -579,10 +579,10 @@ bool implementation::opengl::graphics::compile(type::object& object) {
                 GL_TEST(glBufferData(GL_ARRAY_BUFFER, sizeof(spatial::matrix) * entity.capacity, NULL, GL_DYNAMIC_DRAW));
                 GL_TEST(glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(spatial::matrix) * entity.size, entity.positions.content.data()));
                 
-                GL_TEST(glVertexAttribPointer(shader->a_ModelMatrix + 0, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::matrix), BUFFER_OFFSET(offset_matrix + sizeof(float) * 0)));
-                GL_TEST(glVertexAttribPointer(shader->a_ModelMatrix + 1, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::matrix), BUFFER_OFFSET(offset_matrix + sizeof(float) * 4)));
-                GL_TEST(glVertexAttribPointer(shader->a_ModelMatrix + 2, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::matrix), BUFFER_OFFSET(offset_matrix + sizeof(float) * 8)));
-                GL_TEST(glVertexAttribPointer(shader->a_ModelMatrix + 3, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::matrix), BUFFER_OFFSET(offset_matrix + sizeof(float) * 12)));
+                GL_TEST(glVertexAttribPointer(shader->a_ModelMatrix + 0, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::matrix), BUFFER_OFFSET(offset_matrix + sizeof(spatial::vector::type_t) * 0)));
+                GL_TEST(glVertexAttribPointer(shader->a_ModelMatrix + 1, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::matrix), BUFFER_OFFSET(offset_matrix + sizeof(spatial::vector::type_t) * 4)));
+                GL_TEST(glVertexAttribPointer(shader->a_ModelMatrix + 2, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::matrix), BUFFER_OFFSET(offset_matrix + sizeof(spatial::vector::type_t) * 8)));
+                GL_TEST(glVertexAttribPointer(shader->a_ModelMatrix + 3, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::matrix), BUFFER_OFFSET(offset_matrix + sizeof(spatial::vector::type_t) * 12)));
 
                 GL_TEST(glEnableVertexAttribArray(shader->a_ModelMatrix + 0));
                 GL_TEST(glEnableVertexAttribArray(shader->a_ModelMatrix + 1));

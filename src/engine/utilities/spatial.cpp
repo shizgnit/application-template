@@ -578,17 +578,17 @@ void subtract(double *r, double v1[4], double v2[4]) {
 
 void divide(double *r, double v1[4], double v2) {
     int x = 0, y = 1, z = 2, w = 3;
-    r[x] = v1[x] / (v2 ? v2 : 1.0f);
-    r[y] = v1[y] / (v2 ? v2 : 1.0f);
-    r[z] = v1[z] / (v2 ? v2 : 1.0f);
+    r[x] = v1[x] / (v2 ? v2 : 1.0);
+    r[y] = v1[y] / (v2 ? v2 : 1.0);
+    r[z] = v1[z] / (v2 ? v2 : 1.0);
     r[w] = v1[w];
 }
 
 void divide(double *r, double v1[4], double v2[4]) {
     int x = 0, y = 1, z = 2, w = 3;
-    r[x] = v1[x] / (v2[x] ? v2[x] : 1.0f);
-    r[y] = v1[y] / (v2[y] ? v2[y] : 1.0f);
-    r[z] = v1[z] / (v2[z] ? v2[z] : 1.0f);
+    r[x] = v1[x] / (v2[x] ? v2[x] : 1.0);
+    r[y] = v1[y] / (v2[y] ? v2[y] : 1.0);
+    r[z] = v1[z] / (v2[z] ? v2[z] : 1.0);
     r[w] = v1[w];
 }
 
@@ -633,6 +633,7 @@ spatial::matrix& spatial::matrix::lookat(const vector& eye, const vector& focus,
     r[2][2] = -f.z;
 
    // return this->translate(eye * -1.0f);
+   auto ref = this->translate(eye * -1.0f);
 #endif
     int sf = sizeof(float);
     int sd = sizeof(double);
@@ -671,6 +672,15 @@ spatial::matrix& spatial::matrix::lookat(const vector& eye, const vector& focus,
     r_d[1][2] = -f_d[y];
     r_d[2][2] = -f_d[z];
 
+    r_d[0][3] = 0.0;
+    r_d[1][3] = 0.0;
+    r_d[2][3] = 0.0;
+
+    r_d[3][0] = 0.0;
+    r_d[3][1] = 0.0;
+    r_d[3][2] = 0.0;
+    r_d[3][3] = 1.0;
+
     r[0][0] = r_d[0][0];
     r[1][0] = r_d[1][0];
     r[2][0] = r_d[2][0];
@@ -682,11 +692,17 @@ spatial::matrix& spatial::matrix::lookat(const vector& eye, const vector& focus,
     r[0][2] = r_d[0][2];
     r[1][2] = r_d[1][2];
     r[2][2] = r_d[2][2];
-   
-    r[3][0] = eye_d[x] * r_d[0][0] + eye_d[y] * r_d[1][0] + eye_d[z] * r_d[2][0] + eye_d[w] * r[3][0];
-    r[3][1] = eye_d[x] * r_d[0][1] + eye_d[y] * r_d[1][1] + eye_d[z] * r_d[2][1] + eye_d[w] * r[3][1];
-    r[3][2] = eye_d[x] * r_d[0][2] + eye_d[y] * r_d[1][2] + eye_d[z] * r_d[2][2] + eye_d[w] * r[3][2];
-    r[3][3] = eye_d[x] * r_d[0][3] + eye_d[y] * r_d[1][3] + eye_d[z] * r_d[2][3] + eye_d[w] * r[3][3];
+  
+    r[0][3] = 0.0;
+    r[1][3] = 0.0;
+    r[2][3] = 0.0;
+
+    r[3][0] = -eye_d[x] * r_d[0][0] + -eye_d[y] * r_d[1][0] + -eye_d[z] * r_d[2][0] + -eye_d[w] * r_d[3][0];
+    r[3][1] = -eye_d[x] * r_d[0][1] + -eye_d[y] * r_d[1][1] + -eye_d[z] * r_d[2][1] + -eye_d[w] * r_d[3][1];
+    r[3][2] = -eye_d[x] * r_d[0][2] + -eye_d[y] * r_d[1][2] + -eye_d[z] * r_d[2][2] + -eye_d[w] * r_d[3][2];
+    r[3][3] = -eye_d[x] * r_d[0][3] + -eye_d[y] * r_d[1][3] + -eye_d[z] * r_d[2][3] + -eye_d[w] * r_d[3][3];
+
+    r[3][3] = 1.0;
 
     return *this;
 }

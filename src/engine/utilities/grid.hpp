@@ -37,20 +37,20 @@ public:
         return width;
     }
 
-    quadrant_t getQuadrant(float x, float z) {
-        int nx = floor(x + x_offset);
-        int nz = floor(z + y_offset);
+    quadrant_t getQuadrant(double x, double z) {
+        int nx = floor(x + (double)x_offset);
+        int nz = floor(z + (double)y_offset);
         
-        float tx = (nx % 2 ? nx + 1: nx + 2) / 2.0f;
-        float tz = (nz % 2 ? nz + 1: nz + 2) / 2.0f;
+        double tx = (nx % 2 ? nx + 1: nx + 2) / 2.0;
+        double tz = (nz % 2 ? nz + 1: nz + 2) / 2.0;
         
         return { tx, tz * -1 };
     }
     
-    spatial::position getQuadrantPosition(quadrant_t q, float y=0.0) {
-        float nx = (q.first * 2.0f) - 1 - x_offset;
-        float nz = (q.second * -2.0f) - 1 - y_offset;
-        return spatial::position({ nx, y, nz });
+    spatial::position getQuadrantPosition(quadrant_t q, double y=0.0) {
+        double nx = (q.first * 2.0) - 1 - x_offset;
+        double nz = (q.second * -2.0) - 1 - y_offset;
+        return spatial::position({ (float)nx, (float)y, (float)nz });
     }
     
     void setQuadrant(quadrant_t q, grid::type_t instance) {

@@ -193,6 +193,9 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)utilities\test.hpp">
       <Filter>utilities</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)utilities\grid.hpp">
+      <Filter>utilities</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="deps">

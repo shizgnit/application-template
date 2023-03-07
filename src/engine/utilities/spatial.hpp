@@ -14,8 +14,8 @@
 
 namespace spatial {
 
-    inline float radians(float angle) {
-        return angle * (float)M_PI / 180.0f;
+    inline double radians(double angle) {
+        return angle * (double)M_PI / 180.0f;
     }
 
     class matrix;
