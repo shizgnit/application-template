@@ -114,6 +114,8 @@ namespace type {
 
         class waypoint {
         public:
+            typedef std::function<void ()> callback_t;
+
             waypoint() {}
             waypoint(const spatial::position& p1, const spatial::position& p2, double r) {
                 set(p1, p2, r);
@@ -138,6 +140,11 @@ namespace type {
                 return *this;
             }
 
+            waypoint& on_finish(callback_t c) {
+                on_finish_callback = c;
+                return *this;
+            }
+
             waypoint& go() {
                 active = true;
                 return *this;
@@ -155,12 +162,15 @@ namespace type {
 
                 if (travel >= 1.0) {
                     active = false;
-                    finished = true;
                     current = finish;
+                    finished = true;
                 }
                 else {
                     current.reposition(start.eye.lerp(finish.eye, travel));
                     current.lookat(start.focus.lerp(finish.focus, travel));
+                }
+                if (finished && on_finish_callback) {
+                    on_finish_callback();
                 }
 
                 return current;
@@ -176,6 +186,8 @@ namespace type {
 
             bool finished = false;
             bool active = false;
+
+            callback_t on_finish_callback;
         };
 
         class instance : public properties {

@@ -12,7 +12,7 @@ public:
     
     typedef unsigned long identifier_t;
     typedef std::pair<int, int> quadrant_t;
-    typedef std::function<bool(grid &, quadrant_t &)> callback_t;
+    typedef std::function<bool(quadrant_t &)> callback_t;
 
     struct type_t {
         identifier_t id = 0;
@@ -29,17 +29,24 @@ public:
     struct {
         std::map<int, int> created_groups;
         std::map<identifier_t, int> last_seen;
+        std::map<identifier_t, int> last_seen_group;
     } stats;
     
-    typedef std::function<bool(grid &, quadrant_t &, grid::type_t &, context_t &)> limit_t;
-    
+    typedef std::function<bool(quadrant_t &, grid::type_t &, context_t &)> limit_t;
+ 
+    type_t getGenericType() {
+        static type_t noop = addType(0, [](grid::quadrant_t &q) -> bool { return true; },
+            [](grid::quadrant_t q, grid::type_t& i, grid::context_t& c) -> bool { return false; });
+        return noop;
+    }
+   
     int getWidth() {
         return width;
     }
 
-    quadrant_t getQuadrant(double x, double z) {
-        int nx = floor(x + (double)x_offset);
-        int nz = floor(z + (double)y_offset);
+    quadrant_t getQuadrant(spatial::vector::type_t x, spatial::vector::type_t z) {
+        int nx = floor(x + x_offset);
+        int nz = floor(z + y_offset);
         
         double tx = (nx % 2 ? nx + 1: nx + 2) / 2.0;
         double tz = (nz % 2 ? nz + 1: nz + 2) / 2.0;
@@ -61,7 +68,7 @@ public:
             data[q.second].resize(width + 1);
         }
         data[q.second][q.first] = instance;
-        types[instance.id].factory(*this, q);
+        types[instance.id].factory(q);
     }
     
     grid::type_t &inQuadrant(quadrant_t q) {
@@ -156,6 +163,9 @@ public:
         for(; watermark<=y; watermark++) {
             stats.created_groups.clear();
             for(auto group: groups) {
+                if (group.first == 0) {
+                    continue;
+                }
                 for(int x=margin; x<(width - margin); x++) {
                     quadrant_t q({x, watermark});
                     if(inQuadrant(q).id) {
@@ -183,7 +193,7 @@ public:
         };
         
         for(grid::type_t i: groups[group]) {
-            if(limits.find(i.id) != limits.end() && limits[i.id](*this, q, i, context) == false) {
+            if(limits.find(i.id) != limits.end() && limits[i.id](q, i, context) == false) {
                 continue;
             }
             candidates.push_back(i.id);
@@ -199,6 +209,7 @@ public:
         setQuadrant(q, added);
         
         stats.last_seen[added.id] = q.second;
+        stats.last_seen_group[group] = q.second;
         
         if(peekLeft(q).id == 0 && right.find(added.id) != right.end()) {
             generateQuadrant({ q.first - 1, q.second }, group);

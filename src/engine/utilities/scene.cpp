@@ -139,6 +139,8 @@ bool parse(const std::string& data) {
                     added.position.scale(std::get<double>(props.get("scale")));
                 }
                 added.position.reposition({ x, y, z });
+
+                stage::scene::global().map.setQuadrant(stage::scene::global().map.getQuadrant(x, z), stage::scene::global().map.getGenericType());
             }
         }
         if (reference.instances.size()) {

@@ -63,6 +63,8 @@ public:
 
     platform::interface::textbox debug;
     platform::interface::progress progress;
+    
+    grid map;
 
     inline static scene& global() {
         static scene instance;

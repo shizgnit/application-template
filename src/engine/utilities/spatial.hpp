@@ -298,11 +298,12 @@ namespace spatial {
         position(const spatial::vector& pos);
 
         operator matrix();
-        spatial::matrix scale(type_t value=0.0f);
 
         void identity(void);
 
         void viewable(bool toggle);
+
+        position& scale(type_t value=0.0f);
 
         position& surge(type_t t);
         position& sway(type_t t);
