@@ -36,28 +36,47 @@ namespace type {
             GROUPED = 0x02
         };
 
-        typedef unsigned int key_t;
+        typedef long instance_t;
+        typedef std::string group_t;
+
+        static auto & cache() {
+            static std::map<instance_t, type::entity*> _cache;
+            return _cache;
+        }
+
+        static entity& find(const value_t& criteria) {
+            static type::entity empty;
+            auto i = cache().find(std::get<int>(criteria));
+            if (i == cache().end()) {
+                return empty;
+            }
+            return *(i->second);
+        }
 
         class group : public properties {
         public:
             group() {}
 
-            void add(key_t id) {
+            void add(instance_t id) {
                 members.push_back(id);
             }
 
-            void remove(key_t id) {
+            void remove(instance_t id) {
                 members.remove(id);
             }
 
-            std::string id;
-            std::list<key_t> members;
+            group_t id;
+            std::list<instance_t> members;
+        };
+
+        class blueprint : public group {
+
         };
 
         class catalog {
         protected:
-            std::map<key_t, entity*> instances;
-            std::map<std::string, group> groups;
+            std::map<instance_t, entity*> instances;
+            std::map<group_t, group> groups;
 
         public:
             catalog() {}
@@ -67,7 +86,7 @@ namespace type {
                 return instance;
             }
 
-            void add(key_t id, entity* reference, properties& props = properties::empty()) {
+            void add(instance_t id, entity* reference, properties& props = properties::empty()) {
                 instances[id] = reference;
                 if (props.has("grouping")) {
                     auto grouping = std::get<std::string>(props.get("grouping"));
@@ -78,7 +97,7 @@ namespace type {
                 }
             }
 
-            void remove(key_t id, properties& props = properties::empty()) {
+            void remove(instance_t id, properties& props = properties::empty()) {
                 instances.erase(id);
                 if (props.has("grouping")) {
                     auto grouping = std::get<std::string>(props.get("grouping"));
@@ -94,11 +113,11 @@ namespace type {
                 }
             }
 
-            bool hasEntity(key_t id) {
+            bool hasEntity(instance_t id) {
                 return instances.find(id) != instances.end();
             }
 
-            entity& getEntity(key_t id) {
+            entity& getEntity(instance_t id) {
                 static entity empty;
                 if (instances.find(id) == instances.end()) {
                     return empty;
@@ -106,11 +125,11 @@ namespace type {
                 return *instances[id];
             }
 
-            bool hasGroup(const std::string& grouping) {
+            bool hasGroup(const group_t& grouping) {
                 return groups.find(grouping) != groups.end();
             }
 
-            group& getGroup(const std::string& grouping) {
+            group& getGroup(const group_t& grouping) {
                 static group empty;
                 if (grouping.empty()) {
                     return empty;
@@ -121,8 +140,8 @@ namespace type {
                 return groups[grouping];
             }
 
-            std::vector<std::string> groupings() {
-                std::vector<std::string> results;
+            std::vector<group_t> groupings() {
+                std::vector<group_t> results;
                 for (auto& instance : groups) {
                     results.push_back(instance.second.id);
                 }
@@ -219,7 +238,7 @@ namespace type {
 
         class instance : public properties {
         public:
-            void define(key_t i, entity* r, properties& p) {
+            void define(instance_t i, entity* r, properties& p) {
                 id = i;
                 parent = r;
                 (properties&)*this = p;
@@ -236,7 +255,7 @@ namespace type {
                 return position.serialize();
             }
 
-            key_t id = 0;
+            instance_t id = 0;
 
             size_t index = 0;
 
@@ -261,9 +280,9 @@ namespace type {
             spatial::matrix* v_position = NULL;
         };
 
-        std::list<std::pair<key_t, size_t>> available;
+        std::list<std::pair<instance_t, size_t>> available;
 
-        std::map<key_t, instance> instances;
+        std::map<instance_t, instance> instances;
 
         // http://www.opengl-tutorial.org/intermediate-tutorials/billboards-particles/particles-instancing/
         struct {
@@ -338,13 +357,14 @@ namespace type {
                 instances[last].define(last, this, props);
                 instances[last].reference(available.begin()->second);
                 catalog::singleton().add(last, this, props);
+                cache().insert({ last, this });
                 available.pop_front();
                 count -= 1;
             }
             return true;
         }
 
-        void release(key_t id) {
+        void release(instance_t id) {
             // TODO: This doesn't decrement the size... and it will leave gaps in the render context
             if (instances.find(id) == instances.end()) {
                 return;
@@ -354,14 +374,14 @@ namespace type {
             catalog::singleton().remove(id); // TODO: this should include the group the id belongs to
         }
 
-        bool play(std::string animation, key_t id=0) {
+        bool play(std::string animation, instance_t id=0) {
             //std::lock_guard<std::mutex> scoped(lock);
             if (instances.size() == 0) {
                 //return false;
                 add();
             }
 
-            key_t key = (id == 0) ? instances.begin()->first : id;
+            instance_t key = (id == 0) ? instances.begin()->first : id;
             if (instances.find(key) == instances.end()) {
                 return false;
             }
@@ -384,7 +404,7 @@ namespace type {
             return false;
         }
 
-        void animate(key_t id = 0) {
+        void animate(instance_t id = 0) {
             if (instances.size() == 0) {
                 return;
             }
@@ -392,7 +412,7 @@ namespace type {
                 return;
             }
 
-            key_t key = (id == 0) ? instances.begin()->first : id;
+            instance_t key = (id == 0) ? instances.begin()->first : id;
             if (instances.find(key) == instances.end()) {
                 return;
             }
@@ -434,11 +454,11 @@ namespace type {
 
         }
 
-        bool hasInstance(key_t id) {
+        bool hasInstance(instance_t id) {
             return instances.find(id) != instances.end();
         }
 
-        instance& getInstance(key_t id = 0) {
+        instance& getInstance(instance_t id = 0) {
             //std::lock_guard<std::mutex> scoped(lock);
             static type::entity::instance empty;
 
@@ -446,7 +466,7 @@ namespace type {
                 //return empty;
                 add();
             }
-            key_t key = (id == 0) ? instances.begin()->first : id;
+            instance_t key = (id == 0) ? instances.begin()->first : id;
             if (instances.find(key) == instances.end()) {
                 return empty;
             }
@@ -488,7 +508,7 @@ namespace type {
 
     protected:
 
-        key_t last = 0;
+        instance_t last = 0;
     };
 
 }

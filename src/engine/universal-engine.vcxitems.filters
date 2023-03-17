@@ -196,6 +196,12 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)utilities\grid.hpp">
       <Filter>utilities</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)types\interfaces\blueprint.hpp">
+      <Filter>types\interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)types\interfaces\group.hpp">
+      <Filter>types\interfaces</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="deps">

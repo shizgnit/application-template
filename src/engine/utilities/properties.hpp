@@ -26,7 +26,7 @@
 */
 
 typedef std::string label_t;
-typedef std::variant<bool, double, int, std::string, spatial::vector> value_t;
+typedef std::variant<bool, double, long, int, std::string, spatial::vector> value_t;
 
 class properties {
 public:

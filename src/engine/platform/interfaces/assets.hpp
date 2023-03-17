@@ -132,6 +132,10 @@ namespace platform {
             return results;
         }
 
+        template<typename T> T& find(const value_t &criteria) {
+            return T::find(criteria);
+        }
+
         class common : public properties {
         public:
             virtual std::string load(platform::assets *, const std::string& type, const std::string& resource, const std::string& id) = 0;

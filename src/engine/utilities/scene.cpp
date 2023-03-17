@@ -180,6 +180,7 @@ bool parse(const std::string& data) {
 
     for (auto& group : groups) {
         parseProperties(group.second, catalog.getGroup(group.first));
+        parseProperties(group.second, assets->get<type::group>(group.first));
         percentage += increment;
         stage::scene::global().progress.value.set(percentage);
     }
