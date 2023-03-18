@@ -70,7 +70,7 @@
       <Command>tree /a $(SolutionDir)assets &gt; $(SolutionDir)assets\content.txt</Command>
     </PostBuildEvent>
     <PreLinkEvent>
-      <Command>powershell -Command "(Get-Content $(ProjectDir)res\values\strings.xml) -replace 'TargetBuildApplication', '$(TargetBuildApplication)' | Out-File -encoding ASCII $(SolutionDir)template\src\client\android-client.Packaging\res\values\strings.xml"</Command>
+      <Command>powershell -Command "(Get-Content $(ProjectDir)res\values\strings.xml) -replace 'TargetBuildApplication', '$(TargetBuildApplication)' | Out-File -encoding ASCII $(SolutionDir)framework\src\client\android-client.Packaging\res\values\strings.xml"</Command>
     </PreLinkEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
