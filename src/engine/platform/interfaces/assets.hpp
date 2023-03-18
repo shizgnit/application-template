@@ -31,10 +31,12 @@ namespace platform {
 
     class assets : public properties {
     public:
+        typedef std::string identifier_t;
+
         assets() {};
         virtual ~assets() {
             for (auto type : cache) {
-                std::vector<std::string> ids;
+                std::vector<identifier_t> ids;
                 for (auto entry : type.second) {
                     ids.push_back(entry.first);
                 }
@@ -45,16 +47,12 @@ namespace platform {
             }
         }
 
-        virtual void search(std::string type, std::string path) {
-            paths[type] = path;
-        }
-
         struct source {
             std::string path;
             std::istream* stream;
         };
 
-        virtual std::string id(std::vector<std::string> parts) {
+        virtual identifier_t id(std::vector<std::string> parts) {
             return utilities::join("/", parts);
         }
 
@@ -81,7 +79,7 @@ namespace platform {
 
         virtual void init(void *ref=NULL) { /*NULL*/ }
 
-        virtual std::vector<std::string> list(const std::string& path) = 0;
+        virtual std::vector<identifier_t> list(const std::string& path) = 0;
 
         virtual std::istream& retrieve(const std::string& path) = 0;
 
@@ -93,14 +91,14 @@ namespace platform {
             return utilities::scoped<assets*, callback>(this, &assets::release);
         }
 
-        virtual std::string load(const std::string& type, const std::string& resource, const std::string& id="") = 0;
+        virtual std::string load(const std::string& type, const std::string& resource, const identifier_t& id="") = 0;
 
-        template<typename T> bool has(const std::string& id) {
+        template<typename T> bool has(const identifier_t& id) {
             auto type = T().type();
             return cache.find(type) != cache.end() && cache[type].find(id) != cache[type].end();
         }
 
-        template<typename T> void release(const std::string& id) {
+        template<typename T> void release(const identifier_t& id) {
             auto type = T().type();
             if (has<T>(id)) {
                 delete cache[type][id];
@@ -108,7 +106,7 @@ namespace platform {
             }
         }
 
-        template<typename T> T& create(const std::string& id) {
+        template<typename T> T& create(const identifier_t& id) {
             auto type = T().type();
             release<T>(id);
             cache[type][id] = new T;
@@ -116,7 +114,7 @@ namespace platform {
             return *dynamic_cast<T*>(cache[type][id]);
         }
 
-        template<typename T> T& get(const std::string& id) {
+        template<typename T> T& get(const identifier_t& id) {
             auto type = T().type();
             return has<T>(id) ? *dynamic_cast<T*>(cache[type][id]) : create<T>(id);
         }
@@ -138,13 +136,11 @@ namespace platform {
 
         class common : public properties {
         public:
-            virtual std::string load(platform::assets *, const std::string& type, const std::string& resource, const std::string& id) = 0;
+            virtual std::string load(platform::assets *, const std::string& type, const std::string& resource, const identifier_t& id) = 0;
         };
 
     protected:
-        std::map<std::string, std::string> paths;
-
-        std::map<std::string, std::map<std::string, type::info*>> cache;
+        std::map<std::string, std::map<identifier_t, type::info*>> cache;
 
         common* loader = NULL;
 

@@ -30,9 +30,13 @@ typedef std::variant<bool, double, long, int, std::string, spatial::vector> valu
 
 class properties {
 public:
-    static properties& empty() {
-        static properties instance;
-        return instance;
+    static properties& instance() {
+        static properties none;
+        return none;
+    }
+
+    bool empty() {
+        return variables.size() == 0;
     }
 
     typedef std::map<label_t, value_t> type_t;

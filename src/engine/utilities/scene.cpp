@@ -118,8 +118,6 @@ bool parse(const std::string& data) {
         return false;
     }
 
-    auto& catalog = type::entity::catalog::singleton();
-
     if (input.get("entities").is<picojson::object>() == false) {
         return false;
     }
@@ -179,7 +177,6 @@ bool parse(const std::string& data) {
     }
 
     for (auto& group : groups) {
-        parseProperties(group.second, catalog.getGroup(group.first));
         parseProperties(group.second, assets->get<type::group>(group.first));
         percentage += increment;
         stage::scene::global().progress.value.set(percentage);
@@ -205,8 +202,6 @@ bool stage::scene::persistence::write() {
         //console::trace() << "failed creating output directory";
         return false;
     }
-
-    auto& catalog = type::entity::catalog::singleton();
 
     picojson::object output;
     picojson::object entities;
@@ -245,10 +240,10 @@ bool stage::scene::persistence::write() {
         entities[entity->id()] = picojson::value(spec);
     }
     picojson::object groups;
-    for (auto grouping : catalog.groupings()) {
+    for (auto entry : assets->get<type::group>()) {
         picojson::object group;
-        if (writeProperties(catalog.getGroup(grouping), group)) {
-            groups[grouping] = picojson::value(group);
+        if (writeProperties(*entry, group)) {
+            groups[entry->id] = picojson::value(group);
         }
     }
     output["entities"] = picojson::value(entities);
@@ -574,7 +569,7 @@ value_t stage::scene::_group(parameters_t p) {
         }
     }
     if (p.size() == 3) {
-        type::entity::catalog::singleton().getGroup(group).set(std::get<label_t>(p[1]), p[2]);
+        assets->get<type::group>(group).set(std::get<label_t>(p[1]), p[2]);
         for (auto scene : active) {
             scene.second->group(group, std::get<label_t>(p[1]), p[2]);
         }

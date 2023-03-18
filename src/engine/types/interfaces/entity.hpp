@@ -39,6 +39,10 @@ namespace type {
         typedef long instance_t;
         typedef std::string group_t;
 
+        operator bool() {
+            return instances.size();
+        }
+
         static auto & cache() {
             static std::map<instance_t, type::entity*> _cache;
             return _cache;
@@ -46,108 +50,12 @@ namespace type {
 
         static entity& find(const value_t& criteria) {
             static type::entity empty;
-            auto i = cache().find(std::get<int>(criteria));
+            auto i = cache().find(std::get<instance_t>(criteria));
             if (i == cache().end()) {
                 return empty;
             }
             return *(i->second);
         }
-
-        class group : public properties {
-        public:
-            group() {}
-
-            void add(instance_t id) {
-                members.push_back(id);
-            }
-
-            void remove(instance_t id) {
-                members.remove(id);
-            }
-
-            group_t id;
-            std::list<instance_t> members;
-        };
-
-        class blueprint : public group {
-
-        };
-
-        class catalog {
-        protected:
-            std::map<instance_t, entity*> instances;
-            std::map<group_t, group> groups;
-
-        public:
-            catalog() {}
-
-            static catalog& singleton() {
-                static catalog instance;
-                return instance;
-            }
-
-            void add(instance_t id, entity* reference, properties& props = properties::empty()) {
-                instances[id] = reference;
-                if (props.has("grouping")) {
-                    auto grouping = std::get<std::string>(props.get("grouping"));
-                    if (groups.find(grouping) == groups.end()) {
-                        groups[grouping].id = grouping;
-                    }
-                    groups[grouping].add(id);
-                }
-            }
-
-            void remove(instance_t id, properties& props = properties::empty()) {
-                instances.erase(id);
-                if (props.has("grouping")) {
-                    auto grouping = std::get<std::string>(props.get("grouping"));
-                    if (groups.find(grouping) != groups.end()) {
-                        groups[grouping].remove(id);
-                    }
-                }
-            }
-
-            void remove(entity& parent) {
-                for(auto &child: parent.instances) {
-                    remove(child.second.id, child.second);
-                }
-            }
-
-            bool hasEntity(instance_t id) {
-                return instances.find(id) != instances.end();
-            }
-
-            entity& getEntity(instance_t id) {
-                static entity empty;
-                if (instances.find(id) == instances.end()) {
-                    return empty;
-                }
-                return *instances[id];
-            }
-
-            bool hasGroup(const group_t& grouping) {
-                return groups.find(grouping) != groups.end();
-            }
-
-            group& getGroup(const group_t& grouping) {
-                static group empty;
-                if (grouping.empty()) {
-                    return empty;
-                }
-                if (groups.find(grouping) == groups.end()) {
-                    groups[grouping].id = grouping;
-                }
-                return groups[grouping];
-            }
-
-            std::vector<group_t> groupings() {
-                std::vector<group_t> results;
-                for (auto& instance : groups) {
-                    results.push_back(instance.second.id);
-                }
-                return results;
-            }
-        };
 
         type::object* object = NULL;
         class animation {
@@ -323,14 +231,14 @@ namespace type {
             return compiled() == false;
         }
 
-        instance & add(properties& props=properties::empty(), int count = 1) {
+        instance & add(properties& props=properties::instance(), int count = 1) {
             allocate(props, count);
             size = instances.size();
             return getInstance(last);
         }
 
         bool allocate(properties& props, int count) {
-            static unsigned int increment = 0;
+            static instance_t increment = 0;
             if (count > available.size()) {
 				size_t size = available.size() + instances.size();
 				size_t needed = count - available.size();
@@ -356,7 +264,6 @@ namespace type {
                 last = available.begin()->first;
                 instances[last].define(last, this, props);
                 instances[last].reference(available.begin()->second);
-                catalog::singleton().add(last, this, props);
                 cache().insert({ last, this });
                 available.pop_front();
                 count -= 1;
@@ -371,7 +278,6 @@ namespace type {
             }
             available.push_back({ id, instances[id].index });
             instances.erase(id);
-            catalog::singleton().remove(id); // TODO: this should include the group the id belongs to
         }
 
         bool play(std::string animation, instance_t id=0) {
