@@ -46,6 +46,10 @@ namespace type {
                 return members.size() == 0 && keys().size() == 0;
             }
 
+            std::string type() {
+                return "type::group";
+            }
+
             group_t id;
             std::list<entity::instance_t> members;
     };

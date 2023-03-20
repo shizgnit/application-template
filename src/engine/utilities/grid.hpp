@@ -88,6 +88,9 @@ public:
     }
     
     void setQuadrant(quadrant_t q, grid::type_t instance) {
+        if (q.first < 0 || q.second < 0) {
+            return;
+        }
         if(data.size() <= q.second) {
             data.resize(q.second + 1);
         }

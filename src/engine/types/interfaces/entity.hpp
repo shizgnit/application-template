@@ -33,7 +33,8 @@ namespace type {
     public:
         enum {
             SELECTED = 0x01,
-            GROUPED = 0x02
+            GROUPED = 0x02,
+            VIRTUAL = 0X04
         };
 
         typedef long instance_t;

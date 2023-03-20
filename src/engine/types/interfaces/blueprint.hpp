@@ -42,6 +42,14 @@ namespace type {
                 members.remove(id);
             }
 
+            bool empty() {
+                return members.size() == 0 && keys().size() == 0;
+            }
+
+            std::string type() {
+                return "type::blueprint";
+            }
+
             blueprint_t id;
             std::list<entity::instance_t> members;
     };
