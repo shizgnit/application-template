@@ -695,10 +695,39 @@ value_t stage::scene::_show(parameters_t p) {
             stage::scene::global().debug.content.add(ss.str());
         }
     }
+    else if (type == "entity") {
+        if (p.size() != 2) {
+            stage::scene::global().debug.content.add("/show entity [path]");
+            return 0;
+        }
+        auto path = std::get<std::string>(p[1]);
+        properties* entry = &assets->get<type::entity>(path);
+        for (auto prop : entry->keys()) {
+            std::pair<std::string, value_t> variable = { prop, entry->get(prop) };
+            std::stringstream ss;
+            if (std::holds_alternative<bool>(variable.second)) {
+                ss << variable.first << ": " << (std::get<bool>(variable.second) ? "true" : "false");
+            }
+            if (std::holds_alternative<int>(variable.second)) {
+                ss << variable.first << ": " << std::get<int>(variable.second);
+            }
+            if (std::holds_alternative<double>(variable.second)) {
+                ss << variable.first << ": " << std::get<double>(variable.second);
+            }
+            if (std::holds_alternative<std::string>(variable.second)) {
+                ss << variable.first << ": " << std::get<std::string>(variable.second);
+            }
+            if (std::holds_alternative<spatial::vector>(variable.second)) {
+                auto v = std::get<spatial::vector>(variable.second);
+                ss << variable.first << ": (" << v.x << "," << v.y << "," << v.z << "," << v.w << ")";
+            }
+            stage::scene::global().debug.content.add(ss.str());
+        }
+    }
     else if (type == "entities") {
         for (auto entry : assets->get<type::entity>()) {
             std::stringstream ss;
-            ss << "entity(" << entry->id() << ")";
+            ss << "entity(" << entry->id() << ", " << entry->instances.size() << ")";
             stage::scene::global().debug.content.add(ss.str());
         }
     }
@@ -727,14 +756,13 @@ value_t stage::scene::_show(parameters_t p) {
         }
     }
     else if (type == "assets") {
-        if (p.size() == 2) {
-            auto path = std::get<std::string>(p[1]);
-            for (auto asset : assets->list(path)) {
-                stage::scene::global().debug.content.add(asset);
-            }
-        }
-        else {
+        if (p.size() != 2) {
             stage::scene::global().debug.content.add("/show assets [path]");
+            return 0;
+        }
+        auto path = std::get<std::string>(p[1]);
+        for (auto asset : assets->list(path)) {
+            stage::scene::global().debug.content.add(asset);
         }
     }
     else {
