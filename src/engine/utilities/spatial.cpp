@@ -1030,6 +1030,12 @@ void spatial::position::project(const vector& offset, const vector& projection) 
     diff.z = (cross.z - focus.z) * offset.z;
 }
 
+spatial::position& spatial::position::orientation(const spatial::position& reference) {
+    memcpy(&this->translation, &reference.translation, sizeof(reference.translation));
+    this->rotate();
+    return this->modify();
+}
+
 spatial::position& spatial::position::reposition(const vector& offset) {
     store scope(*this);
 

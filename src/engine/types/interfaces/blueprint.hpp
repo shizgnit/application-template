@@ -50,7 +50,6 @@ namespace type {
                 return "type::blueprint";
             }
 
-            blueprint_t id;
             std::list<entity::instance_t> members;
     };
  

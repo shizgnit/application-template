@@ -343,6 +343,7 @@ namespace spatial {
 
         void project(const vector& offset, const vector& projection);
 
+        position& orientation(const position& reference);
         position& reposition(const vector& offset);
         position& lookat(const vector& offset);
 

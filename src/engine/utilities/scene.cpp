@@ -123,12 +123,17 @@ bool parse(const std::string& data) {
     }
     auto& entities = input.get("entities").get<picojson::object>();
 
-    if (input.get("groups").is<picojson::object>() == false) {
-        return false;
+    picojson::object groups;
+    if (input.get("groups").is<picojson::object>()) {
+        groups = input.get("groups").get<picojson::object>();
     }
-    auto& groups = input.get("groups").get<picojson::object>();
 
-    float increment = 99 / (float)(entities.size() + groups.size());
+    picojson::object blueprints;
+    if (input.get("blueprints").is<picojson::object>()) {
+        blueprints = input.get("blueprints").get<picojson::object>();
+    }
+
+    float increment = 99 / (float)(entities.size() + groups.size() + blueprints.size());
     float percentage = 0;
 
     for (auto& entity : entities) {
@@ -165,6 +170,10 @@ bool parse(const std::string& data) {
                 }
                 added.position.reposition({ x, y, z });
 
+                if (props.has("virtual") && std::get<bool>(props.get("virtual"))) {
+                    added.flags |= type::entity::VIRTUAL;
+                }
+
                 stage::scene::global().map.setQuadrant(stage::scene::global().map.getQuadrant(x, z), stage::scene::global().map.getGenericType());
             }
         }
@@ -177,7 +186,31 @@ bool parse(const std::string& data) {
     }
 
     for (auto& group : groups) {
-        parseProperties(group.second, assets->get<type::group>(group.first));
+        auto& reference = assets->get<type::group>(group.first);
+        parseProperties(group.second, reference);
+        auto source = group.second.get("property").to_str();
+        for (auto& entity : assets->get<type::entity>()) {
+            for (auto& instance : entity->instances) {
+                if (instance.second.has(source) && std::get<std::string>(instance.second.get(source)) == group.first) {
+                    reference.add(instance.first);
+                }
+            }
+        }
+        percentage += increment;
+        stage::scene::global().progress.value.set(percentage);
+    }
+
+    for (auto& blueprint : blueprints) {
+        auto& reference = assets->get<type::blueprint>(blueprint.first);
+        parseProperties(blueprint.second, reference);
+        auto source = blueprint.second.get("property").to_str();
+        for (auto& entity : assets->get<type::entity>()) {
+            for (auto& instance : entity->instances) {
+                if (instance.second.has(source) && std::get<std::string>(instance.second.get(source)) == blueprint.first) {
+                    reference.add(instance.first);
+                }
+            }
+        }
         percentage += increment;
         stage::scene::global().progress.value.set(percentage);
     }
@@ -187,8 +220,7 @@ bool parse(const std::string& data) {
 
 
 stage::scene::persistence::persistence() {
-    _file = "/Users/codeneko/Downloads/map.json";
-    //_file = filesystem->join({ filesystem->appdata(), "democo", "map.json" });
+    _file = filesystem->join({ filesystem->appdata(), "map.json" });
 }
 
 bool stage::scene::persistence::write() {
@@ -215,7 +247,7 @@ bool stage::scene::persistence::write() {
                 instance.second.set("spin", instance.second.position.translation.spin);
             }
             if (instance.second.position.translation.scale != 1.0f) {
-                instance.second.set("scale", instance.second.position.translation.scale);
+                instance.second.set("scale", instance.second.position.translation.scale - 1.0f);
             }
             picojson::object position;
             position["x"] = picojson::value(instance.second.position.eye.x);
@@ -243,11 +275,19 @@ bool stage::scene::persistence::write() {
     for (auto entry : assets->get<type::group>()) {
         picojson::object group;
         if (writeProperties(*entry, group)) {
-            groups[entry->id] = picojson::value(group);
+            groups[entry->id()] = picojson::value(group);
+        }
+    }
+    picojson::object blueprints;
+    for (auto entry : assets->get<type::blueprint>()) {
+        picojson::object blueprint;
+        if (writeProperties(*entry, blueprint)) {
+            blueprints[entry->id()] = picojson::value(blueprint);
         }
     }
     output["entities"] = picojson::value(entities);
     output["groups"] = picojson::value(groups);
+    output["blueprints"] = picojson::value(blueprints);
 
     try {
         //std::ofstream stream("/data/local/tmp/" + _file);

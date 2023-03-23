@@ -50,7 +50,6 @@ namespace type {
                 return "type::group";
             }
 
-            group_t id;
             std::list<entity::instance_t> members;
     };
 }
