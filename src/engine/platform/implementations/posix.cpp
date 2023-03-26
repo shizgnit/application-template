@@ -305,7 +305,16 @@ void implementation::posix::assets::init(void* ref) {
 }
 
 std::vector<std::string> implementation::posix::assets::list(const std::string& path, const std::string& type) {
-    return filesystem().read_directory(filesystem().join({ base, path}));
+    if (type.empty()) {
+        return filesystem().read_directory(filesystem().join({ base, path }));
+    }
+    std::vector<std::string> results;
+    for (auto entry : filesystem().read_directory(filesystem().join({ base, path }))) {
+        if (filesystem().filetype(filesystem().join({ base, path, entry })) == type) {
+            results.push_back(entry);
+        }
+    }
+    return results;
 }
 
 std::istream& implementation::posix::assets::retrieve(const std::string& path) {

@@ -85,18 +85,22 @@ std::vector<std::string> implementation::android::assets::list(const std::string
         while (stack.size() && depth < stack.size()) {
             auto directory = filesystem->join(stack);
             if (directory.length() > path.length() && directory.substr(0, path.length()) == path) {
-                results.push_back(directory.substr(path.length() + 1, directory.length() - path.length() - 1));
+                if (type.empty() || type == "directory") {
+                    results.push_back(directory.substr(path.length() + 1, directory.length() - path.length() - 1));
+                }
             }
             stack.pop_back();
         }
         stack.push_back(line.substr(pos + 4, line.length() - 4));
     }
 
-    auto handle = AAssetManager_openDir(assetManager, path.c_str());
-    while (auto file = AAssetDir_getNextFileName(handle)) {
-        results.push_back(file);
+    if (type.empty() || type == "regular") {
+        auto handle = AAssetManager_openDir(assetManager, path.c_str());
+        while (auto file = AAssetDir_getNextFileName(handle)) {
+            results.push_back(file);
+        }
+        AAssetDir_close(handle);
     }
-    AAssetDir_close(handle);
 
     return results;
 }
