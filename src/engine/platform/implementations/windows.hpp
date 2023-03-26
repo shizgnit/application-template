@@ -72,7 +72,7 @@ namespace implementation {
         public:
             void init(void* ref=NULL);
 
-            std::vector<std::string> list(const std::string& path);
+            std::vector<std::string> list(const std::string& path, const std::string &type="");
 
             std::istream& retrieve(const std::string& path);
 

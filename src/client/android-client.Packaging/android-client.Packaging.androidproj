@@ -135,6 +135,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="assets\objects\ball.000\" />
     <Folder Include="assets\shaders-gles320\" />
   </ItemGroup>
   <Import Project="$(AndroidTargetsPath)\Android.targets" />

@@ -31,6 +31,7 @@ namespace type {
 
     class entity : virtual public type::info, public properties {
     public:
+
         enum {
             SELECTED = 0x01,
             GROUPED = 0x02,
@@ -153,13 +154,6 @@ namespace type {
                 (properties&)*this = p;
             }
 
-            void reference(size_t i) {
-                index = i;
-                v_identifier = &parent->identifiers.content[i];
-                v_flag = &parent->flags.content[i];
-                v_position = &parent->positions.content[i];
-            }
-
             operator spatial::matrix () {
                 return position.serialize();
             }
@@ -183,11 +177,13 @@ namespace type {
             }
 
             type::entity* parent = NULL;
-
-            unsigned int* v_identifier = NULL;
-            unsigned int* v_flag = NULL;
-            spatial::matrix* v_position = NULL;
         };
+
+        typedef std::function<bool(type::entity::instance &)> callback_t;
+        callback_t culling_criteria;
+        void setCullCriteria(callback_t callback) {
+           culling_criteria = callback;
+        }
 
         std::list<std::pair<instance_t, size_t>> available;
 
@@ -218,16 +214,26 @@ namespace type {
         type::info::opaque_t *resource = nullptr;
 
         bool compile() {
+            // Initialize the data prior to potential shrinks
+            memset(identifiers.content.data(), 0, identifiers.content.size() * sizeof(unsigned int));
+            memset(flags.content.data(), 0, flags.content.size() * sizeof(unsigned int));
+            memset(positions.content.data(), 0, positions.content.size() * sizeof(spatial::matrix));
+            identifiers.content.clear();
+            flags.content.clear();
+            positions.content.clear();
             for (auto& entry : instances) {
+                if (culling_criteria && culling_criteria(entry.second)) {
+                    continue;
+                }
                 if (entry.second.has("grouping")) {
                     entry.second.flags |= type::entity::GROUPED;
                 }
                 else {
                     entry.second.flags &= UINT_MAX ^ type::entity::GROUPED;
                 }
-                identifiers.content[entry.second.index] = entry.second.id;
-                flags.content[entry.second.index] = entry.second.flags;
-                positions.content[entry.second.index] = entry.second.position.serialize();
+                identifiers.content.push_back(entry.second.id);
+                flags.content.push_back(entry.second.flags);
+                positions.content.push_back(entry.second.position.serialize());
             }
             return compiled() == false;
         }
@@ -250,12 +256,15 @@ namespace type {
 				}
 				if (allocation) {
 					identifiers.content.clear();
-					identifiers.content.resize(capacity);
 					flags.content.clear();
-					flags.content.resize(capacity);
 					positions.content.clear();
-					positions.content.resize(capacity);
-	                for (int i = 0; i < allocation; i++) {
+					identifiers.content.reserve(capacity);
+					flags.content.reserve(capacity);
+					positions.content.reserve(capacity);
+                    memset(identifiers.content.data(), 0, identifiers.content.capacity() * sizeof(unsigned int));
+                    memset(flags.content.data(), 0, flags.content.capacity() * sizeof(unsigned int));
+                    memset(positions.content.data(), 0, positions.content.capacity() * sizeof(spatial::matrix));
+                    for (int i = 0; i < allocation; i++) {
                         available.push_back({ ++increment, capacity - allocation + i });
                     }
                     compiled(false);
@@ -264,7 +273,6 @@ namespace type {
             while (count) {
                 last = available.begin()->first;
                 instances[last].define(last, this, props);
-                instances[last].reference(available.begin()->second);
                 cache().insert({ last, this });
                 available.pop_front();
                 count -= 1;

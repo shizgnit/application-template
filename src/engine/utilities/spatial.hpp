@@ -501,7 +501,7 @@ namespace spatial {
     class ray : public geometry {
     public:
         ray() : geometry() {}
-        ray(const vector& origin, const vector& terminus);
+        ray(const vector& point, const vector& normal);
 
         ray(const vector& point, const matrix& perspective, const matrix& view, const int& w, const int& h);
 
@@ -521,6 +521,8 @@ namespace spatial {
         vector intersection(const geometry& t);
         vector intersection(const triangle& t);
         vector intersection(const plane& t);
+
+        void extend(const type_t& d);
     };
 
 }

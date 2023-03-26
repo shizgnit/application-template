@@ -252,8 +252,17 @@ void implementation::windows::assets::init(void* ref) {
     base = (char*)ref;
 }
 
-std::vector<std::string> implementation::windows::assets::list(const std::string& path) {
-    return filesystem().read_directory(filesystem().join({ base, path, "\\*"}));
+std::vector<std::string> implementation::windows::assets::list(const std::string& path, const std::string& type) {
+    if (type.empty()) {
+        return filesystem().read_directory(filesystem().join({ base, path, "\\*"}));
+    }
+    std::vector<std::string> results;
+    for (auto entry : filesystem().read_directory(filesystem().join({ base, path, "\\*" }))) {
+        if (filesystem().filetype(filesystem().join({ base, path, entry })) == type) {
+            results.push_back(entry);
+        }
+    }
+    return results;
 }
 
 std::istream& implementation::windows::assets::retrieve(const std::string& path) {

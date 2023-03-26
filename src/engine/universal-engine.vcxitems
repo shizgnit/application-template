@@ -59,6 +59,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)types\interfaces\program.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)types\interfaces\shader.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)types\interfaces\info.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)types\interfaces\visitor.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)utilities\common.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)utilities\grid.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)utilities\properties.hpp" />

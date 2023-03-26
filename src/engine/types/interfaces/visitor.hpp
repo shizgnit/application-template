@@ -28,32 +28,15 @@
 #pragma once
 
 namespace type {
-    class group : virtual public type::info, public properties {
+    class group;
+    class visitor : virtual public type::info, public properties {
         public:
-            typedef std::string group_t;
+            visitor() {}
 
-            group() {}
-
-            void add(entity::instance_t id) {
-                members.push_back(id);
-            }
-
-            void remove(entity::instance_t id) {
-                members.remove(id);
-            }
-
-            bool empty() {
-                return members.size() == 0 && keys().size() == 0;
-            }
-
-            bool accept(type::visitor* v) {
-                return v->visit(this);
-            }
+            virtual bool visit(type::group* e) = 0;
 
             std::string type() {
-                return "type::group";
+                return "type::visitor";
             }
-
-            std::list<entity::instance_t> members;
     };
 }

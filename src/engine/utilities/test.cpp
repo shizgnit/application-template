@@ -27,6 +27,12 @@
 
 #include "engine.hpp"
 
+TEST(FilesystemTest, FilterFileType, []() {
+    EXPECT_EQ(filesystem->read_directory(tests->data(), "directory").size(), 1);
+    EXPECT_EQ(filesystem->read_directory(tests->data(), "regular").size(), 13);
+    EXPECT_EQ(filesystem->read_directory(tests->data(), "foobar").size(), 0);
+});
+
 TEST(FilesystemTest, PresentWorkingDirectory, []() {
     auto pwd = filesystem->pwd();
     EXPECT_FALSE(pwd.empty());

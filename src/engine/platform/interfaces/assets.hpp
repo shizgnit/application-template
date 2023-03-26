@@ -79,7 +79,7 @@ namespace platform {
 
         virtual void init(void *ref=NULL) { /*NULL*/ }
 
-        virtual std::vector<identifier_t> list(const std::string& path) = 0;
+        virtual std::vector<identifier_t> list(const std::string& path, const std::string& type="") = 0;
 
         virtual std::istream& retrieve(const std::string& path) = 0;
 

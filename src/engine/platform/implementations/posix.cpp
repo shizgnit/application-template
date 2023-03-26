@@ -304,7 +304,7 @@ void implementation::posix::assets::init(void* ref) {
     base = (char*)ref;
 }
 
-std::vector<std::string> implementation::posix::assets::list(const std::string& path) {
+std::vector<std::string> implementation::posix::assets::list(const std::string& path, const std::string& type) {
     return filesystem().read_directory(filesystem().join({ base, path}));
 }
 

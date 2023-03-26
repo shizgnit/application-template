@@ -1250,8 +1250,10 @@ spatial::geometry spatial::quad::edges(int width, int height) {
     return rays;
 }
 
-spatial::ray::ray(const vector& origin, const vector& terminus) : ray() {
-    interpolate(origin, terminus);
+spatial::ray::ray(const vector& point, const vector& normal) : ray() {
+    vertices.resize(2);
+    vertices[0] = point;
+    vertices[1] = normal;
 }
 
 spatial::ray::ray(const vector& point, const matrix& perspective, const matrix& view, const int& w, const int& h) {
@@ -1261,7 +1263,7 @@ spatial::ray::ray(const vector& point, const matrix& perspective, const matrix& 
 spatial::ray& spatial::ray::interpolate(const vector& origin, const vector& terminus) {
     vertices.resize(2);
     vertices[0] = origin;
-    vertices[1] = terminus;
+    vertices[1] = (terminus - origin).unit(); // Set as direction vector
     return *this;
 }
 
@@ -1402,10 +1404,15 @@ spatial::vector spatial::ray::intersection(const spatial::triangle& triangle) {
 spatial::vector spatial::ray::intersection(const spatial::plane& p) {
     auto d = vertices[1].unit().dot(p.normal.unit());
     if (abs(d) > 0.00001f) {
-        auto t = (p.point - vertices[0]).dot(p.normal) / d;
+        auto t = (p.point - vertices[0]).dot(p.normal.unit()) / d;
         return vertices[0] + vertices[1].unit() * t;
     }
     return spatial::vector();
+}
+
+void spatial::ray::extend(const spatial::ray::type_t& d) {
+//    auto slope = vertices[1] / vertices[0];
+//    vertices[1] = vertices[0] * d;
 }
 
 spatial::vector spatial::triangle::normal() const {

@@ -57,7 +57,7 @@ void implementation::android::assets::init(void* ref) {
     assetManager = (AAssetManager*)ref;
 }
 
-std::vector<std::string> implementation::android::assets::list(const std::string& path) {
+std::vector<std::string> implementation::android::assets::list(const std::string& path, const std::string& type) {
     std::vector<std::string> results;
 
     std::vector<std::string> stack;

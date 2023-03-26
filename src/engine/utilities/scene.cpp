@@ -237,11 +237,15 @@ bool stage::scene::persistence::write() {
 
     picojson::object output;
     picojson::object entities;
+
     for (auto& entity : assets->get<type::entity>()) {
         picojson::object spec;
-
         picojson::array instances;
         for (auto& instance : entity->instances) {
+            // Skip all non-user created map content
+            if(entity->flag("required") == false && instance.second.flag("user") == false && instance.second.flag("required") == false) {
+                continue;
+            }
             picojson::object entry;
             if (instance.second.position.translation.spin != 0.0f) {
                 instance.second.set("spin", instance.second.position.translation.spin);
@@ -262,6 +266,10 @@ bool stage::scene::persistence::write() {
 
             instances.push_back(picojson::value(entry));
         }
+        if (instances.size() == 0) {
+            continue;
+        }
+
         spec["instances"] = picojson::value(instances);
 
         picojson::object properties;
@@ -271,13 +279,35 @@ bool stage::scene::persistence::write() {
 
         entities[entity->id()] = picojson::value(spec);
     }
-    picojson::object groups;
-    for (auto entry : assets->get<type::group>()) {
-        picojson::object group;
-        if (writeProperties(*entry, group)) {
-            groups[entry->id()] = picojson::value(group);
+    for (auto& entity : assets->list("objects", "directory")) {
+        std::string id = "objects\/" + entity;
+        if (entities.find(id) == entities.end()) {
+            picojson::object entry;
+            picojson::object spec;
+            picojson::array instances;
+            {
+                picojson::object position;
+                position["x"] = picojson::value(0.0);
+                position["y"] = picojson::value(0.0);
+                position["z"] = picojson::value(0.0);
+                entry["position"] = picojson::value(position);
+                picojson::object spec;
+                spec["virtual"] = picojson::value(true);
+                entry["properties"] = picojson::value(spec);
+                instances.push_back(picojson::value(entry));
+            }
+            spec["instances"] = picojson::value(instances);
+            entities[id] = picojson::value(spec);
         }
     }
+
+    picojson::object groups;
+    //for (auto entry : assets->get<type::group>()) {
+    //    picojson::object group;
+    //    if (writeProperties(*entry, group)) {
+    //        groups[entry->id()] = picojson::value(group);
+    //    }
+    //}
     picojson::object blueprints;
     for (auto entry : assets->get<type::blueprint>()) {
         picojson::object blueprint;
