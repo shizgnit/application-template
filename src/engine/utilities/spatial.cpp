@@ -893,6 +893,7 @@ spatial::position::position(const position& ref) {
 }
 
 spatial::position::position(const spatial::vector& pos) {
+    identity();
     reposition(pos);
 }
 
@@ -1000,7 +1001,7 @@ spatial::position& spatial::position::rotate() {
 
     identity();
 
-    type_t radx, rady;
+    type_t radx, rady, radz;
 
     radx = static_cast<type_t>(translation.pitch * (3.1415927 / 180));
     focus.rotate_x(radx);
@@ -1009,6 +1010,10 @@ spatial::position& spatial::position::rotate() {
     rady = static_cast<type_t>(translation.spin * (3.1415927 / 180));
     focus.rotate_y(rady);
     up.rotate_y(rady);
+
+    radz = static_cast<type_t>(translation.roll * (3.1415927 / 180));
+    focus.rotate_z(radz);
+    up.rotate_z(radz);
 
     eye += offset;
     focus += offset;

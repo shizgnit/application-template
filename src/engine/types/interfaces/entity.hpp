@@ -90,12 +90,18 @@ namespace type {
                 rate = r;
                 start = p1;
                 finish = p2;
-                distance = p1.eye.distance(p2.eye);
-                reference = std::chrono::system_clock::now().time_since_epoch();
+                distance = start.eye.distance(finish.eye);
+                speed = distance / rate;
                 finished = false;
                 return *this;
             }
 
+            waypoint& rotate(const spatial::vector& axis, const spatial::vector& rads) {
+                this->axis = axis;
+                rotation = rads;
+                rotating = true;
+                return *this;
+            }
             waypoint& on_finish(callback_t c) {
                 on_finish_callback = c;
                 return *this;
@@ -103,6 +109,7 @@ namespace type {
 
             waypoint& go() {
                 active = true;
+                reference = std::chrono::system_clock::now().time_since_epoch();
                 return *this;
             }
 
@@ -111,31 +118,40 @@ namespace type {
                     return start;
                 }
 
-                duration = distance / rate;
                 auto now = std::chrono::system_clock::now().time_since_epoch();
-                auto diff = std::chrono::duration_cast<utilities::seconds_t>(now - reference).count();
-                auto travel = diff / duration;
+                auto delta = std::chrono::duration_cast<utilities::seconds_t>(now - reference).count();
+                auto time = delta / speed;
 
-                if (travel >= 1.0) {
+                if (time >= 1.0) {
                     active = false;
                     current = finish;
                     finished = true;
                 }
                 else {
-                    current.reposition(start.eye.lerp(finish.eye, travel));
-                    current.lookat(start.focus.lerp(finish.focus, travel));
+                    current.reposition(start.eye.lerp(finish.eye, time));
+                    if (rotating == false) {
+                        current.lookat(start.focus.lerp(finish.focus, time));
+                    }
                 }
                 if (finished && on_finish_callback) {
                     on_finish_callback();
                 }
 
+                if (rotating) {
+                    //current.eye = spatial::matrix().rotate_x(rotation.x).interpolate(current.eye);
+                    //current.eye = spatial::matrix().rotate_y(rotation.y).interpolate(current.eye);
+                    current.roll(rotation.z); // 90.0f * (delta > 1.0 ? 1.0 : delta));
+                    current.pitch(rotation.x); // 90.0f * (delta > 1.0 ? 1.0 : delta));
+                    //current.reposition(spatial::matrix().rotate_z(rotation.z * (delta / (rotation.z / rate))).interpolate(current.eye - axis) + axis);
+                }
+
                 return current;
             }
 
-            utilities::seconds_t reference = std::chrono::system_clock::now().time_since_epoch();
-            double rate = 1.0; // units per second
-            double distance; // units
-            double duration;
+            utilities::seconds_t reference;
+            double rate = 1.0; // relative units per second
+            double distance; // total distance between start and finish
+            double speed; // travel distance per-second
             spatial::position start;
             spatial::position finish;
             spatial::position current;
@@ -144,6 +160,10 @@ namespace type {
             bool active = false;
 
             callback_t on_finish_callback;
+
+            bool rotating = false;
+            spatial::vector axis;
+            spatial::vector rotation;
         };
 
         class instance : public properties {
@@ -358,6 +378,7 @@ namespace type {
                     auto position = instance.second.path.begin()->position();
                     instance.second.position.reposition(position.eye);
                     instance.second.position.lookat(position.focus);
+                    instance.second.position.up = position.up;
                     if (instance.second.path.begin()->finished) {
                         instance.second.path.pop_front();
                     }
