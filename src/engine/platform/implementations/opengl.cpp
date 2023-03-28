@@ -120,7 +120,27 @@ void implementation::opengl::fbo::disable() {
 
     // Currently all rendering is done to the mipmap level 0... copy it out after every render
     if (collect != NULL) {
-        GL_TEST(glReadPixels(0, 0, target->texture.color->properties.width, target->texture.color->properties.height, GL_RGBA, GL_UNSIGNED_BYTE, collect));
+        auto now = std::chrono::system_clock::now().time_since_epoch();
+        auto delta = std::chrono::duration<double>(now - timestamp).count();
+        if (delta >= 1.0) {
+            GL_TEST(glReadPixels(0, 0, target->texture.color->properties.width, target->texture.color->properties.height, GL_RGBA, GL_UNSIGNED_BYTE, collect));
+            timestamp = std::chrono::system_clock::now().time_since_epoch();
+        }
+#ifdef __PLATFORM_SUPPORTS_PBO
+        if(pbo) {
+            GL_TEST(glGenBuffers(w * h * 4, &pbo));
+            glBindBuffer(GL_PIXEL_PACK_BUFFER, pbo);
+            GL_TEST(glReadPixels(0, 0, target->texture.color->properties.width, target->texture.color->properties.height, GL_RGBA, GL_UNSIGNED_BYTE, collect));
+        }
+        if (pbo) {
+            GLubyte* ptr = (GLubyte*)glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
+            if (ptr) {
+                glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
+                pbo = 0;
+                glBindBuffer(GL_PIXEL_PACK_BUFFER, pbo);
+            }
+        }
+#endif
     }
     if (!target->texture.depth) {
         GL_TEST(glBindTexture(GL_TEXTURE_2D, target->texture.color->resource->context));
@@ -278,23 +298,6 @@ void implementation::opengl::graphics::clear(void) {
 
 void implementation::opengl::graphics::flush(void) {
     GL_TEST(glFlush());
-    frames.push_back(frame);
-    time_t now = time(NULL);
-    if (timestamp != now) {
-        stats total;
-        for (auto frame : frames) {
-            total.lines += frame.lines;
-            total.triangles += frame.triangles;
-            total.vertices += frame.vertices;
-        }
-        total.frames = frames.size();
-        activity.push_back(total);
-        if (activity.size() > 60) { // TODO: make this configurable
-            activity.pop_front();
-        }
-        frames.clear();
-    }
-    frame.clear();
 }
 
 bool implementation::opengl::graphics::compile(type::shader& shader) {

@@ -86,7 +86,7 @@ namespace type {
                 return set(p1, finish.eye, rate);
             }
 
-            waypoint& set(const spatial::position& p1, const spatial::position& p2, double r) {
+            waypoint& set(const spatial::position& p1, const spatial::position& p2, double r, double a=1.0) {
                 rate = r;
                 start = p1;
                 finish = p2;
@@ -152,6 +152,7 @@ namespace type {
             double rate = 1.0; // relative units per second
             double distance; // total distance between start and finish
             double speed; // travel distance per-second
+            double acceleration; // 
             spatial::position start;
             spatial::position finish;
             spatial::position current;
@@ -168,10 +169,11 @@ namespace type {
 
         class instance : public properties {
         public:
-            void define(instance_t i, entity* r, properties& p) {
+            void define(instance_t i, entity* r, properties& p, size_t idx) {
                 id = i;
                 parent = r;
                 (properties&)*this = p;
+                index = idx;
             }
 
             operator spatial::matrix () {
@@ -181,6 +183,7 @@ namespace type {
             instance_t id = 0;
 
             size_t index = 0;
+            bool assigned = false;
 
             unsigned int flags = 0;
             int frame = 0;
@@ -229,31 +232,22 @@ namespace type {
 
         size_t size = 0;
         size_t capacity = 0;
-        size_t growth = 256;
+        size_t growth = 48;
         
         type::info::opaque_t *resource = nullptr;
 
         bool compile() {
-            // Initialize the data prior to potential shrinks
-            memset(identifiers.content.data(), 0, identifiers.content.size() * sizeof(unsigned int));
-            memset(flags.content.data(), 0, flags.content.size() * sizeof(unsigned int));
-            memset(positions.content.data(), 0, positions.content.size() * sizeof(spatial::matrix));
-            identifiers.content.clear();
-            flags.content.clear();
-            positions.content.clear();
             for (auto& entry : instances) {
                 if (culling_criteria && culling_criteria(entry.second)) {
                     continue;
                 }
-                if (entry.second.has("grouping")) {
-                    entry.second.flags |= type::entity::GROUPED;
+                if (entry.second.assigned) {
+                    continue;
                 }
-                else {
-                    entry.second.flags &= UINT_MAX ^ type::entity::GROUPED;
-                }
-                identifiers.content.push_back(entry.second.id);
-                flags.content.push_back(entry.second.flags);
-                positions.content.push_back(entry.second.position.serialize());
+                identifiers.content[entry.second.index] = entry.second.id;
+                flags.content[entry.second.index] = entry.second.flags;
+                positions.content[entry.second.index] = entry.second.position.serialize();
+                entry.second.assigned = true;
             }
             return compiled() == false;
         }
@@ -275,15 +269,13 @@ namespace type {
 					capacity += growth;
 				}
 				if (allocation) {
-					identifiers.content.clear();
-					flags.content.clear();
-					positions.content.clear();
-					identifiers.content.reserve(capacity);
-					flags.content.reserve(capacity);
-					positions.content.reserve(capacity);
-                    memset(identifiers.content.data(), 0, identifiers.content.capacity() * sizeof(unsigned int));
-                    memset(flags.content.data(), 0, flags.content.capacity() * sizeof(unsigned int));
-                    memset(positions.content.data(), 0, positions.content.capacity() * sizeof(spatial::matrix));
+					identifiers.content.resize(capacity);
+					flags.content.resize(capacity);
+					positions.content.resize(capacity);
+                    size_t offset = capacity - growth;
+                    memset(identifiers.content.data() + offset, 0, growth * sizeof(unsigned int));
+                    memset(flags.content.data() + offset, 0, growth * sizeof(unsigned int));
+                    memset(positions.content.data() + offset, 0, growth * sizeof(spatial::matrix));
                     for (int i = 0; i < allocation; i++) {
                         available.push_back({ ++increment, capacity - allocation + i });
                     }
@@ -292,7 +284,7 @@ namespace type {
             }
             while (count) {
                 last = available.begin()->first;
-                instances[last].define(last, this, props);
+                instances[last].define(last, this, props, available.begin()->second);
                 cache().insert({ last, this });
                 available.pop_front();
                 count -= 1;
@@ -301,7 +293,6 @@ namespace type {
         }
 
         void release(instance_t id) {
-            // TODO: This doesn't decrement the size... and it will leave gaps in the render context
             if (instances.find(id) == instances.end()) {
                 return;
             }
@@ -386,8 +377,9 @@ namespace type {
                         break; // the current node isn't finished
                     }
                 }
+                // Tell the entity compile the object needs to report state updates
+                instance.second.assigned = false;
             }
-
         }
 
         bool hasInstance(instance_t id) {

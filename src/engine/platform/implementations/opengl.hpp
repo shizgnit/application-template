@@ -37,6 +37,7 @@
 #endif
 
 #if defined __PLATFORM_ANDROID
+//#include <packages/glew.1.9.0.1/build/native/include/GL/glew.h>
 #include <GLES3/gl3.h>
 #include <GLES3/gl3ext.h>
 #endif
@@ -150,6 +151,9 @@ namespace implementation {
             type::object* target = NULL;
 
             unsigned char* collect = NULL;
+
+            utilities::seconds_t timestamp = std::chrono::system_clock::now().time_since_epoch();
+            GLuint pbo = 0;
         };
 
         class graphics : public platform::graphics {
