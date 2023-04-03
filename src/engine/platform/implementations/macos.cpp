@@ -71,8 +71,17 @@ void implementation::macos::assets::init(void* ref) {
     }
 }
 
-std::vector<std::string> implementation::macos::assets::list(const std::string& path) {
-    return filesystem->read_directory(utilities::join("/", std::vector<std::string>({ base, path })));
+std::vector<std::string> implementation::macos::assets::list(const std::string& path, const std::string& type) {
+    if (type.empty()) {
+        return filesystem->read_directory(filesystem->join({ base, path }));
+    }
+    std::vector<std::string> results;
+    for (auto entry : filesystem->read_directory(filesystem->join({ base, path }))) {
+        if (filesystem->filetype(filesystem->join({ base, path, entry })) == type) {
+            results.push_back(entry);
+        }
+    }
+    return results;
 }
 
 std::istream& implementation::macos::assets::retrieve(const std::string& path) {
