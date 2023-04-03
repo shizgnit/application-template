@@ -292,10 +292,10 @@ namespace platform {
             }
         }
 
-    protected:
         virtual void position(widget& instance) = 0;
         virtual void draw(widget& instance) = 0;
 
+    protected:
         std::map<int, widget *> instances;
 
         widget* selected = NULL;

@@ -32,7 +32,7 @@ namespace type {
     class entity : virtual public type::info, public properties {
     public:
 
-        enum {
+        enum states {
             SELECTED = 0x01,
             GROUPED = 0x02,
             VIRTUAL = 0X04
@@ -41,19 +41,21 @@ namespace type {
         typedef long instance_t;
         typedef std::string group_t;
 
+        typedef int key_t;
+
         operator bool() {
             return instances.size();
         }
 
-        static auto & cache() {
-            static std::map<instance_t, type::entity*> _cache;
-            return _cache;
+        static auto & crossreference() {
+            static std::map<instance_t, type::entity*> _crossreference;
+            return _crossreference;
         }
 
         static entity& find(const value_t& criteria) {
             static type::entity empty;
-            auto i = cache().find(std::get<instance_t>(criteria));
-            if (i == cache().end()) {
+            auto i = crossreference().find(std::get<instance_t>(criteria));
+            if (i == crossreference().end()) {
                 return empty;
             }
             return *(i->second);
@@ -73,8 +75,8 @@ namespace type {
             typedef std::function<void ()> callback_t;
 
             waypoint() {}
-            waypoint(const spatial::position& p1, const spatial::position& p2, double r) {
-                set(p1, p2, r);
+            waypoint(const spatial::position& p1, const spatial::position& p2) {
+                set(p1, p2);
             }
 
             waypoint& checkpoint() {
@@ -83,16 +85,24 @@ namespace type {
 
             waypoint& checkpoint(const spatial::position& p1) {
                 distance = p1.eye.distance(finish.eye);
-                return set(p1, finish.eye, rate);
+                return set(p1, finish.eye);
             }
 
-            waypoint& set(const spatial::position& p1, const spatial::position& p2, double r, double a=1.0) {
-                rate = r;
+            waypoint& set(const spatial::position& p1, const spatial::position& p2) {
                 start = p1;
                 finish = p2;
                 distance = start.eye.distance(finish.eye);
-                speed = distance / rate;
                 finished = false;
+                return *this;
+            }
+
+            waypoint& speed(double r) {
+                rate = r;
+                return *this;
+            }
+
+            waypoint& orient(const spatial::vector& o) {
+                orientation = o;
                 return *this;
             }
 
@@ -109,6 +119,7 @@ namespace type {
 
             waypoint& go() {
                 active = true;
+                delta = distance / rate;
                 reference = std::chrono::system_clock::now().time_since_epoch();
                 return *this;
             }
@@ -119,8 +130,8 @@ namespace type {
                 }
 
                 auto now = std::chrono::system_clock::now().time_since_epoch();
-                auto delta = std::chrono::duration_cast<utilities::seconds_t>(now - reference).count();
-                auto time = delta / speed;
+                auto elapsed = std::chrono::duration_cast<utilities::seconds_t>(now - reference).count();
+                auto time = elapsed / delta;
 
                 if (time >= 1.0) {
                     active = false;
@@ -130,7 +141,7 @@ namespace type {
                 else {
                     current.reposition(start.eye.lerp(finish.eye, time));
                     if (rotating == false) {
-                        current.lookat(start.focus.lerp(finish.focus, time));
+                        current.lookat(start.focus.lerp(finish.focus + orientation, time));
                     }
                 }
                 if (finished && on_finish_callback) {
@@ -138,11 +149,8 @@ namespace type {
                 }
 
                 if (rotating) {
-                    //current.eye = spatial::matrix().rotate_x(rotation.x).interpolate(current.eye);
-                    //current.eye = spatial::matrix().rotate_y(rotation.y).interpolate(current.eye);
-                    current.roll(rotation.z); // 90.0f * (delta > 1.0 ? 1.0 : delta));
-                    current.pitch(rotation.x); // 90.0f * (delta > 1.0 ? 1.0 : delta));
-                    //current.reposition(spatial::matrix().rotate_z(rotation.z * (delta / (rotation.z / rate))).interpolate(current.eye - axis) + axis);
+                    current.roll(rotation.z);
+                    current.pitch(rotation.x);
                 }
 
                 return current;
@@ -151,7 +159,7 @@ namespace type {
             utilities::seconds_t reference;
             double rate = 1.0; // relative units per second
             double distance; // total distance between start and finish
-            double speed; // travel distance per-second
+            double delta; // travel distance per-second
             double acceleration; // 
             spatial::position start;
             spatial::position finish;
@@ -165,6 +173,7 @@ namespace type {
             bool rotating = false;
             spatial::vector axis;
             spatial::vector rotation;
+            spatial::vector orientation;
         };
 
         class instance : public properties {
@@ -184,6 +193,7 @@ namespace type {
 
             size_t index = 0;
             bool assigned = false;
+            bool hashed = false;
 
             unsigned int flags = 0;
             int frame = 0;
@@ -200,12 +210,83 @@ namespace type {
             }
 
             type::entity* parent = NULL;
+            void* bucket = NULL;
+
+            void toggle(entity::states state, bool value) {
+                if(value) {
+                    switch (state) {
+                    case(entity::SELECTED):
+                        flags |= entity::SELECTED;
+                    }
+                }
+                else {
+                    switch (state) {
+                    case(entity::SELECTED):
+                        flags &= ~entity::SELECTED;
+                    }
+                }
+                update();
+            }
+
+            void update() {
+                parent->identifiers.content[index] = id;
+                parent->flags.content[index] = flags;
+                parent->positions.content[index] = position.serialize();
+                if (hashed == false) {
+                    parent->store(position.eye, *this);
+                }
+            }
         };
 
-        typedef std::function<bool(type::entity::instance &)> callback_t;
-        callback_t culling_criteria;
-        void setCullCriteria(callback_t callback) {
-           culling_criteria = callback;
+        typedef std::vector<instance*> bucket_t;
+
+        std::map<key_t, std::map<key_t, std::map<key_t, bucket_t>>> _hash;
+
+        void store(const spatial::vector& p, instance& i) {
+            auto& bucket = _hash[p.x / 20][p.y / 20][p.z / 20];
+            if (i.bucket) {
+                if (i.bucket == &bucket) {
+                    return;
+                }
+                bucket_t* ref = (bucket_t*)i.bucket;
+                ref->erase(std::find(ref->begin(), ref->end(), &i));
+            }
+            bucket.push_back(&i);
+            i.bucket = &bucket;
+        }
+
+        std::vector<bucket_t*> list(const spatial::vector& p1, const spatial::vector& p2) {
+            auto x1 = (p1.x < p2.x ? p1.x : p2.x) / 20;
+            auto x2 = (p1.x < p2.x ? p2.x : p1.x) / 20;
+            auto y1 = (p1.y < p2.y ? p1.y : p2.y) / 20;
+            auto y2 = (p1.y < p2.y ? p2.y : p1.y) / 20;
+            auto z1 = (p1.z < p2.z ? p1.z : p2.z) / 20;
+            auto z2 = (p1.z < p2.z ? p2.z : p1.z) / 20;
+            
+            std::vector <bucket_t*> results;
+
+            auto& h = _hash;
+            for (int x = x1; x <= x2; x++) {
+                auto mx = h.find(x);
+                if (mx == h.end()) {
+                    continue;
+                }
+                for (int y = y1; y <= y2; y++) {
+                    auto my = mx->second.find(y);
+                    if (my == mx->second.end()) {
+                        continue;
+                    }
+                    for (int z = z1; z <= z2; z++) {
+                        auto mz = my->second.find(z);
+                        if (mz == my->second.end()) {
+                            continue;
+                        }
+                        results.push_back(&mz->second);
+                    }
+                }
+            }
+
+            return results;
         }
 
         std::list<std::pair<instance_t, size_t>> available;
@@ -232,64 +313,45 @@ namespace type {
 
         size_t size = 0;
         size_t capacity = 0;
-        size_t growth = 48;
+        size_t limit = 256;
         
         type::info::opaque_t *resource = nullptr;
 
-        bool compile() {
-            for (auto& entry : instances) {
-                if (culling_criteria && culling_criteria(entry.second)) {
-                    continue;
+        bool compile(spatial::position* reference) {
+            if (reference) {
+                for (auto& sector : list(reference->eye + spatial::vector({ 20, 0, 60 }), reference->eye - spatial::vector({ 20, reference->eye.y, 20 }))) {
+                    for (auto entry : *sector) {
+                        entry->update();
+                    }
                 }
-                if (entry.second.assigned) {
-                    continue;
+            }
+            else {
+                for (auto& entry : instances) {
+                    entry.second.update();
                 }
-                identifiers.content[entry.second.index] = entry.second.id;
-                flags.content[entry.second.index] = entry.second.flags;
-                positions.content[entry.second.index] = entry.second.position.serialize();
-                entry.second.assigned = true;
             }
             return compiled() == false;
         }
 
         instance & add(properties& props=properties::instance(), int count = 1) {
-            allocate(props, count);
-            size = instances.size();
-            return getInstance(last);
+            return getInstance(allocate(props, count));
         }
 
-        bool allocate(properties& props, int count) {
+        instance_t allocate(properties& props, int count) {
             static instance_t increment = 0;
-            if (count > available.size()) {
-				size_t size = available.size() + instances.size();
-				size_t needed = count - available.size();
-				size_t allocation = 0;
-				while((size + needed) > capacity) {
-					allocation += growth;
-					capacity += growth;
-				}
-				if (allocation) {
-					identifiers.content.resize(capacity);
-					flags.content.resize(capacity);
-					positions.content.resize(capacity);
-                    size_t offset = capacity - growth;
-                    memset(identifiers.content.data() + offset, 0, growth * sizeof(unsigned int));
-                    memset(flags.content.data() + offset, 0, growth * sizeof(unsigned int));
-                    memset(positions.content.data() + offset, 0, growth * sizeof(spatial::matrix));
-                    for (int i = 0; i < allocation; i++) {
-                        available.push_back({ ++increment, capacity - allocation + i });
-                    }
-                    compiled(false);
-                }
+            if (capacity == 0) {
+                capacity = limit;
+                identifiers.content.resize(capacity);
+                flags.content.resize(capacity);
+                positions.content.resize(capacity);
             }
-            while (count) {
-                last = available.begin()->first;
-                instances[last].define(last, this, props, available.begin()->second);
-                cache().insert({ last, this });
-                available.pop_front();
-                count -= 1;
+            for (int i = 0; i < count; i++) {
+                int index = instances.size() >= limit ? (instances.size() % (limit - 1)) + 1 : instances.size() % limit;
+                instances[++increment].define(increment, this, props, index);
+                crossreference().insert({ increment, this });
             }
-            return true;
+            size = instances.size() > (limit) ? (limit) : instances.size();
+            return increment;
         }
 
         void release(instance_t id) {
@@ -301,9 +363,7 @@ namespace type {
         }
 
         bool play(std::string animation, instance_t id=0) {
-            //std::lock_guard<std::mutex> scoped(lock);
             if (instances.size() == 0) {
-                //return false;
                 add();
             }
 
@@ -387,11 +447,9 @@ namespace type {
         }
 
         instance& getInstance(instance_t id = 0) {
-            //std::lock_guard<std::mutex> scoped(lock);
             static type::entity::instance empty;
 
             if (instances.size() == 0) {
-                //return empty;
                 add();
             }
             instance_t key = (id == 0) ? instances.begin()->first : id;

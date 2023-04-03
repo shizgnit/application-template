@@ -149,6 +149,8 @@ namespace platform {
             ss << frames.back().frames;
             return ss.str();
         }
+        
+        spatial::position* reference = NULL;
 
     protected:
         spatial::matrix parameters;

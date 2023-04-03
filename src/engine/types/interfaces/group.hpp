@@ -55,5 +55,7 @@ namespace type {
             }
 
             std::list<entity::instance_t> members;
+            
+            type::object* object = NULL;
     };
 }

@@ -147,7 +147,9 @@ bool parse(const std::string& data) {
             properties props;
             props.set("virtual", true);
             auto& added = reference.add(props);
+            added.flags |= type::entity::VIRTUAL;
             added.position.reposition({ 0.0f, -100.0f, 0.0f });
+            added.update();
         }
         else {
             for (auto& instance : entity.second.get("instances").get<picojson::array>()) {
@@ -173,6 +175,7 @@ bool parse(const std::string& data) {
                 if (props.has("virtual") && std::get<bool>(props.get("virtual"))) {
                     added.flags |= type::entity::VIRTUAL;
                 }
+                added.update();
 
                 stage::scene::global().map.setQuadrant(stage::scene::global().map.getQuadrant(x, z), stage::scene::global().map.getGenericType());
             }
@@ -292,6 +295,9 @@ bool stage::scene::persistence::write() {
                 position["z"] = picojson::value(0.0);
                 entry["position"] = picojson::value(position);
                 picojson::object spec;
+                if (assets->has<type::entity>(id)) {
+                    writeProperties(assets->get<type::entity>(id), spec);
+                }
                 spec["virtual"] = picojson::value(true);
                 entry["properties"] = picojson::value(spec);
                 instances.push_back(picojson::value(entry));

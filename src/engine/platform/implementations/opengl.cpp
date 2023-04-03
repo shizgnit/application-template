@@ -542,7 +542,7 @@ bool implementation::opengl::graphics::compile(type::object& object) {
             entity.positions.resource = new type::info::opaque_t();
         }
 
-        if(entity.compile()) {
+        if(entity.compile(reference)) {
             entity.resource->vao.clear();
         }
         

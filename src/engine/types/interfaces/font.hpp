@@ -165,6 +165,34 @@ namespace type {
             return glyphs.empty();
         }
 
+        int horizontal(const std::string& text) {
+            double offset = 0;
+            for (auto line : utilities::tokenize(text)) {
+                int length = 0;
+                for (unsigned int i = 0; i < line.length(); i++) {
+                    auto& glyph = glyphs[line[i]];
+                    if (i > 0) {
+                        length += glyph.xadvance + (float)kern(line[i - 1], line[i]);
+                    }
+                    else {
+                        length += glyph.xadvance;
+                    }
+                }
+                if (length > offset) {
+                    offset = length;
+                }
+            }
+            return offset;
+        }
+
+        int vertical(const std::string& text) {
+            int value = 0;
+            for (auto line : utilities::tokenize(text)) {
+                value += glyph_height + (glyph_height / 5);
+            }
+            return value;
+        }
+
     protected:
 
         int identifier;

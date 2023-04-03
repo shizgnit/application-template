@@ -172,11 +172,17 @@ public:
     bool hasLeftConstraint(identifier_t l, identifier_t r) {
         return(left.find(l) != left.end() && std::find(left[l].begin(), left[l].end(), r) != left[l].end());
     }
-    
+    bool hasLeftConstraint(identifier_t l) {
+        return(left.find(l) != left.end() && left[l].size());
+    }
+   
     bool hasRightConstraint(identifier_t r, identifier_t l) {
         return(right.find(r) != right.end() && std::find(right[r].begin(), right[r].end(), l) != right[r].end());
     }
-    
+    bool hasRightConstraint(identifier_t r) {
+        return(right.find(r) != right.end() && right[r].size());
+    }
+   
     bool hasBehindConstraint(identifier_t b, identifier_t a) {
         return(behind.find(b) != behind.end() && std::find(behind[b].begin(), behind[b].end(), a) != behind[b].end());
     }
@@ -184,7 +190,6 @@ public:
     bool hasAheadConstraint(identifier_t a, identifier_t b) {
         return(ahead.find(a) != ahead.end() && std::find(ahead[a].begin(), ahead[a].end(), b) != ahead[a].end());
     }
-  
     bool hasAheadConstraint(identifier_t a) {
         return(ahead.find(a) != ahead.end() && ahead[a].size());
     }

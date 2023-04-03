@@ -75,6 +75,7 @@ namespace spatial {
         virtual vector operator % (const vector& operand) const;
 
         virtual bool operator == (const vector& operand) const;
+        virtual bool operator != (const vector& operand) const;
 
         vector& cross(const vector& operand) {
             return(*this %= operand);

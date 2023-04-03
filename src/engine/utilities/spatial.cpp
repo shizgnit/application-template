@@ -145,6 +145,10 @@ bool spatial::vector::operator == (const vector& operand) const {
            this->w == operand.w;
 }
 
+bool spatial::vector::operator != (const vector& operand) const {
+    return (*this == operand) == false;
+}
+
 #if defined _USE_GLM
 spatial::vector::operator glm::vec3() const {
     return glm::vec3(x, y, z);
