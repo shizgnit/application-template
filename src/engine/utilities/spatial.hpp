@@ -382,6 +382,7 @@ namespace spatial {
         void apply(const position& reference);
 
         double rate = 1.0f;
+        double alpha = 1.0f;
 
         bool modified() {
             return dirty;

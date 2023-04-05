@@ -1128,6 +1128,7 @@ spatial::position& spatial::position::operator=(const spatial::position& ref) {
     this->translation = ref.translation;
     
     this->rate = ref.rate;
+    this->alpha = ref.alpha;
     this->view = ref.view;
     
     this->dirty = true;

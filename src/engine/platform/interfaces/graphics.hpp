@@ -63,6 +63,8 @@ namespace platform {
         virtual void oninvert() {}
         virtual void uninvert() {}
 
+        virtual void release(type::object& object) {}
+
         typedef void (graphics::* callback)();
         utilities::scoped<graphics*, callback> target(type::object& object) {
             ontarget(object);

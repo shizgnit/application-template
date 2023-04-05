@@ -456,6 +456,8 @@
     <Content Include="assets\objects\wiggle\wiggle.png" />
     <Content Include="assets\raw\glados.wav" />
     <Content Include="assets\raw\test.txt" />
+    <Content Include="assets\shaders-gles320\alpha.frag" />
+    <Content Include="assets\shaders-gles320\alpha.vert" />
     <Content Include="assets\shaders-gles320\basic.frag" />
     <Content Include="assets\shaders-gles320\basic.vert" />
     <Content Include="assets\shaders-gles320\blur.frag" />

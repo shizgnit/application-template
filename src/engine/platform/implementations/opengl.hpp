@@ -182,9 +182,11 @@ namespace implementation {
             void oninvert();
             void uninvert();
 
-            void release(type::object* object) {
-                fbos.erase(object->instance);
+            void dereference(type::object& object) {
+                fbos.erase(object.instance);
             }
+            
+            void release(type::object& object);
 
             std::vector<type::object*> target;
             std::vector<type::program*> renderer;

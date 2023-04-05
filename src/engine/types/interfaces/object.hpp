@@ -265,7 +265,7 @@ namespace type {
         bool depth = false;
         std::vector<unsigned char> pixels;
 
-    protected:
+//    protected:
         void calculate_constraints() {
             if (vertices.size() == 0) {
                 return;

@@ -188,15 +188,6 @@ void implementation::opengl::graphics::dimensions(int width, int height, float s
     
     GL_TEST(glViewport(0, 0, display_width, display_height));
 
-    // Setup the render buffer
-    fbos[color.instance].deinit();
-    color = spatial::quad(display_width, display_height);
-    color.texture.color = &assets->get<type::image>("color");
-    color.texture.color->create(display_width, display_height, 0, 0, 0, 0);
-    color.xy_projection(0, 0, display_width, display_height, false, true);
-    compile(color);
-    fbos[color.instance].init(color, this);
-
     // Setup the scene depth buffer
     fbos[depth.instance].deinit();
     depth = spatial::quad(display_width, display_height);
@@ -206,6 +197,16 @@ void implementation::opengl::graphics::dimensions(int width, int height, float s
     depth.xy_projection(0, 0, display_width, display_height, false, true);
     compile(depth);
     fbos[depth.instance].init(depth, this);
+
+    // Setup the render buffer
+    fbos[color.instance].deinit();
+    release(color);
+    color = spatial::quad(display_width, display_height);
+    color.texture.color = &assets->get<type::image>("color");
+    color.texture.color->create(display_width, display_height, 0, 0, 0, 0);
+    color.xy_projection(0, 0, display_width, display_height, false, true);
+    compile(color);
+    fbos[color.instance].init(color, this);
 
     // Setup the post process blur buffer
     fbos[blur.instance].deinit();
@@ -513,7 +514,7 @@ bool implementation::opengl::graphics::compile(type::object& object) {
 
         GL_TEST(glGenBuffers(1, &object.resource->context));
         GL_TEST(glBindBuffer(GL_ARRAY_BUFFER, object.resource->context));
-        GL_TEST(glBufferData(GL_ARRAY_BUFFER, sizeof(spatial::vertex) * object.vertices.size(), object.vertices.data(), GL_STATIC_DRAW));
+        GL_TEST(glBufferData(GL_ARRAY_BUFFER, sizeof(spatial::vertex) * object.vertices.size(), object.vertices.data(), GL_DYNAMIC_DRAW));
         
         GL_TEST(glVertexAttribPointer(shader->a_Vertex, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::vertex), BUFFER_OFFSET(offset_vector)));
         GL_TEST(glVertexAttribPointer(shader->a_Texture, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::vertex), BUFFER_OFFSET(sizeof(spatial::vector) + offset_vector)));
@@ -806,6 +807,18 @@ void implementation::opengl::graphics::oninvert() {
 
 void implementation::opengl::graphics::uninvert() {
     GL_TEST(glCullFace(GL_BACK));
+}
+
+void implementation::opengl::graphics::release(type::object& o) {
+    if (o.resource == NULL) {
+        return;
+    }
+    for (auto vao : o.resource->vao) {
+        glDeleteVertexArrays(1, &vao.second);
+    }
+    glDeleteBuffers(1, &o.resource->context);
+    delete(o.resource);
+    o.resource = NULL;
 }
 
 #endif

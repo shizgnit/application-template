@@ -32,10 +32,13 @@ namespace type {
     class entity : virtual public type::info, public properties {
     public:
 
+        // 1110 0000 0000 0000 0000 0001 0000 0000
+
         enum states {
-            SELECTED = 0x01,
-            GROUPED = 0x02,
-            VIRTUAL = 0X04
+            SELECTED = 0x00000001,
+            GROUPED  = 0x00000002,
+            VIRTUAL  = 0X00000004,
+            ALPHA    = 0x00000008 
         };
 
         typedef long instance_t;
@@ -74,106 +77,166 @@ namespace type {
         public:
             typedef std::function<void ()> callback_t;
 
-            waypoint() {}
+            waypoint(const spatial::position& p1) {
+                p(p1, p1);
+            }
             waypoint(const spatial::position& p1, const spatial::position& p2) {
-                set(p1, p2);
+                p(p1, p2);
             }
 
             waypoint& checkpoint() {
-                return checkpoint(start.eye);
+                return checkpoint(position.start.eye);
             }
 
             waypoint& checkpoint(const spatial::position& p1) {
-                distance = p1.eye.distance(finish.eye);
-                return set(p1, finish.eye);
+                position.distance = p1.eye.distance(position.finish.eye);
+                return p(p1, position.finish.eye);
             }
 
-            waypoint& set(const spatial::position& p1, const spatial::position& p2) {
-                start = p1;
-                finish = p2;
-                distance = start.eye.distance(finish.eye);
+            waypoint& p(const spatial::position& p1, const spatial::position& p2) {
+                position.start = p1;
+                position.finish = p2;
+                position.distance = position.start.eye.distance(position.finish.eye);
+                position.active = true;
+                finished = false;
+                return *this;
+            }
+            waypoint& r(const spatial::vector& axis, const spatial::vector& rads) {
+                rotation.axis = axis;
+                rotation.rads = rads;
+                rotation.active = true;
+                finished = false;
+                return *this;
+            }
+            waypoint& a(float start, float finish) {
+                alpha.start = start;
+                alpha.finish = finish;
+                alpha.active = true;
+                finished = false;
+                return *this;
+            }
+            waypoint& s(float start, float finish) {
+                scale.start = start;
+                scale.finish = finish;
+                scale.active = true;
                 finished = false;
                 return *this;
             }
 
             waypoint& speed(double r) {
-                rate = r;
+                position.rate = r;
                 return *this;
             }
 
             waypoint& orient(const spatial::vector& o) {
-                orientation = o;
+                position.orientation = o;
                 return *this;
             }
 
-            waypoint& rotate(const spatial::vector& axis, const spatial::vector& rads) {
-                this->axis = axis;
-                rotation = rads;
-                rotating = true;
-                return *this;
-            }
             waypoint& on_finish(callback_t c) {
                 on_finish_callback = c;
                 return *this;
             }
 
+            waypoint& terminate() {
+                terminator = true;
+                return *this;
+            }
+            
             waypoint& go() {
                 active = true;
-                delta = distance / rate;
-                reference = std::chrono::system_clock::now().time_since_epoch();
+                if (position.active) {
+                    delta = position.distance / position.rate;
+                    reference = std::chrono::system_clock::now().time_since_epoch();
+                }
                 return *this;
             }
 
-            spatial::position position() {
+            spatial::position get() {
                 if (active == false) {
-                    return start;
+                    return finished ? position.finish : position.start;
                 }
 
                 auto now = std::chrono::system_clock::now().time_since_epoch();
                 auto elapsed = std::chrono::duration_cast<utilities::seconds_t>(now - reference).count();
                 auto time = elapsed / delta;
+                auto delta = 1.0 - time;
 
                 if (time >= 1.0) {
                     active = false;
-                    current = finish;
                     finished = true;
-                }
-                else {
-                    current.reposition(start.eye.lerp(finish.eye, time));
-                    if (rotating == false) {
-                        current.lookat(start.focus.lerp(finish.focus + orientation, time));
+                    position.current = position.finish;
+                    if (scale.active) {
+                        position.current.scale(scale.finish);
+                    }
+                    if (alpha.active) {
+                        position.current.alpha = alpha.finish;
                     }
                 }
+                else {
+                    if (position.active) {
+                        position.current.reposition(position.start.eye.lerp(position.finish.eye, time));
+                    }
+                    if (rotation.active == false) {
+                        position.current.lookat(position.start.focus.lerp(position.finish.focus + position.orientation, time));
+                    }
+                    if (scale.active) {
+                        position.current.scale(delta * scale.start + time * scale.finish);
+                    }
+                    if (alpha.active) {
+                        position.current.alpha = delta * alpha.start + time * alpha.finish;
+                    }
+                    if (rotation.active) {
+                        position.current.roll(rotation.rads.z);
+                        position.current.pitch(rotation.rads.x);
+                    }
+                }
+
                 if (finished && on_finish_callback) {
                     on_finish_callback();
                 }
 
-                if (rotating) {
-                    current.roll(rotation.z);
-                    current.pitch(rotation.x);
-                }
-
-                return current;
+                return position.current;
             }
 
+            struct {
+                bool active = false;
+                float start;
+                float finish;
+            } alpha;
+
+            struct {
+                bool active = false;
+                float start;
+                float finish;
+            } scale;
+
+            struct {
+                bool active = false;
+                double rate = 1.0; // relative units per second
+                double distance; // total distance between start and finish
+                double acceleration; // 
+                spatial::position start;
+                spatial::position finish;
+                spatial::position current;
+                spatial::vector orientation;
+            } position;
+
+            struct {
+                bool active = false;
+                spatial::vector axis;
+                spatial::vector rads;
+            } rotation;
+
             utilities::seconds_t reference;
-            double rate = 1.0; // relative units per second
-            double distance; // total distance between start and finish
             double delta; // travel distance per-second
-            double acceleration; // 
-            spatial::position start;
-            spatial::position finish;
-            spatial::position current;
 
             bool finished = false;
             bool active = false;
 
-            callback_t on_finish_callback;
+            bool terminator = false;
 
-            bool rotating = false;
-            spatial::vector axis;
-            spatial::vector rotation;
-            spatial::vector orientation;
+            callback_t on_finish_callback;
         };
 
         class instance : public properties {
@@ -192,8 +255,6 @@ namespace type {
             instance_t id = 0;
 
             size_t index = 0;
-            bool assigned = false;
-            bool hashed = false;
 
             unsigned int flags = 0;
             int frame = 0;
@@ -229,21 +290,21 @@ namespace type {
             }
 
             void update() {
+                if (position.alpha == 0.0) {
+                    flags |= type::entity::VIRTUAL;
+                }
                 parent->identifiers.content[index] = id;
                 parent->flags.content[index] = flags;
                 parent->positions.content[index] = position.serialize();
-                if (hashed == false) {
-                    parent->store(position.eye, *this);
-                }
             }
         };
 
-        typedef std::vector<instance*> bucket_t;
+        typedef std::list<instance*> bucket_t;
 
         std::map<key_t, std::map<key_t, std::map<key_t, bucket_t>>> _hash;
 
         void store(const spatial::vector& p, instance& i) {
-            auto& bucket = _hash[p.x / 20][p.y / 20][p.z / 20];
+            auto& bucket = _hash[(key_t)(p.x / 20)][(key_t)(p.y / 20)][(key_t)(p.z / 20)];
             if (i.bucket) {
                 if (i.bucket == &bucket) {
                     return;
@@ -256,12 +317,12 @@ namespace type {
         }
 
         std::vector<bucket_t*> list(const spatial::vector& p1, const spatial::vector& p2) {
-            auto x1 = (p1.x < p2.x ? p1.x : p2.x) / 20;
-            auto x2 = (p1.x < p2.x ? p2.x : p1.x) / 20;
-            auto y1 = (p1.y < p2.y ? p1.y : p2.y) / 20;
-            auto y2 = (p1.y < p2.y ? p2.y : p1.y) / 20;
-            auto z1 = (p1.z < p2.z ? p1.z : p2.z) / 20;
-            auto z2 = (p1.z < p2.z ? p2.z : p1.z) / 20;
+            key_t x1 = (p1.x < p2.x ? p1.x : p2.x) / 20;
+            key_t x2 = (p1.x < p2.x ? p2.x : p1.x) / 20;
+            key_t y1 = (p1.y < p2.y ? p1.y : p2.y) / 20;
+            key_t y2 = (p1.y < p2.y ? p2.y : p1.y) / 20;
+            key_t z1 = (p1.z < p2.z ? p1.z : p2.z) / 20;
+            key_t z2 = (p1.z < p2.z ? p2.z : p1.z) / 20;
             
             std::vector <bucket_t*> results;
 
@@ -355,11 +416,16 @@ namespace type {
         }
 
         void release(instance_t id) {
-            if (instances.find(id) == instances.end()) {
+            auto instance = instances.find(id);
+            if (instance == instances.end()) {
                 return;
             }
-            available.push_back({ id, instances[id].index });
-            instances.erase(id);
+            available.push_back({ id, instance->second.index });
+            if (instance->second.bucket) {
+                bucket_t* ref = (bucket_t*)instance->second.bucket;
+                ref->erase(std::find(ref->begin(), ref->end(), &instance->second));
+            }
+            //instances.erase(id);
         }
 
         bool play(std::string animation, instance_t id=0) {
@@ -424,21 +490,31 @@ namespace type {
 
             instances[key].frame = current + step;
 
+            std::vector<instance_t> cleanup;
             for (auto& instance : instances) {
                 while(instance.second.path.size()) {
-                    auto position = instance.second.path.begin()->position();
+                    auto position = instance.second.path.begin()->get();
                     instance.second.position.reposition(position.eye);
                     instance.second.position.lookat(position.focus);
                     instance.second.position.up = position.up;
+                    instance.second.position.alpha = position.alpha;
+                    instance.second.flags &= 0xFF;
+                    instance.second.flags |= (unsigned int)(255.0 * position.alpha) << 24;
+                    instance.second.update();
+                    instance.second.parent->store(position.eye, instance.second);
                     if (instance.second.path.begin()->finished) {
+                        if (instance.second.path.begin()->terminator) {
+                            cleanup.push_back(instance.second.id);
+                        }
                         instance.second.path.pop_front();
                     }
                     else {
                         break; // the current node isn't finished
                     }
                 }
-                // Tell the entity compile the object needs to report state updates
-                instance.second.assigned = false;
+            }
+            for (auto id : cleanup) {
+                release(id);
             }
         }
 
