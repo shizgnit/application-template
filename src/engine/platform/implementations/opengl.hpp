@@ -158,8 +158,7 @@ namespace implementation {
 
         class graphics : public platform::graphics {
         public:
-            void projection(int fov);
-            void dimensions(int width, int height, float scale=1.0);
+            void dimensions(int width, int height, float fov=90.0, float scale=1.0);
 
             void init(void);
             void clear(void);

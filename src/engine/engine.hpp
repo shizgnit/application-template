@@ -187,6 +187,7 @@
 #include "types/interfaces/blueprint.hpp"
 #include "types/interfaces/visitor.hpp"
 #include "types/interfaces/group.hpp"
+#include "types/interfaces/rig.hpp"
 
 #undef interface // Thanks Microsoft
 

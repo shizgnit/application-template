@@ -39,8 +39,7 @@ namespace platform {
             NORMALS   = (1u << 3)
         };
 
-        virtual void projection(int fov) = 0;
-        virtual void dimensions(int width, int height, float scale=1.0) = 0;
+        virtual void dimensions(int width, int height, float fov=90.0, float scale=1.0) = 0;
 
         virtual void init(void) = 0;
         virtual void clear(void) = 0;

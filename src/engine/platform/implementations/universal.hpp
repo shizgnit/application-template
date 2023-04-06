@@ -68,7 +68,8 @@ namespace implementation {
             bool raise(const input::event& ev, int x, int y);
             void emit();
 
-            void position();
+            void dimensions(int width, int height);
+
             widget* reposition(std::vector<widget*>& c);
 
             void draw();

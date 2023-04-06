@@ -293,9 +293,18 @@ namespace type {
                 if (position.alpha == 0.0) {
                     flags |= type::entity::VIRTUAL;
                 }
+                assign();
+                store();
+            }
+
+            void assign() {
                 parent->identifiers.content[index] = id;
                 parent->flags.content[index] = flags;
                 parent->positions.content[index] = position.serialize();
+            }
+
+            void store() {
+                parent->store(position.eye, *this);
             }
         };
 
@@ -382,13 +391,13 @@ namespace type {
             if (reference) {
                 for (auto& sector : list(reference->eye + spatial::vector({ 20, 0, 60 }), reference->eye - spatial::vector({ 20, reference->eye.y, 20 }))) {
                     for (auto entry : *sector) {
-                        entry->update();
+                        entry->assign();
                     }
                 }
             }
             else {
                 for (auto& entry : instances) {
-                    entry.second.update();
+                    entry.second.assign();
                 }
             }
             return compiled() == false;
@@ -501,7 +510,6 @@ namespace type {
                     instance.second.flags &= 0xFF;
                     instance.second.flags |= (unsigned int)(255.0 * position.alpha) << 24;
                     instance.second.update();
-                    instance.second.parent->store(position.eye, instance.second);
                     if (instance.second.path.begin()->finished) {
                         if (instance.second.path.begin()->terminator) {
                             cleanup.push_back(instance.second.id);

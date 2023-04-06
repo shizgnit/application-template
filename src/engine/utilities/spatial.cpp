@@ -1071,6 +1071,32 @@ spatial::position& spatial::position::lookat(const vector& offset) {
     return this->modify();
 }
 
+spatial::position& spatial::position::adjust(const spatial::position& amount) {
+    store scope(*this);
+
+    auto offset = eye - amount.eye;
+    reposition(offset);
+
+    type_t radx, rady, radz;
+
+    radx = static_cast<type_t>(amount.translation.pitch * (3.1415927 / 180));
+    focus.rotate_x(radx);
+    up.rotate_x(radx);
+
+    rady = static_cast<type_t>(amount.translation.spin * (3.1415927 / 180));
+    focus.rotate_y(rady);
+    up.rotate_y(rady);
+
+    radz = static_cast<type_t>(amount.translation.roll * (3.1415927 / 180));
+    focus.rotate_z(radz);
+    up.rotate_z(radz);
+
+    eye += amount.eye;
+    focus += amount.eye;
+
+    return this->modify();
+}
+
 void spatial::position::constrain(bool x, bool y, bool z) {
     constraint.x = x;
     constraint.y = y;

@@ -218,7 +218,11 @@ namespace platform {
         virtual bool raise(const input::event& ev, int x, int y) = 0;
         virtual void emit() = 0;
 
-        virtual void position() = 0;
+        virtual void dimensions(int width, int height) = 0;
+        virtual float scale() {
+            return display_height / 1440.0f;
+        }
+        
         virtual widget* reposition(std::vector<widget*>& c) = 0;
 
         virtual void draw() = 0;
@@ -296,6 +300,9 @@ namespace platform {
         virtual void draw(widget& instance) = 0;
 
     protected:
+        int display_width = 0;
+        int display_height = 0;
+
         std::map<int, widget *> instances;
 
         widget* selected = NULL;

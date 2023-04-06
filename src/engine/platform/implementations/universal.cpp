@@ -287,7 +287,12 @@ void implementation::universal::interface::emit() {
 
 }
 
-void implementation::universal::interface::position() {
+void implementation::universal::interface::dimensions(int width, int height) {
+    if (display_width != width || display_height != height) {
+        projection = spatial::matrix().ortho(0, width, 0, height);
+        display_width = width;
+        display_height = height;
+    }
     for (auto instance : instances) {
         position(*instance.second);
     }

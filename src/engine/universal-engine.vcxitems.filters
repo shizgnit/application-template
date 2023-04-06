@@ -205,6 +205,9 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)types\interfaces\visitor.hpp">
       <Filter>types\interfaces</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)types\interfaces\rig.hpp">
+      <Filter>types\interfaces</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="deps">

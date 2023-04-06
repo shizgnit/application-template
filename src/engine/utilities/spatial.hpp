@@ -347,6 +347,7 @@ namespace spatial {
         position& orientation(const position& reference);
         position& reposition(const vector& offset);
         position& lookat(const vector& offset);
+        position& adjust(const position& amount);
 
         void constrain(bool x, bool y, bool z);
 

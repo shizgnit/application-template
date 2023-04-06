@@ -160,33 +160,20 @@ void implementation::opengl::fbo::disable() {
     }
 }
 
-void implementation::opengl::graphics::projection(int fov) {
-    ortho = spatial::matrix().ortho(0, display_width, 0, display_height);
-    perspective = spatial::matrix().perspective(fov, (float)display_width / (float)display_height, 0.0f, 10.0f);
-}
-
-void implementation::opengl::graphics::dimensions(int width, int height, float scale) {
+void implementation::opengl::graphics::dimensions(int width, int height, float fov, float scale) {
     if(width == 0 || height == 0) {
         return;
     }
     
-    //if(display_width == 0 && display_height == 0) {
-    //    glGetIntegerv(GL_FRAMEBUFFER_BINDING, &defaultFramebuffer);
-        
-    //    GLint dims[4] = {0};
-    //    glGetIntegerv(GL_VIEWPORT, dims);
-        
-    //    display_width = dims[2];
-    //    display_height = dims[3];
-    //}
-    //else {
-        display_width = width;
-        display_height = height;
-    //}
+    display_width = width;
+    display_height = height;
     
     event(utilities::string() << "glViewport(" << display_width << "x" << display_height << ")");
     
     GL_TEST(glViewport(0, 0, display_width, display_height));
+
+    ortho = spatial::matrix().ortho(0, display_width, 0, display_height);
+    perspective = spatial::matrix().perspective(fov, (float)display_width / (float)display_height, 0.0f, 10.0f);
 
     // Setup the scene depth buffer
     fbos[depth.instance].deinit();
