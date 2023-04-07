@@ -36,12 +36,11 @@ namespace type {
         class bone {
         public:
             spatial::position position;
-            type::entity::instance* reference;
 
             bone& operator=(const bone& ref) {
                 this->position = ref.position;
-                this->reference = ref.reference;
                 this->id = ref.id;
+                return *this;
             }
 
             bool operator==(const bone& ref) {

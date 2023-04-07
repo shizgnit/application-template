@@ -1082,14 +1082,17 @@ spatial::position& spatial::position::adjust(const spatial::position& amount) {
     radx = static_cast<type_t>(amount.translation.pitch * (3.1415927 / 180));
     focus.rotate_x(radx);
     up.rotate_x(radx);
+    eye.rotate_x(radx);
 
     rady = static_cast<type_t>(amount.translation.spin * (3.1415927 / 180));
     focus.rotate_y(rady);
     up.rotate_y(rady);
+    eye.rotate_y(rady);
 
     radz = static_cast<type_t>(amount.translation.roll * (3.1415927 / 180));
     focus.rotate_z(radz);
     up.rotate_z(radz);
+    eye.rotate_z(radz);
 
     eye += amount.eye;
     focus += amount.eye;

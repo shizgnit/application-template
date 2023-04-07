@@ -51,6 +51,8 @@ namespace type {
             }
 
             std::list<entity::instance_t> members;
+
+            void* rig = NULL;
     };
  
 }

@@ -126,7 +126,6 @@
     <Content Include="assets\content.txt" />
     <Content Include="assets\drawable\add.png" />
     <Content Include="assets\drawable\Alert.png" />
-    <Content Include="assets\drawable\circle.png" />
     <Content Include="assets\drawable\delete.png" />
     <Content Include="assets\drawable\flag.png" />
     <Content Include="assets\drawable\grid.png" />
@@ -150,9 +149,6 @@
     <Content Include="assets\fonts\arial.png" />
     <Content Include="assets\fonts\comicsans-32.fnt" />
     <Content Include="assets\fonts\comicsans-32_0.png" />
-    <Content Include="assets\fonts\comicsans-64.fnt" />
-    <Content Include="assets\fonts\comicsans-64_0.png" />
-    <Content Include="assets\fonts\comicsans-64_1.png" />
     <Content Include="assets\fonts\consolas-12.fnt" />
     <Content Include="assets\fonts\consolas-12_0.png" />
     <Content Include="assets\fonts\consolas-16.fnt" />

@@ -273,6 +273,8 @@ namespace type {
             type::entity* parent = NULL;
             void* bucket = NULL;
 
+            std::vector<type::rig> rigging;
+
             void toggle(entity::states state, bool value) {
                 if(value) {
                     switch (state) {
