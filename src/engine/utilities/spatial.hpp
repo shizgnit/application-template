@@ -45,6 +45,10 @@ namespace spatial {
         return angle * (double)M_PI / 180.0f;
     }
 
+    inline double angles(double rads) {
+        return rads * 180.0f / (double)M_PI;
+    }
+
     class matrix;
 
     class vector {

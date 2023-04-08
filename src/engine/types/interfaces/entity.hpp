@@ -101,9 +101,9 @@ namespace type {
                 finished = false;
                 return *this;
             }
-            waypoint& r(const spatial::vector& axis, const spatial::vector& rads) {
+            waypoint& r(const spatial::vector& axis, const spatial::vector& angles) {
                 rotation.axis = axis;
-                rotation.rads = rads;
+                rotation.angles = angles;
                 rotation.active = true;
                 finished = false;
                 return *this;
@@ -160,17 +160,32 @@ namespace type {
                 auto now = std::chrono::system_clock::now().time_since_epoch();
                 auto elapsed = std::chrono::duration_cast<utilities::seconds_t>(now - reference).count();
                 auto time = elapsed / delta;
+                if (time > 1.0) {
+                    time = 1.0;
+                }
                 auto delta = 1.0 - time;
+
+                spatial::vector relative = { (float)rotation.angles.x * (float)time, (float)rotation.angles.y * (float)time, (float)rotation.angles.z * (float)time };
 
                 if (time >= 1.0) {
                     active = false;
                     finished = true;
+                    position.finish.translation = position.current.translation;
                     position.current = position.finish;
                     if (scale.active) {
                         position.current.scale(scale.finish);
                     }
                     if (alpha.active) {
                         position.current.alpha = alpha.finish;
+                    }
+                    if (rotation.active) {
+                        //position.current.spin(relative.y - rotation.travel.y);
+                        //position.current.roll(relative.z - rotation.travel.z);
+                        //position.current.pitch(relative.x - rotation.travel.x);
+                        position.current.translation.spin = relative.y - rotation.travel.y;
+                        position.current.translation.roll = relative.z - rotation.travel.z;
+                        position.current.translation.pitch = relative.x - rotation.travel.x;
+                        rotation.travel = relative;
                     }
                 }
                 else {
@@ -187,8 +202,10 @@ namespace type {
                         position.current.alpha = delta * alpha.start + time * alpha.finish;
                     }
                     if (rotation.active) {
-                        position.current.roll(rotation.rads.z);
-                        position.current.pitch(rotation.rads.x);
+                        position.current.translation.spin = relative.y - rotation.travel.y;
+                        position.current.translation.roll = relative.z - rotation.travel.z;
+                        position.current.translation.pitch = relative.x - rotation.travel.x;
+                        rotation.travel = relative;
                     }
                 }
 
@@ -225,7 +242,8 @@ namespace type {
             struct {
                 bool active = false;
                 spatial::vector axis;
-                spatial::vector rads;
+                spatial::vector angles;
+                spatial::vector travel;
             } rotation;
 
             utilities::seconds_t reference;
@@ -271,9 +289,8 @@ namespace type {
             }
 
             type::entity* parent = NULL;
+            type::rig::bone *rigging = NULL;
             void* bucket = NULL;
-
-            std::vector<type::rig> rigging;
 
             void toggle(entity::states state, bool value) {
                 if(value) {
@@ -505,13 +522,18 @@ namespace type {
             for (auto& instance : instances) {
                 while(instance.second.path.size()) {
                     auto position = instance.second.path.begin()->get();
-                    instance.second.position.reposition(position.eye);
-                    instance.second.position.lookat(position.focus);
-                    instance.second.position.up = position.up;
-                    instance.second.position.alpha = position.alpha;
-                    instance.second.flags &= 0xFF;
-                    instance.second.flags |= (unsigned int)(255.0 * position.alpha) << 24;
-                    instance.second.update();
+                    if (instance.second.rigging) {
+                        instance.second.rigging->adjust(position);
+                    } 
+                    else {
+                        instance.second.position.reposition(position.eye);
+                        instance.second.position.lookat(position.focus);
+                        instance.second.position.up = position.up;
+                        instance.second.position.alpha = position.alpha;
+                        instance.second.flags &= 0xFF;
+                        instance.second.flags |= (unsigned int)(255.0 * position.alpha) << 24;
+                        instance.second.update();
+                    }
                     if (instance.second.path.begin()->finished) {
                         if (instance.second.path.begin()->terminator) {
                             cleanup.push_back(instance.second.id);

@@ -35,16 +35,24 @@ namespace type {
 
         class bone {
         public:
-            spatial::position position;
+            bone(rig* ref, spatial::position* association) {
+                parent = ref;
+                position = association;
+            }
+
+            spatial::position* position=NULL;
 
             bone& operator=(const bone& ref) {
-                this->position = ref.position;
                 this->id = ref.id;
                 return *this;
             }
 
             bool operator==(const bone& ref) {
                 return id == ref.id;
+            }
+
+            void adjust(const spatial::position& amount) {
+                parent->adjust(*this, amount);
             }
 
         protected:
@@ -54,8 +62,13 @@ namespace type {
             }
 
             int id = assign();
+            rig* parent = NULL;
         };
-        std::list<bone> bones;
+
+        bone& add(spatial::position* association) {
+            bones.push_back(bone(this, association));
+            return bones.back();
+        }
 
         void adjust(bone &ref, const spatial::position& amount) {
             std::list<bone>::iterator it = std::find(bones.begin(), bones.end(), ref);
@@ -63,9 +76,11 @@ namespace type {
                 adjust(ref, it, amount);
             }
         }
+
     protected:
+        std::list<bone> bones;
         void adjust(bone &ref, std::list<bone>::iterator &it, const spatial::position& amount) {
-            it->position.adjust(amount);
+            it->position->adjust(amount);
             ++it;
             if (it != bones.end()) {
                 adjust(ref, it, amount);
