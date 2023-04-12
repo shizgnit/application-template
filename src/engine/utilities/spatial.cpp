@@ -301,17 +301,48 @@ spatial::matrix::matrix(const matrix& m) {
     r = m.r;
 }
 spatial::matrix::matrix(const vector& c0, const vector& c1, const vector& c2, const vector& c3) {
-    *this = { { c0.x, c1.x, c2.x, c3.x },
-              { c0.y, c1.y, c2.y, c3.y },
-              { c0.z, c1.z, c2.z, c3.z },
-              { c0.w, c1.w, c2.w, c3.w } };
+    r[0][0] = c0.x;
+    r[0][1] = c1.x;
+    r[0][2] = c2.x;
+    r[0][3] = c3.x;
+
+    r[1][0] = c0.y;
+    r[1][1] = c1.y;
+    r[1][2] = c2.y;
+    r[1][3] = c3.y;
+
+    r[2][0] = c0.z;
+    r[2][1] = c1.z;
+    r[2][2] = c2.z;
+    r[2][3] = c3.z;
+
+    r[3][0] = c0.w;
+    r[3][1] = c1.w;
+    r[3][2] = c2.w;
+    r[3][3] = c3.w;
 }
 
 spatial::matrix& spatial::matrix::identity() {
-    *this = { { 1.0f, 0.0f, 0.0f, 0.0f },
-              { 0.0f, 1.0f, 0.0f, 0.0f },
-              { 0.0f, 0.0f, 1.0f, 0.0f },
-              { 0.0f, 0.0f, 0.0f, 1.0f } };
+    r[0][0] = 1.0f;
+    r[0][1] = 0.0f;
+    r[0][2] = 0.0f;
+    r[0][3] = 0.0f;
+
+    r[1][0] = 0.0f;
+    r[1][1] = 1.0f;
+    r[1][2] = 0.0f;
+    r[1][3] = 0.0f;
+
+    r[2][0] = 0.0f;
+    r[2][1] = 0.0f;
+    r[2][2] = 1.0f;
+    r[2][3] = 0.0f;
+
+    r[3][0] = 0.0f;
+    r[3][1] = 0.0f;
+    r[3][2] = 0.0f;
+    r[3][3] = 1.0f;
+
     return *this;
 }
 
@@ -978,24 +1009,24 @@ spatial::position& spatial::position::heave(type_t t) {
     return this->modify();
 }
 
-spatial::position& spatial::position::pitch(type_t angle) {
-    translation.pitch += angle;
-    return rotate();
+spatial::position& spatial::position::pitch(type_t angle, bool apply) {
+    translation.pitch = apply ? translation.pitch + angle : angle;
+    return apply ? rotate() : this->modify();
 }
 
-spatial::position& spatial::position::yaw(type_t angle) {
-    translation.yaw += angle;
-    return rotate();
+spatial::position& spatial::position::yaw(type_t angle, bool apply) {
+    translation.yaw = apply ? translation.yaw + angle : angle;
+    return apply ? rotate() : this->modify();
 }
 
-spatial::position& spatial::position::roll(type_t angle) {
-    translation.roll += angle;
-    return rotate();
+spatial::position& spatial::position::roll(type_t angle, bool apply) {
+    translation.roll = apply ? translation.roll + angle : angle;
+    return apply ? rotate() : this->modify();
 }
 
-spatial::position& spatial::position::spin(type_t angle) {
-    translation.spin += angle;
-    return rotate();
+spatial::position& spatial::position::spin(type_t angle, bool apply) {
+    translation.spin = apply ? translation.spin + angle : angle;
+    return apply ? rotate() : this->modify();
 }
 
 spatial::position& spatial::position::rotate() {
@@ -1054,6 +1085,13 @@ spatial::position& spatial::position::reposition(const vector& offset) {
     return this->modify();
 }
 
+spatial::position& spatial::position::move(const vector& offset) {
+    store scope(*this);
+
+    reposition(eye + offset);
+
+    return this->modify();
+}
 spatial::position& spatial::position::lookat(const vector& offset) {
     store scope(*this);
 
@@ -1071,32 +1109,37 @@ spatial::position& spatial::position::lookat(const vector& offset) {
     return this->modify();
 }
 
-spatial::position& spatial::position::adjust(const spatial::position& amount) {
+spatial::position& spatial::position::rotate(const spatial::position& axis) {
     store scope(*this);
 
-    auto offset = eye - amount.eye;
+    auto offset = eye - axis.eye;
     reposition(offset);
 
     type_t radx, rady, radz;
 
-    radx = static_cast<type_t>(amount.translation.pitch * (3.1415927 / 180));
+    radx = static_cast<type_t>(axis.translation.pitch * (3.1415927 / 180));
     focus.rotate_x(radx);
     up.rotate_x(radx);
     eye.rotate_x(radx);
 
-    rady = static_cast<type_t>(amount.translation.spin * (3.1415927 / 180));
+    rady = static_cast<type_t>(axis.translation.spin * (3.1415927 / 180));
     focus.rotate_y(rady);
     up.rotate_y(rady);
     eye.rotate_y(rady);
 
-    radz = static_cast<type_t>(amount.translation.roll * (3.1415927 / 180));
+    radz = static_cast<type_t>(axis.translation.roll * (3.1415927 / 180));
     focus.rotate_z(radz);
     up.rotate_z(radz);
     eye.rotate_z(radz);
 
-    eye += amount.eye;
-    focus += amount.eye;
+    eye += axis.eye;
+    focus += axis.eye;
 
+    return this->modify();
+}
+
+spatial::position& spatial::position::opacity(float a) {
+    alpha = a;
     return this->modify();
 }
 

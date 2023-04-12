@@ -29,7 +29,7 @@
 
 namespace type {
 
-    class rig : virtual public type::info {
+    class rig : virtual public type::info, public properties {
     public:
         typedef spatial::vector::type_t type_t;
 
@@ -51,8 +51,12 @@ namespace type {
                 return id == ref.id;
             }
 
-            void adjust(const spatial::position& amount) {
-                parent->adjust(*this, amount);
+            void adjust(const spatial::position& rotation, const spatial::vector& movement) {
+                parent->adjust(*this, rotation, movement);
+            }
+
+            float max() {
+                return parent && parent->has("height") ? std::get<double>(parent->get("height")) : 0.0;
             }
 
         protected:
@@ -70,20 +74,22 @@ namespace type {
             return bones.back();
         }
 
-        void adjust(bone &ref, const spatial::position& amount) {
+        void adjust(bone& ref, const spatial::position& rotation, const spatial::vector& movement) {
             std::list<bone>::iterator it = std::find(bones.begin(), bones.end(), ref);
             if (it != bones.end()) {
-                adjust(ref, it, amount);
+                adjust(ref, it, rotation, movement);
             }
         }
 
     protected:
         std::list<bone> bones;
-        void adjust(bone &ref, std::list<bone>::iterator &it, const spatial::position& amount) {
-            it->position->adjust(amount);
+        void adjust(bone &ref, std::list<bone>::iterator &it, const spatial::position& rotation, const spatial::vector& movement) {
+            auto reference = it->position->eye;
+            it->position->reposition(movement);
+            it->position->rotate(rotation);
             ++it;
             if (it != bones.end()) {
-                adjust(ref, it, amount);
+                adjust(ref, it, rotation, it->position->eye + (movement - reference));
             }
         }
     };

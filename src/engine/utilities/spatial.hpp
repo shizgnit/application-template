@@ -341,17 +341,19 @@ namespace spatial {
         position& sway(type_t t);
         position& heave(type_t t);
 
-        position& pitch(type_t angle);
-        position& yaw(type_t angle);
-        position& roll(type_t angle);
-        position& spin(type_t angle);
+        position& pitch(type_t angle, bool apply=true);
+        position& yaw(type_t angle, bool apply=true);
+        position& roll(type_t angle, bool apply=true);
+        position& spin(type_t angle, bool apply=true);
 
         void project(const vector& offset, const vector& projection);
 
         position& orientation(const position& reference);
         position& reposition(const vector& offset);
+        position& move(const vector& offset);
         position& lookat(const vector& offset);
-        position& adjust(const position& amount);
+        position& rotate(const position& axis);
+        position& opacity(float a);
 
         void constrain(bool x, bool y, bool z);
 

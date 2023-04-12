@@ -289,21 +289,23 @@ bool stage::scene::persistence::write() {
             picojson::object spec;
             picojson::array instances;
             {
+                picojson::object instance;
+                picojson::object spec;
                 picojson::object position;
                 position["x"] = picojson::value(0.0);
                 position["y"] = picojson::value(0.0);
                 position["z"] = picojson::value(0.0);
-                entry["position"] = picojson::value(position);
-                picojson::object spec;
-                if (assets->has<type::entity>(id)) {
-                    writeProperties(assets->get<type::entity>(id), spec);
-                }
+                instance["position"] = picojson::value(position);
                 spec["virtual"] = picojson::value(true);
-                entry["properties"] = picojson::value(spec);
-                instances.push_back(picojson::value(entry));
+                instance["properties"] = picojson::value(spec);
+                instances.push_back(picojson::value(instance));
             }
-            spec["instances"] = picojson::value(instances);
-            entities[id] = picojson::value(spec);
+            if (assets->has<type::entity>(id)) {
+                writeProperties(assets->get<type::entity>(id), spec);
+            }
+            entry["instances"] = picojson::value(instances);
+            entry["properties"] = picojson::value(spec);
+            entities[id] = picojson::value(entry);
         }
     }
 

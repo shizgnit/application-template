@@ -78,7 +78,8 @@ namespace type {
             typedef std::function<void ()> callback_t;
 
             waypoint(const spatial::position& p1) {
-                p(p1, p1);
+                position.start = p1;
+                position.finish = p1;
             }
             waypoint(const spatial::position& p1, const spatial::position& p2) {
                 p(p1, p2);
@@ -103,7 +104,7 @@ namespace type {
             }
             waypoint& r(const spatial::vector& axis, const spatial::vector& angles) {
                 rotation.axis = axis;
-                rotation.angles = angles;
+                rotation.finish = angles;
                 rotation.active = true;
                 finished = false;
                 return *this;
@@ -122,9 +123,22 @@ namespace type {
                 finished = false;
                 return *this;
             }
+            waypoint& g(float a, float v, float g=9.8) {
+                gravity.arc = position.start;
+                gravity.current = position.start;
+                gravity.radians = v * (a * M_PI / 180.0); // Includes velocity along the vector
+                gravity.gravity = g * 0.5;
+                gravity.velocity = v;
+                gravity.relative.x = 0.0;
+                gravity.relative.y = 0.0;
+                gravity.active = true;
+                finished = false;
+                duration = 60;
+                return *this;
+            }
 
-            waypoint& speed(double r) {
-                position.rate = r;
+            waypoint& speed(double s) {
+                position.speed = s;
                 return *this;
             }
 
@@ -145,9 +159,9 @@ namespace type {
             
             waypoint& go() {
                 active = true;
+                reference = std::chrono::system_clock::now().time_since_epoch();
                 if (position.active) {
-                    delta = position.distance / position.rate;
-                    reference = std::chrono::system_clock::now().time_since_epoch();
+                    duration = position.distance / position.speed;
                 }
                 return *this;
             }
@@ -158,16 +172,11 @@ namespace type {
                 }
 
                 auto now = std::chrono::system_clock::now().time_since_epoch();
-                auto elapsed = std::chrono::duration_cast<utilities::seconds_t>(now - reference).count();
-                auto time = elapsed / delta;
-                if (time > 1.0) {
-                    time = 1.0;
-                }
-                auto delta = 1.0 - time;
+                auto time = std::chrono::duration_cast<utilities::seconds_t>(now - reference).count();
+                auto elapsed = std::min(time / duration, 1.0);
+                auto remaining = 1.0 - elapsed;
 
-                spatial::vector relative = { (float)rotation.angles.x * (float)time, (float)rotation.angles.y * (float)time, (float)rotation.angles.z * (float)time };
-
-                if (time >= 1.0) {
+                if (elapsed >= 1.0) {
                     active = false;
                     finished = true;
                     position.finish.translation = position.current.translation;
@@ -176,36 +185,43 @@ namespace type {
                         position.current.scale(scale.finish);
                     }
                     if (alpha.active) {
-                        position.current.alpha = alpha.finish;
+                        position.current.opacity(alpha.finish);
                     }
                     if (rotation.active) {
-                        //position.current.spin(relative.y - rotation.travel.y);
-                        //position.current.roll(relative.z - rotation.travel.z);
-                        //position.current.pitch(relative.x - rotation.travel.x);
-                        position.current.translation.spin = relative.y - rotation.travel.y;
-                        position.current.translation.roll = relative.z - rotation.travel.z;
-                        position.current.translation.pitch = relative.x - rotation.travel.x;
-                        rotation.travel = relative;
+                        position.current.spin(rotation.finish.y - rotation.travel.y, false);
+                        position.current.roll(rotation.finish.z - rotation.travel.z, false);
+                        position.current.pitch(rotation.finish.x - rotation.travel.x, false);
+                        rotation.travel = rotation.finish;
                     }
                 }
                 else {
                     if (position.active) {
-                        position.current.reposition(position.start.eye.lerp(position.finish.eye, time));
+                        position.current.reposition(position.start.eye.lerp(position.finish.eye, elapsed));
                     }
                     if (rotation.active == false) {
-                        position.current.lookat(position.start.focus.lerp(position.finish.focus + position.orientation, time));
+                        position.current.lookat(position.start.focus.lerp(position.finish.focus + position.orientation, elapsed));
                     }
                     if (scale.active) {
-                        position.current.scale(delta * scale.start + time * scale.finish);
+                        position.current.scale(remaining * scale.start + elapsed * scale.finish);
                     }
                     if (alpha.active) {
-                        position.current.alpha = delta * alpha.start + time * alpha.finish;
+                        position.current.opacity(remaining * alpha.start + elapsed * alpha.finish);
                     }
                     if (rotation.active) {
-                        position.current.translation.spin = relative.y - rotation.travel.y;
-                        position.current.translation.roll = relative.z - rotation.travel.z;
-                        position.current.translation.pitch = relative.x - rotation.travel.x;
+                        spatial::vector relative = rotation.start.slerp(rotation.finish, elapsed);
+                        position.current.spin(relative.y - rotation.travel.y, false);
+                        position.current.roll(relative.z - rotation.travel.z, false);
+                        position.current.pitch(relative.x - rotation.travel.x, false);
                         rotation.travel = relative;
+                    }
+                    if (gravity.active) {
+                        float x = gravity.velocity * time;
+                        float y = position.start.eye.y + (gravity.radians * time) - (gravity.gravity * time * time);
+                        gravity.arc.surge(x - gravity.relative.x);
+                        gravity.arc.heave(y - gravity.relative.y);
+                        gravity.relative.x = x;
+                        gravity.relative.y = y;
+                        position.current.reposition(gravity.arc.eye);
                     }
                 }
 
@@ -230,7 +246,7 @@ namespace type {
 
             struct {
                 bool active = false;
-                double rate = 1.0; // relative units per second
+                double speed = 1.0; // relative units per second
                 double distance; // total distance between start and finish
                 double acceleration; // 
                 spatial::position start;
@@ -242,12 +258,27 @@ namespace type {
             struct {
                 bool active = false;
                 spatial::vector axis;
-                spatial::vector angles;
+                spatial::vector start;
+                spatial::vector finish;
                 spatial::vector travel;
             } rotation;
 
+            struct {
+                bool active = false;
+                spatial::position start;
+                spatial::position arc;
+                spatial::position current;
+                float radians;
+                float velocity;
+                float gravity;
+                struct {
+                    float x;
+                    float y;
+                } relative;
+            } gravity;
+
             utilities::seconds_t reference;
-            double delta; // travel distance per-second
+            double duration; // total travel time
 
             bool finished = false;
             bool active = false;
@@ -324,6 +355,12 @@ namespace type {
 
             void store() {
                 parent->store(position.eye, *this);
+            }
+
+            void clear() {
+                parent->identifiers.content[index] = 0;
+                parent->flags.content[index] = 0x00;
+                parent->positions.content[index] = spatial::matrix();
             }
         };
 
@@ -402,7 +439,7 @@ namespace type {
 
         size_t size = 0;
         size_t capacity = 0;
-        size_t limit = 256;
+        size_t limit = 128;
         
         type::info::opaque_t *resource = nullptr;
 
@@ -443,17 +480,23 @@ namespace type {
             return increment;
         }
 
-        void release(instance_t id) {
+        void release(instance_t id, bool free=false) {
             auto instance = instances.find(id);
             if (instance == instances.end()) {
                 return;
             }
-            available.push_back({ id, instance->second.index });
             if (instance->second.bucket) {
                 bucket_t* ref = (bucket_t*)instance->second.bucket;
                 ref->erase(std::find(ref->begin(), ref->end(), &instance->second));
             }
-            //instances.erase(id);
+            if(free) {
+                instance->second.clear();
+                crossreference().erase(id);
+                instances.erase(id);
+            }
+            else {
+                available.push_back({ id, instance->second.index });
+            }
         }
 
         bool play(std::string animation, instance_t id=0) {
@@ -523,7 +566,7 @@ namespace type {
                 while(instance.second.path.size()) {
                     auto position = instance.second.path.begin()->get();
                     if (instance.second.rigging) {
-                        instance.second.rigging->adjust(position);
+                        instance.second.rigging->adjust(position, position.eye);
                     } 
                     else {
                         instance.second.position.reposition(position.eye);
@@ -597,7 +640,7 @@ namespace type {
         }
 
         bool empty() {
-            return true;
+            return instances.size() == 0;
         }
 
     protected:
