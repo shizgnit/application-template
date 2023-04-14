@@ -320,6 +320,15 @@
     <Content Include="assets\objects\roof.001\roof.001.mtl" />
     <Content Include="assets\objects\roof.001\roof.001.obj" />
     <Content Include="assets\objects\roof.001\roof.001.png" />
+    <Content Include="assets\objects\rubble.000\rubble.000.mtl" />
+    <Content Include="assets\objects\rubble.000\rubble.000.obj" />
+    <Content Include="assets\objects\rubble.000\rubble.000.png" />
+    <Content Include="assets\objects\rubble.001\rubble.001.mtl" />
+    <Content Include="assets\objects\rubble.001\rubble.001.obj" />
+    <Content Include="assets\objects\rubble.001\rubble.001.png" />
+    <Content Include="assets\objects\rubble.002\rubble.002.mtl" />
+    <Content Include="assets\objects\rubble.002\rubble.002.obj" />
+    <Content Include="assets\objects\rubble.002\rubble.002.png" />
     <Content Include="assets\objects\skybox.mtl" />
     <Content Include="assets\objects\skybox.obj" />
     <Content Include="assets\objects\skybox.png" />

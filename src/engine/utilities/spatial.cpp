@@ -808,8 +808,8 @@ spatial::quaternion spatial::quaternion::operator *(const quaternion& operand) {
 }
 
 // https://stackoverflow.com/questions/52413464/look-at-quaternion-using-up-vector
-spatial::quaternion& spatial::quaternion::translate(const vector& eye, const vector& center, const vector& up) {
-    vector f = (eye - center).unit();
+spatial::quaternion& spatial::quaternion::translate(const vector& eye, const vector& focus, const vector& up) {
+    vector f = (eye - focus).unit();
     vector s = (up % f).unit();
     vector t = f % s;
 
@@ -938,14 +938,6 @@ spatial::position::operator spatial::matrix() {
     return result; //  * spatial::matrix().scale(translation.scale);
 }
 
-spatial::position& spatial::position::scale(type_t value) {
-    matrix result;
-    result.translate(eye, focus, up);
-    translation.scale += value;
-    //return result * spatial::matrix().scale(translation.scale);
-    return this->modify();
-}
-
 spatial::matrix& spatial::position::serialize() {
     if (dirty) {
 		state.identity();
@@ -1009,6 +1001,11 @@ spatial::position& spatial::position::heave(type_t t) {
     return this->modify();
 }
 
+spatial::position& spatial::position::scale(type_t value, bool apply) {
+    translation.scale = apply ? translation.scale + value : value;
+    return this->modify();
+}
+
 spatial::position& spatial::position::pitch(type_t angle, bool apply) {
     translation.pitch = apply ? translation.pitch + angle : angle;
     return apply ? rotate() : this->modify();
@@ -1038,17 +1035,71 @@ spatial::position& spatial::position::rotate() {
 
     type_t radx, rady, radz;
 
-    radx = static_cast<type_t>(translation.pitch * (3.1415927 / 180));
+    radx = static_cast<type_t>(translation.pitch * (M_PI / 180));
     focus.rotate_x(radx);
     up.rotate_x(radx);
 
-    rady = static_cast<type_t>(translation.spin * (3.1415927 / 180));
+    rady = static_cast<type_t>(translation.spin * (M_PI / 180));
     focus.rotate_y(rady);
     up.rotate_y(rady);
 
-    radz = static_cast<type_t>(translation.roll * (3.1415927 / 180));
+    radz = static_cast<type_t>(translation.roll * (M_PI / 180));
     focus.rotate_z(radz);
     up.rotate_z(radz);
+
+    eye += offset;
+    focus += offset;
+
+    return this->modify();
+}
+
+spatial::position& spatial::position::rotate_x(type_t angle) {
+    store scope(*this);
+
+    vector offset = eye;
+
+    focus -= offset;
+    eye -= offset;
+
+    type_t rad = static_cast<type_t>(angle * (M_PI / 180));
+    focus.rotate_x(rad);
+    up.rotate_x(rad);
+
+    eye += offset;
+    focus += offset;
+
+    return this->modify();
+}
+
+spatial::position& spatial::position::rotate_y(type_t angle) {
+    store scope(*this);
+
+    vector offset = eye;
+
+    focus -= offset;
+    eye -= offset;
+
+    type_t rad = static_cast<type_t>(angle * (M_PI / 180));
+    focus.rotate_y(rad);
+    up.rotate_y(rad);
+
+    eye += offset;
+    focus += offset;
+
+    return this->modify();
+}
+
+spatial::position& spatial::position::rotate_z(type_t angle) {
+    store scope(*this);
+
+    vector offset = eye;
+
+    focus -= offset;
+    eye -= offset;
+
+    type_t rad = static_cast<type_t>(angle * (M_PI / 180));
+    focus.rotate_z(rad);
+    up.rotate_z(rad);
 
     eye += offset;
     focus += offset;
@@ -1071,7 +1122,7 @@ void spatial::position::project(const vector& offset, const vector& projection) 
 }
 
 spatial::position& spatial::position::orientation(const spatial::position& reference) {
-    memcpy(&this->translation, &reference.translation, sizeof(reference.translation));
+    this->translation = reference.translation;
     this->rotate();
     return this->modify();
 }
@@ -1117,17 +1168,17 @@ spatial::position& spatial::position::rotate(const spatial::position& axis) {
 
     type_t radx, rady, radz;
 
-    radx = static_cast<type_t>(axis.translation.pitch * (3.1415927 / 180));
+    radx = static_cast<type_t>(axis.translation.pitch * (M_PI / 180));
     focus.rotate_x(radx);
     up.rotate_x(radx);
     eye.rotate_x(radx);
 
-    rady = static_cast<type_t>(axis.translation.spin * (3.1415927 / 180));
+    rady = static_cast<type_t>(axis.translation.spin * (M_PI / 180));
     focus.rotate_y(rady);
     up.rotate_y(rady);
     eye.rotate_y(rady);
 
-    radz = static_cast<type_t>(axis.translation.roll * (3.1415927 / 180));
+    radz = static_cast<type_t>(axis.translation.roll * (M_PI / 180));
     focus.rotate_z(radz);
     up.rotate_z(radz);
     eye.rotate_z(radz);

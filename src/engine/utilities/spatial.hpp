@@ -302,7 +302,7 @@ namespace spatial {
 
         operator matrix();
 
-        quaternion& translate(const vector& eye, const vector& center, const vector& up);
+        quaternion& translate(const vector& eye, const vector& focus, const vector& up);
         quaternion& euler(const type_t& x, const type_t& y, const type_t& z, const type_t& degrees);
 
         quaternion operator *(const quaternion& operand);
@@ -335,16 +335,20 @@ namespace spatial {
 
         void viewable(bool toggle);
 
-        position& scale(type_t value=0.0f);
-
         position& surge(type_t t);
         position& sway(type_t t);
         position& heave(type_t t);
+
+        position& scale(type_t value=0.0f, bool apply=true);
 
         position& pitch(type_t angle, bool apply=true);
         position& yaw(type_t angle, bool apply=true);
         position& roll(type_t angle, bool apply=true);
         position& spin(type_t angle, bool apply=true);
+
+        position& rotate_x(type_t angle);
+        position& rotate_y(type_t angle);
+        position& rotate_z(type_t angle);
 
         void project(const vector& offset, const vector& projection);
 
@@ -380,6 +384,7 @@ namespace spatial {
             type_t roll = 0.0f;
             type_t spin = 0.0f;
             type_t scale = 1.0f;
+            bool active = false;
         } translation;
 
         vector eye;
