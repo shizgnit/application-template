@@ -30,6 +30,7 @@
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>Clang_5_0</PlatformToolset>
+    <AndroidAPILevel>android-27</AndroidAPILevel>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -58,7 +59,7 @@
       <ExceptionHandling>Enabled</ExceptionHandling>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <CppLanguageStandard>c++1z</CppLanguageStandard>
-      <PreprocessorDefinitions>__ANDROID_API__=$(AndroidAPILevelNumber);_FILE_OFFSET_BITS=64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>__ANDROID__;__ANDROID_API__=$(AndroidAPILevelNumber);_FILE_OFFSET_BITS=64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <LibraryDependencies>%(LibraryDependencies);GLESv3;EGL;OpenSLES;m;GLESv1_CM</LibraryDependencies>
@@ -82,14 +83,20 @@
       <ExceptionHandling>Enabled</ExceptionHandling>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <CppLanguageStandard>c++1z</CppLanguageStandard>
-      <PreprocessorDefinitions>__ANDROID_API__=$(AndroidAPILevelNumber);_FILE_OFFSET_BITS=64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>__ANDROID__;__ANDROID_API__=$(AndroidAPILevelNumber);_FILE_OFFSET_BITS=64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <LibraryDependencies>%(LibraryDependencies);GLESv3;EGL;OpenSLES;m;GLESv1_CM</LibraryDependencies>
     </Link>
     <PreBuildEvent>
-      <Command>if not exist $(ProjectDir)..\..\..\src\client\android-client.Packaging\assets mklink /J $(ProjectDir)..\..\..\src\client\android-client.Packaging\assets $(SolutionDir)\assets </Command>
+      <Command>(if not exist $(SolutionDir)assets mkdir $(SolutionDir)assets) &amp;&amp; (if not exist $(ProjectDir)..\..\..\src\client\android-client.Packaging\assets mklink /J $(ProjectDir)..\..\..\src\client\android-client.Packaging\assets $(SolutionDir)assets) </Command>
     </PreBuildEvent>
+    <PostBuildEvent>
+      <Command>tree /a $(SolutionDir)assets &gt; $(SolutionDir)assets\content.txt</Command>
+    </PostBuildEvent>
+    <PreLinkEvent>
+      <Command>powershell -Command "(Get-Content $(ProjectDir)res\values\strings.xml) -replace 'TargetBuildApplication', '$(TargetBuildApplication)' | Out-File -encoding ASCII $(SolutionDir)framework\src\client\android-client.Packaging\res\values\strings.xml"</Command>
+    </PreLinkEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />

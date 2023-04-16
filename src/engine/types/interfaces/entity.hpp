@@ -55,7 +55,7 @@ namespace type {
             return _crossreference;
         }
 
-        static entity& find(const value_t& criteria) {
+        static entity& find(value_t criteria) {
             static type::entity empty;
             auto i = crossreference().find(std::get<instance_t>(criteria));
             if (i == crossreference().end()) {
@@ -367,7 +367,7 @@ namespace type {
 
             void update() {
                 if (position.alpha == 0.0) {
-                    flags |= type::entity::VIRTUAL;
+                    flags |= type::entity::VIRTUAL | type::entity::ALPHA;
                 }
                 assign();
                 store();
@@ -465,7 +465,7 @@ namespace type {
 
         size_t size = 0;
         size_t capacity = 0;
-        size_t limit = 128;
+        size_t limit = 256;
         
         type::info::opaque_t *resource = nullptr;
 
