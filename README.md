@@ -39,10 +39,6 @@ Currently just moving to gitflow for developer collaboration.  No expectations t
 
 ## Notes
 
-Work is being tracked on a Kanban board.
-
-    https://trello.com/b/wMOMrSaL/application-template
-
 Recommended references.
 
     https://www.amazon.com/s?k=978-1435458864 - Mathematics for 3D Game Programming and Computer Graphics
