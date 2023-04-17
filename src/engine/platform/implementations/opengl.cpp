@@ -1,6 +1,6 @@
 /*
 ================================================================================
-  Copyright (c) 2023, Dee E. Abbott
+  Copyright (c) 2023, Pandemos
   All rights reserved.
   Redistribution and use in source and binary forms, with or without
   modification, are permitted provided that the following conditions are met:
@@ -122,7 +122,7 @@ void implementation::opengl::fbo::disable() {
     if (collect != NULL) {
         auto now = std::chrono::system_clock::now().time_since_epoch();
         auto delta = std::chrono::duration<double>(now - timestamp).count();
-        if (delta >= 1.0) {
+        if (delta >= parent->latency) {
             GL_TEST(glReadPixels(0, 0, target->texture.color->properties.width, target->texture.color->properties.height, GL_RGBA, GL_UNSIGNED_BYTE, collect));
             timestamp = std::chrono::system_clock::now().time_since_epoch();
         }

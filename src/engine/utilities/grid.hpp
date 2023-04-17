@@ -1,6 +1,6 @@
 /*
 ================================================================================
-  Copyright (c) 2023, Dee E. Abbott
+  Copyright (c) 2023, Pandemos
   All rights reserved.
   Redistribution and use in source and binary forms, with or without
   modification, are permitted provided that the following conditions are met:
@@ -254,7 +254,7 @@ namespace stage {
         }
 
         bool generateQuadrant(quadrant_t q, int priority) {
-            if (q.first < 0 || q.first >= width) {
+            if (q.first < margin || q.first >= (width - margin)) {
                 return false;
             }
 
@@ -311,6 +311,9 @@ namespace stage {
             auto& instances = getQuadrantInstances(q);
             for (auto instance : instances) {
                 auto& e = type::entity::find(instance);
+                if (e.object && e.object->height() < 0.4) {
+                    return;
+                }
                 auto& i = e.getInstance(instance);
                 i.flags |= type::entity::VIRTUAL;
                 i.update();

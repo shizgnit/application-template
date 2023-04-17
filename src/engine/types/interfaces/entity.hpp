@@ -1,6 +1,6 @@
 /*
 ================================================================================
-  Copyright (c) 2023, Dee E. Abbott
+  Copyright (c) 2023, Pandemos
   All rights reserved.
   Redistribution and use in source and binary forms, with or without
   modification, are permitted provided that the following conditions are met:
@@ -393,9 +393,12 @@ namespace type {
         typedef std::list<instance*> bucket_t;
 
         std::map<key_t, std::map<key_t, std::map<key_t, bucket_t>>> _hash;
+        int sector_size = 20;
+        spatial::vector bound_bottom_left = { 20, 0, 20 };
+        spatial::vector bound_top_right = { 20, 0, 20 };
 
         void store(const spatial::vector& p, instance& i) {
-            auto& bucket = _hash[(key_t)(p.x / 20)][(key_t)(p.y / 20)][(key_t)(p.z / 20)];
+            auto& bucket = _hash[(key_t)(p.x / sector_size)][(key_t)(p.y / sector_size)][(key_t)(p.z / sector_size)];
             if (i.bucket) {
                 if (i.bucket == &bucket) {
                     return;
@@ -408,12 +411,12 @@ namespace type {
         }
 
         std::vector<bucket_t*> list(const spatial::vector& p1, const spatial::vector& p2) {
-            key_t x1 = (p1.x < p2.x ? p1.x : p2.x) / 20;
-            key_t x2 = (p1.x < p2.x ? p2.x : p1.x) / 20;
-            key_t y1 = (p1.y < p2.y ? p1.y : p2.y) / 20;
-            key_t y2 = (p1.y < p2.y ? p2.y : p1.y) / 20;
-            key_t z1 = (p1.z < p2.z ? p1.z : p2.z) / 20;
-            key_t z2 = (p1.z < p2.z ? p2.z : p1.z) / 20;
+            key_t x1 = (p1.x < p2.x ? p1.x : p2.x) / sector_size;
+            key_t x2 = (p1.x < p2.x ? p2.x : p1.x) / sector_size;
+            key_t y1 = (p1.y < p2.y ? p1.y : p2.y) / sector_size;
+            key_t y2 = (p1.y < p2.y ? p2.y : p1.y) / sector_size;
+            key_t z1 = (p1.z < p2.z ? p1.z : p2.z) / sector_size;
+            key_t z2 = (p1.z < p2.z ? p2.z : p1.z) / sector_size;
             
             std::vector <bucket_t*> results;
 
@@ -471,7 +474,7 @@ namespace type {
 
         bool compile(spatial::position* reference) {
             if (reference) {
-                for (auto& sector : list(reference->eye + spatial::vector({ 20, 0, 60 }), reference->eye - spatial::vector({ 20, reference->eye.y, 20 }))) {
+                for (auto& sector : list(reference->eye + bound_bottom_left, reference->eye - spatial::vector({ bound_top_right.x, reference->eye.y, bound_top_right.z}))) {
                     for (auto entry : *sector) {
                         entry->assign();
                     }

@@ -1,6 +1,6 @@
 /*
 ================================================================================
-  Copyright (c) 2023, Dee E. Abbott
+  Copyright (c) 2023, Pandemos
   All rights reserved.
   Redistribution and use in source and binary forms, with or without
   modification, are permitted provided that the following conditions are met:
@@ -129,6 +129,7 @@ namespace platform {
         spatial::matrix perspective;
 
         std::vector<unsigned char> pixels;
+        float latency = 1.0;
 
         spatial::matrix::type_t parameter(int index) {
             int col = index / 4;

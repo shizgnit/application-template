@@ -319,6 +319,12 @@
     <Content Include="assets\objects\road.009\road.009.mtl" />
     <Content Include="assets\objects\road.009\road.009.obj" />
     <Content Include="assets\objects\road.009\road.009.png" />
+    <Content Include="assets\objects\road.011\road.011.mtl" />
+    <Content Include="assets\objects\road.011\road.011.obj" />
+    <Content Include="assets\objects\road.011\road.011.png" />
+    <Content Include="assets\objects\road.012\road.012.mtl" />
+    <Content Include="assets\objects\road.012\road.012.obj" />
+    <Content Include="assets\objects\road.012\road.012.png" />
     <Content Include="assets\objects\roof.000\icon.png" />
     <Content Include="assets\objects\roof.000\roof.000.mtl" />
     <Content Include="assets\objects\roof.000\roof.000.obj" />
