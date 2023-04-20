@@ -172,12 +172,14 @@ bool parse(const std::string& data) {
                 }
                 added.position.reposition({ x, y, z });
 
-                if (props.has("virtual") && std::get<bool>(props.get("virtual"))) {
+                if (props.flag("virtual")) {
                     added.flags |= type::entity::VIRTUAL;
                 }
                 added.update();
 
-                stage::scene::global().map.setQuadrant(stage::scene::global().map.getQuadrant(x, z), stage::scene::global().map.getGenericType());
+                if (reference.flag("terrain") == false) {
+                    stage::scene::global().map.setQuadrant(stage::scene::global().map.getQuadrant(x, z), stage::scene::global().map.getGenericType());
+                }
             }
         }
         if (reference.instances.size()) {

@@ -220,7 +220,8 @@ namespace platform {
 
         virtual void dimensions(int width, int height) = 0;
         virtual float scale() {
-            return display_height / 1440.0f;
+            //return display_height / 1440.0;
+            return display_height / 1440.0;
         }
         
         virtual widget* reposition(std::vector<widget*>& c) = 0;

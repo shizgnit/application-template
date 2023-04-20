@@ -41,6 +41,10 @@ namespace platform {
 
         virtual void dimensions(int width, int height, float fov=90.0, float scale=1.0) = 0;
 
+        virtual float scale() {
+            return display_height / (float)display_width;
+        }
+
         virtual void init(void) = 0;
         virtual void clear(void) = 0;
         virtual void flush(void) = 0;

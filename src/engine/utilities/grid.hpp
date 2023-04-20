@@ -32,11 +32,11 @@ namespace stage {
     class grid {
     public:
         void define(int w, int x, int y, int l, int m) {
-            width = w;
+            _width = w;
             x_offset = x;
             y_offset = y;
             watermark = l;
-            height = l;
+            _height = l;
             margin = m;
         }
 
@@ -82,11 +82,15 @@ namespace stage {
             return noop;
         }
 
-        int getWidth() {
-            return width;
+        int width() {
+            return _width;
         }
-        int getHeight() {
-            return height;
+        int height() {
+            return _height;
+        }
+
+        float scale() {
+            return graphics->width() / (float)width();
         }
 
         quadrant_t getQuadrant(spatial::vector::type_t x, spatial::vector::type_t z) {
@@ -113,10 +117,11 @@ namespace stage {
                 data.resize(q.second + 1);
             }
             if (data[q.second].size() == 0) {
-                data[q.second].resize(width + 1);
+                data[q.second].resize(_width + 1);
             }
-            data[q.second][q.first] = instance;
-            types[instance.id].factory(q);
+            if (types[instance.id].factory(q)) {
+                data[q.second][q.first] = instance;
+            }
         }
         void setQuadrant(quadrant_t q, grid::identifier_t instance) {
             if (q.first < 0 || q.second < 0) {
@@ -126,7 +131,7 @@ namespace stage {
                 instances.resize(q.second + 1);
             }
             if (instances[q.second].size() == 0) {
-                instances[q.second].resize(width + 1);
+                instances[q.second].resize(_width + 1);
             }
             instances[q.second][q.first].push_back(instance);
         }
@@ -240,7 +245,7 @@ namespace stage {
                     if (priority.first == 0) {
                         continue;
                     }
-                    for (int x = margin; x < (width - margin); x++) {
+                    for (int x = margin; x < (_width - margin); x++) {
                         quadrant_t q({ x, watermark });
                         if (getQuadrantType(q).id) {
                             continue;
@@ -254,7 +259,7 @@ namespace stage {
         }
 
         bool generateQuadrant(quadrant_t q, int priority) {
-            if (q.first < margin || q.first >= (width - margin)) {
+            if (q.first < margin || q.first >= (_width - margin)) {
                 return false;
             }
 
@@ -356,8 +361,8 @@ namespace stage {
 
         std::vector<grid::quadrant_t> hidden;
 
-        int width = 0;
-        int height = 0;
+        int _width = 0;
+        int _height = 0;
 
         int x_offset = 0;
         int y_offset = 0;
