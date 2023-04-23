@@ -63,22 +63,33 @@ namespace type {
             return interpolated;
         }
 
+        void uv_projection() {
+            auto top = max();
+            auto bottom = min();
+            for (auto& vertex : vertices) {
+                if (vertex.normal.z > 0.1) {
+                    vertex.texture.z = (vertex.coordinate.x - bottom.x) / (top.x - bottom.x);
+                }
+                else if (vertex.normal.z < -0.1) {
+                    vertex.texture.z = 1.0 - (vertex.coordinate.x - bottom.x) / (top.x - bottom.x);
+                }
+                else if (vertex.normal.x > 0.1) {
+                    vertex.texture.z = 1.0 - (vertex.coordinate.z - bottom.z) / (top.z - bottom.z);
+                }
+                else {
+                    vertex.texture.z = (vertex.coordinate.z - bottom.z) / (top.z - bottom.z);
+                }
+                vertex.texture.w = 1.0 - ((vertex.coordinate.y - bottom.y) / (top.y - bottom.y));
+            }
+        }
+
         void xy_projection(unsigned int x, unsigned int y, unsigned int width, unsigned int height, bool horizontal=false, bool vertical=false) {
             if (texture.color == NULL) {
                 return;
             }
 
-            type_t max_x = 0.0f;
-            type_t max_y = 0.0f;
-
-            for (unsigned int i = 0; i < vertices.size(); i++) {
-                if (vertices[i].coordinate.x > max_x) {
-                    max_x = vertices[i].coordinate.x;
-                }
-                if (vertices[i].coordinate.y > max_y) {
-                    max_y = vertices[i].coordinate.y;
-                }
-            }
+            type_t max_x = this->width();
+            type_t max_y = this->height();
 
             type_t texture_dx = 1 / (type_t)texture.color->properties.width;
             type_t texture_dy = 1 / (type_t)texture.color->properties.height;
@@ -137,21 +148,21 @@ namespace type {
             return projection.intersection(vertices).length();
         }
 
-        int width() {
+        float width() {
             if (constraint.calculated == false) {
                 calculate_constraints();
             }
             return constraint.max.x - constraint.min.x;
         }
 
-        int height() {
+        float height() {
             if (constraint.calculated == false) {
                 calculate_constraints();
             }
             return constraint.max.y - constraint.min.y;
         }
 
-        int length() {
+        float length() {
             if (constraint.calculated == false) {
                 calculate_constraints();
             }

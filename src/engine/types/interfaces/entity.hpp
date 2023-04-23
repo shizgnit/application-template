@@ -32,13 +32,15 @@ namespace type {
     class entity : virtual public type::info, public properties {
     public:
 
-        // 1110 0000 0000 0000 0000 0001 0000 0000
+        // 1111 1100 0000 0000 0000 0000 0000 0000
 
         enum states {
             SELECTED = 0x00000001,
             GROUPED  = 0x00000002,
             VIRTUAL  = 0X00000004,
-            ALPHA    = 0x00000008 
+            ALPHA    = 0x00000008,
+            UV       = 0x00000010,
+            OFFSET   = 0x00000020
         };
 
         typedef long instance_t;
@@ -348,6 +350,8 @@ namespace type {
             type::entity* parent = NULL;
             type::rig::bone *rigging = NULL;
             void* bucket = NULL;
+
+            std::pair<int, int> quadrant;
 
             void toggle(entity::states state, bool value) {
                 if(value) {

@@ -342,6 +342,9 @@
     <Content Include="assets\objects\rubble.002\rubble.002.mtl" />
     <Content Include="assets\objects\rubble.002\rubble.002.obj" />
     <Content Include="assets\objects\rubble.002\rubble.002.png" />
+    <Content Include="assets\objects\rubble.003\rubble.003.mtl" />
+    <Content Include="assets\objects\rubble.003\rubble.003.obj" />
+    <Content Include="assets\objects\rubble.003\rubble.003.png" />
     <Content Include="assets\objects\skybox.mtl" />
     <Content Include="assets\objects\skybox.obj" />
     <Content Include="assets\objects\skybox.png" />

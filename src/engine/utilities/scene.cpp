@@ -177,7 +177,7 @@ bool parse(const std::string& data) {
                 }
                 added.update();
 
-                if (reference.flag("terrain") == false) {
+                if (reference.flag("terrain") == false && reference.flag("virtual") == false && props.flag("virtual") == false) {
                     stage::scene::global().map.setQuadrant(stage::scene::global().map.getQuadrant(x, z), stage::scene::global().map.getGenericType());
                 }
             }

@@ -123,7 +123,7 @@ namespace stage {
                 data[q.second][q.first] = instance;
             }
         }
-        void setQuadrant(quadrant_t q, grid::identifier_t instance) {
+        void setQuadrant(quadrant_t q, type::entity::instance_t instance) {
             if (q.first < 0 || q.second < 0) {
                 return;
             }
@@ -134,6 +134,23 @@ namespace stage {
                 instances[q.second].resize(_width + 1);
             }
             instances[q.second][q.first].push_back(instance);
+            type::entity::find(instance).getInstance(instance).quadrant = q;
+        }
+
+        void removeQuadrant(quadrant_t q, type::entity::instance_t instance) {
+            if (q.first < 0 || q.second < 0) {
+                return;
+            }
+            if (instances.size() <= q.second) {
+                return;
+            }
+            if (instances[q.second].size() == 0) {
+                return;
+            }
+            instances[q.second][q.first].remove(instance);
+            if (instances[q.second][q.first].size() == 0) {
+                data[q.second][q.first] = type_empty_t;
+            }
         }
 
         grid::type_t& getQuadrantType(quadrant_t q) {
@@ -142,8 +159,8 @@ namespace stage {
             }
             return type_empty_t;
         }
-        std::vector<grid::identifier_t>& getQuadrantInstances(quadrant_t q) {
-            static std::vector<grid::identifier_t> empty;
+        std::list<grid::identifier_t>& getQuadrantInstances(quadrant_t q) {
+            static std::list<grid::identifier_t> empty;
             if (instances.size() > q.second && instances[q.second].size() > q.first && q.second && q.first) {
                 return instances[q.second][q.first];
             }
@@ -290,8 +307,8 @@ namespace stage {
                 return false;
             }
 
-            //int selection = candidates.size() * ((utilities::perlin(q.first, q.second) * 0.5) + 0.5);
-            int selection = rand() % candidates.size();
+            int selection = candidates.size() * ((utilities::perlin(q.first, q.second) * 0.5) + 0.5);
+            //int selection = rand() % candidates.size();
 
             auto added = types[candidates[selection]];
             setQuadrant(q, added);
@@ -313,17 +330,23 @@ namespace stage {
         }
 
         void hide(grid::quadrant_t q) {
-            auto& instances = getQuadrantInstances(q);
-            for (auto instance : instances) {
-                auto& e = type::entity::find(instance);
-                if (e.object && e.object->height() < 0.4) {
-                    return;
+            for (int x = q.first - 1; x <= q.first + 1; x++) {
+                for (int y = q.second - 1; y <= q.second + 1; y++) {
+                    grid::quadrant_t p = { x, y };
+                    auto& instances = getQuadrantInstances(p);
+                    for (auto instance : instances) {
+                        auto& e = type::entity::find(instance);
+                        auto& i = e.getInstance(instance);
+                        if (i.position.eye.y == 0.0 && e.object && e.object->height() < 0.4) {
+                            continue;
+                        }
+                        i.flags |= type::entity::VIRTUAL;
+                        i.update();
+                    }
+                    hidden.push_back(p);
                 }
-                auto& i = e.getInstance(instance);
-                i.flags |= type::entity::VIRTUAL;
-                i.update();
             }
-            hidden.push_back(q);
+
         }
         void unhide() {
             for (auto q : hidden) {
@@ -350,7 +373,7 @@ namespace stage {
         std::map<identifier_t, std::vector<grid::type_t>> priorities;
 
         std::vector<std::vector<grid::type_t>> data;
-        std::vector<std::vector<std::vector<grid::identifier_t>>> instances;
+        std::vector<std::vector<std::list<type::entity::instance_t>>> instances;
 
         std::map<identifier_t, std::vector<identifier_t>> left;
         std::map<identifier_t, std::vector<identifier_t>> right;
