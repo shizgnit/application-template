@@ -307,7 +307,7 @@ namespace stage {
                 return false;
             }
 
-            int selection = candidates.size() * ((utilities::perlin(q.first, q.second) * 0.5) + 0.5);
+            int selection = round((candidates.size() - 1) * ((utilities::perlin(q.first, q.second) * 0.5) + 0.5));
             //int selection = rand() % candidates.size();
 
             auto added = types[candidates[selection]];
