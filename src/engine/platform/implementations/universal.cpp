@@ -1,3 +1,30 @@
+/*
+================================================================================
+  Copyright (c) 2023, Pandemos
+  All rights reserved.
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are met:
+  * Redistributions of source code must retain the above copyright notice, this
+    list of conditions and the following disclaimer.
+  * Redistributions in binary form must reproduce the above copyright notice,
+    this list of conditions and the following disclaimer in the documentation
+    and/or other materials provided with the distribution.
+  * Neither the name of the organization nor the names of its contributors may
+    be used to endorse or promote products derived from this software without
+    specific prior written permission.
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+  DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
+  FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+  SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+  OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+================================================================================
+*/
+
 #include "engine.hpp"
 
 #if defined __PLATFORM_UNIVERSAL
@@ -67,6 +94,8 @@ void implementation::universal::input::on_press(const event& ev) {
     // Track the event
     active_pointers.push_back(&platform::pointers[ev.identifier]);
 
+    drag = true;
+    
     // TODO: make the thresholds configurable
     if (delta <= 1 && distance < 1.0) {
         platform::input::raise({ POINTER, DOUBLE, ev.identifier, delta, 0.0f, ev.point });
@@ -223,20 +252,22 @@ void implementation::universal::input::emit() {
 }
 
 bool implementation::universal::interface::raise(const input::event& ev, int x, int y) {
-    //spatial::vector relative = { (float)x, (float)(graphics->height() - y), 0.0f };
-    spatial::vector relative = { (float)x, (float)y, 0.0f };
-    spatial::vector position = relative.project(spatial::matrix(), spatial::matrix(), spatial::matrix());
-    spatial::ray ray(position - spatial::vector(0,0,100), position - spatial::vector(0,0,-100));
-
     widget* target = NULL;
-    if (ev.input == input::POINTER && ev.gesture == platform::input::DOWN) {
-        // See is any widgets were selected
+    if (ev.input == input::POINTER) {
+        //spatial::vector relative = { (float)x, (float)(graphics->height() - y), 0.0f };
+        spatial::vector relative = { (float)x, (float)y, 0.0f };
+        spatial::vector position = relative.project(spatial::matrix(), spatial::matrix(), spatial::matrix());
+        spatial::ray ray(position - spatial::vector(0,0,100), position - spatial::vector(0,0,-100));
+
+        // See if any widgets were selected
         for (auto instance : instances) {
             if (instance.second->enabled && instance.second->visible && ray.intersects(instance.second->bounds)) {
                 target = instance.second;
             }
         }
-        select(target);
+        if(ev.gesture == platform::input::DOWN) {
+            select(target);
+        }
         // Pass along the events
         if (target) {
             target->events.raise(ev);
@@ -256,10 +287,39 @@ void implementation::universal::interface::emit() {
 
 }
 
-void implementation::universal::interface::position() {
+void implementation::universal::interface::dimensions(int width, int height) {
+    if (display_width != width || display_height != height) {
+        projection = spatial::matrix().ortho(0, width, 0, height);
+        display_width = width;
+        display_height = height;
+    }
     for (auto instance : instances) {
         position(*instance.second);
     }
+}
+
+platform::interface::widget* implementation::universal::interface::reposition(std::vector<widget*>& c) {
+    if (config.spec == interface::widget::spec::none) {
+        return NULL;
+    }
+
+    for (auto w = c.begin(); w != c.end(); w++) {
+        int size = std::distance(c.begin(), w) + 1;
+
+        int target_x = config.x;
+        int target_y = config.y;
+
+        int offset = (config.margin * size) + config.margin;
+        if (config.relativity == interface::widget::positioning::bottom) {
+            target_y += (config.h * size) + offset;
+        }
+        if (config.relativity == interface::widget::positioning::right) {
+            target_x += (config.w * size) + offset;
+        }
+
+        (*w)->position(target_x, target_y);
+    }
+    return c.back();
 }
 
 void implementation::universal::interface::draw() {
@@ -312,14 +372,12 @@ platform::interface::widget* implementation::universal::interface::create(widget
     instance->background = spatial::quad(w, h);
     instance->background.texture.create(1, 1, r, g, b, a); // Single pixel is good enough
     instance->background.xy_projection(0, 0, w, h);
-    //graphics->compile(instance->background);
 
     int l = 100;
 
     instance->edge = spatial::quad::edges(w, h);
     instance->edge.texture.create(1, 1, r+l, g+l, b+l, a+l);
     instance->edge.xy_projection(0, 0, 1, 1);
-    //graphics->compile(instance->edge);
 
     instance->bounds = spatial::quad(instance->background.vertices).project(spatial::matrix(), spatial::matrix(), projection);
 
@@ -337,6 +395,18 @@ void implementation::universal::interface::print(int x, int y, const std::string
     position.translate(x, (graphics->height() - font.height()) - y, 0);
 
     graphics->draw(text, font, shader, projection, spatial::matrix(), position);
+}
+
+spatial::vector implementation::universal::interface::placement() {
+    graphics->scale() + config.x;
+    return { 0.0, 0.0, 0.0, 0.0 };
+}
+
+void implementation::universal::interface::position(widget& instance) {
+    spatial::matrix position;
+    //position.translate(instance.x, (graphics->height() - instance.background.height()) - instance.y, 0);
+    position.translate(instance.x, instance.y, 0);
+    instance.bounds = position.interpolate(spatial::quad(instance.background.vertices));
 }
 
 void implementation::universal::interface::draw(widget& instance) {
@@ -359,21 +429,12 @@ void implementation::universal::interface::draw(widget& instance) {
     }
 
     if (instance.background.visible && instance.background.vertices.size()) {
-        //if (instance.background.compiled() == false) {
-        //    graphics->compile(instance.background);
-        //}
         graphics->draw(instance.background, shader, projection, spatial::matrix(), position);
     }
     if (instance.foreground.visible && instance.foreground.vertices.size()) {
-        //if (instance.foreground.compiled() == false) {
-        //    graphics->compile(instance.foreground);
-        //}
         graphics->draw(instance.foreground, shader, projection, spatial::matrix(), position);
     }
     if (instance.edge.visible && instance.edge.vertices.size()) {
-        //if (instance.edge.compiled() == false) {
-        //    graphics->compile(instance.edge);
-        //}
         graphics->draw(instance.edge, shader, projection, spatial::matrix(), edge, spatial::matrix(), platform::graphics::render::WIREFRAME);
     }
 
@@ -410,15 +471,12 @@ void implementation::universal::interface::draw(widget& instance) {
     graphics->noclip();
 }
 
-void implementation::universal::interface::position(widget& instance) {
-    spatial::matrix position;
-    //position.translate(instance.x, (graphics->height() - instance.background.height()) - instance.y, 0);
-    position.translate(instance.x, instance.y, 0);
-    instance.bounds = position.interpolate(spatial::quad(instance.background.vertices));
-}
-
 std::string implementation::universal::assets::load(platform::assets* instance, const std::string& type, const std::string& resource, const std::string& id) {
     auto path = resource;
+    if (has(type + ".path")) {
+        auto source = get(type + ".path");
+        path = std::get<std::string>(source) + "/" + resource;
+    }
 
     int dot = path.find_last_of(".");
     int slash = path.find_last_of("/");
@@ -441,12 +499,23 @@ std::string implementation::universal::assets::load(platform::assets* instance, 
         instance->retrieve(path + (ext.empty() ? ".png" : ext)) >> format::parser::png >> instance->get<type::image>(cache);
     }
     if (type == "audio") {
-        instance->retrieve(path + (ext.empty() ? ".wav" : ext)) >> format::parser::wav >> instance->get<type::audio>(cache);
+        instance->retrieve(path + (ext.empty() ? ".wav" : ext)) >> format::parser::wav >> instance->get<type::sound>(cache);
     }
     if (type == "shader") {
         auto& shader = instance->get<type::program>(cache);
-        instance->retrieve(path + ".vert") >> format::parser::vert >> instance->get<type::program>(cache).vertex;
-        instance->retrieve(path + ".frag") >> format::parser::frag >> instance->get<type::program>(cache).fragment;
+        instance->retrieve(path + ".vert") >> format::parser::vert >> shader.vertex;
+        instance->retrieve(path + ".frag") >> format::parser::frag >> shader.fragment;
+        //instance->retrieve(path + ".metal") >> format::parser::metal >> shader.unified;
+        
+        if(has("shader.version")) {
+            std::string version = std::get<std::string>(get("shader.version"));
+            if(shader.vertex.text.empty() == false) {
+                shader.vertex.text = version + "\n" + shader.vertex.text;
+            }
+            if(shader.fragment.text.empty() == false) {
+                shader.fragment.text = version + "\n" + shader.fragment.text;
+            }
+        }
     }
     if (type == "font") {
         instance->retrieve(path + (ext.empty() ? ".fnt" : ext)) >> format::parser::fnt >> instance->get<type::font>(cache);
@@ -547,10 +616,6 @@ std::string implementation::universal::assets::load(platform::assets* instance, 
                 frame++;
             }
         }
-
-        // if (entity.animations.size() == 1) {
-        //      entity.play(entity.animations.begin()->first);
-        // }
     }
 
     return cache;

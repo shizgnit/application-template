@@ -41,37 +41,46 @@
     <ProjectGuid>{b1f6c688-c962-450b-a64f-cd46e3c61b88}</ProjectGuid>
   </PropertyGroup>
   <Import Project="$(AndroidTargetsPath)\Android.Default.props" />
+  <Import Project="$(SolutionDir)Build.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'" Label="Configuration">
     <UseDebugLibraries>true</UseDebugLibraries>
     <ConfigurationType>Application</ConfigurationType>
+    <TargetName>$(TargetBuildApplication)</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'" Label="Configuration">
     <UseDebugLibraries>false</UseDebugLibraries>
     <ConfigurationType>Application</ConfigurationType>
+    <TargetName>$(TargetBuildApplication)</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'" Label="Configuration">
     <UseDebugLibraries>true</UseDebugLibraries>
     <ConfigurationType>Application</ConfigurationType>
+    <TargetName>$(TargetBuildApplication)</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'" Label="Configuration">
     <UseDebugLibraries>false</UseDebugLibraries>
     <ConfigurationType>Application</ConfigurationType>
+    <TargetName>$(TargetBuildApplication)</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <UseDebugLibraries>true</UseDebugLibraries>
     <ConfigurationType>Application</ConfigurationType>
+    <TargetName>$(TargetBuildApplication)</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <UseDebugLibraries>false</UseDebugLibraries>
     <ConfigurationType>Application</ConfigurationType>
+    <TargetName>$(TargetBuildApplication)</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'" Label="Configuration">
     <UseDebugLibraries>true</UseDebugLibraries>
     <ConfigurationType>Application</ConfigurationType>
+    <TargetName>$(TargetBuildApplication)</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'" Label="Configuration">
     <UseDebugLibraries>false</UseDebugLibraries>
     <ConfigurationType>Application</ConfigurationType>
+    <TargetName>$(TargetBuildApplication)</TargetName>
   </PropertyGroup>
   <Import Project="$(AndroidTargetsPath)\Android.props" />
   <ImportGroup Label="ExtensionSettings" />
@@ -81,6 +90,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
     <AntPackage>
       <AndroidAppLibName>$(RootNamespace)</AndroidAppLibName>
+      <ApplicationName>$(TargetBuildApplication)</ApplicationName>
     </AntPackage>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
@@ -122,7 +132,9 @@
   <ItemGroup>
     <Content Include="assets\content.txt" />
     <Content Include="assets\drawable\add.png" />
+    <Content Include="assets\drawable\Alert.png" />
     <Content Include="assets\drawable\delete.png" />
+    <Content Include="assets\drawable\flag.png" />
     <Content Include="assets\drawable\grid.png" />
     <Content Include="assets\drawable\highlight-grid.png" />
     <Content Include="assets\drawable\highlight-select.png" />
@@ -130,14 +142,20 @@
     <Content Include="assets\drawable\marvin.png" />
     <Content Include="assets\drawable\rotate-left.png" />
     <Content Include="assets\drawable\rotate-right.png" />
+    <Content Include="assets\drawable\save.png" />
     <Content Include="assets\drawable\scale-down.png" />
     <Content Include="assets\drawable\scale-up.png" />
     <Content Include="assets\drawable\select.png" />
+    <Content Include="assets\drawable\TextBubble.png" />
+    <Content Include="assets\drawable\TextBubbleLeft.png" />
     <Content Include="assets\drawable\undo.png" />
+    <Content Include="assets\drawable\WorkerReport.png" />
     <Content Include="assets\fonts\arial-16.fnt" />
     <Content Include="assets\fonts\arial-16_0.png" />
     <Content Include="assets\fonts\arial.fnt" />
     <Content Include="assets\fonts\arial.png" />
+    <Content Include="assets\fonts\comicsans-32.fnt" />
+    <Content Include="assets\fonts\comicsans-32_0.png" />
     <Content Include="assets\fonts\consolas-12.fnt" />
     <Content Include="assets\fonts\consolas-12_0.png" />
     <Content Include="assets\fonts\consolas-16.fnt" />
@@ -157,6 +175,9 @@
     <Content Include="assets\fonts\consolas-8.fnt" />
     <Content Include="assets\fonts\consolas-8_0.png" />
     <Content Include="assets\map.json" />
+    <Content Include="assets\objects\ball.000\ball.000.mtl" />
+    <Content Include="assets\objects\ball.000\ball.000.obj" />
+    <Content Include="assets\objects\ball.000\ball.000.png" />
     <Content Include="assets\objects\building.000\building.000.mtl" />
     <Content Include="assets\objects\building.000\building.000.obj" />
     <Content Include="assets\objects\building.000\building.000.png" />
@@ -169,22 +190,62 @@
     <Content Include="assets\objects\building.002\building.002.obj" />
     <Content Include="assets\objects\building.002\building.002.png" />
     <Content Include="assets\objects\building.002\icon.png" />
+    <Content Include="assets\objects\building.003\building.003.mtl" />
+    <Content Include="assets\objects\building.003\building.003.obj" />
+    <Content Include="assets\objects\building.003\building.003.png" />
+    <Content Include="assets\objects\building.003\icon.png" />
+    <Content Include="assets\objects\building.004\building.004.mtl" />
+    <Content Include="assets\objects\building.004\building.004.obj" />
+    <Content Include="assets\objects\building.004\building.004.png" />
+    <Content Include="assets\objects\building.004\icon.png" />
+    <Content Include="assets\objects\bush.000\bush.000.mtl" />
+    <Content Include="assets\objects\bush.000\bush.000.obj" />
+    <Content Include="assets\objects\bush.000\bush.000.png" />
     <Content Include="assets\objects\bush.000\icon.png" />
+    <Content Include="assets\objects\camera.mtl" />
+    <Content Include="assets\objects\camera.obj" />
+    <Content Include="assets\objects\camera.png" />
+    <Content Include="assets\objects\camera\camera.mtl" />
+    <Content Include="assets\objects\camera\camera.obj" />
+    <Content Include="assets\objects\camera\camera.png" />
+    <Content Include="assets\objects\camera\icon.png" />
     <Content Include="assets\objects\car.000\car.000.mtl" />
     <Content Include="assets\objects\car.000\car.000.obj" />
     <Content Include="assets\objects\car.000\car.000.png" />
     <Content Include="assets\objects\car.000\icon.png" />
+    <Content Include="assets\objects\car.001\car.001.mtl" />
+    <Content Include="assets\objects\car.001\car.001.obj" />
+    <Content Include="assets\objects\car.001\car.001.png" />
+    <Content Include="assets\objects\car.001\icon.png" />
     <Content Include="assets\objects\detonator.000\detonator.000.mtl" />
     <Content Include="assets\objects\detonator.000\detonator.000.obj" />
     <Content Include="assets\objects\detonator.000\detonator.000.png" />
+    <Content Include="assets\objects\detonator.000\icon.png" />
+    <Content Include="assets\objects\driveway.000\driveway.000.mtl" />
+    <Content Include="assets\objects\driveway.000\driveway.000.obj" />
+    <Content Include="assets\objects\driveway.000\driveway.000.png" />
+    <Content Include="assets\objects\driveway.000\icon.png" />
     <Content Include="assets\objects\dynamite.000\dynamite.000.mtl" />
     <Content Include="assets\objects\dynamite.000\dynamite.000.obj" />
     <Content Include="assets\objects\dynamite.000\dynamite.000.png" />
+    <Content Include="assets\objects\dynamite.000\icon.png" />
     <Content Include="assets\objects\flag.000\flag.000.mtl" />
     <Content Include="assets\objects\flag.000\flag.000.obj" />
     <Content Include="assets\objects\flag.000\flag.000.png" />
     <Content Include="assets\objects\flag.000\icon.png" />
+    <Content Include="assets\objects\grass.000\grass.000.mtl" />
+    <Content Include="assets\objects\grass.000\grass.000.obj" />
+    <Content Include="assets\objects\grass.000\grass.000.png" />
     <Content Include="assets\objects\grass.000\icon.png" />
+    <Content Include="assets\objects\grid.000\grid.000.mtl" />
+    <Content Include="assets\objects\grid.000\grid.000.obj" />
+    <Content Include="assets\objects\grid.000\grid.000.png" />
+    <Content Include="assets\objects\grid.001\grid.001.mtl" />
+    <Content Include="assets\objects\grid.001\grid.001.obj" />
+    <Content Include="assets\objects\grid.001\grid.001.png" />
+    <Content Include="assets\objects\grid.002\grid.002.mtl" />
+    <Content Include="assets\objects\grid.002\grid.002.obj" />
+    <Content Include="assets\objects\grid.002\grid.002.png" />
     <Content Include="assets\objects\ground.000\ground.000.mtl" />
     <Content Include="assets\objects\ground.000\ground.000.obj" />
     <Content Include="assets\objects\ground.000\ground.000.png" />
@@ -192,6 +253,14 @@
     <Content Include="assets\objects\house.000\house.000.obj" />
     <Content Include="assets\objects\house.000\house.000.png" />
     <Content Include="assets\objects\house.000\icon.png" />
+    <Content Include="assets\objects\house.001\house.001.mtl" />
+    <Content Include="assets\objects\house.001\house.001.obj" />
+    <Content Include="assets\objects\house.001\house.001.png" />
+    <Content Include="assets\objects\house.001\icon.png" />
+    <Content Include="assets\objects\house.002\house.002.mtl" />
+    <Content Include="assets\objects\house.002\house.002.obj" />
+    <Content Include="assets\objects\house.002\house.002.png" />
+    <Content Include="assets\objects\house.002\icon.png" />
     <Content Include="assets\objects\light.000\icon.png" />
     <Content Include="assets\objects\light.000\light.000.mtl" />
     <Content Include="assets\objects\light.000\light.000.obj" />
@@ -203,6 +272,7 @@
     <Content Include="assets\objects\person.000\person.000.mtl" />
     <Content Include="assets\objects\person.000\person.000.obj" />
     <Content Include="assets\objects\person.000\person.000.png" />
+    <Content Include="assets\objects\plunger.000\icon.png" />
     <Content Include="assets\objects\plunger.000\plunger.000.mtl" />
     <Content Include="assets\objects\plunger.000\plunger.000.obj" />
     <Content Include="assets\objects\plunger.000\plunger.000.png" />
@@ -210,15 +280,51 @@
     <Content Include="assets\objects\poly.obj" />
     <Content Include="assets\objects\poly.png" />
     <Content Include="assets\objects\road.000\icon.png" />
+    <Content Include="assets\objects\road.000\road.000.mtl" />
+    <Content Include="assets\objects\road.000\road.000.obj" />
+    <Content Include="assets\objects\road.000\road.000.png" />
     <Content Include="assets\objects\road.001\icon.png" />
+    <Content Include="assets\objects\road.001\road.001.mtl" />
+    <Content Include="assets\objects\road.001\road.001.obj" />
+    <Content Include="assets\objects\road.001\road.001.png" />
     <Content Include="assets\objects\road.002\icon.png" />
+    <Content Include="assets\objects\road.002\road.002.mtl" />
+    <Content Include="assets\objects\road.002\road.002.obj" />
+    <Content Include="assets\objects\road.002\road.002.png" />
     <Content Include="assets\objects\road.003\icon.png" />
+    <Content Include="assets\objects\road.003\road.003.mtl" />
+    <Content Include="assets\objects\road.003\road.003.obj" />
+    <Content Include="assets\objects\road.003\road.003.png" />
     <Content Include="assets\objects\road.004\icon.png" />
+    <Content Include="assets\objects\road.004\road.004.mtl" />
+    <Content Include="assets\objects\road.004\road.004.obj" />
+    <Content Include="assets\objects\road.004\road.004.png" />
     <Content Include="assets\objects\road.005\icon.png" />
+    <Content Include="assets\objects\road.005\road.005.mtl" />
+    <Content Include="assets\objects\road.005\road.005.obj" />
+    <Content Include="assets\objects\road.005\road.005.png" />
     <Content Include="assets\objects\road.006\icon.png" />
+    <Content Include="assets\objects\road.006\road.006.mtl" />
+    <Content Include="assets\objects\road.006\road.006.obj" />
+    <Content Include="assets\objects\road.006\road.006.png" />
     <Content Include="assets\objects\road.007\icon.png" />
+    <Content Include="assets\objects\road.007\road.007.mtl" />
+    <Content Include="assets\objects\road.007\road.007.obj" />
+    <Content Include="assets\objects\road.007\road.007.png" />
     <Content Include="assets\objects\road.008\icon.png" />
+    <Content Include="assets\objects\road.008\road.008.mtl" />
+    <Content Include="assets\objects\road.008\road.008.obj" />
+    <Content Include="assets\objects\road.008\road.008.png" />
     <Content Include="assets\objects\road.009\icon.png" />
+    <Content Include="assets\objects\road.009\road.009.mtl" />
+    <Content Include="assets\objects\road.009\road.009.obj" />
+    <Content Include="assets\objects\road.009\road.009.png" />
+    <Content Include="assets\objects\road.011\road.011.mtl" />
+    <Content Include="assets\objects\road.011\road.011.obj" />
+    <Content Include="assets\objects\road.011\road.011.png" />
+    <Content Include="assets\objects\road.012\road.012.mtl" />
+    <Content Include="assets\objects\road.012\road.012.obj" />
+    <Content Include="assets\objects\road.012\road.012.png" />
     <Content Include="assets\objects\roof.000\icon.png" />
     <Content Include="assets\objects\roof.000\roof.000.mtl" />
     <Content Include="assets\objects\roof.000\roof.000.obj" />
@@ -227,66 +333,44 @@
     <Content Include="assets\objects\roof.001\roof.001.mtl" />
     <Content Include="assets\objects\roof.001\roof.001.obj" />
     <Content Include="assets\objects\roof.001\roof.001.png" />
+    <Content Include="assets\objects\rubble.000\rubble.000.mtl" />
+    <Content Include="assets\objects\rubble.000\rubble.000.obj" />
+    <Content Include="assets\objects\rubble.000\rubble.000.png" />
+    <Content Include="assets\objects\rubble.001\rubble.001.mtl" />
+    <Content Include="assets\objects\rubble.001\rubble.001.obj" />
+    <Content Include="assets\objects\rubble.001\rubble.001.png" />
+    <Content Include="assets\objects\rubble.002\rubble.002.mtl" />
+    <Content Include="assets\objects\rubble.002\rubble.002.obj" />
+    <Content Include="assets\objects\rubble.002\rubble.002.png" />
+    <Content Include="assets\objects\rubble.003\rubble.003.mtl" />
+    <Content Include="assets\objects\rubble.003\rubble.003.obj" />
+    <Content Include="assets\objects\rubble.003\rubble.003.png" />
     <Content Include="assets\objects\skybox.mtl" />
     <Content Include="assets\objects\skybox.obj" />
     <Content Include="assets\objects\skybox.png" />
+    <Content Include="assets\objects\suzanne\icon.png" />
     <Content Include="assets\objects\suzanne\idle\suzanne.mtl" />
     <Content Include="assets\objects\suzanne\idle\suzanne.obj" />
     <Content Include="assets\objects\suzanne\idle\suzanne.png" />
     <Content Include="assets\objects\tree.000\icon.png" />
+    <Content Include="assets\objects\tree.000\tree.000.mtl" />
+    <Content Include="assets\objects\tree.000\tree.000.obj" />
+    <Content Include="assets\objects\tree.000\tree.000.png" />
     <Content Include="assets\objects\tree.001\icon.png" />
+    <Content Include="assets\objects\tree.001\tree.001.mtl" />
+    <Content Include="assets\objects\tree.001\tree.001.obj" />
+    <Content Include="assets\objects\tree.001\tree.001.png" />
     <Content Include="assets\objects\tree.002\icon.png" />
     <Content Include="assets\objects\tree.002\tree.002.mtl" />
     <Content Include="assets\objects\tree.002\tree.002.obj" />
     <Content Include="assets\objects\tree.002\tree.002.png" />
+    <Content Include="assets\objects\untitled.fbx" />
     <Content Include="assets\objects\untitled.mtl" />
     <Content Include="assets\objects\untitled.obj" />
     <Content Include="assets\objects\untitled.png" />
-    <Content Include="assets\objects\bush.000\bush.000.mtl" />
-    <Content Include="assets\objects\bush.000\bush.000.obj" />
-    <Content Include="assets\objects\bush.000\bush.000.png" />
-    <Content Include="assets\objects\camera\camera.mtl" />
-    <Content Include="assets\objects\camera\camera.obj" />
-    <Content Include="assets\objects\camera\camera.png" />
-    <Content Include="assets\objects\grass.000\grass.000.mtl" />
-    <Content Include="assets\objects\grass.000\grass.000.obj" />
-    <Content Include="assets\objects\grass.000\grass.000.png" />
-    <Content Include="assets\objects\road.000\road.000.mtl" />
-    <Content Include="assets\objects\road.000\road.000.obj" />
-    <Content Include="assets\objects\road.000\road.000.png" />
-    <Content Include="assets\objects\road.001\road.001.mtl" />
-    <Content Include="assets\objects\road.001\road.001.obj" />
-    <Content Include="assets\objects\road.001\road.001.png" />
-    <Content Include="assets\objects\road.002\road.002.mtl" />
-    <Content Include="assets\objects\road.002\road.002.obj" />
-    <Content Include="assets\objects\road.002\road.002.png" />
-    <Content Include="assets\objects\road.003\road.003.mtl" />
-    <Content Include="assets\objects\road.003\road.003.obj" />
-    <Content Include="assets\objects\road.003\road.003.png" />
-    <Content Include="assets\objects\road.004\road.004.mtl" />
-    <Content Include="assets\objects\road.004\road.004.obj" />
-    <Content Include="assets\objects\road.004\road.004.png" />
-    <Content Include="assets\objects\road.005\road.005.mtl" />
-    <Content Include="assets\objects\road.005\road.005.obj" />
-    <Content Include="assets\objects\road.005\road.005.png" />
-    <Content Include="assets\objects\road.006\road.006.mtl" />
-    <Content Include="assets\objects\road.006\road.006.obj" />
-    <Content Include="assets\objects\road.006\road.006.png" />
-    <Content Include="assets\objects\road.007\road.007.mtl" />
-    <Content Include="assets\objects\road.007\road.007.obj" />
-    <Content Include="assets\objects\road.007\road.007.png" />
-    <Content Include="assets\objects\road.008\road.008.mtl" />
-    <Content Include="assets\objects\road.008\road.008.obj" />
-    <Content Include="assets\objects\road.008\road.008.png" />
-    <Content Include="assets\objects\road.009\road.009.mtl" />
-    <Content Include="assets\objects\road.009\road.009.obj" />
-    <Content Include="assets\objects\road.009\road.009.png" />
-    <Content Include="assets\objects\tree.000\tree.000.mtl" />
-    <Content Include="assets\objects\tree.000\tree.000.obj" />
-    <Content Include="assets\objects\tree.000\tree.000.png" />
-    <Content Include="assets\objects\tree.001\tree.001.mtl" />
-    <Content Include="assets\objects\tree.001\tree.001.obj" />
-    <Content Include="assets\objects\tree.001\tree.001.png" />
+    <Content Include="assets\objects\wiggle.fbx" />
+    <Content Include="assets\objects\wiggle.mtl" />
+    <Content Include="assets\objects\wiggle\icon.png" />
     <Content Include="assets\objects\wiggle\idle\untitled.png" />
     <Content Include="assets\objects\wiggle\idle\wiggle_000001.mtl" />
     <Content Include="assets\objects\wiggle\idle\wiggle_000001.obj" />
@@ -388,34 +472,91 @@
     <Content Include="assets\objects\wiggle\idle\wiggle_000049.obj" />
     <Content Include="assets\objects\wiggle\idle\wiggle_000050.mtl" />
     <Content Include="assets\objects\wiggle\idle\wiggle_000050.obj" />
+    <Content Include="assets\objects\wiggle\wiggle.mtl" />
+    <Content Include="assets\objects\wiggle\wiggle.obj" />
+    <Content Include="assets\objects\wiggle\wiggle.png" />
     <Content Include="assets\raw\glados.wav" />
     <Content Include="assets\raw\test.txt" />
-    <Content Include="assets\shaders\basic.frag" />
-    <Content Include="assets\shaders\basic.vert" />
-    <Content Include="assets\shaders\blur.frag" />
-    <Content Include="assets\shaders\blur.vert" />
-    <Content Include="assets\shaders\cell.frag" />
-    <Content Include="assets\shaders\cell.vert" />
-    <Content Include="assets\shaders\depth.frag" />
-    <Content Include="assets\shaders\depth.vert" />
-    <Content Include="assets\shaders\depth_to_color.frag" />
-    <Content Include="assets\shaders\depth_to_color.vert" />
-    <Content Include="assets\shaders\diffuse.frag" />
-    <Content Include="assets\shaders\diffuse.vert" />
-    <Content Include="assets\shaders\diffuse_with_shadows.frag" />
-    <Content Include="assets\shaders\diffuse_with_shadows.vert" />
-    <Content Include="assets\shaders\outline.frag" />
-    <Content Include="assets\shaders\outline.vert" />
-    <Content Include="assets\shaders\picking.frag" />
-    <Content Include="assets\shaders\picking.vert" />
-    <Content Include="assets\shaders\picking_grouped.frag" />
-    <Content Include="assets\shaders\picking_grouped.vert" />
-    <Content Include="assets\shaders\post.frag" />
-    <Content Include="assets\shaders\post.vert" />
-    <Content Include="assets\shaders\shadowmap.frag" />
-    <Content Include="assets\shaders\shadowmap.vert" />
-    <Content Include="assets\shaders\wireframe.frag" />
-    <Content Include="assets\shaders\wireframe.vert" />
+    <Content Include="assets\shaders-gles320\alpha.frag" />
+    <Content Include="assets\shaders-gles320\alpha.vert" />
+    <Content Include="assets\shaders-gles320\basic.frag" />
+    <Content Include="assets\shaders-gles320\basic.vert" />
+    <Content Include="assets\shaders-gles320\blur.frag" />
+    <Content Include="assets\shaders-gles320\blur.vert" />
+    <Content Include="assets\shaders-gles320\cell.frag" />
+    <Content Include="assets\shaders-gles320\cell.vert" />
+    <Content Include="assets\shaders-gles320\depth.frag" />
+    <Content Include="assets\shaders-gles320\depth.vert" />
+    <Content Include="assets\shaders-gles320\depth_to_color.frag" />
+    <Content Include="assets\shaders-gles320\depth_to_color.vert" />
+    <Content Include="assets\shaders-gles320\diffuse.frag" />
+    <Content Include="assets\shaders-gles320\diffuse.vert" />
+    <Content Include="assets\shaders-gles320\diffuse_with_shadows.frag" />
+    <Content Include="assets\shaders-gles320\diffuse_with_shadows.vert" />
+    <Content Include="assets\shaders-gles320\outline.frag" />
+    <Content Include="assets\shaders-gles320\outline.vert" />
+    <Content Include="assets\shaders-gles320\picking.frag" />
+    <Content Include="assets\shaders-gles320\picking.vert" />
+    <Content Include="assets\shaders-gles320\picking_grouped.frag" />
+    <Content Include="assets\shaders-gles320\picking_grouped.vert" />
+    <Content Include="assets\shaders-gles320\post.frag" />
+    <Content Include="assets\shaders-gles320\post.vert" />
+    <Content Include="assets\shaders-gles320\shadowmap.frag" />
+    <Content Include="assets\shaders-gles320\shadowmap.vert" />
+    <Content Include="assets\shaders-gles320\wireframe.frag" />
+    <Content Include="assets\shaders-gles320\wireframe.vert" />
+    <Content Include="assets\shaders-gles\basic.frag" />
+    <Content Include="assets\shaders-gles\basic.vert" />
+    <Content Include="assets\shaders-gles\blur.frag" />
+    <Content Include="assets\shaders-gles\blur.vert" />
+    <Content Include="assets\shaders-gles\cell.frag" />
+    <Content Include="assets\shaders-gles\cell.vert" />
+    <Content Include="assets\shaders-gles\depth.frag" />
+    <Content Include="assets\shaders-gles\depth.vert" />
+    <Content Include="assets\shaders-gles\depth_to_color.frag" />
+    <Content Include="assets\shaders-gles\depth_to_color.vert" />
+    <Content Include="assets\shaders-gles\diffuse.frag" />
+    <Content Include="assets\shaders-gles\diffuse.vert" />
+    <Content Include="assets\shaders-gles\diffuse_with_shadows.frag" />
+    <Content Include="assets\shaders-gles\diffuse_with_shadows.vert" />
+    <Content Include="assets\shaders-gles\outline.frag" />
+    <Content Include="assets\shaders-gles\outline.vert" />
+    <Content Include="assets\shaders-gles\picking.frag" />
+    <Content Include="assets\shaders-gles\picking.vert" />
+    <Content Include="assets\shaders-gles\picking_grouped.frag" />
+    <Content Include="assets\shaders-gles\picking_grouped.vert" />
+    <Content Include="assets\shaders-gles\post.frag" />
+    <Content Include="assets\shaders-gles\post.vert" />
+    <Content Include="assets\shaders-gles\shadowmap.frag" />
+    <Content Include="assets\shaders-gles\shadowmap.vert" />
+    <Content Include="assets\shaders-gles\wireframe.frag" />
+    <Content Include="assets\shaders-gles\wireframe.vert" />
+    <Content Include="assets\shaders-gl\basic.frag" />
+    <Content Include="assets\shaders-gl\basic.vert" />
+    <Content Include="assets\shaders-gl\blur.frag" />
+    <Content Include="assets\shaders-gl\blur.vert" />
+    <Content Include="assets\shaders-gl\cell.frag" />
+    <Content Include="assets\shaders-gl\cell.vert" />
+    <Content Include="assets\shaders-gl\depth.frag" />
+    <Content Include="assets\shaders-gl\depth.vert" />
+    <Content Include="assets\shaders-gl\depth_to_color.frag" />
+    <Content Include="assets\shaders-gl\depth_to_color.vert" />
+    <Content Include="assets\shaders-gl\diffuse.frag" />
+    <Content Include="assets\shaders-gl\diffuse.vert" />
+    <Content Include="assets\shaders-gl\diffuse_with_shadows.frag" />
+    <Content Include="assets\shaders-gl\diffuse_with_shadows.vert" />
+    <Content Include="assets\shaders-gl\outline.frag" />
+    <Content Include="assets\shaders-gl\outline.vert" />
+    <Content Include="assets\shaders-gl\picking.frag" />
+    <Content Include="assets\shaders-gl\picking.vert" />
+    <Content Include="assets\shaders-gl\picking_grouped.frag" />
+    <Content Include="assets\shaders-gl\picking_grouped.vert" />
+    <Content Include="assets\shaders-gl\post.frag" />
+    <Content Include="assets\shaders-gl\post.vert" />
+    <Content Include="assets\shaders-gl\shadowmap.frag" />
+    <Content Include="assets\shaders-gl\shadowmap.vert" />
+    <Content Include="assets\shaders-gl\wireframe.frag" />
+    <Content Include="assets\shaders-gl\wireframe.vert" />
     <Content Include="res\values\strings.xml" />
     <AntBuildXml Include="build.xml" />
     <AndroidManifest Include="AndroidManifest.xml" />
@@ -425,6 +566,10 @@
     <ProjectReference Include="..\android-client.NativeActivity\android-client.NativeActivity.vcxproj">
       <Project>{b99e6339-699b-4076-9859-749b394d2690}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="assets\objects\ball.000\" />
+    <Folder Include="assets\shaders-gles320\" />
   </ItemGroup>
   <Import Project="$(AndroidTargetsPath)\Android.targets" />
   <ImportGroup Label="ExtensionTargets" />

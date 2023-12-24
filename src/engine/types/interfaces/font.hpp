@@ -1,9 +1,38 @@
+/*
+================================================================================
+  Copyright (c) 2023, Pandemos
+  All rights reserved.
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are met:
+  * Redistributions of source code must retain the above copyright notice, this
+    list of conditions and the following disclaimer.
+  * Redistributions in binary form must reproduce the above copyright notice,
+    this list of conditions and the following disclaimer in the documentation
+    and/or other materials provided with the distribution.
+  * Neither the name of the organization nor the names of its contributors may
+    be used to endorse or promote products derived from this software without
+    specific prior written permission.
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+  DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
+  FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+  SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+  OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+================================================================================
+*/
+
 #pragma once
 
 namespace type {
 
     class font : virtual public type::info {
     public:
+        typedef spatial::vector::type_t type_t;
+
         class glyph {
         public:
             int identifier;
@@ -11,13 +40,13 @@ namespace type {
             int x;
             int y;
 
-            int width;
-            int height;
+            type_t width;
+            type_t height;
 
-            int xoffset;
-            int yoffset;
+            type_t xoffset;
+            type_t yoffset;
 
-            int xadvance;
+            type_t xadvance;
 
             int page;
             int channel;
@@ -29,13 +58,76 @@ namespace type {
         public:
             int left;
             int right;
-            int amount;
+            type_t amount;
         };
 
         std::vector<image> pages;
         std::vector<glyph> glyphs;
         std::vector<kerning> kernings;
 
+        void scale(type_t scale) {
+            for(auto& glyph: glyphs) {
+                glyph.width *= scale;
+                glyph.height *= scale;
+                
+                glyph.xoffset *= scale;
+                glyph.yoffset *= scale;
+                
+                glyph.xadvance *= scale;
+                
+                glyph.quad = glyph.quad.scale(spatial::matrix().scale(scale));
+            }
+            
+            for(auto& kerning: kernings) {
+                kerning.amount *= scale;
+            }
+        }
+        
+        font& operator=(const font& ref) {
+            type::info::operator=(ref);
+            
+            pages.resize(ref.pages.size());
+            for(int i=0; i<ref.pages.size(); i++) {
+                pages[i] = ref.pages[i];
+            }
+            
+            glyphs.resize(ref.glyphs.size());
+            for(int i=0; i<ref.glyphs.size(); i++) {
+                glyphs[i] = ref.glyphs[i];
+                glyphs[i].quad.texture.color = &pages[glyphs[i].page];
+            }
+            
+            kernings.resize(ref.kernings.size());
+            for(int i=0; i<ref.kernings.size(); i++) {
+                kernings[i] = ref.kernings[i];
+            }
+            
+            identifier = ref.identifier;
+
+            name = ref.name;
+
+            size = ref.size;
+
+            bold = ref.bold;
+            italic = ref.italic;
+
+            padding_top = ref.padding_top;
+            padding_left = ref.padding_left;
+            padding_bottom = ref.padding_bottom;
+            padding_right = ref.padding_right;
+
+            spacing_left = ref.spacing_left;
+            spacing_right = ref.spacing_right;
+
+            glyph_height = ref.glyph_height;
+            glyph_width = ref.glyph_width;
+
+            line_leading = ref.line_leading;
+            
+            return *this;
+        }
+        
+        
         int kern(int left, int right) {
             for (auto kern : kernings) {
                 if (kern.left == left && kern.right == right) {
@@ -71,6 +163,34 @@ namespace type {
 
         bool empty() {
             return glyphs.empty();
+        }
+
+        int horizontal(const std::string& text) {
+            double offset = 0;
+            for (auto line : utilities::tokenize(text)) {
+                int length = 0;
+                for (unsigned int i = 0; i < line.length(); i++) {
+                    auto& glyph = glyphs[line[i]];
+                    if (i > 0) {
+                        length += glyph.xadvance + (float)kern(line[i - 1], line[i]);
+                    }
+                    else {
+                        length += glyph.xadvance;
+                    }
+                }
+                if (length > offset) {
+                    offset = length;
+                }
+            }
+            return offset;
+        }
+
+        int vertical(const std::string& text) {
+            int value = 0;
+            for (auto line : utilities::tokenize(text)) {
+                value += glyph_height + (glyph_height / 5);
+            }
+            return value;
         }
 
     protected:

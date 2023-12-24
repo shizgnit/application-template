@@ -1,4 +1,34 @@
+/*
+================================================================================
+  Copyright (c) 2023, Pandemos
+  All rights reserved.
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are met:
+  * Redistributions of source code must retain the above copyright notice, this
+    list of conditions and the following disclaimer.
+  * Redistributions in binary form must reproduce the above copyright notice,
+    this list of conditions and the following disclaimer in the documentation
+    and/or other materials provided with the distribution.
+  * Neither the name of the organization nor the names of its contributors may
+    be used to endorse or promote products derived from this software without
+    specific prior written permission.
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+  DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
+  FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+  SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+  OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+================================================================================
+*/
+
 #pragma once
+
+#undef min
+#undef max
 
 namespace type {
 
@@ -13,9 +43,10 @@ namespace type {
 
         unsigned int instance = allocate();
 
+        program* renderer = NULL;
         entity* emitter = NULL;
 
-        object() : emitter(NULL) {}
+        object() : renderer(NULL), emitter(NULL) {}
         object(const spatial::geometry& ref) {
             *this = ref;
         }
@@ -32,22 +63,33 @@ namespace type {
             return interpolated;
         }
 
+        void uv_projection() {
+            auto top = max();
+            auto bottom = min();
+            for (auto& vertex : vertices) {
+                if (vertex.normal.z > 0.1) {
+                    vertex.texture.z = (vertex.coordinate.x - bottom.x) / (top.x - bottom.x);
+                }
+                else if (vertex.normal.z < -0.1) {
+                    vertex.texture.z = 1.0 - (vertex.coordinate.x - bottom.x) / (top.x - bottom.x);
+                }
+                else if (vertex.normal.x > 0.1) {
+                    vertex.texture.z = 1.0 - (vertex.coordinate.z - bottom.z) / (top.z - bottom.z);
+                }
+                else {
+                    vertex.texture.z = (vertex.coordinate.z - bottom.z) / (top.z - bottom.z);
+                }
+                vertex.texture.w = 1.0 - ((vertex.coordinate.y - bottom.y) / (top.y - bottom.y));
+            }
+        }
+
         void xy_projection(unsigned int x, unsigned int y, unsigned int width, unsigned int height, bool horizontal=false, bool vertical=false) {
             if (texture.color == NULL) {
                 return;
             }
 
-            type_t max_x = 0.0f;
-            type_t max_y = 0.0f;
-
-            for (unsigned int i = 0; i < vertices.size(); i++) {
-                if (vertices[i].coordinate.x > max_x) {
-                    max_x = vertices[i].coordinate.x;
-                }
-                if (vertices[i].coordinate.y > max_y) {
-                    max_y = vertices[i].coordinate.y;
-                }
-            }
+            type_t max_x = this->width();
+            type_t max_y = this->height();
 
             type_t texture_dx = 1 / (type_t)texture.color->properties.width;
             type_t texture_dy = 1 / (type_t)texture.color->properties.height;
@@ -106,21 +148,21 @@ namespace type {
             return projection.intersection(vertices).length();
         }
 
-        int width() {
+        float width() {
             if (constraint.calculated == false) {
                 calculate_constraints();
             }
             return constraint.max.x - constraint.min.x;
         }
 
-        int height() {
+        float height() {
             if (constraint.calculated == false) {
                 calculate_constraints();
             }
             return constraint.max.y - constraint.min.y;
         }
 
-        int length() {
+        float length() {
             if (constraint.calculated == false) {
                 calculate_constraints();
             }
@@ -161,7 +203,6 @@ namespace type {
 
         type::material texture;
 
-        unsigned int context = 0;
         unsigned int instances = 0;
 
         unsigned int flags = 0;
@@ -235,7 +276,7 @@ namespace type {
         bool depth = false;
         std::vector<unsigned char> pixels;
 
-    protected:
+//    protected:
         void calculate_constraints() {
             if (vertices.size() == 0) {
                 return;

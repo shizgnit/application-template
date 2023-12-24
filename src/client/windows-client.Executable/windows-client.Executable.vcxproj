@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\..\..\packages\GLEW-static.2.1.0.3\build\native\GLEW-static.props" Condition="Exists('..\..\..\..\packages\GLEW-static.2.1.0.3\build\native\GLEW-static.props')" />
   <Import Project="..\..\..\packages\OpenAL.Soft.1.19.1\build\openal.soft.props" Condition="Exists('..\..\..\packages\OpenAL.Soft.1.19.1\build\openal.soft.props')" />
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|x64">
@@ -50,9 +51,11 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
+    <TargetName>$(TargetBuildApplication)</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
+    <TargetName>$(TargetBuildApplication)</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -62,14 +65,14 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>__WINDOWS__;WIN32;_CRT_SECURE_NO_WARNINGS;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)$(TargetBuildApplication);$(ProjectDir)..\..\..\deps;$(ProjectDir)..\..\..\deps\glm;$(SolutionDir)packages\OpenAL.Soft.1.19.1\sources;$(SolutionDir)packages\zlib_native.1.2.11\build\native\include;%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)$(TargetBuildApplication);$(ProjectDir)..\..\..\src\engine;$(ProjectDir)..\..\..\deps;$(ProjectDir)..\..\..\deps\glm;$(SolutionDir)packages\OpenAL.Soft.1.19.1\sources;$(SolutionDir)packages\zlib_native.1.2.11\build\native\include;$(SolutionDir)packages\GLEW-static.2.1.0.3\build\native\include\;%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>zlib.lib;libpthread.lib;glew.lib;opengl32.lib;xinput.lib;OpenAL32.lib;rpcrt4.lib;ws2_32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)packages\OpenAL.Soft.1.19.1\runtimes\win-x64\native;$(SolutionDir)packages\zlib_native.1.2.11\build\native\lib\x64\Release;$(SolutionDir)packages\pthreads.2.9.1.4\build\native\lib\v110\x64\Release\dynamic\cdecl;$(SolutionDir)packages\glew.1.9.0.1\build\native\lib\v110\x64\Release\static;%(AdditionalLibraryDirectories);$(MSBuildThisFileDirectory)\..\runtimes\win-$(PlatformTarget)\native\</AdditionalLibraryDirectories>
+      <AdditionalDependencies>zlib.lib;libpthread.lib;glew32s.lib;opengl32.lib;xinput.lib;OpenAL32.lib;rpcrt4.lib;ws2_32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)packages\OpenAL.Soft.1.19.1\runtimes\win-x64\native;$(SolutionDir)packages\zlib_native.1.2.11\build\native\lib\x64\Release;$(SolutionDir)packages\pthreads.2.9.1.4\build\native\lib\v110\x64\Release\dynamic\cdecl;$(SolutionDir)packages\GLEW-static.2.1.0.3\build\native\lib\x64\Release;%(AdditionalLibraryDirectories);$(MSBuildThisFileDirectory)\..\runtimes\win-$(PlatformTarget)\native\</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
       <Command>copy $(SolutionDir)packages\pthreads.redist.2.9.1.4\build\native\bin\v110\x64\Release\dynamic\cdecl\libpthread.dll $(TargetDir)
@@ -84,18 +87,23 @@ copy $(SolutionDir)packages\OpenAL.Soft.1.19.1\runtimes\win-x64\native\OpenAL32.
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>__WINDOWS__;WIN32;_CRT_SECURE_NO_WARNINGS;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalIncludeDirectories>$(SolutionDir)$(TargetBuildApplication);$(ProjectDir)..\..\..\src\engine;$(ProjectDir)..\..\..\deps;$(ProjectDir)..\..\..\deps\glm;$(SolutionDir)packages\OpenAL.Soft.1.19.1\sources;$(SolutionDir)packages\zlib_native.1.2.11\build\native\include;%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>zlib.lib;libpthread.lib;glew32s.lib;opengl32.lib;xinput.lib;OpenAL32.lib;rpcrt4.lib;ws2_32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)packages\OpenAL.Soft.1.19.1\runtimes\win-x64\native;$(SolutionDir)packages\zlib_native.1.2.11\build\native\lib\x64\Release;$(SolutionDir)packages\pthreads.2.9.1.4\build\native\lib\v110\x64\Release\dynamic\cdecl;$(SolutionDir)packages\GLEW-static.2.1.0.3\build\native\lib\x64\Release;%(AdditionalLibraryDirectories);$(MSBuildThisFileDirectory)\..\runtimes\win-$(PlatformTarget)\native\</AdditionalLibraryDirectories>
     </Link>
-    <PreBuildEvent>
-      <Command>if not exists assets mklink \J assets $(SolutionDir)\assets</Command>
-    </PreBuildEvent>
+    <PostBuildEvent>
+      <Command>copy $(SolutionDir)packages\pthreads.redist.2.9.1.4\build\native\bin\v110\x64\Release\dynamic\cdecl\libpthread.dll $(TargetDir)
+copy $(SolutionDir)packages\OpenAL.Soft.1.19.1\runtimes\win-x64\native\OpenAL32.dll $(TargetDir)</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="framework.h" />
@@ -118,8 +126,6 @@ copy $(SolutionDir)packages\OpenAL.Soft.1.19.1\runtimes\win-x64\native\OpenAL32.
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
-    <Import Project="$(SolutionDir)\packages\glew.redist.1.9.0.1\build\native\glew.redist.targets" Condition="Exists('$(SolutionDir)\packages\glew.redist.1.9.0.1\build\native\glew.redist.targets')" />
-    <Import Project="$(SolutionDir)\packages\glew.1.9.0.1\build\native\glew.targets" Condition="Exists('$(SolutionDir)\packages\glew.1.9.0.1\build\native\glew.targets')" />
     <Import Project="$(SolutionDir)\packages\zlib_native.redist.1.2.11\build\native\zlib_native.redist.targets" Condition="Exists('$(SolutionDir)\packages\zlib_native.redist.1.2.11\build\native\zlib_native.redist.targets')" />
     <Import Project="$(SolutionDir)\packages\zlib_native.1.2.11\build\native\zlib_native.targets" Condition="Exists('$(SolutionDir)\packages\zlib_native.1.2.11\build\native\zlib_native.targets')" />
     <Import Project="$(SolutionDir)\packages\pthreads.redist.2.9.1.4\build\native\pthreads.redist.targets" Condition="Exists('$(SolutionDir)\packages\pthreads.redist.2.9.1.4\build\native\pthreads.redist.targets')" />
@@ -129,12 +135,11 @@ copy $(SolutionDir)packages\OpenAL.Soft.1.19.1\runtimes\win-x64\native\OpenAL32.
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('$(SolutionDir)\packages\glew.redist.1.9.0.1\build\native\glew.redist.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\packages\glew.redist.1.9.0.1\build\native\glew.redist.targets'))" />
-    <Error Condition="!Exists('$(SolutionDir)\packages\glew.1.9.0.1\build\native\glew.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\packages\glew.1.9.0.1\build\native\glew.targets'))" />
     <Error Condition="!Exists('$(SolutionDir)\packages\OpenAL.Soft.1.19.1\build\openal.soft.props')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\packages\OpenAL.Soft.1.19.1\build\openal.soft.props'))" />
     <Error Condition="!Exists('$(SolutionDir)\packages\zlib_native.redist.1.2.11\build\native\zlib_native.redist.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\packages\zlib_native.redist.1.2.11\build\native\zlib_native.redist.targets'))" />
     <Error Condition="!Exists('$(SolutionDir)\packages\zlib_native.1.2.11\build\native\zlib_native.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\packages\zlib_native.1.2.11\build\native\zlib_native.targets'))" />
     <Error Condition="!Exists('$(SolutionDir)\packages\pthreads.redist.2.9.1.4\build\native\pthreads.redist.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\packages\pthreads.redist.2.9.1.4\build\native\pthreads.redist.targets'))" />
     <Error Condition="!Exists('$(SolutionDir)\packages\pthreads.2.9.1.4\build\native\pthreads.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\packages\pthreads.2.9.1.4\build\native\pthreads.targets'))" />
+    <Error Condition="!Exists('..\..\..\..\packages\GLEW-static.2.1.0.3\build\native\GLEW-static.props')" Text="$([System.String]::Format('$(ErrorText)', '..\..\..\..\packages\GLEW-static.2.1.0.3\build\native\GLEW-static.props'))" />
   </Target>
 </Project>

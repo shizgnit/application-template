@@ -1,3 +1,30 @@
+/*
+================================================================================
+  Copyright (c) 2023, Pandemos
+  All rights reserved.
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are met:
+  * Redistributions of source code must retain the above copyright notice, this
+    list of conditions and the following disclaimer.
+  * Redistributions in binary form must reproduce the above copyright notice,
+    this list of conditions and the following disclaimer in the documentation
+    and/or other materials provided with the distribution.
+  * Neither the name of the organization nor the names of its contributors may
+    be used to endorse or promote products derived from this software without
+    specific prior written permission.
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+  DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
+  FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+  SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+  OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+================================================================================
+*/
+
 #include "engine.hpp"
 
 //dot = x1 * x2 + y1 * y2 + z1 * z2
@@ -118,10 +145,15 @@ bool spatial::vector::operator == (const vector& operand) const {
            this->w == operand.w;
 }
 
+bool spatial::vector::operator != (const vector& operand) const {
+    return (*this == operand) == false;
+}
+
+#if defined _USE_GLM
 spatial::vector::operator glm::vec3() const {
     return glm::vec3(x, y, z);
 }
-
+#endif
 
 spatial::vector& spatial::vector::rotate(const spatial::vector& axis, type_t rad) {
     return *this = spatial::matrix().rotate(axis, rad).interpolate(*this);
@@ -262,8 +294,6 @@ spatial::vector spatial::vector::slerp(const vector& to, const type_t t)
     return result;
 }
 
-
-
 spatial::matrix::matrix() {
     identity();
 }
@@ -271,17 +301,48 @@ spatial::matrix::matrix(const matrix& m) {
     r = m.r;
 }
 spatial::matrix::matrix(const vector& c0, const vector& c1, const vector& c2, const vector& c3) {
-    *this = { { c0.x, c1.x, c2.x, c3.x },
-              { c0.y, c1.y, c2.y, c3.y },
-              { c0.z, c1.z, c2.z, c3.z },
-              { c0.w, c1.w, c2.w, c3.w } };
+    r[0][0] = c0.x;
+    r[0][1] = c1.x;
+    r[0][2] = c2.x;
+    r[0][3] = c3.x;
+
+    r[1][0] = c0.y;
+    r[1][1] = c1.y;
+    r[1][2] = c2.y;
+    r[1][3] = c3.y;
+
+    r[2][0] = c0.z;
+    r[2][1] = c1.z;
+    r[2][2] = c2.z;
+    r[2][3] = c3.z;
+
+    r[3][0] = c0.w;
+    r[3][1] = c1.w;
+    r[3][2] = c2.w;
+    r[3][3] = c3.w;
 }
 
 spatial::matrix& spatial::matrix::identity() {
-    *this = { { 1.0f, 0.0f, 0.0f, 0.0f },
-              { 0.0f, 1.0f, 0.0f, 0.0f },
-              { 0.0f, 0.0f, 1.0f, 0.0f },
-              { 0.0f, 0.0f, 0.0f, 1.0f } };
+    r[0][0] = 1.0f;
+    r[0][1] = 0.0f;
+    r[0][2] = 0.0f;
+    r[0][3] = 0.0f;
+
+    r[1][0] = 0.0f;
+    r[1][1] = 1.0f;
+    r[1][2] = 0.0f;
+    r[1][3] = 0.0f;
+
+    r[2][0] = 0.0f;
+    r[2][1] = 0.0f;
+    r[2][2] = 1.0f;
+    r[2][3] = 0.0f;
+
+    r[3][0] = 0.0f;
+    r[3][1] = 0.0f;
+    r[3][2] = 0.0f;
+    r[3][3] = 1.0f;
+
     return *this;
 }
 
@@ -652,6 +713,18 @@ spatial::matrix& spatial::matrix::invert() {
 #endif
 }
 
+spatial::matrix& spatial::matrix::pivot() {
+    type_t t;
+    int c, r;
+    for(c=0; c<4; c++) for(r=0; r<4; r++) {
+        t = this->r[r][c];
+        this->r[r][c] = this->r[c][r];
+        this->r[c][r] = t;
+    }
+    return *this;
+}
+
+
 spatial::matrix& spatial::matrix::set(int row, int col, type_t value) {
     r[row][col] = value;
     return *this;
@@ -735,8 +808,8 @@ spatial::quaternion spatial::quaternion::operator *(const quaternion& operand) {
 }
 
 // https://stackoverflow.com/questions/52413464/look-at-quaternion-using-up-vector
-spatial::quaternion& spatial::quaternion::translate(const vector& eye, const vector& center, const vector& up) {
-    vector f = (eye - center).unit();
+spatial::quaternion& spatial::quaternion::translate(const vector& eye, const vector& focus, const vector& up) {
+    vector f = (eye - focus).unit();
     vector s = (up % f).unit();
     vector t = f % s;
 
@@ -809,12 +882,14 @@ spatial::quaternion::operator spatial::matrix() {
 
     matrix result;
     
+    //result[0][0] = 1.0f;
     result[0][0] = 1.0f - 2.0f * (y * y + z * z);
     result[0][1] = 2.0f * (x * y + w * z);
     result[0][2] = 2.0f * (x * z - w * y);
     result[0][3] = 0.0f;
 
     result[1][0] = 2.0f * (x * y - w * z);
+    //result[1][1] = 1.0f;
     result[1][1] = 1.0f - 2.0f * (x * x + z * z);
     result[1][2] = 2.0f * (y * z + w * x);
     result[1][3] = 0.0f;
@@ -844,29 +919,33 @@ spatial::quaternion spatial::quaternion::slerp(const quaternion& q, const type_t
 
 
 spatial::position::position(void) {
-    view = false;
     identity();
 }
 
 spatial::position::position(const position& ref) {
     *this = ref;
+    this->modify();
 }
 
 spatial::position::position(const spatial::vector& pos) {
+    identity();
     reposition(pos);
 }
 
 spatial::position::operator spatial::matrix() {
     matrix result;
     result.translate(eye, focus, up);
-    return result * spatial::matrix().scale(translation.scale);
+    return result; //  * spatial::matrix().scale(translation.scale);
 }
 
-spatial::matrix spatial::position::scale(type_t value) {
-    matrix result;
-    result.translate(eye, focus, up);
-    translation.scale += value;
-    return result * spatial::matrix().scale(translation.scale);
+spatial::matrix& spatial::position::serialize() {
+    if (dirty) {
+		state.identity();
+		state.translate(eye, focus, up);
+		state *= spatial::matrix().scale(translation.scale);
+		dirty = false;
+	}
+    return state;
 }
 
 void spatial::position::identity(void) {
@@ -895,7 +974,7 @@ spatial::position& spatial::position::surge(type_t t) {
     focus += diff;
     eye += diff;
 
-    return *this;
+    return this->modify();
 }
 
 spatial::position& spatial::position::sway(type_t t) {
@@ -908,7 +987,7 @@ spatial::position& spatial::position::sway(type_t t) {
     focus += diff;
     eye += diff;
 
-    return *this;
+    return this->modify();
 }
 
 spatial::position& spatial::position::heave(type_t t) {
@@ -919,27 +998,32 @@ spatial::position& spatial::position::heave(type_t t) {
     focus += diff;
     eye += diff;
 
-    return *this;
+    return this->modify();
 }
 
-spatial::position& spatial::position::pitch(type_t angle) {
-    translation.pitch += angle;
-    return rotate();
+spatial::position& spatial::position::scale(type_t value, bool apply) {
+    translation.scale = apply ? translation.scale + value : value;
+    return this->modify();
 }
 
-spatial::position& spatial::position::yaw(type_t angle) {
-    translation.yaw += angle;
-    return rotate();
+spatial::position& spatial::position::pitch(type_t angle, bool apply) {
+    translation.pitch = apply ? translation.pitch + angle : angle;
+    return apply ? rotate() : this->modify();
 }
 
-spatial::position& spatial::position::roll(type_t angle) {
-    translation.roll += angle;
-    return rotate();
+spatial::position& spatial::position::yaw(type_t angle, bool apply) {
+    translation.yaw = apply ? translation.yaw + angle : angle;
+    return apply ? rotate() : this->modify();
 }
 
-spatial::position& spatial::position::spin(type_t angle) {
-    translation.spin += angle;
-    return rotate();
+spatial::position& spatial::position::roll(type_t angle, bool apply) {
+    translation.roll = apply ? translation.roll + angle : angle;
+    return apply ? rotate() : this->modify();
+}
+
+spatial::position& spatial::position::spin(type_t angle, bool apply) {
+    translation.spin = apply ? translation.spin + angle : angle;
+    return apply ? rotate() : this->modify();
 }
 
 spatial::position& spatial::position::rotate() {
@@ -949,20 +1033,78 @@ spatial::position& spatial::position::rotate() {
 
     identity();
 
-    type_t radx, rady;
+    type_t radx, rady, radz;
 
-    radx = static_cast<type_t>(translation.pitch * (3.1415927 / 180));
+    radx = static_cast<type_t>(translation.pitch * (M_PI / 180));
     focus.rotate_x(radx);
     up.rotate_x(radx);
 
-    rady = static_cast<type_t>(translation.spin * (3.1415927 / 180));
+    rady = static_cast<type_t>(translation.spin * (M_PI / 180));
     focus.rotate_y(rady);
     up.rotate_y(rady);
+
+    radz = static_cast<type_t>(translation.roll * (M_PI / 180));
+    focus.rotate_z(radz);
+    up.rotate_z(radz);
 
     eye += offset;
     focus += offset;
 
-    return *this;
+    return this->modify();
+}
+
+spatial::position& spatial::position::rotate_x(type_t angle) {
+    store scope(*this);
+
+    vector offset = eye;
+
+    focus -= offset;
+    eye -= offset;
+
+    type_t rad = static_cast<type_t>(angle * (M_PI / 180));
+    focus.rotate_x(rad);
+    up.rotate_x(rad);
+
+    eye += offset;
+    focus += offset;
+
+    return this->modify();
+}
+
+spatial::position& spatial::position::rotate_y(type_t angle) {
+    store scope(*this);
+
+    vector offset = eye;
+
+    focus -= offset;
+    eye -= offset;
+
+    type_t rad = static_cast<type_t>(angle * (M_PI / 180));
+    focus.rotate_y(rad);
+    up.rotate_y(rad);
+
+    eye += offset;
+    focus += offset;
+
+    return this->modify();
+}
+
+spatial::position& spatial::position::rotate_z(type_t angle) {
+    store scope(*this);
+
+    vector offset = eye;
+
+    focus -= offset;
+    eye -= offset;
+
+    type_t rad = static_cast<type_t>(angle * (M_PI / 180));
+    focus.rotate_z(rad);
+    up.rotate_z(rad);
+
+    eye += offset;
+    focus += offset;
+
+    return this->modify();
 }
 
 void spatial::position::project(const vector& offset, const vector& projection) {
@@ -979,15 +1121,28 @@ void spatial::position::project(const vector& offset, const vector& projection) 
     diff.z = (cross.z - focus.z) * offset.z;
 }
 
+spatial::position& spatial::position::orientation(const spatial::position& reference) {
+    this->translation = reference.translation;
+    this->rotate();
+    return this->modify();
+}
+
 spatial::position& spatial::position::reposition(const vector& offset) {
     store scope(*this);
 
     focus += offset - eye;
     eye = offset;
 
-    return *this;
+    return this->modify();
 }
 
+spatial::position& spatial::position::move(const vector& offset) {
+    store scope(*this);
+
+    reposition(eye + offset);
+
+    return this->modify();
+}
 spatial::position& spatial::position::lookat(const vector& offset) {
     store scope(*this);
 
@@ -995,14 +1150,48 @@ spatial::position& spatial::position::lookat(const vector& offset) {
     auto right = forward == vector(0, -1, 0) ? vector(-1, 0, 0) : vector(0, 1, 0) % forward;
 
     focus = forward + eye;
-    up = (forward % right).unit(); 
+    up = (forward % right).unit();
 
     translation.pitch = 0;
     translation.roll = 0;
     translation.spin = 0;
     translation.yaw = 0;
 
-    return *this;
+    return this->modify();
+}
+
+spatial::position& spatial::position::rotate(const spatial::position& axis) {
+    store scope(*this);
+
+    auto offset = eye - axis.eye;
+    reposition(offset);
+
+    type_t radx, rady, radz;
+
+    radx = static_cast<type_t>(axis.translation.pitch * (M_PI / 180));
+    focus.rotate_x(radx);
+    up.rotate_x(radx);
+    eye.rotate_x(radx);
+
+    rady = static_cast<type_t>(axis.translation.spin * (M_PI / 180));
+    focus.rotate_y(rady);
+    up.rotate_y(rady);
+    eye.rotate_y(rady);
+
+    radz = static_cast<type_t>(axis.translation.roll * (M_PI / 180));
+    focus.rotate_z(radz);
+    up.rotate_z(radz);
+    eye.rotate_z(radz);
+
+    eye += axis.eye;
+    focus += axis.eye;
+
+    return this->modify();
+}
+
+spatial::position& spatial::position::opacity(float a) {
+    alpha = a;
+    return this->modify();
 }
 
 void spatial::position::constrain(bool x, bool y, bool z) {
@@ -1027,6 +1216,7 @@ void spatial::position::apply(const spatial::position& reference) {
         this->focus.z = reference.focus.z;
         this->up.z = reference.up.z;
     }
+    this->modify();
 }
 
 spatial::vector spatial::position::x(type_t magnitude) {
@@ -1050,6 +1240,23 @@ spatial::vector spatial::position::down() {
 spatial::vector spatial::position::tanget() {
     vector normal = eye - focus;
     return (normal % up) + focus;
+}
+
+spatial::position& spatial::position::operator=(const spatial::position& ref) {
+    this->eye = ref.eye;
+    this->focus = ref.focus;
+    this->up = ref.up;
+
+    this->constraint = ref.constraint;
+    this->translation = ref.translation;
+    
+    this->rate = ref.rate;
+    this->alpha = ref.alpha;
+    this->view = ref.view;
+    
+    this->dirty = true;
+    
+    return *this;
 }
 
 spatial::sphere::sphere(int horizontal, int vertical) : sphere() {
@@ -1176,8 +1383,10 @@ spatial::geometry spatial::quad::edges(int width, int height) {
     return rays;
 }
 
-spatial::ray::ray(const vector& origin, const vector& terminus) : ray() {
-    interpolate(origin, terminus);
+spatial::ray::ray(const vector& point, const vector& normal) : ray() {
+    vertices.resize(2);
+    vertices[0] = point;
+    vertices[1] = normal;
 }
 
 spatial::ray::ray(const vector& point, const matrix& perspective, const matrix& view, const int& w, const int& h) {
@@ -1187,7 +1396,7 @@ spatial::ray::ray(const vector& point, const matrix& perspective, const matrix& 
 spatial::ray& spatial::ray::interpolate(const vector& origin, const vector& terminus) {
     vertices.resize(2);
     vertices[0] = origin;
-    vertices[1] = terminus;
+    vertices[1] = (terminus - origin).unit(); // Set as direction vector
     return *this;
 }
 
@@ -1229,7 +1438,7 @@ bool spatial::ray::intersects(const spatial::geometry& bounds) {
 
 bool spatial::ray::intersects(const spatial::triangle& triangle) {
 
-//#if defined _USE_GLM
+#if defined _USE_GLM
     glm::vec3 r0 = vertices[0];
     glm::vec3 r1 = vertices[1];
 
@@ -1242,13 +1451,12 @@ bool spatial::ray::intersects(const spatial::triangle& triangle) {
     glm::vec3 pos;  // no current use for the barycentric coordinates
 
     return glm::intersectLineTriangle(r0, dir, v0, v1, v2, pos);
-
-/*
 #else
-    auto org = vertices[0];
-    auto dir = vertices[1].unit();
-
     // https://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_intersection_algorithm
+
+    auto org = vertices[0];
+    auto dir = (vertices[1] - vertices[0]).unit();
+
     auto e1 = triangle.vertices[1] - triangle.vertices[0];
     auto e2 = triangle.vertices[2] - triangle.vertices[0];
 
@@ -1280,7 +1488,6 @@ bool spatial::ray::intersects(const spatial::triangle& triangle) {
 
     return false;
 #endif
-*/
 }
 
 bool spatial::ray::intersects(const spatial::plane& plane) {
@@ -1330,10 +1537,15 @@ spatial::vector spatial::ray::intersection(const spatial::triangle& triangle) {
 spatial::vector spatial::ray::intersection(const spatial::plane& p) {
     auto d = vertices[1].unit().dot(p.normal.unit());
     if (abs(d) > 0.00001f) {
-        auto t = (p.point - vertices[0]).dot(p.normal) / d;
+        auto t = (p.point - vertices[0]).dot(p.normal.unit()) / d;
         return vertices[0] + vertices[1].unit() * t;
     }
     return spatial::vector();
+}
+
+void spatial::ray::extend(const spatial::ray::type_t& d) {
+//    auto slope = vertices[1] / vertices[0];
+//    vertices[1] = vertices[0] * d;
 }
 
 spatial::vector spatial::triangle::normal() const {

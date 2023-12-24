@@ -1,107 +1,70 @@
+/*
+================================================================================
+  Copyright (c) 2023, Pandemos
+  All rights reserved.
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are met:
+  * Redistributions of source code must retain the above copyright notice, this
+    list of conditions and the following disclaimer.
+  * Redistributions in binary form must reproduce the above copyright notice,
+    this list of conditions and the following disclaimer in the documentation
+    and/or other materials provided with the distribution.
+  * Neither the name of the organization nor the names of its contributors may
+    be used to endorse or promote products derived from this software without
+    specific prior written permission.
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+  DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
+  FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+  SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+  OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+================================================================================
+*/
+
 #pragma once
 
 namespace type {
 
     class entity : virtual public type::info, public properties {
     public:
-        enum {
-            SELECTED = 0x01,
-            GROUPED = 0x02
+
+        // 1111 1100 0000 0000 0000 0000 0000 0000
+
+        enum states {
+            SELECTED = 0x00000001,
+            GROUPED  = 0x00000002,
+            VIRTUAL  = 0X00000004,
+            ALPHA    = 0x00000008,
+            UV       = 0x00000010,
+            OFFSET   = 0x00000020
         };
 
-        typedef unsigned int key_t;
+        typedef long instance_t;
+        typedef std::string group_t;
 
-        class group : public properties {
-        public:
-            group() {}
+        typedef int key_t;
 
-            void add(key_t id) {
-                members.push_back(id);
+        operator bool() {
+            return instances.size();
+        }
+
+        static auto & crossreference() {
+            static std::map<instance_t, type::entity*> _crossreference;
+            return _crossreference;
+        }
+
+        static entity& find(value_t criteria) {
+            static type::entity empty;
+            auto i = crossreference().find(std::get<instance_t>(criteria));
+            if (i == crossreference().end()) {
+                return empty;
             }
-
-            void remove(key_t id) {
-                members.remove(id);
-            }
-
-            std::string id;
-            std::list<key_t> members;
-        };
-
-        class catalog {
-        protected:
-            std::map<key_t, entity*> instances;
-            std::map<std::string, group> groups;
-
-        public:
-            catalog() {}
-
-            static catalog& singleton() {
-                static catalog instance;
-                return instance;
-            }
-
-            void add(key_t id, entity* reference, properties& props = properties::empty()) {
-                instances[id] = reference;
-                if (props.has("grouping")) {
-                    auto grouping = std::get<std::string>(props.get("grouping"));
-                    if (groups.find(grouping) == groups.end()) {
-                        groups[grouping].id = grouping;
-                    }
-                    groups[grouping].add(id);
-                }
-            }
-
-            void remove(key_t id, properties& props = properties::empty()) {
-                instances.erase(id);
-                if (props.has("grouping")) {
-                    auto grouping = std::get<std::string>(props.get("grouping"));
-                    if (groups.find(grouping) != groups.end()) {
-                        groups[grouping].remove(id);
-                    }
-                }
-            }
-
-            void remove(entity& parent) {
-                for(auto &child: parent.instances) {
-                    remove(child.second.id, child.second);
-                }
-            }
-
-            bool hasEntity(key_t id) {
-                return instances.find(id) != instances.end();
-            }
-
-            entity& getEntity(key_t id) {
-                static entity empty;
-                if (instances.find(id) == instances.end()) {
-                    return empty;
-                }
-                return *instances[id];
-            }
-
-            bool hasGroup(const std::string& grouping) {
-                return groups.find(grouping) != groups.end();
-            }
-
-            group& getGroup(const std::string& grouping) {
-                static group empty;
-                if (grouping.empty()) {
-                    return empty;
-                }
-                if (groups.find(grouping) == groups.end()) {
-                    groups[grouping].id = grouping;
-                }
-                return groups[grouping];
-            }
-
-            std::vector<std::string> groupings() {
-                std::vector<std::string> results;
-                for (auto& instance : groups) {
-                    results.push_back(instance.second.id);
-                }
-                return results;
-            }
-        };
+            return *(i->second);
+        }
 
         type::object* object = NULL;
         class animation {
@@ -114,83 +77,261 @@ namespace type {
 
         class waypoint {
         public:
-            waypoint() {}
-            waypoint(const spatial::position& p1, const spatial::position& p2, double r) {
-                set(p1, p2, r);
+            typedef std::function<void ()> callback_t;
+            typedef std::function<bool (const spatial::position& p)> terminate_t;
+
+            waypoint(const spatial::position& p1) {
+                position.start = p1;
+                position.current = p1;
+                position.finish = p1;
+            }
+            waypoint(const spatial::position& p1, const spatial::position& p2) {
+                p(p1, p2);
             }
 
             waypoint& checkpoint() {
-                return checkpoint(start.eye);
+                return checkpoint(position.start.eye);
             }
 
             waypoint& checkpoint(const spatial::position& p1) {
-                distance = p1.eye.distance(finish.eye);
-                return set(p1, finish.eye, rate);
+                position.distance = p1.eye.distance(position.finish.eye);
+                return p(p1, position.finish.eye);
             }
 
-            waypoint& set(const spatial::position& p1, const spatial::position& p2, double r) {
-                rate = r;
-                start = p1;
-                finish = p2;
-                distance = p1.eye.distance(p2.eye);
-                reference = std::chrono::system_clock::now().time_since_epoch();
+            waypoint& p(const spatial::position& p1, const spatial::position& p2) {
+                position.start = p1;
+                position.current = p1;
+                position.finish = p2;
+                position.distance = position.start.eye.distance(position.finish.eye);
+                position.active = true;
+                finished = false;
+                return *this;
+            }
+            waypoint& r(const spatial::position& translation) {
+                rotation.finish = {translation.translation.pitch, translation.translation.spin, translation.translation.roll};
+                rotation.active = true;
+                finished = false;
+                return *this;
+            }
+            waypoint& r(const spatial::vector& translation, bool continuous = false) {
+                rotation.finish = translation;
+                rotation.continuous = continuous;
+                rotation.active = true;
+                finished = false;
+                return *this;
+            }
+            waypoint& a(float start, float finish) {
+                alpha.start = start;
+                alpha.finish = finish;
+                alpha.active = true;
+                finished = false;
+                return *this;
+            }
+            waypoint& s(float start, float finish) {
+                scale.start = start;
+                scale.finish = finish;
+                scale.active = true;
+                finished = false;
+                return *this;
+            }
+            waypoint& g(float a, float v, float g=9.8) {
+                gravity.arc = position.start;
+                gravity.current = position.start;
+                gravity.radians = v * (a * M_PI / 180.0); // Includes velocity along the vector
+                gravity.gravity = g * 0.5;
+                gravity.velocity = v;
+                gravity.relative.x = 0.0;
+                gravity.relative.y = 0.0;
+                gravity.active = true;
                 finished = false;
                 return *this;
             }
 
-            waypoint& go() {
-                active = true;
+            waypoint& speed(double s) {
+                position.speed = s;
                 return *this;
             }
 
-            spatial::position position() {
-                if (active == false) {
-                    return start;
-                }
-
-                duration = distance / rate;
-                auto now = std::chrono::system_clock::now().time_since_epoch();
-                auto diff = std::chrono::duration_cast<utilities::seconds_t>(now - reference).count();
-                auto travel = diff / duration;
-
-                if (travel >= 1.0) {
-                    active = false;
-                    finished = true;
-                    current = finish;
-                }
-                else {
-                    current.reposition(start.eye.lerp(finish.eye, travel));
-                    current.lookat(start.focus.lerp(finish.focus, travel));
-                }
-
-                return current;
+            waypoint& orient(const spatial::vector& o) {
+                position.orientation = o;
+                return *this;
             }
 
-            utilities::seconds_t reference = std::chrono::system_clock::now().time_since_epoch();
-            double rate = 1.0; // units per second
-            double distance; // units
-            double duration;
-            spatial::position start;
-            spatial::position finish;
-            spatial::position current;
+            waypoint& on_finish(callback_t c) {
+                on_finish_callback = c;
+                return *this;
+            }
+
+            waypoint& terminate() {
+                terminator = true;
+                return *this;
+            }
+            
+            waypoint& terminate(terminate_t callback) {
+                terminator = true;
+                terminate_callback = callback;
+                return *this;
+            }
+           
+            waypoint& go() {
+                active = true;
+                reference = std::chrono::system_clock::now().time_since_epoch();
+                if (position.active) {
+                    duration = position.distance / position.speed;
+                }
+                else if (duration == 0) {
+                    duration = 600;
+                }
+                return *this;
+            }
+
+            spatial::position get() {
+                if (active == false) {
+                    return finished ? position.finish : position.start;
+                }
+
+                auto now = std::chrono::system_clock::now().time_since_epoch();
+                auto time = std::chrono::duration_cast<utilities::seconds_t>(now - reference).count();
+                auto elapsed = std::min(time / duration, 1.0);
+                auto remaining = 1.0 - elapsed;
+
+                if(terminate_callback && terminate_callback(position.current)) {
+                    elapsed = 1.0;
+                }
+
+                if (elapsed >= 1.0) {
+                    active = false;
+                    finished = true;
+                    if (gravity.active == false) {
+                        position.finish.translation = position.current.translation;
+                        position.current = position.finish;
+                    }
+                    if (scale.active) {
+                        position.current.scale(scale.finish);
+                    }
+                    if (alpha.active) {
+                        position.current.opacity(alpha.finish);
+                    }
+                    if (rotation.active) {
+                        position.current.translation.active = true;
+                        position.current.spin(rotation.continuous ? rotation.finish.y * time : rotation.finish.y - rotation.travel.y, rotation.continuous);
+                        position.current.roll(rotation.continuous ? rotation.finish.z * time : rotation.finish.z - rotation.travel.z, rotation.continuous);
+                        position.current.pitch(rotation.continuous ? rotation.finish.x * time : rotation.finish.x - rotation.travel.x, rotation.continuous);
+                        rotation.travel = rotation.finish;
+                    }
+                }
+                else {
+                    if (gravity.active) {
+                        float x = gravity.velocity * time;
+                        float y = position.start.eye.y + (gravity.radians * time) - (gravity.gravity * time * time);
+                        gravity.arc.surge(x - gravity.relative.x);
+                        gravity.arc.heave(y - gravity.relative.y);
+                        gravity.relative.x = x;
+                        gravity.relative.y = y;
+                        position.current.reposition(gravity.arc.eye);
+                    }
+                    if (position.active) {
+                        position.current.reposition(position.start.eye.lerp(position.finish.eye, elapsed));
+                    }
+                    if (rotation.active == false) {
+                        position.current.lookat(position.start.focus.lerp(position.finish.focus + position.orientation, elapsed));
+                    }
+                    if (scale.active) {
+                        position.current.scale(remaining * scale.start + elapsed * scale.finish);
+                    }
+                    if (alpha.active) {
+                        position.current.opacity(remaining * alpha.start + elapsed * alpha.finish);
+                    }
+                    if (rotation.active) {
+                        spatial::vector relative = rotation.continuous ? rotation.finish * time : rotation.start.slerp(rotation.finish, elapsed);
+                        position.current.translation.active = true;
+                        position.current.spin(relative.y - rotation.travel.y, rotation.continuous);
+                        position.current.roll(relative.z - rotation.travel.z, rotation.continuous);
+                        position.current.pitch(relative.x - rotation.travel.x, rotation.continuous);
+                        rotation.travel = relative;
+                    }
+                }
+
+                if (finished && on_finish_callback) {
+                    on_finish_callback();
+                }
+
+                return position.current;
+            }
+
+            struct {
+                bool active = false;
+                float start;
+                float finish;
+            } alpha;
+
+            struct {
+                bool active = false;
+                float start;
+                float finish;
+            } scale;
+
+            struct {
+                bool active = false;
+                double speed = 1.0; // relative units per second
+                double distance; // total distance between start and finish
+                double acceleration; // 
+                spatial::position start;
+                spatial::position finish;
+                spatial::position current;
+                spatial::vector orientation;
+            } position;
+
+            struct {
+                bool active = false;
+                bool continuous = false;
+                spatial::vector finish;
+                spatial::vector travel;
+                spatial::vector start;
+            } rotation;
+
+            struct {
+                bool active = false;
+                spatial::position start;
+                spatial::position arc;
+                spatial::position current;
+                float radians;
+                float velocity;
+                float gravity;
+                struct {
+                    float x;
+                    float y;
+                } relative;
+            } gravity;
+
+            utilities::seconds_t reference;
+            double duration = 0.0; // total travel time
 
             bool finished = false;
             bool active = false;
+
+            bool terminator = false;
+
+            callback_t on_finish_callback;
+            terminate_t terminate_callback;
         };
 
         class instance : public properties {
         public:
-            void define(key_t i, entity* r, properties& p) {
+            void define(instance_t i, entity* r, properties& p, size_t idx) {
                 id = i;
                 parent = r;
                 (properties&)*this = p;
+                index = idx;
             }
 
             operator spatial::matrix () {
-                return position.scale();
+                return position.serialize();
             }
 
-            key_t id = 0;
+            instance_t id = 0;
+
+            size_t index = 0;
 
             unsigned int flags = 0;
             int frame = 0;
@@ -207,85 +348,196 @@ namespace type {
             }
 
             type::entity* parent = NULL;
+            type::rig::bone *rigging = NULL;
+            void* bucket = NULL;
+
+            std::pair<int, int> quadrant;
+
+            void toggle(entity::states state, bool value) {
+                if(value) {
+                    switch (state) {
+                    case(entity::SELECTED):
+                        flags |= entity::SELECTED;
+                    }
+                }
+                else {
+                    switch (state) {
+                    case(entity::SELECTED):
+                        flags &= ~entity::SELECTED;
+                    }
+                }
+                update();
+            }
+
+            void update() {
+                if (position.alpha == 0.0) {
+                    flags |= type::entity::VIRTUAL | type::entity::ALPHA;
+                }
+                assign();
+                store();
+            }
+
+            void assign() {
+                parent->identifiers.content[index] = id;
+                parent->flags.content[index] = flags;
+                parent->positions.content[index] = position.serialize();
+            }
+
+            void store() {
+                parent->store(position.eye, *this);
+            }
+
+            void clear() {
+                parent->identifiers.content[index] = 0;
+                parent->flags.content[index] = 0x00;
+                parent->positions.content[index] = spatial::matrix();
+            }
         };
 
-        std::list<key_t> available;
+        typedef std::list<instance*> bucket_t;
 
-        std::map<key_t, instance> instances;
+        std::map<key_t, std::map<key_t, std::map<key_t, bucket_t>>> _hash;
+        int sector_size = 20;
+        spatial::vector bound_bottom_left = { 20, 0, 20 };
+        spatial::vector bound_top_right = { 20, 0, 20 };
+
+        void store(const spatial::vector& p, instance& i) {
+            auto& bucket = _hash[(key_t)(p.x / sector_size)][(key_t)(p.y / sector_size)][(key_t)(p.z / sector_size)];
+            if (i.bucket) {
+                if (i.bucket == &bucket) {
+                    return;
+                }
+                bucket_t* ref = (bucket_t*)i.bucket;
+                ref->erase(std::find(ref->begin(), ref->end(), &i));
+            }
+            bucket.push_back(&i);
+            i.bucket = &bucket;
+        }
+
+        std::vector<bucket_t*> list(const spatial::vector& p1, const spatial::vector& p2) {
+            key_t x1 = (p1.x < p2.x ? p1.x : p2.x) / sector_size;
+            key_t x2 = (p1.x < p2.x ? p2.x : p1.x) / sector_size;
+            key_t y1 = (p1.y < p2.y ? p1.y : p2.y) / sector_size;
+            key_t y2 = (p1.y < p2.y ? p2.y : p1.y) / sector_size;
+            key_t z1 = (p1.z < p2.z ? p1.z : p2.z) / sector_size;
+            key_t z2 = (p1.z < p2.z ? p2.z : p1.z) / sector_size;
+            
+            std::vector <bucket_t*> results;
+
+            auto& h = _hash;
+            for (int x = x1; x <= x2; x++) {
+                auto mx = h.find(x);
+                if (mx == h.end()) {
+                    continue;
+                }
+                for (int y = y1; y <= y2; y++) {
+                    auto my = mx->second.find(y);
+                    if (my == mx->second.end()) {
+                        continue;
+                    }
+                    for (int z = z1; z <= z2; z++) {
+                        auto mz = my->second.find(z);
+                        if (mz == my->second.end()) {
+                            continue;
+                        }
+                        results.push_back(&mz->second);
+                    }
+                }
+            }
+
+            return results;
+        }
+
+        std::list<std::pair<instance_t, size_t>> available;
+
+        std::map<instance_t, instance> instances;
 
         // http://www.opengl-tutorial.org/intermediate-tutorials/billboards-particles/particles-instancing/
         struct {
-            unsigned int context = 0;
             std::vector<unsigned int> content;
+            type::info::opaque_t *resource = nullptr;
         } identifiers;
 
         struct {
-            unsigned int context = 0;
             std::vector<unsigned int> content;
+            type::info::opaque_t *resource = nullptr;
         } flags;
 
         struct {
-            unsigned int context = 0;
             std::vector<spatial::matrix> content;
+            type::info::opaque_t *resource = nullptr;
         } positions;
-
+        
         bool grouped = false;
 
-        int baked = 0;
-        void bake() {
-            identifiers.content.clear();
-            identifiers.content.reserve(baked);
-            flags.content.clear();
-            flags.content.reserve(baked);
-            positions.content.clear();
-            positions.content.reserve(baked);
-            for (auto& entry : instances) {
-                if (entry.second.has("grouping")) {
-                    entry.second.flags |= type::entity::GROUPED;
+        size_t size = 0;
+        size_t capacity = 0;
+        size_t limit = 256;
+        
+        type::info::opaque_t *resource = nullptr;
+
+        bool compile(spatial::position* reference) {
+            if (reference) {
+                for (auto& sector : list(reference->eye + bound_bottom_left, reference->eye - spatial::vector({ bound_top_right.x, reference->eye.y, bound_top_right.z}))) {
+                    for (auto entry : *sector) {
+                        entry->assign();
+                    }
                 }
-                else {
-                    entry.second.flags &= UINT_MAX ^ type::entity::GROUPED;
+            }
+            else {
+                for (auto& entry : instances) {
+                    entry.second.assign();
                 }
-                identifiers.content.push_back(entry.second.id);
-                flags.content.push_back(entry.second.flags);
-                positions.content.push_back(entry.second.position.scale());
             }
-            baked = instances.size();
+            return compiled() == false;
         }
 
-        instance & add(properties& props=properties::empty(), int count = 1) {
-            allocate(props, instances.size() + count);
-            return getInstance(last);
+        instance & add(properties& props=properties::instance(), int count = 1) {
+            return getInstance(allocate(props, count));
         }
 
-        bool allocate(properties& props, int count) {
-            static unsigned int increment = 0;
-            int current = available.size() + instances.size();
-            for (int i = 0; i < count - current; i++) {
-                available.push_back(++increment);
+        instance_t allocate(properties& props, int count) {
+            static instance_t increment = 0;
+            if (capacity == 0) {
+                capacity = limit;
+                identifiers.content.resize(capacity);
+                flags.content.resize(capacity);
+                positions.content.resize(capacity);
             }
-            while (instances.size() < count) {
-                last = *available.begin();
-                instances[last].define(last, this, props);
-                catalog::singleton().add(last, this, props);
-                available.pop_front();
+            for (int i = 0; i < count; i++) {
+                int index = instances.size() >= limit ? (instances.size() % (limit - 1)) + 1 : instances.size() % limit;
+                instances[++increment].define(increment, this, props, index);
+                crossreference().insert({ increment, this });
             }
-            return true;
+            size = instances.size() > (limit) ? (limit) : instances.size();
+            return increment;
         }
 
-        void release(key_t id) {
-            instances.erase(id);
-            available.push_back(id);
-            catalog::singleton().remove(id); // TODO: this should include the group the id belongs to
+        void release(instance_t id, bool free=false) {
+            auto instance = instances.find(id);
+            if (instance == instances.end()) {
+                return;
+            }
+            if (instance->second.bucket) {
+                bucket_t* ref = (bucket_t*)instance->second.bucket;
+                ref->erase(std::find(ref->begin(), ref->end(), &instance->second));
+            }
+            if(free) {
+                instance->second.clear();
+                crossreference().erase(id);
+                instances.erase(id);
+            }
+            else {
+                available.push_back({ id, instance->second.index });
+            }
         }
 
-        bool play(std::string animation, key_t id=0) {
-            //std::lock_guard<std::mutex> scoped(lock);
+        bool play(std::string animation, instance_t id=0) {
             if (instances.size() == 0) {
-                return false;
+                add();
             }
 
-            key_t key = (id == 0) ? instances.begin()->first : id;
+            instance_t key = (id == 0) ? instances.begin()->first : id;
             if (instances.find(key) == instances.end()) {
                 return false;
             }
@@ -308,7 +560,7 @@ namespace type {
             return false;
         }
 
-        void animate(key_t id = 0) {
+        void animate(instance_t id = 0) {
             if (instances.size() == 0) {
                 return;
             }
@@ -316,7 +568,7 @@ namespace type {
                 return;
             }
 
-            key_t key = (id == 0) ? instances.begin()->first : id;
+            instance_t key = (id == 0) ? instances.begin()->first : id;
             if (instances.find(key) == instances.end()) {
                 return;
             }
@@ -342,12 +594,30 @@ namespace type {
 
             instances[key].frame = current + step;
 
+            std::vector<instance_t> cleanup;
             for (auto& instance : instances) {
                 while(instance.second.path.size()) {
-                    auto position = instance.second.path.begin()->position();
-                    instance.second.position.reposition(position.eye);
-                    instance.second.position.lookat(position.focus);
+                    auto position = instance.second.path.begin()->get();
+                    if (instance.second.rigging) {
+                        instance.second.rigging->adjust(position, position.eye);
+                    } 
+                    else {
+                        instance.second.position.reposition(position.eye);
+                        if (position.translation.active) {
+                            instance.second.position.orientation(position);
+                        }
+                        else {
+                            instance.second.position.lookat(position.focus);
+                        }
+                        instance.second.position.alpha = position.alpha;
+                        instance.second.flags &= 0xFF;
+                        instance.second.flags |= (unsigned int)(255.0 * position.alpha) << 24;
+                        instance.second.update();
+                    }
                     if (instance.second.path.begin()->finished) {
+                        if (instance.second.path.begin()->terminator) {
+                            cleanup.push_back(instance.second.id);
+                        }
                         instance.second.path.pop_front();
                     }
                     else {
@@ -355,21 +625,22 @@ namespace type {
                     }
                 }
             }
-
+            for (auto id : cleanup) {
+                release(id);
+            }
         }
 
-        bool hasInstance(key_t id) {
+        bool hasInstance(instance_t id) {
             return instances.find(id) != instances.end();
         }
 
-        instance& getInstance(key_t id = 0) {
-            //std::lock_guard<std::mutex> scoped(lock);
+        instance& getInstance(instance_t id = 0) {
             static type::entity::instance empty;
 
             if (instances.size() == 0) {
-                return empty;
+                add();
             }
-            key_t key = (id == 0) ? instances.begin()->first : id;
+            instance_t key = (id == 0) ? instances.begin()->first : id;
             if (instances.find(key) == instances.end()) {
                 return empty;
             }
@@ -406,12 +677,12 @@ namespace type {
         }
 
         bool empty() {
-            return true;
+            return instances.size() == 0;
         }
 
     protected:
 
-        key_t last = 0;
+        instance_t last = 0;
     };
 
 }

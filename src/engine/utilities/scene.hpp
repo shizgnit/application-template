@@ -1,4 +1,33 @@
+/*
+================================================================================
+  Copyright (c) 2023, Pandemos
+  All rights reserved.
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are met:
+  * Redistributions of source code must retain the above copyright notice, this
+    list of conditions and the following disclaimer.
+  * Redistributions in binary form must reproduce the above copyright notice,
+    this list of conditions and the following disclaimer in the documentation
+    and/or other materials provided with the distribution.
+  * Neither the name of the organization nor the names of its contributors may
+    be used to endorse or promote products derived from this software without
+    specific prior written permission.
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+  DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
+  FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+  SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+  OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+================================================================================
+*/
+
 #pragma once
+
+namespace stage {
 
 /// <summary>
 /// Organizes the resources, interface and actions that are currently active
@@ -7,12 +36,12 @@
 /// - Configuration
 /// - Results
 /// </summary>
-class main : public properties {
+class scene : public properties {
 public:
-    class scene : public properties {
+    class handler : public properties {
     public:
-        scene() {}
-        virtual ~scene() {}
+        handler() {}
+        virtual ~handler() {}
 
         virtual bool load() { return true; }
         virtual bool save() { return false; }
@@ -40,6 +69,8 @@ public:
 
         virtual void dimensions(int width, int height) {}
 
+        virtual void show(label_t label) {}
+
         bool loaded = false;
         bool started = false;
         bool displayed = false;
@@ -48,18 +79,22 @@ public:
         spatial::position freelook;
     };
 
-    static platform::interface::textbox& debug() {
-        static platform::interface::textbox instance;
-        return instance;
-    }
+    class persistence {
+        std::string _file;
 
-    static platform::interface::progress& progress() {
-        static platform::interface::progress instance;
-        return instance;
-    }
+    public:
+        persistence();
+        bool write();
+        bool read();
+    };
 
-    inline static main& singleton() {
-        static main instance;
+    platform::interface::textbox debug;
+    platform::interface::progress progress;
+    
+    grid map;
+
+    inline static scene& global() {
+        static scene instance;
         return instance;
     }
 
@@ -67,7 +102,8 @@ public:
     /// Scene management methods
     /// </summary>
 
-    void add(std::string name, scene* instance);
+    void add(std::string name, handler* instance);
+    bool load(std::string name);
     bool toggle(std::string name);
     bool isactive(std::string name);
     bool activate(std::string name);
@@ -76,7 +112,7 @@ public:
     void run();
     void draw();
 
-    std::map<std::string, scene*> current();
+    std::map<std::string, handler*> current();
 
     /// <summary>
     /// Event propagation to the active scenes, note that these have no inherent meaing.
@@ -97,8 +133,8 @@ public:
 
     void dimensions(int width, int height);
 
-    std::map<std::string, scene*> scenes;
-    std::map<std::string, scene*> active;
+    std::map<std::string, handler*> scenes;
+    std::map<std::string, handler*> active;
 
     std::mutex lock;
 
@@ -120,16 +156,17 @@ private:
     std::map<std::string, callback_t> events;
 
     std::map<std::string, std::pair<std::string, callback_t>> commands = {
-        { "/group",   { "/group <id> <command>\n/group <id> <label> <value>", [](parameters_t p)->value_t { return main::singleton()._group(p); } } },
-        { "/get",     { "/get <label>\n/get <entity> <label>", [](parameters_t p)->value_t { return main::singleton()._get(p); } } },
-        { "/set",     { "/set <label> <value>\n/set <entity> <label> <value>", [](parameters_t p)->value_t { return main::singleton()._set(p); } } },
-        { "/load",    { "/load <type> <source> [target]", [](parameters_t p)->value_t { return main::singleton()._load(p); } } },
-        { "/compile", { "/compile", [](parameters_t p)->value_t { return main::singleton()._compile(p); } } },
-        { "/play",    { "/play <entity> <state>", [](parameters_t p)->value_t { return main::singleton()._play(p); } } },
-        { "/create",  { "/create <type>", [](parameters_t p)->value_t { return main::singleton()._create(p); } } },
-        { "/show",    { "/show <type>", [](parameters_t p)->value_t { return main::singleton()._show(p); } } },
-        { "/save",    { "/save", [](parameters_t p)->value_t { return main::singleton()._save(p); } } },
-        { "/exit",    { "/exit", [](parameters_t p)->value_t { return main::singleton()._exit(p); } } },
+        { "/group",   { "/group <id> <command>\n/group <id> <label> <value>", [](parameters_t p)->value_t { return scene::global()._group(p); } } },
+        { "/get",     { "/get <label>\n/get <entity> <label>", [](parameters_t p)->value_t { return scene::global()._get(p); } } },
+        { "/set",     { "/set <label> <value>\n/set <entity> <label> <value>", [](parameters_t p)->value_t { return scene::global()._set(p); } } },
+        { "/load",    { "/load <type> <source> [target]", [](parameters_t p)->value_t { return scene::global()._load(p); } } },
+        { "/compile", { "/compile", [](parameters_t p)->value_t { return scene::global()._compile(p); } } },
+        { "/play",    { "/play <entity> <state>", [](parameters_t p)->value_t { return scene::global()._play(p); } } },
+        { "/create",  { "/create <type>", [](parameters_t p)->value_t { return scene::global()._create(p); } } },
+        { "/show",    { "/show <type>", [](parameters_t p)->value_t { return scene::global()._show(p); } } },
+        { "/save",    { "/save", [](parameters_t p)->value_t { return scene::global()._save(p); } } },
+        { "/exit",    { "/exit", [](parameters_t p)->value_t { return scene::global()._exit(p); } } },
+        { "/test",    { "/test <command> [group]", [](parameters_t p)->value_t { return scene::global()._test(p); } } },
     };
     std::map<int, callback_t> keybinds;
 
@@ -143,4 +180,7 @@ private:
     value_t _show(parameters_t p);
     value_t _save(parameters_t p);
     value_t _exit(parameters_t p);
+    value_t _test(parameters_t p);
 };
+
+}

@@ -1,3 +1,30 @@
+/*
+================================================================================
+  Copyright (c) 2023, Pandemos
+  All rights reserved.
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are met:
+  * Redistributions of source code must retain the above copyright notice, this
+    list of conditions and the following disclaimer.
+  * Redistributions in binary form must reproduce the above copyright notice,
+    this list of conditions and the following disclaimer in the documentation
+    and/or other materials provided with the distribution.
+  * Neither the name of the organization nor the names of its contributors may
+    be used to endorse or promote products derived from this software without
+    specific prior written permission.
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+  DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
+  FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+  SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+  OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+================================================================================
+*/
+
 #pragma once
 
 //TODO cleanup how the 32/64 bit architecture is defined
@@ -22,8 +49,30 @@
 #define __PLATFORM_32BIT 1
 #endif
 
+#if defined __APPLE__
 
-#if defined(__PLATFORM_WINDOWS)
+#include <TargetConditionals.h>
+
+#if defined TARGET_OS_IOS && TARGET_OS_IOS == 1
+#define __PLATFORM_APPLE 1
+#define __PLATFORM_IOS 1
+//#define __METAL_SUPPORT 1
+#endif
+
+#if defined TARGET_OS_OSX && TARGET_OS_OSX == 1
+#define __PLATFORM_APPLE 1
+#define __PLATFORM_MACOS 1
+//#define __METAL_SUPPORT 1
+#endif
+
+#if defined __METAL_SUPPORT
+#define _VECTOR_PADDING 2
+#define _MATRIX_PADDING 2
+#endif
+
+#endif
+
+#if defined __PLATFORM_WINDOWS
 #ifndef _UNICODE
 #error Set "Use Unicode Character Set" in the general project settings
 #endif
@@ -50,7 +99,7 @@
 #define HAVE_STRUCT_TIMESPEC
 #endif
 
-#if defined __PLATFORM_ANDROID
+#if defined __PLATFORM_ANDROID || __PLATFORM_MACOS
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/mman.h>
@@ -67,6 +116,25 @@
 #define MAP_FILE 0
 #endif
 #endif
+
+#if defined __PLATFORM_IOS
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/mman.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <dirent.h>
+#include <utime.h>
+#include <netdb.h>
+#include <resolv.h>
+#include <cstring>
+#include <cstdlib>
+#ifndef MAP_FILE
+#define MAP_FILE 0
+#endif
+#endif
+
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -108,14 +176,18 @@
 
 /// Types
 #include "types/interfaces/info.hpp"
-#include "types/interfaces/audio.hpp"
+#include "types/interfaces/sound.hpp"
 #include "types/interfaces/shader.hpp"
 #include "types/interfaces/program.hpp"
 #include "types/interfaces/image.hpp"
 #include "types/interfaces/material.hpp"
 #include "types/interfaces/object.hpp"
 #include "types/interfaces/font.hpp"
+#include "types/interfaces/rig.hpp"
 #include "types/interfaces/entity.hpp"
+#include "types/interfaces/blueprint.hpp"
+#include "types/interfaces/visitor.hpp"
+#include "types/interfaces/group.hpp"
 
 #undef interface // Thanks Microsoft
 
@@ -163,6 +235,39 @@ inline platform::network::client* client = new implementation::windows::network:
 inline platform::network::server* server = new implementation::windows::network::server();
 #endif
 
+#if defined __PLATFORM_IOS
+#include "platform/implementations/universal.hpp"
+#include "platform/implementations/opengl.hpp"
+#include "platform/implementations/openal.hpp"
+#include "platform/implementations/posix.hpp"
+#include "platform/implementations/ios.hpp"
+inline platform::audio* audio = new implementation::openal::audio();
+inline platform::filesystem* filesystem = new implementation::posix::filesystem();
+inline platform::assets* assets = new implementation::ios::assets();
+inline platform::graphics* graphics = new implementation::opengl::graphics();
+inline platform::input* input = new implementation::universal::input();
+inline platform::interface* gui = new implementation::universal::interface();
+//inline platform::network::client* client = new implementation::posix::network::client();
+//inline platform::network::server* server = new implementation::posix::network::server();
+#endif
+
+#if defined __PLATFORM_MACOS
+#include "platform/implementations/universal.hpp"
+#include "platform/implementations/opengl.hpp"
+#include "platform/implementations/openal.hpp"
+#include "platform/implementations/posix.hpp"
+#include "platform/implementations/macos.hpp"
+inline platform::audio* audio = new implementation::openal::audio();
+inline platform::filesystem* filesystem = new implementation::posix::filesystem();
+inline platform::assets* assets = new implementation::macos::assets();
+inline platform::graphics* graphics = new implementation::opengl::graphics();
+inline platform::input* input = new implementation::universal::input();
+inline platform::interface* gui = new implementation::universal::interface();
+//inline platform::network::client* client = new implementation::posix::network::client();
+//inline platform::network::server* server = new implementation::posix::network::server();
+#endif
+
+
 /// Supported Formats
 #include "types/formats/wav.hpp"
 #include "types/formats/frag.hpp"
@@ -173,7 +278,14 @@ inline platform::network::server* server = new implementation::windows::network:
 #include "types/formats/mtl.hpp"
 #include "types/formats/obj.hpp"
 #include "types/formats/fbx.hpp"
+#include "types/formats/metal.hpp"
 
+#include "utilities/grid.hpp"
 
 #include "utilities/scene.hpp"
+inline stage::scene* scene = &stage::scene::global();
+inline stage::grid* grid = &stage::scene::global().map;
+
+#include "utilities/test.hpp"
+inline utilities::test* tests = &utilities::test::singleton();
 

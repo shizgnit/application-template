@@ -1,6 +1,70 @@
+/*
+================================================================================
+  Copyright (c) 2023, Pandemos
+  All rights reserved.
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are met:
+  * Redistributions of source code must retain the above copyright notice, this
+    list of conditions and the following disclaimer.
+  * Redistributions in binary form must reproduce the above copyright notice,
+    this list of conditions and the following disclaimer in the documentation
+    and/or other materials provided with the distribution.
+  * Neither the name of the organization nor the names of its contributors may
+    be used to endorse or promote products derived from this software without
+    specific prior written permission.
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+  DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
+  FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+  SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+  OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+================================================================================
+*/
+
 #include "engine.hpp"
 
 #if defined __PLATFORM_SUPPORTS_OPENGL
+
+std::string glGetErrorString(GLenum err) {
+    std::stringstream str;
+    str << err;
+    switch (err) {
+        case GL_NO_ERROR: return "GL_NO_ERROR(" + str.str() + ")";
+        case GL_INVALID_ENUM: return "GL_INVALID_ENUM(" + str.str() + ")";
+        case GL_INVALID_VALUE: return "GL_INVALID_VALUE(" + str.str() + ")";
+        case GL_INVALID_OPERATION: return "GL_INVALID_OPERATION(" + str.str() + ")";
+        case GL_OUT_OF_MEMORY: return "GL_OUT_OF_MEMORY(" + str.str() + ")";
+        case GL_INVALID_FRAMEBUFFER_OPERATION: return "GL_INVALID_FRAMEBUFFER_OPERATION(" + str.str() + ")";
+        case GL_FRAMEBUFFER_UNDEFINED: return "GL_FRAMEBUFFER_UNDEFINED(" + str.str() + ")";
+        case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT: return "GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT(" + str.str() + ")";
+        case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT: return "GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT(" + str.str() + ")";
+        case GL_FRAMEBUFFER_UNSUPPORTED: return "GL_FRAMEBUFFER_UNSUPPORTED(" + str.str() + ")";
+        case GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE: return "GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE(" + str.str() + ")";
+        default:
+            return "GL_ERROR(" + str.str() + ")";
+    }
+}
+
+
+static GLint defaultFramebuffer = 0;
+
+bool implementation::opengl::fbo::deinit() {
+    if (context.render) {
+        //GL_TEST(glBindRenderbuffer(GL_RENDERBUFFER, context.render));
+        //GL_TEST(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, 0));
+        GL_TEST(glDeleteRenderbuffers(1, &context.render));
+    }
+    if (context.frame) {
+        //GL_TEST(glBindFramebuffer(GL_FRAMEBUFFER, context.frame));
+        //GL_TEST(glFramebufferTexture2D(GL_FRAMEBUFFER, allocation, GL_TEXTURE_2D, 0, 0));
+        GL_TEST(glDeleteFramebuffers(1, &context.frame));
+    }
+    return true;
+}
 
 bool implementation::opengl::fbo::init(type::object& object, platform::graphics *ref, bool depth, unsigned char *collector) {
     if (allocation == 0) {
@@ -14,28 +78,22 @@ bool implementation::opengl::fbo::init(type::object& object, platform::graphics 
 
     parent = ref;
 
-    if (context.frame) {
-        glDeleteFramebuffers(1, &context.frame);
-    }
-    if (context.render) {
-        glDeleteRenderbuffers(1, &context.render);
-    }
+    GL_TEST(glGenFramebuffers(1, &context.frame));
+    GL_TEST(glBindFramebuffer(GL_FRAMEBUFFER, context.frame));
+    GL_TEST(glFramebufferTexture2D(GL_FRAMEBUFFER, allocation, GL_TEXTURE_2D, object.texture.color->resource->context, 0));
 
-    glGenFramebuffers(1, &context.frame);
-    glBindFramebuffer(GL_FRAMEBUFFER, context.frame);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, allocation, GL_TEXTURE_2D, object.texture.color->context, 0);
-
-    glGenRenderbuffers(1, &context.render);
-    glBindRenderbuffer(GL_RENDERBUFFER, context.render);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, object.texture.color->properties.width, object.texture.color->properties.height);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, context.render);
+    GL_TEST(glGenRenderbuffers(1, &context.render));
+    GL_TEST(glBindRenderbuffer(GL_RENDERBUFFER, context.render));
+    GL_TEST(glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, object.texture.color->properties.width, object.texture.color->properties.height));
+    GL_TEST(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, context.render));
 
     int status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
     if (status != GL_FRAMEBUFFER_COMPLETE) {
-        throw("failed to initialize frame buffer");
+        GL_REPORT_ERROR("glCheckFramebufferStatus", glGetErrorString(status));
     }
 
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    GL_TEST(glBindRenderbuffer(GL_RENDERBUFFER, 0));
+    GL_TEST(glBindFramebuffer(GL_FRAMEBUFFER, defaultFramebuffer));
 
     target = &object;
 
@@ -46,10 +104,13 @@ void implementation::opengl::fbo::enable(bool clear) {
     if (target == NULL) {
         return;
     }
-    glBindFramebuffer(GL_FRAMEBUFFER, context.frame);
-    glBindRenderbuffer(GL_RENDERBUFFER, context.render);
-    glViewport(0, 0, target->texture.color->properties.width, target->texture.color->properties.height);
-    glClear(clear ? GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT : GL_DEPTH_BUFFER_BIT);
+    GL_TEST(glBindFramebuffer(GL_FRAMEBUFFER, context.frame));
+    GL_TEST(glBindRenderbuffer(GL_RENDERBUFFER, context.render));
+
+    //if(parent->width() != target->texture.color->properties.width || parent->height() != target->texture.color->properties.height) {
+        GL_TEST(glViewport(0, 0, target->texture.color->properties.width, target->texture.color->properties.height));
+    //}
+    GL_TEST(glClear(clear ? GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT : GL_DEPTH_BUFFER_BIT));
 }
 
 void implementation::opengl::fbo::disable() {
@@ -59,41 +120,63 @@ void implementation::opengl::fbo::disable() {
 
     // Currently all rendering is done to the mipmap level 0... copy it out after every render
     if (collect != NULL) {
-        glReadPixels(0, 0, target->texture.color->properties.width, target->texture.color->properties.height, GL_RGBA, GL_UNSIGNED_BYTE, collect);
+        auto now = std::chrono::system_clock::now().time_since_epoch();
+        auto delta = std::chrono::duration<double>(now - timestamp).count();
+        if (delta >= parent->latency) {
+            GL_TEST(glReadPixels(0, 0, target->texture.color->properties.width, target->texture.color->properties.height, GL_RGBA, GL_UNSIGNED_BYTE, collect));
+            timestamp = std::chrono::system_clock::now().time_since_epoch();
+        }
+#ifdef __PLATFORM_SUPPORTS_PBO
+        if(pbo) {
+            GL_TEST(glGenBuffers(w * h * 4, &pbo));
+            glBindBuffer(GL_PIXEL_PACK_BUFFER, pbo);
+            GL_TEST(glReadPixels(0, 0, target->texture.color->properties.width, target->texture.color->properties.height, GL_RGBA, GL_UNSIGNED_BYTE, collect));
+        }
+        if (pbo) {
+            GLubyte* ptr = (GLubyte*)glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
+            if (ptr) {
+                glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
+                pbo = 0;
+                glBindBuffer(GL_PIXEL_PACK_BUFFER, pbo);
+            }
+        }
+#endif
     }
     if (!target->texture.depth) {
-        glBindTexture(GL_TEXTURE_2D, target->texture.color->context);
-        glGenerateMipmap(GL_TEXTURE_2D);
-        glBindTexture(GL_TEXTURE_2D, 0);
+        GL_TEST(glBindTexture(GL_TEXTURE_2D, target->texture.color->resource->context));
+        GL_TEST(glGenerateMipmap(GL_TEXTURE_2D));
+        GL_TEST(glBindTexture(GL_TEXTURE_2D, 0));
     }
-    glBindRenderbuffer(GL_RENDERBUFFER, 0);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    GL_TEST(glBindRenderbuffer(GL_RENDERBUFFER, 0));
+    GL_TEST(glBindFramebuffer(GL_FRAMEBUFFER, defaultFramebuffer));
 
-    glViewport(0, 0, parent->width(), parent->height());
+    //if(parent->width() != target->texture.color->properties.width || parent->height() != target->texture.color->properties.height) {
+        GL_TEST(glViewport(0, 0, parent->width(), parent->height()));
+    //}
+    
+    int status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+    if (status != GL_FRAMEBUFFER_COMPLETE) {
+        GL_REPORT_ERROR("glCheckFramebufferStatus", glGetErrorString(status));
+    }
 }
 
-void implementation::opengl::graphics::projection(int fov) {
-    ortho = spatial::matrix().ortho(0, display_width, 0, display_height);
-    perspective = spatial::matrix().perspective(fov, (float)display_width / (float)display_height, 0.0f, 100.0f);
-}
-
-void implementation::opengl::graphics::dimensions(int width, int height, float scale) {
-    bool init = (display_width == 0 && display_height == 0);
-
+void implementation::opengl::graphics::dimensions(int width, int height, float fov, float scale) {
+    if(width == 0 || height == 0) {
+        return;
+    }
+    
     display_width = width;
     display_height = height;
+    
+    event(utilities::string() << "glViewport(" << display_width << "x" << display_height << ")");
+    
+    GL_TEST(glViewport(0, 0, display_width, display_height));
 
-    glViewport(0, 0, display_width, display_height);
-
-    // Setup the render buffer
-    color = spatial::quad(display_width, display_height);
-    color.texture.color = &assets->get<type::image>("color");
-    color.texture.color->create(display_width, display_height, 0, 0, 0, 0);
-    color.xy_projection(0, 0, display_width, display_height, false, true);
-    compile(color);
-    fbos[color.instance].init(color, this);
+    ortho = spatial::matrix().ortho(0, display_width, 0, display_height);
+    perspective = spatial::matrix().perspective(fov, (float)display_width / (float)display_height, 0.0f, 10.0f);
 
     // Setup the scene depth buffer
+    fbos[depth.instance].deinit();
     depth = spatial::quad(display_width, display_height);
     depth.texture.color = &assets->get<type::image>("depth");
     depth.texture.color->create(display_width, display_height, 0, 0, 0, 0);
@@ -102,7 +185,18 @@ void implementation::opengl::graphics::dimensions(int width, int height, float s
     compile(depth);
     fbos[depth.instance].init(depth, this);
 
+    // Setup the render buffer
+    fbos[color.instance].deinit();
+    release(color);
+    color = spatial::quad(display_width, display_height);
+    color.texture.color = &assets->get<type::image>("color");
+    color.texture.color->create(display_width, display_height, 0, 0, 0, 0);
+    color.xy_projection(0, 0, display_width, display_height, false, true);
+    compile(color);
+    fbos[color.instance].init(color, this);
+
     // Setup the post process blur buffer
+    fbos[blur.instance].deinit();
     blur = spatial::quad(display_width * scale, display_height * scale);
     blur.texture.color = &assets->get<type::image>("blur");
     blur.texture.color->create(display_width * scale, display_height * scale, 0, 0, 0, 0);
@@ -111,6 +205,7 @@ void implementation::opengl::graphics::dimensions(int width, int height, float s
     fbos[blur.instance].init(blur, this);
 
     // Setup the picking buffer
+    fbos[picking.instance].deinit();
     picking = spatial::quad(display_width, display_height);
     picking.texture.color = &assets->get<type::image>("picking");
     picking.texture.color->create(display_width, display_height, 0, 0, 0, 0);
@@ -121,28 +216,25 @@ void implementation::opengl::graphics::dimensions(int width, int height, float s
 }
 
 void implementation::opengl::graphics::init(void) {
-    //glEnable(GL_SHADE_MODEL, GL_SMOOTH);
-    glShadeModel(GL_SMOOTH);
-
     // Depth test
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LEQUAL);
-    glDepthMask(GL_TRUE);
-    glClearDepthf(1.0f);
-    glDepthRangef(0.0f, 1.0f);
+    GL_TEST(glEnable(GL_DEPTH_TEST));
+    GL_TEST(glDepthFunc(GL_LEQUAL));
+    GL_TEST(glDepthMask(GL_TRUE));
+    GL_TEST(glClearDepthf(1.0f));
+    GL_TEST(glDepthRangef(0.0f, 1.0f));
 
     // Alpha blending
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    GL_TEST(glEnable(GL_BLEND));
+    GL_TEST(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
     // Backface culling, makes GLES rendering of objects easier since they don't need to be drawn back to front
-    glEnable(GL_CULL_FACE);
-    glFrontFace(GL_CCW);
-    glCullFace(GL_BACK);
+    GL_TEST(glEnable(GL_CULL_FACE));
+    GL_TEST(glFrontFace(GL_CCW));
+    GL_TEST(glCullFace(GL_BACK));
 
     auto glsl = glGetString(GL_SHADING_LANGUAGE_VERSION);
 
-    auto str = utilities::tokenize((const char*)glGetString(GL_EXTENSIONS), " ");
+    //auto str = utilities::tokenize((const char*)glGetString(GL_EXTENSIONS), " ");
 
     // Setup the ray used for drawing normals
     ray = spatial::ray(spatial::vector(0.0, 0.0, 0.0), spatial::vector(2.0, 0.0, 0.0));
@@ -168,6 +260,15 @@ void implementation::opengl::graphics::init(void) {
             break;
         }
     }
+    
+    auto size_vertex = sizeof(spatial::vertex);
+    auto size_vector = sizeof(spatial::vector);
+    
+    auto size_type = sizeof(spatial::vector::type_t);
+    
+    auto sum_type = size_type * 3;
+    auto sum_vector = size_vector * 3;
+    
     spatial::matrix matrix({ {256.0f} });
     unsigned char* matrix_ptr = (unsigned char*)&matrix;
     for (int i = 0; i < sizeof(spatial::matrix); i++) {
@@ -179,74 +280,61 @@ void implementation::opengl::graphics::init(void) {
 }
 
 void implementation::opengl::graphics::clear(void) {
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+    GL_TEST(glClearColor(0.0f, 0.0f, 0.0f, 1.0f));
+    GL_TEST(glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT));
 }
 
 void implementation::opengl::graphics::flush(void) {
-    glFlush();
-    frames.push_back(frame);
-    time_t now = time(NULL);
-    if (timestamp != now) {
-        stats total;
-        for (auto frame : frames) {
-            total.lines += frame.lines;
-            total.triangles += frame.triangles;
-            total.vertices += frame.vertices;
-        }
-        total.frames = frames.size();
-        activity.push_back(total);
-        if (activity.size() > 60) { // TODO: make this configurable
-            activity.pop_front();
-        }
-        frames.clear();
-    }
-    frame.clear();
+    GL_TEST(glFlush());
 }
 
 bool implementation::opengl::graphics::compile(type::shader& shader) {
-    if (shader.compile() == false) {
+    if (shader.compiled()) {
         return false;
+    }
+
+    if (shader.resource == NULL) {
+        shader.resource = new type::info::opaque_t();
     }
 
     switch (shader.format()) {
     case(type::format::FORMAT_VERT):
-        shader.context = glCreateShader(GL_VERTEX_SHADER);
+        shader.resource->context = glCreateShader(GL_VERTEX_SHADER);
         break;
     case(type::format::FORMAT_FRAG):
-        shader.context = glCreateShader(GL_FRAGMENT_SHADER);
+        shader.resource->context = glCreateShader(GL_FRAGMENT_SHADER);
         break;
     }
-    if (!shader.context) {
+    if (!shader.resource->context) {
         return false;
     }
 
     GLchar* text = (GLchar*)shader.text.c_str();
     GLint length = strlen(text);
-    glShaderSource(shader.context, 1, (const GLchar**)&text, &length);
+    GL_TEST(glShaderSource(shader.resource->context, 1, (const GLchar**)&text, &length));
 
-    glCompileShader(shader.context);
-
+    GL_TEST(glCompileShader(shader.resource->context));
+    
     GLint compiled = GL_FALSE;
-    glGetShaderiv(shader.context, GL_COMPILE_STATUS, &compiled);
+    GL_TEST(glGetShaderiv(shader.resource->context, GL_COMPILE_STATUS, &compiled));
     if (compiled == GL_FALSE) {
-        glGetShaderiv(shader.context, GL_INFO_LOG_LENGTH, &length);
+        glGetShaderiv(shader.resource->context, GL_INFO_LOG_LENGTH, &length);
         if (length) {
             char* info = (char*)malloc(length);
-            glGetShaderInfoLog(shader.context, length, NULL, info);
-            errors.push_back(info);
+            glGetShaderInfoLog(shader.resource->context, length, NULL, info);
+            event(info);
             free(info);
-            glDeleteShader(shader.context);
-            shader.context = 0;
+            glDeleteShader(shader.resource->context);
+            shader.resource->context = 0;
             return false;
         }
     }
 
-    return true;
+    return shader.compiled(true);
 }
 
 bool implementation::opengl::graphics::compile(type::program& program) {
-    if (program.compile() == false) {
+    if (program.compiled()) {
         return false;
     }
 
@@ -257,69 +345,75 @@ bool implementation::opengl::graphics::compile(type::program& program) {
         return false;
     }
 
-    program.context = glCreateProgram();
-    if (!program.context) {
+    if (program.resource == NULL) {
+        program.resource = new type::info::opaque_t();
+    }
+
+    program.resource->context = glCreateProgram();
+    if (!program.resource->context) {
         return false;
     }
 
-    glAttachShader(program.context, program.vertex.context);
-    glAttachShader(program.context, program.fragment.context);
+    GL_TEST(glAttachShader(program.resource->context, program.vertex.resource->context));
+    GL_TEST(glAttachShader(program.resource->context, program.fragment.resource->context));
 
-    glLinkProgram(program.context);
+    GL_TEST(glLinkProgram(program.resource->context));
 
     GLint linked = GL_FALSE;
-    glGetProgramiv(program.context, GL_LINK_STATUS, &linked);
+    GL_TEST(glGetProgramiv(program.resource->context, GL_LINK_STATUS, &linked));
     if (linked != GL_TRUE) {
         GLint length = 0;
-        glGetProgramiv(program.context, GL_INFO_LOG_LENGTH, &length);
+        glGetProgramiv(program.resource->context, GL_INFO_LOG_LENGTH, &length);
         if (length) {
             char* info = (char*)malloc(length);
-            glGetProgramInfoLog(program.context, length, NULL, info);
-            errors.push_back(info);
+            glGetProgramInfoLog(program.resource->context, length, NULL, info);
+            event(info);
             free(info);
         }
-        glDeleteProgram(program.context);
-        program.context = 0;
+        glDeleteProgram(program.resource->context);
+        program.resource->context = 0;
     }
 
-    glUseProgram(program.context);
+    GL_TEST(glUseProgram(program.resource->context));
 
-    program.a_ModelMatrix = glGetAttribLocation(program.context, "a_ModelMatrix");
+    program.a_ModelMatrix = glGetAttribLocation(program.resource->context, "a_ModelMatrix");
 
-    program.a_Identifier = glGetAttribLocation(program.context, "a_Identifier");
-    program.a_Flags = glGetAttribLocation(program.context, "a_Flags");
+    program.a_Identifier = glGetAttribLocation(program.resource->context, "a_Identifier");
+    program.a_Flags = glGetAttribLocation(program.resource->context, "a_Flags");
 
-    program.a_Vertex = glGetAttribLocation(program.context, "a_Vertex");
-    program.a_Texture = glGetAttribLocation(program.context, "a_Texture");
-    program.a_Normal = glGetAttribLocation(program.context, "a_Normal");
+    program.a_Vertex = glGetAttribLocation(program.resource->context, "a_Vertex");
+    program.a_Texture = glGetAttribLocation(program.resource->context, "a_Texture");
+    program.a_Normal = glGetAttribLocation(program.resource->context, "a_Normal");
 
-    program.u_ProjectionMatrix = glGetUniformLocation(program.context, "u_ProjectionMatrix");
-    program.u_ViewMatrix = glGetUniformLocation(program.context, "u_ViewMatrix");
-    program.u_ModelMatrix = glGetUniformLocation(program.context, "u_ModelMatrix");
-    program.u_LightingMatrix = glGetUniformLocation(program.context, "u_LightingMatrix");
+    program.u_ProjectionMatrix = glGetUniformLocation(program.resource->context, "u_ProjectionMatrix");
+    program.u_ViewMatrix = glGetUniformLocation(program.resource->context, "u_ViewMatrix");
+    program.u_ModelMatrix = glGetUniformLocation(program.resource->context, "u_ModelMatrix");
+    program.u_LightingMatrix = glGetUniformLocation(program.resource->context, "u_LightingMatrix");
 
-    program.u_Clipping = glGetUniformLocation(program.context, "u_Clipping");
+    program.u_Clipping = glGetUniformLocation(program.resource->context, "u_Clipping");
 
-    program.u_AmbientLightPosition = glGetUniformLocation(program.context, "u_AmbientLightPosition");
-    program.u_AmbientLightColor = glGetUniformLocation(program.context, "u_AmbientLightColor");
-    program.u_AmbientLightBias = glGetUniformLocation(program.context, "u_AmbientLightBias");
-    program.u_AmbientLightStrength = glGetUniformLocation(program.context, "u_AmbientLightStrength");
+    program.u_AmbientLightPosition = glGetUniformLocation(program.resource->context, "u_AmbientLightPosition");
+    program.u_AmbientLightColor = glGetUniformLocation(program.resource->context, "u_AmbientLightColor");
+    program.u_AmbientLightBias = glGetUniformLocation(program.resource->context, "u_AmbientLightBias");
+    program.u_AmbientLightStrength = glGetUniformLocation(program.resource->context, "u_AmbientLightStrength");
 
-    program.u_Flags = glGetUniformLocation(program.context, "u_Flags");
-    program.u_Parameters = glGetUniformLocation(program.context, "u_Parameters");
+    program.u_Flags = glGetUniformLocation(program.resource->context, "u_Flags");
+    program.u_Parameters = glGetUniformLocation(program.resource->context, "u_Parameters");
 
-    program.u_SurfaceTextureUnit = glGetUniformLocation(program.context, "u_SurfaceTextureUnit");
-    program.u_NormalTextureUnit = glGetUniformLocation(program.context, "u_NormalTextureUnit");
-    program.u_ShadowTextureUnit = glGetUniformLocation(program.context, "u_ShadowTextureUnit");
-    program.u_DepthTextureUnit = glGetUniformLocation(program.context, "u_DepthTextureUnit");
-    program.u_BlurTextureUnit = glGetUniformLocation(program.context, "u_BlurTextureUnit");
-    program.u_PickingTextureUnit = glGetUniformLocation(program.context, "u_PickingTextureUnit");
+    program.u_SurfaceTextureUnit = glGetUniformLocation(program.resource->context, "u_SurfaceTextureUnit");
+    program.u_NormalTextureUnit = glGetUniformLocation(program.resource->context, "u_NormalTextureUnit");
+    program.u_ShadowTextureUnit = glGetUniformLocation(program.resource->context, "u_ShadowTextureUnit");
+    program.u_DepthTextureUnit = glGetUniformLocation(program.resource->context, "u_DepthTextureUnit");
+    program.u_BlurTextureUnit = glGetUniformLocation(program.resource->context, "u_BlurTextureUnit");
+    program.u_PickingTextureUnit = glGetUniformLocation(program.resource->context, "u_PickingTextureUnit");
 
-    return true;
+    program.u_TextureSize = glGetUniformLocation(program.resource->context, "u_TextureSize");
+    
+    return program.compiled(true);
 }
 
 bool implementation::opengl::graphics::compile(type::material& material) {
-    if (material.compile() == false) {
+    if (material.compiled()) {
         return false;
     }
     if (material.color == NULL && material.normal == NULL) {
@@ -327,72 +421,210 @@ bool implementation::opengl::graphics::compile(type::material& material) {
     }
 
     if (material.color) {
-        if (material.color->context) {
-            glDeleteTextures(1, &material.color->context);
+        if (material.color->resource == NULL) {
+            material.color->resource = new type::info::opaque_t();
+        }
+        if (material.color->resource->context) {
+            GL_TEST(glDeleteTextures(1, &material.color->resource->context));
         }
         if (material.depth) {
-            glGenTextures(1, &material.color->context);
-            glBindTexture(GL_TEXTURE_2D, material.color->context);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, material.color->properties.width, material.color->properties.height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+            GL_TEST(glGenTextures(1, &material.color->resource->context));
+            GL_TEST(glBindTexture(GL_TEXTURE_2D, material.color->resource->context));
+            GL_TEST(glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, material.color->properties.width, material.color->properties.height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL));
+            GL_TEST(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
+            GL_TEST(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
+            GL_TEST(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
+            GL_TEST(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
         }
         else {
-            glGenTextures(1, &material.color->context);
-            glBindTexture(GL_TEXTURE_2D, material.color->context);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, material.color->properties.width, material.color->properties.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, material.color->raster.data());
-            glGenerateMipmap(GL_TEXTURE_2D);
+            GL_TEST(glGenTextures(1, &material.color->resource->context));
+            GL_TEST(glBindTexture(GL_TEXTURE_2D, material.color->resource->context));
+            GL_TEST(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR));
+            GL_TEST(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+            GL_TEST(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, material.color->properties.width, material.color->properties.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, material.color->raster.data()));
+            GL_TEST(glGenerateMipmap(GL_TEXTURE_2D));
         }
     }
 
     if (material.normal) {
-        if (material.normal->context) {
-            glDeleteTextures(1, &material.normal->context);
+        if (material.normal->resource == NULL) {
+            material.normal->resource = new type::info::opaque_t();
         }
-        glGenTextures(1, &material.normal->context);
-        glBindTexture(GL_TEXTURE_2D, material.normal->context);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, material.normal->properties.width, material.normal->properties.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, material.normal->raster.data());
-        glGenerateMipmap(GL_TEXTURE_2D);
+        if (material.normal->resource->context) {
+            GL_TEST(glDeleteTextures(1, &material.normal->resource->context));
+        }
+        GL_TEST(glGenTextures(1, &material.normal->resource->context));
+        GL_TEST(glBindTexture(GL_TEXTURE_2D, material.normal->resource->context));
+        GL_TEST(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR));
+        GL_TEST(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+        GL_TEST(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, material.normal->properties.width, material.normal->properties.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, material.normal->raster.data()));
+        GL_TEST(glGenerateMipmap(GL_TEXTURE_2D));
     }
 
-    glBindTexture(GL_TEXTURE_2D, 0);
+    GL_TEST(glBindTexture(GL_TEXTURE_2D, 0));
 
-    return true;
+    return material.compiled(true);
 }
 
 bool implementation::opengl::graphics::compile(type::object& object) {
     for (auto &child : object.children) {
         compile(child);
     }
-    if (object.compile() == false || object.vertices.size() == 0) {
+    
+    if (object.vertices.size() == 0) {
         return false;
     }
+        
+    compile(object.texture);
+    
+    type::program* shader = NULL;
+    for(auto ptr=renderer.rbegin(); shader == NULL && ptr != renderer.rend(); ptr++) {
+        shader = *ptr;
+    }
+    if(shader == NULL) {
+        return false;
+    }
+    compile(*shader);
 
-    if (object.context) {
-        glBindBuffer(GL_ARRAY_BUFFER, object.context);
-        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(spatial::vertex) * object.vertices.size(), object.vertices.data());
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
+    if (object.resource == NULL) {
+        object.resource = new type::info::opaque_t();
+    }
+    
+    if (object.resource->context != 0 && object.resource->vao.find(shader) != object.resource->vao.end()) {
+        GL_TEST(glBindVertexArray(object.resource->vao[shader]));
+        GL_TEST(glBindBuffer(GL_ARRAY_BUFFER, object.resource->context));
+        GL_TEST(glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(spatial::vertex) * object.vertices.size(), object.vertices.data()));
     }
     else {
-        glGenBuffers(1, &object.context);
-        glBindBuffer(GL_ARRAY_BUFFER, object.context);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(spatial::vertex) * object.vertices.size(), object.vertices.data(), GL_DYNAMIC_DRAW);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        GL_TEST(glGenVertexArrays(1, &object.resource->vao[shader]));
+        GL_TEST(glBindVertexArray(object.resource->vao[shader]));
+
+        GL_TEST(glGenBuffers(1, &object.resource->context));
+        GL_TEST(glBindBuffer(GL_ARRAY_BUFFER, object.resource->context));
+        GL_TEST(glBufferData(GL_ARRAY_BUFFER, sizeof(spatial::vertex) * object.vertices.size(), object.vertices.data(), GL_DYNAMIC_DRAW));
+        
+        GL_TEST(glVertexAttribPointer(shader->a_Vertex, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::vertex), BUFFER_OFFSET(offset_vector)));
+        GL_TEST(glVertexAttribPointer(shader->a_Texture, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::vertex), BUFFER_OFFSET(sizeof(spatial::vector) + offset_vector)));
+        GL_TEST(glVertexAttribPointer(shader->a_Normal, 4, GL_FLOAT, GL_TRUE, sizeof(spatial::vertex), BUFFER_OFFSET((sizeof(spatial::vector) * 2) + offset_vector)));
+        
+        GL_TEST(glEnableVertexAttribArray(shader->a_Vertex));
+        GL_TEST(glEnableVertexAttribArray(shader->a_Texture));
+        GL_TEST(glEnableVertexAttribArray(shader->a_Normal));
+        
+        object.compiled(true);
     }
 
-    compile(object.texture);
+    if(object.emitter) {
+        auto &entity = *object.emitter;
+
+        if (entity.resource == NULL) {
+            entity.resource = new type::info::opaque_t();
+        }
+        if (entity.identifiers.resource == NULL) {
+            entity.identifiers.resource = new type::info::opaque_t();
+        }
+        if (entity.flags.resource == NULL) {
+            entity.flags.resource = new type::info::opaque_t();
+        }
+        if (entity.positions.resource == NULL) {
+            entity.positions.resource = new type::info::opaque_t();
+        }
+
+        if(entity.compile(reference)) {
+            entity.resource->vao.clear();
+        }
+        
+        if(entity.resource->vao.find(shader) != entity.resource->vao.end()) {
+            if(entity.identifiers.resource->context) {
+                GL_TEST(glBindBuffer(GL_ARRAY_BUFFER, entity.identifiers.resource->context));
+                GL_TEST(glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(unsigned int) * entity.identifiers.content.size(), entity.identifiers.content.data()));
+                GL_TEST(glVertexAttribIPointer(shader->a_Identifier, 1, GL_UNSIGNED_INT, sizeof(unsigned int), BUFFER_OFFSET(0)));
+                GL_TEST(glEnableVertexAttribArray(shader->a_Identifier));
+                GL_TEST(glVertexAttribDivisor(shader->a_Identifier, 1));
+            }
+            
+            if(entity.flags.resource->context) {
+                GL_TEST(glBindBuffer(GL_ARRAY_BUFFER, entity.flags.resource->context));
+                GL_TEST(glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(unsigned int) * entity.flags.content.size(), entity.flags.content.data()));
+                GL_TEST(glVertexAttribIPointer(shader->a_Flags, 1, GL_UNSIGNED_INT, sizeof(unsigned int), BUFFER_OFFSET(0)));
+                GL_TEST(glEnableVertexAttribArray(shader->a_Flags));
+                GL_TEST(glVertexAttribDivisor(shader->a_Flags, 1));
+            }
+            
+            if(entity.positions.resource->context) {
+                GL_TEST(glBindBuffer(GL_ARRAY_BUFFER, entity.positions.resource->context));
+                GL_TEST(glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(spatial::matrix) * entity.positions.content.size(), entity.positions.content.data()));
+                GL_TEST(glVertexAttribPointer(shader->a_ModelMatrix + 0, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::matrix), BUFFER_OFFSET(offset_matrix + sizeof(spatial::vector::type_t) * 0)));
+                GL_TEST(glVertexAttribPointer(shader->a_ModelMatrix + 1, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::matrix), BUFFER_OFFSET(offset_matrix + sizeof(spatial::vector::type_t) * 4)));
+                GL_TEST(glVertexAttribPointer(shader->a_ModelMatrix + 2, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::matrix), BUFFER_OFFSET(offset_matrix + sizeof(spatial::vector::type_t) * 8)));
+                GL_TEST(glVertexAttribPointer(shader->a_ModelMatrix + 3, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::matrix), BUFFER_OFFSET(offset_matrix + sizeof(spatial::vector::type_t) * 12)));
+
+                GL_TEST(glEnableVertexAttribArray(shader->a_ModelMatrix + 0));
+                GL_TEST(glEnableVertexAttribArray(shader->a_ModelMatrix + 1));
+                GL_TEST(glEnableVertexAttribArray(shader->a_ModelMatrix + 2));
+                GL_TEST(glEnableVertexAttribArray(shader->a_ModelMatrix + 3));
+
+                GL_TEST(glVertexAttribDivisor(shader->a_ModelMatrix + 0, 1));
+                GL_TEST(glVertexAttribDivisor(shader->a_ModelMatrix + 1, 1));
+                GL_TEST(glVertexAttribDivisor(shader->a_ModelMatrix + 2, 1));
+                GL_TEST(glVertexAttribDivisor(shader->a_ModelMatrix + 3, 1));
+            }
+        }
+        else {
+            if (entity.identifiers.content.size()) {
+                GL_TEST(glGenBuffers(1, &entity.identifiers.resource->context));
+                GL_TEST(glBindBuffer(GL_ARRAY_BUFFER, entity.identifiers.resource->context));
+                GL_TEST(glBufferData(GL_ARRAY_BUFFER, sizeof(unsigned int) * entity.capacity, NULL, GL_DYNAMIC_DRAW));
+                GL_TEST(glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(unsigned int) * entity.identifiers.content.size(), entity.identifiers.content.data()));
+                GL_TEST(glVertexAttribIPointer(shader->a_Identifier, 1, GL_UNSIGNED_INT, sizeof(unsigned int), BUFFER_OFFSET(0)));
+                GL_TEST(glEnableVertexAttribArray(shader->a_Identifier));
+                GL_TEST(glVertexAttribDivisor(shader->a_Identifier, 1));
+            }
+
+            if (entity.flags.content.size()) {
+                GL_TEST(glGenBuffers(1, &entity.flags.resource->context));
+                GL_TEST(glBindBuffer(GL_ARRAY_BUFFER, entity.flags.resource->context));
+                GL_TEST(glBufferData(GL_ARRAY_BUFFER, sizeof(unsigned int) * entity.capacity, NULL, GL_DYNAMIC_DRAW));
+                GL_TEST(glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(unsigned int) * entity.flags.content.size(), entity.flags.content.data()));
+                GL_TEST(glVertexAttribIPointer(shader->a_Flags, 1, GL_UNSIGNED_INT, sizeof(unsigned int), BUFFER_OFFSET(0)));
+                GL_TEST(glEnableVertexAttribArray(shader->a_Flags));
+                GL_TEST(glVertexAttribDivisor(shader->a_Flags, 1));
+            }
+
+            if (entity.positions.content.size()) {
+                GL_TEST(glGenBuffers(1, &entity.positions.resource->context));
+                GL_TEST(glBindBuffer(GL_ARRAY_BUFFER, entity.positions.resource->context));
+                GL_TEST(glBufferData(GL_ARRAY_BUFFER, sizeof(spatial::matrix) * entity.capacity, NULL, GL_DYNAMIC_DRAW));
+                GL_TEST(glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(spatial::matrix) * entity.positions.content.size(), entity.positions.content.data()));
+                
+                GL_TEST(glVertexAttribPointer(shader->a_ModelMatrix + 0, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::matrix), BUFFER_OFFSET(offset_matrix + sizeof(spatial::vector::type_t) * 0)));
+                GL_TEST(glVertexAttribPointer(shader->a_ModelMatrix + 1, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::matrix), BUFFER_OFFSET(offset_matrix + sizeof(spatial::vector::type_t) * 4)));
+                GL_TEST(glVertexAttribPointer(shader->a_ModelMatrix + 2, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::matrix), BUFFER_OFFSET(offset_matrix + sizeof(spatial::vector::type_t) * 8)));
+                GL_TEST(glVertexAttribPointer(shader->a_ModelMatrix + 3, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::matrix), BUFFER_OFFSET(offset_matrix + sizeof(spatial::vector::type_t) * 12)));
+
+                GL_TEST(glEnableVertexAttribArray(shader->a_ModelMatrix + 0));
+                GL_TEST(glEnableVertexAttribArray(shader->a_ModelMatrix + 1));
+                GL_TEST(glEnableVertexAttribArray(shader->a_ModelMatrix + 2));
+                GL_TEST(glEnableVertexAttribArray(shader->a_ModelMatrix + 3));
+
+                GL_TEST(glVertexAttribDivisor(shader->a_ModelMatrix + 0, 1));
+                GL_TEST(glVertexAttribDivisor(shader->a_ModelMatrix + 1, 1));
+                GL_TEST(glVertexAttribDivisor(shader->a_ModelMatrix + 2, 1));
+                GL_TEST(glVertexAttribDivisor(shader->a_ModelMatrix + 3, 1));
+            }
+            
+            entity.resource->vao[shader] = object.resource->vao[shader];
+            entity.compiled(true); // okay to set this here... since each shader will recompile independently
+        }
+    }
+        
+    GL_TEST(glBindVertexArray(0));
 
     return true;
 }
 
 bool implementation::opengl::graphics::compile(type::font& font) {
-    if (font.compile() == false) {
+    if (font.compiled()) {
         return false;
     }
 
@@ -402,62 +634,7 @@ bool implementation::opengl::graphics::compile(type::font& font) {
         }
     }
 
-    return true;
-}
-
-bool implementation::opengl::graphics::compile(type::entity& entity) {
-    entity.bake();
-
-    if (entity.identifiers.context) {
-        glBindBuffer(GL_ARRAY_BUFFER, entity.identifiers.context);
-        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(unsigned int) * entity.identifiers.content.size(), entity.identifiers.content.data());
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-    }
-    else if (entity.identifiers.content.size()) {
-        glGenBuffers(1, &entity.identifiers.context);
-        glBindBuffer(GL_ARRAY_BUFFER, entity.identifiers.context);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(unsigned int) * 1024, NULL, GL_STREAM_DRAW);
-        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(unsigned int) * entity.identifiers.content.size(), entity.identifiers.content.data());
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-    }
-
-    if (entity.flags.context) {
-        glBindBuffer(GL_ARRAY_BUFFER, entity.flags.context);
-        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(unsigned int) * entity.flags.content.size(), entity.flags.content.data());
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-    }
-    else if (entity.flags.content.size()) {
-        glGenBuffers(1, &entity.flags.context);
-        glBindBuffer(GL_ARRAY_BUFFER, entity.flags.context);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(unsigned int) * 1024, NULL, GL_STREAM_DRAW);
-        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(unsigned int) * entity.flags.content.size(), entity.flags.content.data());
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-    }
-
-    if (entity.positions.context) {
-        glBindBuffer(GL_ARRAY_BUFFER, entity.positions.context);
-        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(spatial::matrix) * entity.positions.content.size(), entity.positions.content.data());
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-    }
-    else if (entity.positions.content.size()) {
-        glGenBuffers(1, &entity.positions.context);
-        glBindBuffer(GL_ARRAY_BUFFER, entity.positions.context);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(spatial::matrix) * 1024, NULL, GL_STREAM_DRAW);
-        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(spatial::matrix) * entity.positions.content.size(), entity.positions.content.data());
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-    }
-
-    if (entity.compile() == false) {
-        return false;
-    }
-
-    for (auto& animation : entity.animations) {
-        for (auto& frame : animation.second.frames) {
-            compile(frame);
-        }
-    }
-
-    return true;
+    return font.compiled(true);
 }
 
 bool implementation::opengl::graphics::compile(platform::assets* assets) {
@@ -480,140 +657,96 @@ bool implementation::opengl::graphics::compile(platform::assets* assets) {
 }
 
 void implementation::opengl::graphics::draw(type::object& object, type::program& shader, const spatial::matrix& projection, const spatial::matrix& view, const spatial::matrix& model, const spatial::matrix& lighting, unsigned int options) {
+    static std::mutex lockgl;
+    
+    std::lock_guard<std::mutex> scoped(lockgl);
+    
+    if(shader.compiled() == false) {
+        compile(shader);
+    }
+    
     // Look for the first object with vertices, just at the top level for now
-    auto &target = object;
-    if (target.visible == false) {
+    if (object.visible == false) {
         return;
     }
-    if (target.vertices.size() == 0) {
+    if (object.vertices.size() == 0) {
         return;
     }
 
-    if (target.compiled() == false) {
-        compile(target);
+    renderer.push_back(&shader);
+    compile(object);
+    renderer.pop_back();
+    
+    if(object.resource->vao.find(&shader) != object.resource->vao.end()) {
+        GL_TEST(glBindVertexArray(object.resource->vao[&shader]));
     }
 
-    glUseProgram(shader.context);
+    GL_TEST(glUseProgram(shader.resource->context));
 
-    if (target.texture.color && target.texture.color->context) {
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, target.texture.color->context);
+    if (object.texture.color && object.texture.color->resource && object.texture.color->resource->context) {
+        GL_TEST(glActiveTexture(GL_TEXTURE0));
+        GL_TEST(glBindTexture(GL_TEXTURE_2D, object.texture.color->resource->context));
     }
-    if (target.texture.normal && target.texture.normal->context) {
-        glActiveTexture(GL_TEXTURE0 + 1);
-        glBindTexture(GL_TEXTURE_2D, target.texture.normal->context);
+    if (object.texture.normal && object.texture.normal->resource && object.texture.normal->resource->context) {
+        GL_TEST(glActiveTexture(GL_TEXTURE0 + 1));
+        GL_TEST(glBindTexture(GL_TEXTURE_2D, object.texture.normal->resource->context));
     }
-    if (shadow.texture.color && shadow.texture.color->context) {
-        glActiveTexture(GL_TEXTURE0 + 2);
-        glBindTexture(GL_TEXTURE_2D, shadow.texture.color->context);
+    if (shadow.texture.color && shadow.texture.color->resource && shadow.texture.color->resource->context) {
+        GL_TEST(glActiveTexture(GL_TEXTURE0 + 2));
+        GL_TEST(glBindTexture(GL_TEXTURE_2D, shadow.texture.color->resource->context));
     }
-    if (depth.texture.color && depth.texture.color->context) {
-        glActiveTexture(GL_TEXTURE0 + 3);
-        glBindTexture(GL_TEXTURE_2D, depth.texture.color->context);
+    if (depth.texture.color && depth.texture.color->resource && depth.texture.color->resource->context) {
+        GL_TEST(glActiveTexture(GL_TEXTURE0 + 3));
+        GL_TEST(glBindTexture(GL_TEXTURE_2D, depth.texture.color->resource->context));
     }
-    if (blur.texture.color && blur.texture.color->context) {
-        glActiveTexture(GL_TEXTURE0 + 4);
-        glBindTexture(GL_TEXTURE_2D, blur.texture.color->context);
-    }
-
-    glUniformMatrix4fv(shader.u_ProjectionMatrix, 1, GL_FALSE, (GLfloat*)projection.data());
-    glUniformMatrix4fv(shader.u_ViewMatrix, 1, GL_FALSE, (GLfloat*)view.data());
-    glUniformMatrix4fv(shader.u_ModelMatrix, 1, GL_FALSE, (GLfloat*)model.data());
-    glUniformMatrix4fv(shader.u_LightingMatrix, 1, GL_FALSE, (GLfloat*)lighting.data());
-
-    glUniform1i(shader.u_SurfaceTextureUnit, 0);
-    glUniform1i(shader.u_NormalTextureUnit, 1);
-    glUniform1i(shader.u_ShadowTextureUnit, 2);
-    glUniform1i(shader.u_DepthTextureUnit, 3);
-    glUniform1i(shader.u_BlurTextureUnit, 4);
-
-    glUniform4f(shader.u_AmbientLightPosition, ambient.position.eye.x, ambient.position.eye.y, ambient.position.eye.z, ambient.position.eye.w);
-    glUniform4f(shader.u_AmbientLightColor, ambient.color.x, ambient.color.y, ambient.color.z, ambient.color.w);
-
-    glUniform1f(shader.u_AmbientLightBias, ambient.bias);
-    glUniform1f(shader.u_AmbientLightStrength, ambient.strength);
-
-    glUniform4f(shader.u_Clipping, clip_top[clip_top.size()-1], clip_bottom[clip_bottom.size() - 1], clip_left[clip_left.size() - 1], clip_right[clip_right.size() - 1]);
-
-    glUniform1ui(shader.u_Flags, object.flags);
-    glUniformMatrix4fv(shader.u_Parameters, 1, GL_FALSE, (GLfloat*)parameters.data());
-
-    glBindBuffer(GL_ARRAY_BUFFER, target.context);
-
-    glVertexAttribPointer(shader.a_Vertex, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::vertex), BUFFER_OFFSET(offset_vector));
-    glVertexAttribPointer(shader.a_Texture, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::vertex), BUFFER_OFFSET(offset_vector + sizeof(spatial::vector)));
-    glVertexAttribPointer(shader.a_Normal, 4, GL_FLOAT, GL_TRUE, sizeof(spatial::vertex), BUFFER_OFFSET(offset_vector + (sizeof(spatial::vector) * 2)));
-
-    glEnableVertexAttribArray(shader.a_Vertex);
-    glEnableVertexAttribArray(shader.a_Texture);
-    glEnableVertexAttribArray(shader.a_Normal);
-
-    int instances = 1;
-    if (object.emitter) {
-        if (shader.a_ModelMatrix >= 0 && object.emitter->positions.context) {
-            glBindBuffer(GL_ARRAY_BUFFER, object.emitter->positions.context);
-
-            glVertexAttribPointer(shader.a_ModelMatrix + 0, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::matrix), BUFFER_OFFSET(offset_matrix + sizeof(float) * 0));
-            glVertexAttribPointer(shader.a_ModelMatrix + 1, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::matrix), BUFFER_OFFSET(offset_matrix + sizeof(float) * 4));
-            glVertexAttribPointer(shader.a_ModelMatrix + 2, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::matrix), BUFFER_OFFSET(offset_matrix + sizeof(float) * 8));
-            glVertexAttribPointer(shader.a_ModelMatrix + 3, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::matrix), BUFFER_OFFSET(offset_matrix + sizeof(float) * 12));
-
-            glEnableVertexAttribArray(shader.a_ModelMatrix + 0);
-            glEnableVertexAttribArray(shader.a_ModelMatrix + 1);
-            glEnableVertexAttribArray(shader.a_ModelMatrix + 2);
-            glEnableVertexAttribArray(shader.a_ModelMatrix + 3);
-
-            glVertexAttribDivisor(shader.a_ModelMatrix + 0, 1);
-            glVertexAttribDivisor(shader.a_ModelMatrix + 1, 1);
-            glVertexAttribDivisor(shader.a_ModelMatrix + 2, 1);
-            glVertexAttribDivisor(shader.a_ModelMatrix + 3, 1);
-        }
-
-        if (shader.a_Identifier >= 0 && object.emitter->identifiers.context) {
-            glBindBuffer(GL_ARRAY_BUFFER, object.emitter->identifiers.context);
-
-            glVertexAttribPointer(shader.a_Identifier, 1, GL_FLOAT, GL_FALSE, sizeof(unsigned int), BUFFER_OFFSET(0));
-            glEnableVertexAttribArray(shader.a_Identifier);
-            glVertexAttribDivisor(shader.a_Identifier, 1);
-        }
-
-        if (shader.a_Flags >= 0 && object.emitter->flags.context) {
-            glBindBuffer(GL_ARRAY_BUFFER, object.emitter->flags.context);
-
-            glVertexAttribPointer(shader.a_Flags, 1, GL_FLOAT, GL_FALSE, sizeof(unsigned int), BUFFER_OFFSET(0));
-            glEnableVertexAttribArray(shader.a_Flags);
-            glVertexAttribDivisor(shader.a_Flags, 1);
-        }
-
-        instances = object.emitter->baked;
-    }
-    else {
-        if (shader.a_Identifier >= 0) {
-            glDisableVertexAttribArray(shader.a_Identifier);
-        }
-        if (shader.a_Flags >= 0) {
-            glDisableVertexAttribArray(shader.a_Flags);
-        }
+    if (blur.texture.color && blur.texture.color->resource && blur.texture.color->resource->context) {
+        GL_TEST(glActiveTexture(GL_TEXTURE0 + 4));
+        GL_TEST(glBindTexture(GL_TEXTURE_2D, blur.texture.color->resource->context));
     }
 
+    GL_TEST(glUniform1i(shader.u_SurfaceTextureUnit, 0));
+    GL_TEST(glUniform1i(shader.u_NormalTextureUnit, 1));
+    GL_TEST(glUniform1i(shader.u_ShadowTextureUnit, 2));
+    GL_TEST(glUniform1i(shader.u_DepthTextureUnit, 3));
+    GL_TEST(glUniform1i(shader.u_BlurTextureUnit, 4));
+
+    if(object.texture.color) {
+        GL_TEST(glUniform2f(shader.u_TextureSize, object.texture.color->properties.width, object.texture.color->properties.width));
+    }
+    
+    GL_TEST(glUniformMatrix4fv(shader.u_ProjectionMatrix, 1, GL_FALSE, (GLfloat*)projection.data()));
+    GL_TEST(glUniformMatrix4fv(shader.u_ViewMatrix, 1, GL_FALSE, (GLfloat*)view.data()));
+    GL_TEST(glUniformMatrix4fv(shader.u_ModelMatrix, 1, GL_FALSE, (GLfloat*)model.data()));
+    GL_TEST(glUniformMatrix4fv(shader.u_LightingMatrix, 1, GL_FALSE, (GLfloat*)lighting.data()));
+
+    GL_TEST(glUniform4f(shader.u_AmbientLightPosition, ambient.position.eye.x, ambient.position.eye.y, ambient.position.eye.z, ambient.position.eye.w));
+    GL_TEST(glUniform4f(shader.u_AmbientLightColor, ambient.color.x, ambient.color.y, ambient.color.z, ambient.color.w));
+    GL_TEST(glUniform1f(shader.u_AmbientLightBias, ambient.bias));
+    GL_TEST(glUniform1f(shader.u_AmbientLightStrength, ambient.strength));
+
+    GL_TEST(glUniform4f(shader.u_Clipping, clip_top[clip_top.size()-1], clip_bottom[clip_bottom.size() - 1], clip_left[clip_left.size() - 1], clip_right[clip_right.size() - 1]));
+
+    GL_TEST(glUniform1ui(shader.u_Flags, object.flags));
+
+    GL_TEST(glUniformMatrix4fv(shader.u_Parameters, 1, GL_FALSE, (GLfloat*)parameters.data()));
+    
     // Draw either the solids or wireframes
-    if (target.vertices.size() == 2 || options & render::WIREFRAME) {
-        //glDrawArrays(GL_LINES, 0, target.vertices.size());
-        glDrawArraysInstanced(GL_LINE_LOOP, 0, target.vertices.size(), instances);
-        frame.lines += target.vertices.size() / 2;
+    int instances = object.emitter ? object.emitter->size : 1;
+    if (object.vertices.size() == 2 || options & render::WIREFRAME) {
+        GL_TEST(glDrawArraysInstanced(GL_LINE_LOOP, 0, (int)object.vertices.size(), instances));
+        frame.lines += object.vertices.size() / 2;
     }
     else {
-        //glDrawArrays(GL_TRIANGLES, 0, target.vertices.size());
-        glDrawArraysInstanced(GL_TRIANGLES, 0, target.vertices.size(), instances);
-        frame.triangles += target.vertices.size() / 3;
+        GL_TEST(glDrawArraysInstanced(GL_TRIANGLES, 0, (int)object.vertices.size(), instances));
+        frame.triangles += object.vertices.size() / 3;
     }
-    frame.vertices += target.vertices.size();
+    frame.vertices += object.vertices.size();
 
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    GL_TEST(glBindVertexArray(0));
 
     // Primary object has been drawn, draw out the normals if requested.  Mostly for debugging.
     if (options & render::NORMALS) {
-        for (auto vertex : target.vertices) {
+        for (auto vertex : object.vertices) {
             ray = spatial::ray(vertex.coordinate, vertex.normal + vertex.coordinate);
             compile(ray);
             draw(ray, shader, projection, view, model);
@@ -656,11 +789,23 @@ void implementation::opengl::graphics::untarget() {
 }
 
 void implementation::opengl::graphics::oninvert() {
-    glCullFace(GL_FRONT);
+    GL_TEST(glCullFace(GL_FRONT));
 }
 
 void implementation::opengl::graphics::uninvert() {
-    glCullFace(GL_BACK);
+    GL_TEST(glCullFace(GL_BACK));
+}
+
+void implementation::opengl::graphics::release(type::object& o) {
+    if (o.resource == NULL) {
+        return;
+    }
+    for (auto vao : o.resource->vao) {
+        glDeleteVertexArrays(1, &vao.second);
+    }
+    glDeleteBuffers(1, &o.resource->context);
+    delete(o.resource);
+    o.resource = NULL;
 }
 
 #endif

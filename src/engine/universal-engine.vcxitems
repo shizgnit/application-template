@@ -48,7 +48,10 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)types\formats\tga.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)types\formats\vert.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)types\formats\wav.hpp" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)types\interfaces\audio.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)types\interfaces\sound.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)types\interfaces\blueprint.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)types\interfaces\group.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)types\interfaces\rig.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)types\interfaces\entity.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)types\interfaces\font.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)types\interfaces\image.hpp" />
@@ -57,10 +60,13 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)types\interfaces\program.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)types\interfaces\shader.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)types\interfaces\info.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)types\interfaces\visitor.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)utilities\common.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)utilities\grid.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)utilities\properties.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)utilities\scene.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)utilities\spatial.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)utilities\test.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)utilities\type_cast.hpp" />
   </ItemGroup>
   <ItemGroup>
@@ -78,5 +84,6 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)utilities\properties.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)utilities\scene.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)utilities\spatial.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)utilities\test.cpp" />
   </ItemGroup>
 </Project>

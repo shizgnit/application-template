@@ -43,6 +43,9 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)utilities\properties.cpp">
       <Filter>utilities</Filter>
     </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)utilities\test.cpp">
+      <Filter>utilities</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\deps\lodepng\lodepng.h">
@@ -80,9 +83,6 @@
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)platform\implementations\opensl.hpp">
       <Filter>platform\implementations</Filter>
-    </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)types\interfaces\audio.hpp">
-      <Filter>types\interfaces</Filter>
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)types\interfaces\entity.hpp">
       <Filter>types\interfaces</Filter>
@@ -186,6 +186,27 @@
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)utilities\properties.hpp">
       <Filter>utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)utilities\test.hpp">
+      <Filter>utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)utilities\grid.hpp">
+      <Filter>utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)types\interfaces\blueprint.hpp">
+      <Filter>types\interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)types\interfaces\group.hpp">
+      <Filter>types\interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)types\interfaces\visitor.hpp">
+      <Filter>types\interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)types\interfaces\rig.hpp">
+      <Filter>types\interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)types\interfaces\sound.hpp">
+      <Filter>types\interfaces</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

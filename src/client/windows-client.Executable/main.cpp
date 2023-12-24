@@ -1,3 +1,30 @@
+/*
+================================================================================
+  Copyright (c) 2023, Pandemos
+  All rights reserved.
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are met:
+  * Redistributions of source code must retain the above copyright notice, this
+    list of conditions and the following disclaimer.
+  * Redistributions in binary form must reproduce the above copyright notice,
+    this list of conditions and the following disclaimer in the documentation
+    and/or other materials provided with the distribution.
+  * Neither the name of the organization nor the names of its contributors may
+    be used to endorse or promote products derived from this software without
+    specific prior written permission.
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+  DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
+  FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+  SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+  OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+================================================================================
+*/
+
 // windows-client.Executable.cpp : Defines the entry point for the application.
 //
 
@@ -5,7 +32,6 @@
 #include "windows-client.Executable.h"
 
 #include "engine.hpp"
-
 #include "application.hpp"
 
 inline application* instance = new app();
@@ -156,11 +182,19 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    int width = 800;
    int height = 1200;
 
-   HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, 0, width, height + 60, nullptr, nullptr, hInstance, nullptr);
+   // TODO: Add fullscreen, borderless fullscreen and variable resolutions
+   HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, 0, width, height, nullptr, nullptr, hInstance, nullptr);
    if (!hWnd)
    {
       return false;
    }
+
+   RECT rcClient, rcWind;
+   POINT ptDiff;
+   GetClientRect(hWnd, &rcClient);
+   GetWindowRect(hWnd, &rcWind);
+   width -= (rcWind.right - rcWind.left) - rcClient.right;
+   height -= (rcWind.bottom - rcWind.top) - rcClient.bottom;
 
    auto HDC = GetDC(hWnd);
 
@@ -209,6 +243,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
    auto assetPath = filesystem->dirname(executablePath) + "\\..\\..\\assets";
    assets->init((void *)assetPath.c_str());
+   assets->set("shader.path", std::string("shaders-gles320"));
 
    instance->dimensions(width, height)->on_startup();
 
@@ -452,7 +487,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             case(RI_MOUSE_WHEEL):
                 //(float)rawinput.data.mouse.usButtonData == 0xFF88 ? 0.1f : -0.1f
                 short travel = rawinput.data.mouse.usButtonData;
-                input->raise({ platform::input::POINTER, platform::input::WHEEL, 3, 0, (float)travel, { 0.0, 0.0f, 0.0f } });
+                if (gui->raise({ platform::input::POINTER, platform::input::WHEEL, 0, 0, (float)travel, { (float)p.x, (float)p.y, 0.0f } }, p.x, p.y) == false) {
+                    input->raise({ platform::input::POINTER, platform::input::WHEEL, 3, 0, (float)travel, { (float)p.x, (float)p.y, 0.0f } });
+                }
                 break;
             };
         }

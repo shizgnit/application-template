@@ -8,4 +8,17 @@
     <ClCompile Include="android_native_app_glue.c" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <Filter Include="res">
+      <UniqueIdentifier>{df38cf5d-efbd-4b37-84a0-d4e0398ce57e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="res\values">
+      <UniqueIdentifier>{d4ead712-4c16-4589-bfd4-aab23dcf22a6}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="res\values\strings.xml">
+      <Filter>res\values</Filter>
+    </Xml>
+  </ItemGroup>
 </Project>

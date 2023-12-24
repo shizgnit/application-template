@@ -1,7 +1,35 @@
+/*
+================================================================================
+  Copyright (c) 2023, Pandemos
+  All rights reserved.
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are met:
+  * Redistributions of source code must retain the above copyright notice, this
+    list of conditions and the following disclaimer.
+  * Redistributions in binary form must reproduce the above copyright notice,
+    this list of conditions and the following disclaimer in the documentation
+    and/or other materials provided with the distribution.
+  * Neither the name of the organization nor the names of its contributors may
+    be used to endorse or promote products derived from this software without
+    specific prior written permission.
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+  DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
+  FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+  SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+  OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+================================================================================
+*/
+
 #pragma once
 
 namespace platform {
-    class graphics {
+
+    class graphics : public properties {
     public:
         enum render {
             UNDEFINED = 0x00,
@@ -11,8 +39,11 @@ namespace platform {
             NORMALS   = (1u << 3)
         };
 
-        virtual void projection(int fov) = 0;
-        virtual void dimensions(int width, int height, float scale=1.0) = 0;
+        virtual void dimensions(int width, int height, float fov=90.0, float scale=1.0) = 0;
+
+        virtual float scale() {
+            return display_height / (float)display_width;
+        }
 
         virtual void init(void) = 0;
         virtual void clear(void) = 0;
@@ -23,7 +54,6 @@ namespace platform {
         virtual bool compile(type::material& material) = 0;
         virtual bool compile(type::object& object) = 0;
         virtual bool compile(type::font& font) = 0;
-        virtual bool compile(type::entity& entity) = 0;
 
         virtual bool compile(platform::assets* assets) = 0;
 
@@ -36,18 +66,7 @@ namespace platform {
         virtual void oninvert() {}
         virtual void uninvert() {}
 
-        virtual int messages() {
-            return errors.size();
-        }
-
-        virtual std::string message() {
-            if (errors.size() == 0) {
-                return "";
-            }
-            std::string status = errors.front();
-            errors.pop_front();
-            return status;
-        }
+        virtual void release(type::object& object) {}
 
         typedef void (graphics::* callback)();
         utilities::scoped<graphics*, callback> target(type::object& object) {
@@ -92,7 +111,7 @@ namespace platform {
         
         struct {
             spatial::position position;
-            spatial::vector color;
+            spatial::vector color = { 1.0, 1.0, 1.0, 1.0 };
             float bias = 0.0f;
             float strength = 0.0f;
         } ambient;
@@ -109,11 +128,13 @@ namespace platform {
         type::object depth;
         type::object blur;
         type::object picking;
-
+        type::object render;
+        
         spatial::matrix ortho;
         spatial::matrix perspective;
 
         std::vector<unsigned char> pixels;
+        float latency = 1.0;
 
         spatial::matrix::type_t parameter(int index) {
             int col = index / 4;
@@ -135,11 +156,11 @@ namespace platform {
             ss << frames.back().frames;
             return ss.str();
         }
+        
+        spatial::position* reference = NULL;
 
     protected:
         spatial::matrix parameters;
-
-        std::list<std::string> errors;
 
         std::vector<float> clip_top = { 10000.0f };
         std::vector<float> clip_bottom = { 10000.0f };

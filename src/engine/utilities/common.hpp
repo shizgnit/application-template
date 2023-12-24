@@ -1,4 +1,60 @@
+/*
+================================================================================
+  Copyright (c) 2023, Pandemos
+  All rights reserved.
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are met:
+  * Redistributions of source code must retain the above copyright notice, this
+    list of conditions and the following disclaimer.
+  * Redistributions in binary form must reproduce the above copyright notice,
+    this list of conditions and the following disclaimer in the documentation
+    and/or other materials provided with the distribution.
+  * Neither the name of the organization nor the names of its contributors may
+    be used to endorse or promote products derived from this software without
+    specific prior written permission.
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+  DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
+  FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+  SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+  OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+================================================================================
+*/
+
 namespace utilities {
+
+    class string {
+    public:
+        string() {}
+        
+        string & operator << (std::string s) {
+            str << s;
+            return *this;
+        }
+        string& operator << (int i) {
+            str << i;
+            return *this;
+        }
+        string & operator << (long i) {
+            str << i;
+            return *this;
+        }
+        string & operator << (float f) {
+            str << f;
+            return *this;
+        }
+
+        operator std::string() {
+            return str.str();
+        }
+        
+    protected:
+        std::stringstream str;
+    };
 
     template <class type, class method>
     class scoped {
@@ -62,6 +118,8 @@ namespace utilities {
 
     std::vector<std::string> tokenize(std::string input, std::string delimiter = "", int tokens=0);
 
+    std::string replace(std::string input, std::string label, std::string value);
+
 //    std::string substitute(std::string input, std::string expression, std::string replacement, bool global = true);
 //    std::string substitute(std::string input, std::vector<std::string>& replacement);
 
@@ -105,7 +163,7 @@ namespace utilities {
 
     class text {
     public:
-        text(int entries = 40) {
+        text(int entries = 60) { // TODO: this is so limited because of performance issued
             buffer = entries;
         }
 
@@ -153,6 +211,7 @@ namespace utilities {
             else {
                 current->erase(current->size() - count, count);
             }
+            
         }
 
         std::vector<std::string> get() {
@@ -165,7 +224,10 @@ namespace utilities {
                     continue;
                 }
                 contents.push_back(message);
-                if (limit && ++count >= limit) {
+                if (limit && contents.size() >= limit) {
+                    break;
+                }
+                if(offset && ((data.size() - contents.size()) <= offset)) {
                     break;
                 }
             }
@@ -181,7 +243,7 @@ namespace utilities {
             data.clear();
         }
 
-        int position(int amount=0) {
+        int scroll(int amount=0) {
             offset += amount;
 
             if (offset < 0) {
@@ -191,11 +253,13 @@ namespace utilities {
                 offset = data.size() - 1;
             }
 
-            index = (data.size() - 1) - offset;
-
             return offset;
         }
 
+        int position(int amount=0) {
+            index = (data.size() - 1) - scroll(amount);
+            return offset;
+        }
         int buffer;
 
         int index = 0;
@@ -220,4 +284,5 @@ namespace utilities {
     using months_t = std::chrono::duration<double, std::ratio<2629746>>;
     using years_t = std::chrono::duration<double, std::ratio<31556952>>;
 
+    float perlin(float x, float y);
 }

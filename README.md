@@ -1,10 +1,12 @@
 # Application Template 1.0
 
-A simple 3d application framework targetting windows and android.  No specific goal in mind currently.
+A simple 3d application framework.  Currently supports windows and android, with linux, macos and ios currently being worked on.  The [public](https://github.com/shizgnit/public) repository has example applications using the framework.
 
 ## Build
 
-Use Microsoft Visual Studio 2022 and the build.sln solution file.  I have the following components installed.
+The two primary build systems are Visual Studio and XCode.
+
+The following components are recommended for Visual Studio.
 
 * ASP.NET and web development
 * Python development
@@ -27,32 +29,15 @@ Submodules.
     git submodule update --init --recursive
     (includes; loadpng, pugixml, picojson, zstream)
 
-The following projects need to be installed on the client PC running the IDE.
-
-    https://nodejs.org/
-    https://developer.android.com/studio
-
-Prebuilt package of deps/miniz-2.2.0 installed.  Currently just added to the repo directly (pulled from the following).
-
-    https://github.com/richgel999/miniz/releases
-
 Bitmat fonts are created with the BMFont tool.
 
     https://www.angelcode.com/products/bmfont/
-
-Model viewer/export.
-
-    https://www.gildor.org/en/projects/umodel#files
 
 ## Contributing
 
 Currently just moving to gitflow for developer collaboration.  No expectations that there will be any, but having the workflow in place now will make it easier if the project ever grows.
 
 ## Notes
-
-Work is being tracked on a Kanban board.
-
-    https://trello.com/b/wMOMrSaL/application-template
 
 Recommended references.
 
@@ -88,31 +73,3 @@ Gitflow
     Just helpful
 
         git log --pretty=format:"%h%x09%an%x09%ad%x09%s"
-
-# License
-
-    Copyright (c) 2022, Shizgnit/Pandemos
-    All rights reserved.
-
-    Redistribution and use in source and binary forms, with or without
-    modification, are permitted provided that the following conditions are met:
-
-    * Redistributions of source code must retain the above copyright notice, this
-        list of conditions and the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright notice,
-        this list of conditions and the following disclaimer in the documentation
-        and/or other materials provided with the distribution.
-    * Neither the name of the organization nor the names of its contributors may
-        be used to endorse or promote products derived from this software without
-        specific prior written permission.
-
-    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-    AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-    IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-    DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
-    FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-    DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-    SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-    CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-    OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-    OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.

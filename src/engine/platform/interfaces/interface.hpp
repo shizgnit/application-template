@@ -1,3 +1,30 @@
+/*
+================================================================================
+  Copyright (c) 2023, Pandemos
+  All rights reserved.
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are met:
+  * Redistributions of source code must retain the above copyright notice, this
+    list of conditions and the following disclaimer.
+  * Redistributions in binary form must reproduce the above copyright notice,
+    this list of conditions and the following disclaimer in the documentation
+    and/or other materials provided with the distribution.
+  * Neither the name of the organization nor the names of its contributors may
+    be used to endorse or promote products derived from this software without
+    specific prior written permission.
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+  DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
+  FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+  SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+  OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+================================================================================
+*/
+
 #pragma once
 
 namespace platform {
@@ -191,7 +218,17 @@ namespace platform {
         virtual bool raise(const input::event& ev, int x, int y) = 0;
         virtual void emit() = 0;
 
-        virtual void position() = 0;
+        virtual void dimensions(int width, int height) = 0;
+        virtual float scale(float baseline=1440.0) {
+            static float _baseline = baseline;
+            if(_baseline != baseline) {
+                _baseline = baseline;
+            }
+            return display_height / _baseline;
+        }
+        
+        virtual widget* reposition(std::vector<widget*>& c) = 0;
+
         virtual void draw() = 0;
 
         virtual widget* create(std::vector<widget *> &c) = 0;
@@ -232,6 +269,13 @@ namespace platform {
                 }
             }
         }
+        
+        virtual void spec(type::object &ref, int margin=0) {
+            config.spec = widget::spec::none;
+            config.w = ref.width();
+            config.h = ref.height();
+            config.margin = margin;
+        }
 
         virtual void spec(widget::spec spec, int w, int h, int margin) {
             config.spec = spec;
@@ -263,9 +307,37 @@ namespace platform {
             }
         }
 
-    protected:
         virtual void position(widget& instance) = 0;
         virtual void draw(widget& instance) = 0;
+
+        virtual spatial::vector placement() = 0;
+        
+        int width() {
+            return display_width;
+        }
+        int height() {
+            return display_height;
+        }
+      
+        double relative_width(double percentage) {
+            if(unit_width == 0.0) {
+                unit_width = display_width / 100.0;
+            }
+            return unit_width * percentage;
+        }
+        double relative_height(double percentage) {
+            if(unit_height == 0.0) {
+                unit_height = display_height / 100.0;
+            }
+            return unit_height * percentage;
+        }
+        
+    protected:
+        int display_width = 0;
+        int display_height = 0;
+        
+        double unit_width = 0.0;
+        double unit_height = 0.0;
 
         std::map<int, widget *> instances;
 

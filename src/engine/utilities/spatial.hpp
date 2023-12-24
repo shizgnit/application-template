@@ -1,6 +1,34 @@
+/*
+================================================================================
+  Copyright (c) 2023, Pandemos
+  All rights reserved.
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are met:
+  * Redistributions of source code must retain the above copyright notice, this
+    list of conditions and the following disclaimer.
+  * Redistributions in binary form must reproduce the above copyright notice,
+    this list of conditions and the following disclaimer in the documentation
+    and/or other materials provided with the distribution.
+  * Neither the name of the organization nor the names of its contributors may
+    be used to endorse or promote products derived from this software without
+    specific prior written permission.
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+  DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
+  FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+  SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+  OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+================================================================================
+*/
+
 #pragma once
 
 /// GLM - Trying it out to potentially replace custom implementation
+#if defined _USE_GLM
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
 #include <glm/mat4x4.hpp>
@@ -9,11 +37,16 @@
 #include <glm/ext/scalar_constants.hpp>
 #include <glm/gtx/intersect.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#endif
 
 namespace spatial {
 
-    inline float radians(float angle) {
-        return angle * (float)M_PI / 180.0f;
+    inline double radians(double angle) {
+        return angle * (double)M_PI / 180.0f;
+    }
+
+    inline double angles(double rads) {
+        return rads * 180.0f / (double)M_PI;
     }
 
     class matrix;
@@ -46,6 +79,7 @@ namespace spatial {
         virtual vector operator % (const vector& operand) const;
 
         virtual bool operator == (const vector& operand) const;
+        virtual bool operator != (const vector& operand) const;
 
         vector& cross(const vector& operand) {
             return(*this %= operand);
@@ -76,8 +110,10 @@ namespace spatial {
 
         bool encompassed_xz(const vector& v0, const vector& v1, const vector& v2) const;
 
+#if defined _USE_GLM
         operator glm::vec3() const;
-
+#endif
+        
         virtual bool hasValue() const {
             return (x == 0 && y == 0 && z == 0 && w == 1) == false;
         }
@@ -87,11 +123,15 @@ namespace spatial {
             ss << "{" << x << "," << y << "," << z << "," << w << "}";
             return ss.str();
         }
-
+        
         vector lerp(const vector& to, const type_t t);
         vector slerp(const vector& to, const type_t t);
-
+        
     public:
+
+#if defined _VECTOR_PADDING
+        float padding[_VECTOR_PADDING];
+#endif
 
         union {
             struct {
@@ -185,8 +225,24 @@ namespace spatial {
             ss << "}";
             return ss.str();
         }
+        
+        operator bool() const {
+            spatial::matrix ident;
+            type_t *ref = ident.r[0];
+            type_t *ptr = r[0];
+            for(int i=0; i<16; i++) {
+                if(ref[i] != ptr[i]) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
 
     private:
+#if defined _MATRIX_PADDING
+        float padding[_MATRIX_PADDING];
+#endif
         matrix_t r;
 
     public:
@@ -209,9 +265,9 @@ namespace spatial {
         geometry interpolate(const geometry& g) const;
 
         matrix& rotate(const vector& axis, type_t rad);
-        matrix& rotate_x(type_t angle);
-        matrix& rotate_y(type_t angle);
-        matrix& rotate_z(type_t angle);
+        matrix& rotate_x(type_t rad);
+        matrix& rotate_y(type_t rad);
+        matrix& rotate_z(type_t rad);
 
         matrix& position(const vector& v);
         matrix& position(const type_t& x, const type_t& y, const type_t& z, const type_t& w = 1.0f);
@@ -226,6 +282,7 @@ namespace spatial {
         matrix& lookat(const vector& eye, const vector& focus, const vector& up);
 
         matrix& invert();
+        matrix& pivot();
 
         matrix& set(int row, int col, type_t value);
     };
@@ -245,7 +302,7 @@ namespace spatial {
 
         operator matrix();
 
-        quaternion& translate(const vector& eye, const vector& center, const vector& up);
+        quaternion& translate(const vector& eye, const vector& focus, const vector& up);
         quaternion& euler(const type_t& x, const type_t& y, const type_t& z, const type_t& degrees);
 
         quaternion operator *(const quaternion& operand);
@@ -260,7 +317,7 @@ namespace spatial {
     ///      ^
     ///      |
     ///      |
-    ///  eye . ---> focus (lookat -z)
+    ///   eye . ---> focus (lookat -z)
     /// 
     /// </summary>
     class position {
@@ -273,7 +330,6 @@ namespace spatial {
         position(const spatial::vector& pos);
 
         operator matrix();
-        spatial::matrix scale(type_t value=0.0f);
 
         void identity(void);
 
@@ -283,15 +339,25 @@ namespace spatial {
         position& sway(type_t t);
         position& heave(type_t t);
 
-        position& pitch(type_t angle);
-        position& yaw(type_t angle);
-        position& roll(type_t angle);
-        position& spin(type_t angle);
+        position& scale(type_t value=0.0f, bool apply=true);
+
+        position& pitch(type_t angle, bool apply=true);
+        position& yaw(type_t angle, bool apply=true);
+        position& roll(type_t angle, bool apply=true);
+        position& spin(type_t angle, bool apply=true);
+
+        position& rotate_x(type_t angle);
+        position& rotate_y(type_t angle);
+        position& rotate_z(type_t angle);
 
         void project(const vector& offset, const vector& projection);
 
+        position& orientation(const position& reference);
         position& reposition(const vector& offset);
+        position& move(const vector& offset);
         position& lookat(const vector& offset);
+        position& rotate(const position& axis);
+        position& opacity(float a);
 
         void constrain(bool x, bool y, bool z);
 
@@ -303,9 +369,9 @@ namespace spatial {
         vector down();
         vector tanget();
 
+        position& operator=(const position& ref);
+        
     public:
-        bool view;
-
         struct {
             bool x = false;
             bool y = false;
@@ -318,6 +384,7 @@ namespace spatial {
             type_t roll = 0.0f;
             type_t spin = 0.0f;
             type_t scale = 1.0f;
+            bool active = false;
         } translation;
 
         vector eye;
@@ -327,9 +394,26 @@ namespace spatial {
         void apply(const position& reference);
 
         double rate = 1.0f;
+        double alpha = 1.0f;
 
+        bool modified() {
+            return dirty;
+        }
+
+        spatial::matrix& serialize();
+        
     protected:
+        bool view = false;
+        bool dirty = true;
+        
+        spatial::matrix state;
+        
         position& rotate();
+        
+        position& modify() {
+            dirty = true;
+            return *this;
+        }
     };
 
     class store {
@@ -431,7 +515,7 @@ namespace spatial {
     class ray : public geometry {
     public:
         ray() : geometry() {}
-        ray(const vector& origin, const vector& terminus);
+        ray(const vector& point, const vector& normal);
 
         ray(const vector& point, const matrix& perspective, const matrix& view, const int& w, const int& h);
 
@@ -451,6 +535,8 @@ namespace spatial {
         vector intersection(const geometry& t);
         vector intersection(const triangle& t);
         vector intersection(const plane& t);
+
+        void extend(const type_t& d);
     };
 
 }
