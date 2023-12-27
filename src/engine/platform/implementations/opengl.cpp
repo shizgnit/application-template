@@ -213,6 +213,16 @@ void implementation::opengl::graphics::dimensions(int width, int height, float f
     compile(picking);
     pixels.resize(display_width * display_height * 4, 0);
     fbos[picking.instance].init(picking, this, false, pixels.data());
+    
+    // Setup the back buffer
+    fbos[back.instance].deinit();
+    back = spatial::quad(display_width, display_height);
+    back.texture.color = &assets->get<type::image>("back");
+    back.texture.color->create(display_width, display_height, 0, 0, 0, 0);
+    back.xy_projection(0, 0, display_width, display_height, false, true);
+    compile(back);
+    pixels.resize(display_width * display_height * 4, 0);
+    fbos[back.instance].init(back, this, false, pixels.data());
 }
 
 void implementation::opengl::graphics::init(void) {

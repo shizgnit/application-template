@@ -129,6 +129,7 @@ namespace platform {
         type::object blur;
         type::object picking;
         type::object render;
+        type::object back;
         
         spatial::matrix ortho;
         spatial::matrix perspective;
