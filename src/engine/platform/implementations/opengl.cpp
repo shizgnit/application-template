@@ -122,10 +122,10 @@ void implementation::opengl::fbo::disable() {
     if (collect != NULL) {
         auto now = std::chrono::system_clock::now().time_since_epoch();
         auto delta = std::chrono::duration<double>(now - timestamp).count();
-        if (delta >= parent->latency) {
+        //if (delta >= parent->latency) {
             GL_TEST(glReadPixels(0, 0, target->texture.color->properties.width, target->texture.color->properties.height, GL_RGBA, GL_UNSIGNED_BYTE, collect));
             timestamp = std::chrono::system_clock::now().time_since_epoch();
-        }
+        //}
 #ifdef __PLATFORM_SUPPORTS_PBO
         if(pbo) {
             GL_TEST(glGenBuffers(w * h * 4, &pbo));
@@ -176,53 +176,63 @@ void implementation::opengl::graphics::dimensions(int width, int height, float f
     perspective = spatial::matrix().perspective(fov, (float)display_width / (float)display_height, 0.0f, 10.0f);
 
     // Setup the scene depth buffer
-    fbos[depth.instance].deinit();
-    depth = spatial::quad(display_width, display_height);
-    depth.texture.color = &assets->get<type::image>("depth");
-    depth.texture.color->create(display_width, display_height, 0, 0, 0, 0);
-    //depth.texture.depth = true;
-    depth.xy_projection(0, 0, display_width, display_height, false, true);
-    compile(depth);
-    fbos[depth.instance].init(depth, this);
+    if (fbos[depth.instance].initialized(display_width, display_height) == false) {
+        fbos[depth.instance].deinit();
+        depth = spatial::quad(display_width, display_height);
+        depth.texture.color = &assets->get<type::image>("depth");
+        depth.texture.color->create(display_width, display_height, 0, 0, 0, 0);
+        //depth.texture.depth = true;
+        depth.xy_projection(0, 0, display_width, display_height, false, true);
+        compile(depth);
+        fbos[depth.instance].init(depth, this);
+    }
 
     // Setup the render buffer
-    fbos[color.instance].deinit();
-    release(color);
-    color = spatial::quad(display_width, display_height);
-    color.texture.color = &assets->get<type::image>("color");
-    color.texture.color->create(display_width, display_height, 0, 0, 0, 0);
-    color.xy_projection(0, 0, display_width, display_height, false, true);
-    compile(color);
-    fbos[color.instance].init(color, this);
+    if (fbos[color.instance].initialized(display_width, display_height) == false) {
+        fbos[color.instance].deinit();
+        release(color);
+        color = spatial::quad(display_width, display_height);
+        color.texture.color = &assets->get<type::image>("color");
+        color.texture.color->create(display_width, display_height, 0, 0, 0, 0);
+        color.xy_projection(0, 0, display_width, display_height, false, true);
+        compile(color);
+        fbos[color.instance].init(color, this);
+    }
 
     // Setup the post process blur buffer
-    fbos[blur.instance].deinit();
-    blur = spatial::quad(display_width * scale, display_height * scale);
-    blur.texture.color = &assets->get<type::image>("blur");
-    blur.texture.color->create(display_width * scale, display_height * scale, 0, 0, 0, 0);
-    blur.xy_projection(0, 0, display_width * scale, display_height * scale, false, true);
-    compile(blur);
-    fbos[blur.instance].init(blur, this);
+    if (fbos[blur.instance].initialized(display_width * scale, display_height * scale) == false) {
+        fbos[blur.instance].deinit();
+        blur = spatial::quad(display_width * scale, display_height * scale);
+        blur.texture.color = &assets->get<type::image>("blur");
+        blur.texture.color->create(display_width * scale, display_height * scale, 0, 0, 0, 0);
+        blur.xy_projection(0, 0, display_width * scale, display_height * scale, false, true);
+        compile(blur);
+        fbos[blur.instance].init(blur, this);
+    }
 
     // Setup the picking buffer
-    fbos[picking.instance].deinit();
-    picking = spatial::quad(display_width, display_height);
-    picking.texture.color = &assets->get<type::image>("picking");
-    picking.texture.color->create(display_width, display_height, 0, 0, 0, 0);
-    picking.xy_projection(0, 0, display_width, display_height, false, true);
-    compile(picking);
-    pixels.resize(display_width * display_height * 4, 0);
-    fbos[picking.instance].init(picking, this, false, pixels.data());
+    if (fbos[picking.instance].initialized(display_width, display_height) == false) {
+        fbos[picking.instance].deinit();
+        picking = spatial::quad(display_width, display_height);
+        picking.texture.color = &assets->get<type::image>("picking");
+        picking.texture.color->create(display_width, display_height, 0, 0, 0, 0);
+        picking.xy_projection(0, 0, display_width, display_height, false, true);
+        compile(picking);
+        pixels.resize(display_width * display_height * 4, 0);
+        fbos[picking.instance].init(picking, this, false, pixels.data());
+    }
     
     // Setup the back buffer
-    fbos[back.instance].deinit();
-    back = spatial::quad(display_width, display_height);
-    back.texture.color = &assets->get<type::image>("back");
-    back.texture.color->create(display_width, display_height, 0, 0, 0, 0);
-    back.xy_projection(0, 0, display_width, display_height, false, true);
-    compile(back);
-    pixels.resize(display_width * display_height * 4, 0);
-    fbos[back.instance].init(back, this, false, pixels.data());
+    if (fbos[back.instance].initialized(display_width, display_height) == false) {
+        fbos[back.instance].deinit();
+        back = spatial::quad(display_width, display_height);
+        back.texture.color = &assets->get<type::image>("back");
+        back.texture.color->create(display_width, display_height, 0, 0, 0, 0);
+        back.xy_projection(0, 0, display_width, display_height, false, true);
+        compile(back);
+        pixels.resize(display_width * display_height * 4, 0);
+        fbos[back.instance].init(back, this, false, pixels.data());
+    }
 }
 
 void implementation::opengl::graphics::init(void) {
@@ -290,7 +300,7 @@ void implementation::opengl::graphics::init(void) {
 }
 
 void implementation::opengl::graphics::clear(void) {
-    GL_TEST(glClearColor(0.0f, 0.0f, 0.0f, 1.0f));
+    GL_TEST(glClearColor(0.0f, 0.0f, 0.0f, 0.0f));
     GL_TEST(glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT));
 }
 
