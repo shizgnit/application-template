@@ -154,6 +154,7 @@
 #include <list>
 #include <mutex>
 #include <map>
+#include <set>
 #include <memory>
 #include <iostream>
 #include <sstream>

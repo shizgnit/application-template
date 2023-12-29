@@ -63,15 +63,15 @@ namespace type {
             return interpolated;
         }
 
-        void uv_projection() {
+        void uv_projection(bool wrap=true, bool spherical=false) {
             auto top = max();
             auto bottom = min();
             for (auto& vertex : vertices) {
-                if (vertex.normal.z > 0.1) {
-                    vertex.texture.z = (vertex.coordinate.x - bottom.x) / (top.x - bottom.x);
-                }
-                else if (vertex.normal.z < -0.1) {
+                if (vertex.normal.z < -0.1) {
                     vertex.texture.z = 1.0 - (vertex.coordinate.x - bottom.x) / (top.x - bottom.x);
+                }
+                else if (vertex.normal.z > 0.1) {
+                    vertex.texture.z = (vertex.coordinate.x - bottom.x) / (top.x - bottom.x);
                 }
                 else if (vertex.normal.x > 0.1) {
                     vertex.texture.z = 1.0 - (vertex.coordinate.z - bottom.z) / (top.z - bottom.z);
