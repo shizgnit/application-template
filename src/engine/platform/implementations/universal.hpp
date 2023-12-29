@@ -80,6 +80,8 @@ namespace implementation {
 
             void print(int x, int y, const std::string& text);
 
+            spatial::vector placement();
+            
         protected:
             void draw(widget& instance);
             void position(widget& instance);

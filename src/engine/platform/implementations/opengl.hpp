@@ -134,6 +134,16 @@ namespace implementation {
             bool deinit();
             bool init(type::object& object, platform::graphics *ref, bool depth = false, unsigned char *collector=NULL);
 
+            bool initialized(int width, int height) {
+                if (target == NULL) {
+                    return false;
+                }
+                if (target->width() != width || target->height() != height) {
+                    return false;
+                }
+                return true;
+            }
+
             void enable(bool clear = false);
             void disable();
 
