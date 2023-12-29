@@ -397,6 +397,18 @@ void implementation::universal::interface::print(int x, int y, const std::string
     graphics->draw(text, font, shader, projection, spatial::matrix(), position);
 }
 
+spatial::vector implementation::universal::interface::placement() {
+    graphics->scale() + config.x;
+    return { 0.0, 0.0, 0.0, 0.0 };
+}
+
+void implementation::universal::interface::position(widget& instance) {
+    spatial::matrix position;
+    //position.translate(instance.x, (graphics->height() - instance.background.height()) - instance.y, 0);
+    position.translate(instance.x, instance.y, 0);
+    instance.bounds = position.interpolate(spatial::quad(instance.background.vertices));
+}
+
 void implementation::universal::interface::draw(widget& instance) {
     if (instance.visible == false) {
         return;
@@ -457,13 +469,6 @@ void implementation::universal::interface::draw(widget& instance) {
     }
 
     graphics->noclip();
-}
-
-void implementation::universal::interface::position(widget& instance) {
-    spatial::matrix position;
-    //position.translate(instance.x, (graphics->height() - instance.background.height()) - instance.y, 0);
-    position.translate(instance.x, instance.y, 0);
-    instance.bounds = position.interpolate(spatial::quad(instance.background.vertices));
 }
 
 std::string implementation::universal::assets::load(platform::assets* instance, const std::string& type, const std::string& resource, const std::string& id) {

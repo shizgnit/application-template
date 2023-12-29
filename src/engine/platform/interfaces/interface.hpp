@@ -219,9 +219,12 @@ namespace platform {
         virtual void emit() = 0;
 
         virtual void dimensions(int width, int height) = 0;
-        virtual float scale() {
-            //return display_height / 1440.0;
-            return display_height / 1440.0;
+        virtual float scale(float baseline=1440.0) {
+            static float _baseline = baseline;
+            if(_baseline != baseline) {
+                _baseline = baseline;
+            }
+            return display_height / _baseline;
         }
         
         virtual widget* reposition(std::vector<widget*>& c) = 0;
@@ -266,6 +269,13 @@ namespace platform {
                 }
             }
         }
+        
+        virtual void spec(type::object &ref, int margin=0) {
+            config.spec = widget::spec::none;
+            config.w = ref.width();
+            config.h = ref.height();
+            config.margin = margin;
+        }
 
         virtual void spec(widget::spec spec, int w, int h, int margin) {
             config.spec = spec;
@@ -300,9 +310,34 @@ namespace platform {
         virtual void position(widget& instance) = 0;
         virtual void draw(widget& instance) = 0;
 
+        virtual spatial::vector placement() = 0;
+        
+        int width() {
+            return display_width;
+        }
+        int height() {
+            return display_height;
+        }
+      
+        double relative_width(double percentage) {
+            if(unit_width == 0.0) {
+                unit_width = display_width / 100.0;
+            }
+            return unit_width * percentage;
+        }
+        double relative_height(double percentage) {
+            if(unit_height == 0.0) {
+                unit_height = display_height / 100.0;
+            }
+            return unit_height * percentage;
+        }
+        
     protected:
         int display_width = 0;
         int display_height = 0;
+        
+        double unit_width = 0.0;
+        double unit_height = 0.0;
 
         std::map<int, widget *> instances;
 
