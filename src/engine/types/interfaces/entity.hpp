@@ -40,7 +40,8 @@ namespace type {
             VIRTUAL  = 0X00000004,
             ALPHA    = 0x00000008,
             UV       = 0x00000010,
-            OFFSET   = 0x00000020
+            OFFSET   = 0x00000020,
+            ACTIVE   = 0x00000040
         };
 
         typedef long instance_t;
