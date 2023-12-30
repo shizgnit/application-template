@@ -243,7 +243,23 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
    auto assetPath = filesystem->dirname(executablePath) + "\\..\\..\\assets";
    assets->init((void *)assetPath.c_str());
-   assets->set("shader.path", std::string("shaders-win11arm"));
+
+   SYSTEM_INFO systemInfo;
+   GetSystemInfo(&systemInfo);
+
+   switch (systemInfo.wProcessorArchitecture) {
+   case PROCESSOR_ARCHITECTURE_ARM:
+   case PROCESSOR_ARCHITECTURE_ARM64:
+       assets->set("shader.path", std::string("shaders-win11arm"));
+       break;
+   case PROCESSOR_ARCHITECTURE_AMD64:
+   case PROCESSOR_ARCHITECTURE_INTEL:
+       assets->set("shader.path", std::string("shaders-win11x86"));
+       break;
+   default:
+       break;
+   }
+
 
    instance->dimensions(width, height)->on_startup();
 
