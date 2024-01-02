@@ -298,7 +298,7 @@ static int engine_init_display(struct engine* engine) {
 	filesystem->appdata("/sdcard");
 
 	assets->init(engine->app->activity->assetManager);
-	assets->set("shader.path", std::string("shaders-gles320"));
+	assets->set("shader.path", std::string("shaders-android"));
 
 	instance->dimensions(w, h);
 	instance->on_resize();
