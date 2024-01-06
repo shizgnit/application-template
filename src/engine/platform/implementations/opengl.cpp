@@ -698,7 +698,7 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
     }
 
     GL_TEST(glUseProgram(shader.resource->context));
-
+    
     if (object.texture.color && object.texture.color->resource && object.texture.color->resource->context) {
         GL_TEST(glActiveTexture(GL_TEXTURE0));
         GL_TEST(glBindTexture(GL_TEXTURE_2D, object.texture.color->resource->context));
