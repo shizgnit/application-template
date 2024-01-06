@@ -176,7 +176,7 @@ void implementation::opengl::graphics::dimensions(int width, int height, float f
     perspective = spatial::matrix().perspective(fov, (float)display_width / (float)display_height, 0.0f, 10.0f);
 
     // Setup the scene depth buffer
-    if (1 || fbos[depth.instance].initialized(display_width, display_height) == false) {
+    if (fbos[depth.instance].initialized(display_width, display_height) == false) {
         fbos[depth.instance].deinit();
         depth = spatial::quad(display_width, display_height);
         depth.texture.color = &assets->get<type::image>("depth");
@@ -188,7 +188,7 @@ void implementation::opengl::graphics::dimensions(int width, int height, float f
     }
 
     // Setup the render buffer
-    if (1 || fbos[color.instance].initialized(display_width, display_height) == false) {
+    if (fbos[color.instance].initialized(display_width, display_height) == false) {
         fbos[color.instance].deinit();
         release(color);
         color = spatial::quad(display_width, display_height);
@@ -200,7 +200,7 @@ void implementation::opengl::graphics::dimensions(int width, int height, float f
     }
 
     // Setup the post process blur buffer
-    if (1 || fbos[blur.instance].initialized(display_width * scale, display_height * scale) == false) {
+    if (fbos[blur.instance].initialized(display_width * scale, display_height * scale) == false) {
         fbos[blur.instance].deinit();
         blur = spatial::quad(display_width * scale, display_height * scale);
         blur.texture.color = &assets->get<type::image>("blur");
@@ -211,7 +211,7 @@ void implementation::opengl::graphics::dimensions(int width, int height, float f
     }
 
     // Setup the picking buffer
-    if (1 || fbos[picking.instance].initialized(display_width, display_height) == false) {
+    if (fbos[picking.instance].initialized(display_width, display_height) == false) {
         fbos[picking.instance].deinit();
         picking = spatial::quad(display_width, display_height);
         picking.texture.color = &assets->get<type::image>("picking");
@@ -223,7 +223,7 @@ void implementation::opengl::graphics::dimensions(int width, int height, float f
     }
     
     // Setup the back buffer
-    if (1 || fbos[back.instance].initialized(display_width, display_height) == false) {
+    if (fbos[back.instance].initialized(display_width, display_height) == false) {
         fbos[back.instance].deinit();
         back = spatial::quad(display_width, display_height);
         back.texture.color = &assets->get<type::image>("back");

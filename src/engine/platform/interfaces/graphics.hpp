@@ -122,15 +122,17 @@ namespace platform {
 
         type::object ray;
 
-        // Render buffers
+        // FBO render buffers
         type::object shadow;
         type::object color;
         type::object depth;
         type::object blur;
         type::object picking;
-        type::object render;
         type::object back;
         
+        // Color render buffer
+        type::object render;
+
         spatial::matrix ortho;
         spatial::matrix perspective;
 
