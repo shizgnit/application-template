@@ -48,7 +48,7 @@
 - (void) resize:(CGRect *)rect {
     if(instance == nil) {
         assets->init();
-        assets->set("shader.path", std::string("shaders-gl"));
+        assets->set("shader.path", std::string("shaders-apple"));
         assets->set("shader.version", std::string("#version 300 es"));
         
         instance = new app();

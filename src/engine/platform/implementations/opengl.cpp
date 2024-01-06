@@ -681,10 +681,6 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
     
     std::lock_guard<std::mutex> scoped(lockgl);
     
-    if(shader.compiled() == false) {
-        compile(shader);
-    }
-    
     // Look for the first object with vertices, just at the top level for now
     if (object.visible == false) {
         return;
@@ -763,7 +759,8 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
     frame.vertices += object.vertices.size();
 
     GL_TEST(glBindVertexArray(0));
-
+    GL_TEST(glUseProgram(0));
+    
     // Primary object has been drawn, draw out the normals if requested.  Mostly for debugging.
     if (options & render::NORMALS) {
         for (auto vertex : object.vertices) {

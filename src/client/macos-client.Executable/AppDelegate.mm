@@ -41,7 +41,7 @@
     CGFloat scale = main.backingScaleFactor;
     if(instance == nil) {
         assets->init();
-        assets->set("shader.path", std::string("shaders-gl"));
+        assets->set("shader.path", std::string("shaders-apple"));
         assets->set("shader.version", std::string("#version 410 core"));
         
         instance = new app();
