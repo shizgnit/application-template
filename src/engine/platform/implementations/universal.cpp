@@ -391,8 +391,8 @@ platform::interface::widget* implementation::universal::interface::create(widget
 void implementation::universal::interface::print(int x, int y, const std::string& text) {
     spatial::matrix position;
     position.identity();
-    position.scale(1.0f);
-    position.translate(x, (graphics->height() - font.height()) - y, 0);
+    position.translate(x, (graphics->height() - (font.height() * gui->scale())) - y, 0);
+    position.scale(gui->scale());
 
     graphics->draw(text, font, shader, projection, spatial::matrix(), position);
 }
