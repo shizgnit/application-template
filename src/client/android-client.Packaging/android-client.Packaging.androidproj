@@ -142,6 +142,7 @@
     <Content Include="assets\drawable\marvin.png" />
     <Content Include="assets\drawable\rotate-left.png" />
     <Content Include="assets\drawable\rotate-right.png" />
+    <Content Include="assets\drawable\sample.png" />
     <Content Include="assets\drawable\save.png" />
     <Content Include="assets\drawable\scale-down.png" />
     <Content Include="assets\drawable\scale-up.png" />

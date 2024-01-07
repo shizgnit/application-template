@@ -58,6 +58,9 @@ Android
     adb connect 192.168.0.177:5556
     adb devices
 
+    cd "C:\Projects\private\framework\src\client\android-client.Packaging\ARM64\Debug\"
+    adb install <app>.apk
+
 Gitflow
 
     Standard workflow
