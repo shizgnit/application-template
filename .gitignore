@@ -6,3 +6,6 @@ packages/
 src/client/android-client.Packaging/assets
 src/client/ios-client.Application/assets
 
+src/client/android-client.NativeActivity/ARM64
+src/client/android-client.Packaging/ARM64
+src/client/windows-client.Executable/x64
