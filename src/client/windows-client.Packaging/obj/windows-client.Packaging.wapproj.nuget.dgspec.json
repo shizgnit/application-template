@@ -1,0 +1,118 @@
+{
+  "format": 1,
+  "restore": {
+    "C:\\Projects\\private\\framework\\src\\client\\windows-client.Packaging\\windows-client.Packaging.wapproj": {}
+  },
+  "projects": {
+    "C:\\Projects\\private\\framework\\src\\client\\windows-client.Executable\\windows-client.Executable.vcxproj": {
+      "restore": {
+        "projectUniqueName": "C:\\Projects\\private\\framework\\src\\client\\windows-client.Executable\\windows-client.Executable.vcxproj",
+        "projectName": "windows-client.Executable",
+        "projectPath": "C:\\Projects\\private\\framework\\src\\client\\windows-client.Executable\\windows-client.Executable.vcxproj",
+        "frameworks": {
+          "native": {
+            "projectReferences": {}
+          }
+        }
+      },
+      "frameworks": {
+        "native": {}
+      }
+    },
+    "C:\\Projects\\private\\framework\\src\\client\\windows-client.Packaging\\windows-client.Packaging.wapproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\Projects\\private\\framework\\src\\client\\windows-client.Packaging\\windows-client.Packaging.wapproj",
+        "projectName": "windows-client.Packaging",
+        "projectPath": "C:\\Projects\\private\\framework\\src\\client\\windows-client.Packaging\\windows-client.Packaging.wapproj",
+        "packagesPath": "C:\\Users\\coden\\.nuget\\packages\\",
+        "outputPath": "C:\\Projects\\private\\framework\\src\\client\\windows-client.Packaging\\obj\\",
+        "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
+        "configFilePaths": [
+          "C:\\Users\\coden\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net451"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "uap10.0.17763": {
+            "targetAlias": "net451",
+            "projectReferences": {
+              "C:\\Projects\\private\\framework\\src\\client\\windows-client.Executable\\windows-client.Executable.vcxproj": {
+                "projectPath": "C:\\Projects\\private\\framework\\src\\client\\windows-client.Executable\\windows-client.Executable.vcxproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "noWarn": [
+            "NU1702"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        }
+      },
+      "frameworks": {
+        "uap10.0.17763": {
+          "targetAlias": "net451",
+          "dependencies": {
+            "Microsoft.Windows.SDK.BuildTools": {
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[10.0.22621.756, )"
+            }
+          },
+          "imports": [
+            "netcoreapp3.1",
+            "netcoreapp3.0",
+            "netcoreapp2.0",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net8.0-windows10.0.22621",
+            "net461"
+          ],
+          "assetTargetFallback": true,
+          "warn": true
+        }
+      },
+      "runtimes": {
+        "win10-arm": {
+          "#import": []
+        },
+        "win10-arm-aot": {
+          "#import": []
+        },
+        "win10-arm64-aot": {
+          "#import": []
+        },
+        "win10-x64": {
+          "#import": []
+        },
+        "win10-x64-aot": {
+          "#import": []
+        },
+        "win10-x86": {
+          "#import": []
+        },
+        "win10-x86-aot": {
+          "#import": []
+        }
+      }
+    }
+  }
+}
