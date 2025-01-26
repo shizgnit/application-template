@@ -9,6 +9,7 @@
         "projectUniqueName": "C:\\Projects\\private\\framework\\src\\client\\windows-client.Executable\\windows-client.Executable.vcxproj",
         "projectName": "windows-client.Executable",
         "projectPath": "C:\\Projects\\private\\framework\\src\\client\\windows-client.Executable\\windows-client.Executable.vcxproj",
+        "UsingMicrosoftNETSdk": false,
         "frameworks": {
           "native": {
             "projectReferences": {}
@@ -28,6 +29,7 @@
         "packagesPath": "C:\\Users\\coden\\.nuget\\packages\\",
         "outputPath": "C:\\Projects\\private\\framework\\src\\client\\windows-client.Packaging\\obj\\",
         "projectStyle": "PackageReference",
+        "UsingMicrosoftNETSdk": false,
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
@@ -62,7 +64,8 @@
           "enableAudit": "true",
           "auditLevel": "low",
           "auditMode": "direct"
-        }
+        },
+        "SdkAnalysisLevel": "9.0.100"
       },
       "frameworks": {
         "uap10.0.17763": {
@@ -83,7 +86,8 @@
             "net471",
             "net472",
             "net48",
-            "net8.0-windows10.0.22621",
+            "net481",
+            "net9.0-windows10.0.22621",
             "net461"
           ],
           "assetTargetFallback": true,

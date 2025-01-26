@@ -677,18 +677,23 @@ bool implementation::opengl::graphics::compile(platform::assets* assets) {
 }
 
 void implementation::opengl::graphics::draw(type::object& object, type::program& shader, const spatial::matrix& projection, const spatial::matrix& view, const spatial::matrix& model, const spatial::matrix& lighting, unsigned int options) {
-    static std::mutex lockgl;
-    
-    std::lock_guard<std::mutex> scoped(lockgl);
-    
-    // Look for the first object with vertices, just at the top level for now
     if (object.visible == false) {
         return;
     }
+
+    if (object.children.size()) {
+        for (auto& child : object.children) {
+            draw(child, shader, projection, view, model, lighting, options);
+        }
+    }
+
     if (object.vertices.size() == 0) {
         return;
     }
 
+    static std::mutex lockgl;
+    std::lock_guard<std::mutex> scoped(lockgl);
+ 
     renderer.push_back(&shader);
     compile(object);
     renderer.pop_back();

@@ -58,6 +58,8 @@ namespace type {
 
         std::string _id;
 
+        size_t _line = 0;
+
         info& operator=(const info& ref) {
             _extensions = ref._extensions;
             _format = ref._format;
@@ -65,7 +67,9 @@ namespace type {
             _id = ref._id;
             
             resource = ref.resource;
-            
+           
+            _line = ref._line;
+
             return *this;
         }
         

@@ -104,6 +104,8 @@ namespace format {
 
             std::string line;
             while (std::getline(input, line)) {
+                instance._line += 1;
+
                 auto arguments = utilities::tokenize(utilities::rtrim(line), " ");
                 auto command = arguments[0];
 
@@ -161,24 +163,29 @@ namespace format {
 
                             auto points = utilities::tokenize(arguments[i], "/");
 
-                            int vi = (atoi(points[0].c_str()) - 1);
-                            int ti = (atoi(points[1].c_str()) - 1);
-                            int ni = (atoi(points[2].c_str()) - 1);
+                            if (coordinates.size()) {
+                                int vi = (atoi(points[0].c_str()) - 1) % coordinates.size();
+                                vertex.coordinate.x = coordinates[vi].x;
+                                vertex.coordinate.y = coordinates[vi].y;
+                                vertex.coordinate.z = coordinates[vi].z;
+                                vertex.coordinate.w = 1.0f;
+                            }
 
-                            vertex.coordinate.x = coordinates[vi].x;
-                            vertex.coordinate.y = coordinates[vi].y;
-                            vertex.coordinate.z = coordinates[vi].z;
-                            vertex.coordinate.w = 1.0f;
+                            if (textures.size()) {
+                                int ti = (atoi(points[1].c_str()) - 1) % textures.size();
+                                vertex.texture.x = textures[ti].x;
+                                vertex.texture.y = 1.0f - textures[ti].y;
+                                vertex.texture.z = 0.0f;
+                                vertex.texture.w = 0.0f;
+                            }
 
-                            vertex.texture.x = textures[ti].x;
-                            vertex.texture.y = 1.0f - textures[ti].y;
-                            vertex.texture.z = 0.0f;
-                            vertex.texture.w = 0.0f;
-
-                            vertex.normal.x = normals[ni].x;
-                            vertex.normal.y = normals[ni].y;
-                            vertex.normal.z = normals[ni].z;
-                            vertex.normal.w = 0.0f;
+                            if (normals.size()) {
+                                int ni = (atoi(points[2].c_str()) - 1) % normals.size();
+                                vertex.normal.x = normals[ni].x;
+                                vertex.normal.y = normals[ni].y;
+                                vertex.normal.z = normals[ni].z;
+                                vertex.normal.w = 0.0f;
+                            }
 
                             vertices.push_back(vertex);
                         }

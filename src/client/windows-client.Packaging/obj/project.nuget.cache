@@ -1,10 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "2qHAe9OZhFA7kh6iOHjqFjwnigHwDVuNu+Thl9KH2X5fyNstkCH5tSnk5/NhdkgViuzRbhzGj4BTZu5G2lrqoQ==",
+  "dgSpecHash": "E6nL/fJPrVQ=",
   "success": true,
   "projectFilePath": "C:\\Projects\\private\\framework\\src\\client\\windows-client.Packaging\\windows-client.Packaging.wapproj",
   "expectedPackageFiles": [
-    "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages\\microsoft.windows.sdk.buildtools\\10.0.22621.756\\microsoft.windows.sdk.buildtools.10.0.22621.756.nupkg.sha512"
+    "C:\\Users\\coden\\.nuget\\packages\\microsoft.windows.sdk.buildtools\\10.0.22621.756\\microsoft.windows.sdk.buildtools.10.0.22621.756.nupkg.sha512"
   ],
   "logs": []
 }

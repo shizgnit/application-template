@@ -228,16 +228,31 @@ namespace type {
         }
 
         friend type::object& operator >> (type::object& input, type::object& instance) {
-            // Only copy over a single object
-            if (input.vertices.size()) {
-                instance = input;
+            // Adding another object so pivot the current to a child
+            if (instance.vertices.size() && instance.children.size() == 0) {
+                instance.children.push_back(instance);
+                instance.vertices.clear();
             }
-            else {
-                for (auto child : input.children) {
-                    instance = child;
-                    break;
+
+            // Copy over the input to either the instance or its children
+            if (input.vertices.size()) {
+                if (instance.children.size() == 0) {
+                    instance = input;
+                }
+                else {
+                    instance.children.push_back(input);
                 }
             }
+            else if (input.children.size() == 1 && instance.children.size() == 0) {
+                instance = input.children.at(0);
+            }
+            else {
+                for (auto &child : input.children) {
+                    instance.children.push_back(child);
+                }
+            }
+             
+
             return instance;
         }
 

@@ -70,6 +70,8 @@ namespace format {
 
             std::string line;
             while (std::getline(input, line)) {
+                instance._line += 1;
+
                 auto arguments = utilities::tokenize(utilities::rtrim(line), " ");
                 auto command = arguments[0];
 
