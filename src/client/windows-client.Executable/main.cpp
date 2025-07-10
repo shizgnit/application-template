@@ -260,6 +260,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
        break;
    }
 
+   //assets->set("shader.path", std::string("shaders-apple"));
 
    instance->dimensions(width, height)->on_startup();
 
