@@ -287,6 +287,3 @@ inline platform::interface* gui = new implementation::universal::interface();
 inline stage::scene* scene = &stage::scene::global();
 inline stage::grid* grid = &stage::scene::global().map;
 
-#include "utilities/test.hpp"
-inline utilities::test* tests = &utilities::test::singleton();
-

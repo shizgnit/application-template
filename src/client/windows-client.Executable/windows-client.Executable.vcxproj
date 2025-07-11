@@ -102,7 +102,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>__WINDOWS__;WIN32;_CRT_SECURE_NO_WARNINGS;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)$(TargetBuildApplication);$(ProjectDir)..\..\..\src\engine;$(ProjectDir)..\..\..\deps;$(ProjectDir)..\..\..\deps\glm;$(SolutionDir)packages\OpenAL.Soft.1.19.1\sources;$(SolutionDir)packages\zlib_native.1.2.11\build\native\include;$(SolutionDir)packages\GLEW-static.2.1.0.3\build\native\include\;%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)$(TargetBuildApplication);$(ProjectDir)..\..\..\src\engine;$(ProjectDir)..\..\..\deps;$(ProjectDir)..\..\..\deps\glm;$(ProjectDir)..\..\..\deps\googletest\googletest;$(ProjectDir)..\..\..\deps\googletest\googletest\include;$(SolutionDir)packages\OpenAL.Soft.1.19.1\sources;$(SolutionDir)packages\zlib_native.1.2.11\build\native\include;$(SolutionDir)packages\GLEW-static.2.1.0.3\build\native\include\;%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
@@ -124,7 +124,7 @@ copy $(SolutionDir)packages\OpenAL.Soft.1.19.1\runtimes\win-x64\native\OpenAL32.
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>__WINDOWS__;WIN32;_CRT_SECURE_NO_WARNINGS;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)$(TargetBuildApplication);$(ProjectDir)..\..\..\src\engine;$(ProjectDir)..\..\..\deps;$(ProjectDir)..\..\..\deps\glm;$(SolutionDir)packages\OpenAL.Soft.1.19.1\sources;$(SolutionDir)packages\zlib_native.1.2.11\build\native\include;$(SolutionDir)packages\GLEW-static.2.1.0.3\build\native\include\;%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)$(TargetBuildApplication);$(ProjectDir)..\..\..\src\engine;$(ProjectDir)..\..\..\deps;$(ProjectDir)..\..\..\deps\glm;$(ProjectDir)..\..\..\deps\googletest\googletest;$(SolutionDir)packages\OpenAL.Soft.1.19.1\sources;$(SolutionDir)packages\zlib_native.1.2.11\build\native\include;$(SolutionDir)packages\GLEW-static.2.1.0.3\build\native\include\;%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
@@ -149,7 +149,7 @@ copy $(SolutionDir)packages\OpenAL.Soft.1.19.1\runtimes\win-x64\native\OpenAL32.
       <PreprocessorDefinitions>__WINDOWS__;WIN32;_CRT_SECURE_NO_WARNINGS;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)$(TargetBuildApplication);$(ProjectDir)..\..\..\src\engine;$(ProjectDir)..\..\..\deps;$(ProjectDir)..\..\..\deps\glm;$(SolutionDir)packages\OpenAL.Soft.1.19.1\sources;$(SolutionDir)packages\zlib_native.1.2.11\build\native\include;%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)$(TargetBuildApplication);$(ProjectDir)..\..\..\src\engine;$(ProjectDir)..\..\..\deps;$(ProjectDir)..\..\..\deps\glm;$(ProjectDir)..\..\..\deps\googletest\googletest;$(SolutionDir)packages\OpenAL.Soft.1.19.1\sources;$(SolutionDir)packages\zlib_native.1.2.11\build\native\include;%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -175,7 +175,7 @@ copy $(SolutionDir)packages\OpenAL.Soft.1.19.1\runtimes\win-x64\native\OpenAL32.
       <PreprocessorDefinitions>__WINDOWS__;WIN32;_CRT_SECURE_NO_WARNINGS;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)$(TargetBuildApplication);$(ProjectDir)..\..\..\src\engine;$(ProjectDir)..\..\..\deps;$(ProjectDir)..\..\..\deps\glm;$(SolutionDir)packages\OpenAL.Soft.1.19.1\sources;$(SolutionDir)packages\zlib_native.1.2.11\build\native\include;%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)$(TargetBuildApplication);$(ProjectDir)..\..\..\src\engine;$(ProjectDir)..\..\..\deps;$(ProjectDir)..\..\..\deps\glm;$(ProjectDir)..\..\..\deps\googletest\googletest;$(SolutionDir)packages\OpenAL.Soft.1.19.1\sources;$(SolutionDir)packages\zlib_native.1.2.11\build\native\include;%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

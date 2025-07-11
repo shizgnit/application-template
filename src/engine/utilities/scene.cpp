@@ -839,6 +839,7 @@ void _output_test_results(std::string entry, std::pair<bool, std::string> result
 }
 
 value_t stage::scene::_test(parameters_t p) {
+    /*
     if (p.size() >= 1) {
         auto command = std::get<std::string>(p[0]);
         if (command == "run") {
@@ -861,5 +862,6 @@ value_t stage::scene::_test(parameters_t p) {
     else {
         stage::scene::global().debug.content.add("/test <command> [group]");
     }
+    */
     return 0;
 }

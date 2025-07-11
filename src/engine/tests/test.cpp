@@ -27,26 +27,28 @@
 
 #include "engine.hpp"
 
-TEST(FilesystemTest, FilterFileType, []() {
-    EXPECT_EQ(filesystem->read_directory(tests->data(), "directory").size(), 1);
-    EXPECT_EQ(filesystem->read_directory(tests->data(), "regular").size(), 13);
-    EXPECT_EQ(filesystem->read_directory(tests->data(), "foobar").size(), 0);
-});
+#include <gtest/gtest.h>
 
-TEST(FilesystemTest, PresentWorkingDirectory, []() {
+TEST(FilesystemTest, FilterFileType) {
+    EXPECT_EQ(filesystem->read_directory("C:\\Projects\\private\\framework\\tests\\data\\filesystem\\directory").size(), 1);
+    EXPECT_EQ(filesystem->read_directory("C:\\Projects\\private\\framework\\tests\\data\\regular").size(), 13);
+    EXPECT_EQ(filesystem->read_directory("C:\\Projects\\private\\framework\\tests\\data\\foobar").size(), 0);
+}
+
+TEST(FilesystemTest, PresentWorkingDirectory) {
     auto pwd = filesystem->pwd();
     EXPECT_FALSE(pwd.empty());
-});
+}
 
-TEST(FilesystemTest, Exists, []() {
-    EXPECT_TRUE(filesystem->exists(tests->data("filesystem") + "foobar.txt"));
-});
+TEST(FilesystemTest, Exists) {
+    EXPECT_TRUE(filesystem->exists("C:\\Projects\\private\\framework\\tests\\data\\filesystem\\foobar.txt"));
+}
 
-TEST(FilesystemTest, Manipulation, []() {
-    auto testfile_source = tests->data("filesystem") + "foobar.txt";
+TEST(FilesystemTest, Manipulation) {
+    auto testfile_source = "C:\\Projects\\private\\framework\\tests\\data\\filesystem\\foobar.txt";
 
-    auto testfile_copy = tests->data("filesystem") + "foobar-copy-" + utilities::uuid() + ".txt";
-    auto testfile_move = tests->data("filesystem") + "foobar-move-" + utilities::uuid() + ".txt";
+    auto testfile_copy = "C:\\Projects\\private\\framework\\tests\\data\\filesystem\\foobar-copy-" + utilities::uuid() + ".txt";
+    auto testfile_move = "C:\\Projects\\private\\framework\\tests\\data\\filesystem\\foobar-move-" + utilities::uuid() + ".txt";
 
     EXPECT_TRUE(filesystem->cp(testfile_source, testfile_copy));
     EXPECT_TRUE(filesystem->exists(testfile_copy));
@@ -65,15 +67,15 @@ TEST(FilesystemTest, Manipulation, []() {
     EXPECT_STREQ(error.second.c_str(), "Access is denied.\r\n");
 
     // EXPECT_FALSE(filesystem->exists(testfile_move));
-});
+}
 
-TEST(FilesystemTest, ReadDirectory, []() {
-    auto contents = filesystem->read_directory(tests->data());
+TEST(FilesystemTest, ReadDirectory) {
+    auto contents = filesystem->read_directory("C:\\Projects\\private\\framework\\tests\\data");
 
     EXPECT_TRUE(contents.size() > 0);
-});
+}
 
-TEST(UtilitiesTest, Indices, []() {
+TEST(UtilitiesTest, Indices) {
     std::vector<std::string> list;
     list.push_back("one");
     list.push_back("two");
@@ -84,92 +86,92 @@ TEST(UtilitiesTest, Indices, []() {
     EXPECT_EQ(index[0], 0);
     EXPECT_EQ(index[1], 1);
     EXPECT_EQ(index[2], 2);
-});
+}
 
-TEST(UtilitiesTest, RangeElements, []() {
+TEST(UtilitiesTest, RangeElements) {
     auto range = utilities::range(3);
     EXPECT_EQ(range.size(), 3);
     EXPECT_EQ(range[0], 0);
     EXPECT_EQ(range[1], 1);
     EXPECT_EQ(range[2], 2);
-});
+}
 
-TEST(UtilitiesTest, RangeStartEnd, []() {
+TEST(UtilitiesTest, RangeStartEnd) {
     auto range = utilities::range(1, 3);
     EXPECT_EQ(range.size(), 3);
     EXPECT_EQ(range[0], 1);
     EXPECT_EQ(range[1], 2);
     EXPECT_EQ(range[2], 3);
-});
+}
 
-TEST(UtilitiesTest, NumericToString, []() {
-    EXPECT_STREQ(utilities::type_cast<std::string>('a'), "a");
-    EXPECT_STREQ(utilities::type_cast<std::string>(12345), "12345");
+TEST(UtilitiesTest, NumericToString) {
+    EXPECT_STREQ(utilities::type_cast<std::string>('a').c_str(), "a");
+    EXPECT_STREQ(utilities::type_cast<std::string>(12345).c_str(), "12345");
     // Severity	Code	Description	Project	File	Line	Suppression State
     // Error	C2440	'<function-style-cast>': cannot convert from '__int64' to 'utilities::type_cast<std::string>'	windows-client.Executable	C:\Projects\private\template\src\engine\tests\utilities.cpp	32	
     //    EXPECT_STREQ(utilities::type_cast<std::string>(2147483648), "2147483648");
-    EXPECT_STREQ(utilities::type_cast<std::string>(4.0009), "4.000900");
-});
+    EXPECT_STREQ(utilities::type_cast<std::string>(4.0009).c_str(), "4.000900");
+}
 
-TEST(UtilitiesTest, StringToNumeric, []() {
+TEST(UtilitiesTest, StringToNumeric) {
     EXPECT_EQ((double)utilities::type_cast<double>("4.000900"), 4.0009);
     EXPECT_EQ((unsigned long)utilities::type_cast<unsigned long>("2147483652"), 2147483647);
-});
+}
 
-TEST(UtilitiesTest, RightTrim, []() {
+TEST(UtilitiesTest, RightTrim) {
     EXPECT_STREQ(utilities::rtrim("  FOOBAR  ").c_str(), "  FOOBAR");
-});
+}
 
-TEST(UtilitiesTest, LeftTrim, []() {
+TEST(UtilitiesTest, LeftTrim) {
     EXPECT_STREQ(utilities::ltrim("  FOOBAR  ").c_str(), "FOOBAR  ");
-});
+}
 
-TEST(UtilitiesTest, Trim, []() {
+TEST(UtilitiesTest, Trim) {
     EXPECT_STREQ(utilities::trim("  FOOBAR  ").c_str(), "FOOBAR");
-});
+}
 
-TEST(UtilitiesTest, LowerCase, []() {
+TEST(UtilitiesTest, LowerCase) {
     EXPECT_STREQ(utilities::lc("  FOOBAR  ").c_str(), "  foobar  ");
-});
+}
 
-TEST(UtilitiesTest, UpperCase, []() {
+TEST(UtilitiesTest, UpperCase) {
     EXPECT_STREQ(utilities::uc("  foobar  ").c_str(), "  FOOBAR  ");
-});
+}
 
-TEST(UtilitiesTest, Dirname, []() {
+TEST(UtilitiesTest, Dirname) {
     EXPECT_STREQ(utilities::dirname("/foo/bar/baz.txt").c_str(), "/foo/bar");
     EXPECT_STREQ(utilities::dirname("c:\\foo\\bar\\baz.txt").c_str(), "c:\\foo\\bar");
-});
+}
 
 
 /*
 // This doesn't work, but currently don't intend to use this method
-TEST(UtilitiesTest, Format, []() {
+TEST(UtilitiesTest, Format) {
     EXPECT_STREQ(utilities::format("  %s%i  ", "FOOBAR", 1).c_str(), "  FOOBAR1  ");
-});
+}
 */
 
-TEST(UtilitiesTest, Join, []() {
+TEST(UtilitiesTest, Join) {
     EXPECT_STREQ(utilities::join(", ", { "FOO", "BAR" } ).c_str(), "FOO, BAR");
-});
+}
 
-TEST(UtilitiesTest, Tokenize, []() {
+TEST(UtilitiesTest, Tokenize) {
     auto tokens = utilities::tokenize("FOO, BAR,BAZ", ",");
 
     EXPECT_EQ(tokens.size(), 3);
     EXPECT_STREQ(tokens[0].c_str(), "FOO");
     EXPECT_STREQ(tokens[1].c_str(), " BAR");
     EXPECT_STREQ(tokens[2].c_str(), "BAZ");
-});
+}
 
-TEST(UtilitiesTest, Base, []() {
+TEST(UtilitiesTest, Base) {
     EXPECT_STREQ(utilities::base("12", 16, 10).c_str(), "C");
-});
+}
 
-TEST(UtilitiesTest, UUID, []() {
+TEST(UtilitiesTest, UUID) {
     auto uuid = utilities::uuid();
     EXPECT_EQ(uuid.length() > 0, true);
-});
+}
 
 /* // Tests left to add
 std::string join(std::string, std::vector<std::string> arguments);
@@ -187,7 +189,7 @@ std::string base64(std::string in);
 
 std::vector<platform::input::event> events;
 
-TEST(InputTest, PointerDirect, []() {
+TEST(InputTest, PointerDirect) {
     platform::input* input = new implementation::universal::input();
 
     events.clear();
@@ -200,9 +202,9 @@ TEST(InputTest, PointerDirect, []() {
 
     EXPECT_EQ(events.size(), 1);
     delete input;
-});
+}
 
-TEST(InputTest, PointerDrag, []() {
+TEST(InputTest, PointerDrag) {
     platform::input* input = new implementation::universal::input();
 
     events.clear();
@@ -225,9 +227,9 @@ TEST(InputTest, PointerDrag, []() {
 
     EXPECT_EQ(events.size(), 3);
     delete input;
-});
+}
 
-TEST(InputTest, PointerDoubleTap, []() {
+TEST(InputTest, PointerDoubleTap) {
     platform::input* input = new implementation::universal::input();
 
     events.clear();
@@ -248,34 +250,34 @@ TEST(InputTest, PointerDoubleTap, []() {
 
     EXPECT_EQ(events.size(), 2);
     delete input;
-});
+}
 
-TEST(SpatialTest, Vector, []() {
+TEST(SpatialTest, Vector) {
     spatial::vector foo(1.0, 1.0, 1.0);
 
     auto value = foo.length();
 
     EXPECT_TRUE(value);
-});
+}
 
 /*
-TEST(SpatialTest, Matrix, []() {
+TEST(SpatialTest, Matrix) {
     spatial::matrix foo = { {1.0, 1.0, 1.0, 1.0}, {1.0, 1.0, 1.0, 1.0}, {1.0, 1.0, 1.0, 1.0}, {1.0, 1.0, 1.0, 1.0} };
-});
+}
 
-TEST(SpatialTest, Lighting, []() {
+TEST(SpatialTest, Lighting) {
     spatial::matrix model = { {4,0,0,0},
                               {0,4,0,0},
                               {0,0,4,0},
                               {0,0,0,1} };
-});
+}
 
-TEST(SpatialTest, Position, []() {
+TEST(SpatialTest, Position) {
     type::info inf = { { "something" }, type::format::FORMAT_FNT };
-});
+}
 */
 
-TEST(SpatialTest, Projection, []() {
+TEST(SpatialTest, Projection) {
     spatial::matrix model;
     model.translate(400, 400, 0);
 
@@ -305,9 +307,9 @@ TEST(SpatialTest, Projection, []() {
     spatial::ray r1(projected - spatial::vector(0, 0, 200), projected - spatial::vector(0, 0, -200));
 
     EXPECT_TRUE(r1.intersects(t1));
-});
+}
 
-TEST(SpatialTest, RayDistance, []() {
+TEST(SpatialTest, RayDistance) {
 
     spatial::ray ray(spatial::vector(-1.0f, -1.0f, -1.0f), spatial::vector(1.0f, 1.0f, 1.0f));
 
@@ -315,9 +317,9 @@ TEST(SpatialTest, RayDistance, []() {
 
     auto value = ray.distance(point);
     EXPECT_EQ(value, 0.816496611f);
-});
+}
 
-TEST(SpatialTest, PlaneIntersection, []() {
+TEST(SpatialTest, PlaneIntersection) {
 
     spatial::triangle triangle;
 
@@ -341,9 +343,9 @@ TEST(SpatialTest, PlaneIntersection, []() {
     auto intersection = ray.intersection(plane);
 
     EXPECT_EQ(intersection, spatial::vector(1.0f, 1.0f, 0.0f));
-});
+}
 
-TEST(SpatialTest, TriangleIntersection, []() {
+TEST(SpatialTest, TriangleIntersection) {
 
     spatial::triangle triangle;
 
@@ -399,9 +401,9 @@ TEST(SpatialTest, TriangleIntersection, []() {
 
     //return true;
     */
-});
+}
 
-TEST(SpatialTest, TriangleIntersection2, []() {
+TEST(SpatialTest, TriangleIntersection2) {
 
     spatial::triangle triangle;
 
@@ -425,9 +427,9 @@ TEST(SpatialTest, TriangleIntersection2, []() {
     auto intersection = ray.intersection(triangle);
 
     EXPECT_EQ(intersection, spatial::vector(1.0f, 1.0f, 0.0f));
-});
+}
 
-TEST(SpatialTest, TriangleNormal, []() {
+TEST(SpatialTest, TriangleNormal) {
     spatial::triangle t1;
 
     t1.vertices.resize(3);
@@ -457,9 +459,9 @@ TEST(SpatialTest, TriangleNormal, []() {
     t3.vertices[2](0.0f, 512.0f, 0.0f, 0.0f);
 
     EXPECT_EQ(t3.normal(), spatial::vector(0.0f, 0.0f, 1.0f));
-});
+}
 
-TEST(SpatialTest, GeometryReplication, []() {
+TEST(SpatialTest, GeometryReplication) {
 
     spatial::quad q1(256, 256);
 
@@ -474,22 +476,22 @@ TEST(SpatialTest, GeometryReplication, []() {
     o1 = q1;
 
     EXPECT_EQ(o1.vertices.size(), 6);
-});
+}
 
-TEST(SpatialTest, LookAt, []() {
+TEST(SpatialTest, LookAt) {
 
     auto result = spatial::matrix().lookat({5.39245, 15.1404, -1959.04, 1}, {-0.453372, 0.862182, -0.226043, 1}, {4.62085, 14.6338, -1959.43, 1});
 
-});
+}
 
-TEST(FormatTest, WAV, []() {
-    format::wav test(tests->data() + "GLaDOS.wav");
+TEST(FormatTest, WAV) {
+    format::wav test("C:\\Projects\\private\\framework\\tests\\data\\GLaDOS.wav");
     EXPECT_EQ(test.size, 238200);
     EXPECT_EQ(test.properties.sample_rate, 44100);
-});
+}
 
-TEST(FormatTest, PNG, []() {
-    format::png test(tests->data() + "marvin.png");
+TEST(FormatTest, PNG) {
+    format::png test("C:\\Projects\\private\\framework\\tests\\data\\marvin.png");
     EXPECT_EQ(test.properties.width, 295);
     EXPECT_EQ(test.properties.height, 281);
     EXPECT_EQ(test.raster.size(), 2652640);
@@ -500,20 +502,20 @@ TEST(FormatTest, PNG, []() {
     EXPECT_EQ(stream.properties.width, 295);
     EXPECT_EQ(stream.properties.height, 281);
     EXPECT_EQ(stream.raster.size(), 2652640);
-});
+}
 
-TEST(FormatTest, FNT, []() {
-    format::fnt test(tests->data() + "arial.fnt");
+TEST(FormatTest, FNT) {
+    format::fnt test("C:\\Projects\\private\\framework\\tests\\data\\arial.fnt");
 
     EXPECT_EQ(test.glyphs.size(), 256);
     EXPECT_EQ(test.kernings.size(), 91);
     EXPECT_EQ(test.pages.size(), 1);
 
     EXPECT_EQ(test.pages[0].raster.size(), 2097152);
-});
+}
 
-TEST(FormatTest, MTL, []() {
-    format::mtl test(tests->data() + "poly.mtl");
+TEST(FormatTest, MTL) {
+    format::mtl test("C:\\Projects\\private\\framework\\tests\\data\\poly.mtl");
 
     // Materials return as lists
     std::vector<type::material> mats;
@@ -521,10 +523,10 @@ TEST(FormatTest, MTL, []() {
 
     EXPECT_EQ(mats.size(), 1);
     EXPECT_EQ(mats[0].color->raster.size(), 33554432);
-});
+}
 
-TEST(FormatTest, OBJ, []() {
-    format::obj test(tests->data() + "untitled.obj");
+TEST(FormatTest, OBJ) {
+    format::obj test("C:\\Projects\\private\\framework\\tests\\data\\untitled.obj");
 
     // Materials return as lists
     std::vector<type::object> objs;
@@ -532,10 +534,10 @@ TEST(FormatTest, OBJ, []() {
 
     EXPECT_EQ(objs.size(), 1);
     EXPECT_EQ(objs[0].texture.color->raster.size(), 33554432);
-});
+}
 
-TEST(FormatTest, FBX, []() {
-    format::fbx test(tests->data() + "untitled.fbx");
+TEST(FormatTest, FBX) {
+    format::fbx test("C:\\Projects\\private\\framework\\tests\\data\\untitled.fbx");
 
     // Materials return as lists
     //std::vector<type::object> fbxs;
@@ -543,10 +545,10 @@ TEST(FormatTest, FBX, []() {
 
     //EXPECT_EQ(fbxs.size(), 1);
     //EXPECT_EQ(fbxs[0].texture.map.raster.size(), 33554432);
-});
+}
 
-TEST(FormatTest, FBX_Bones, []() {
-    format::fbx test(tests->data() + "wiggle.fbx");
+TEST(FormatTest, FBX_Bones) {
+    format::fbx test("C:\\Projects\\private\\framework\\tests\\data\\wiggle.fbx");
 
     // Materials return as lists
     std::vector<type::object> fbxs;
@@ -554,4 +556,4 @@ TEST(FormatTest, FBX_Bones, []() {
 
     EXPECT_EQ(fbxs.size(), 1);
     //EXPECT_EQ(fbxs[0].texture.map.raster.size(), 33554432);
-});
+}

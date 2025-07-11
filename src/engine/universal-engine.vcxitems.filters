@@ -43,8 +43,14 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)utilities\properties.cpp">
       <Filter>utilities</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)utilities\test.cpp">
-      <Filter>utilities</Filter>
+    <ClCompile Include="$(MSBuildThisFileDirectory)tests\test.cpp">
+      <Filter>tests</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\deps\googletest\googletest\src\gtest_main.cc">
+      <Filter>deps\gtest</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\deps\googletest\googletest\src\gtest-all.cc">
+      <Filter>deps\gtest</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -187,9 +193,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)utilities\properties.hpp">
       <Filter>utilities</Filter>
     </ClInclude>
-    <ClInclude Include="$(MSBuildThisFileDirectory)utilities\test.hpp">
-      <Filter>utilities</Filter>
-    </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)utilities\grid.hpp">
       <Filter>utilities</Filter>
     </ClInclude>
@@ -248,6 +251,12 @@
     </Filter>
     <Filter Include="utilities">
       <UniqueIdentifier>{8f4d8d4f-52c4-46d3-b232-3341d73c4d00}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{e1ef2b46-3b3e-4f13-9a95-37376e7dab04}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="deps\gtest">
+      <UniqueIdentifier>{47492ced-73e1-474f-ad28-dbc0353c6c02}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>
