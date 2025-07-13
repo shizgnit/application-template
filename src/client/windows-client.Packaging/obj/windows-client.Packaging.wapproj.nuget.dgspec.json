@@ -26,7 +26,7 @@
         "projectUniqueName": "C:\\Projects\\private\\framework\\src\\client\\windows-client.Packaging\\windows-client.Packaging.wapproj",
         "projectName": "windows-client.Packaging",
         "projectPath": "C:\\Projects\\private\\framework\\src\\client\\windows-client.Packaging\\windows-client.Packaging.wapproj",
-        "packagesPath": "C:\\Users\\codeneko\\.nuget\\packages\\",
+        "packagesPath": "C:\\Users\\coden\\.nuget\\packages\\",
         "outputPath": "C:\\Projects\\private\\framework\\src\\client\\windows-client.Packaging\\obj\\",
         "projectStyle": "PackageReference",
         "UsingMicrosoftNETSdk": false,
@@ -34,7 +34,7 @@
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\codeneko\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\coden\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],

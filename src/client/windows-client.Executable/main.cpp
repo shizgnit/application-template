@@ -28,7 +28,6 @@
 // windows-client.Executable.cpp : Defines the entry point for the application.
 //
 
-#include "framework.h"
 #include "windows-client.Executable.h"
 
 #include "engine.hpp"
@@ -95,15 +94,26 @@ public:
 
 Controller controllers[2];
 
+int g_argc = 0;
+LPWSTR* g_argv = nullptr;
+
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
                      _In_ LPWSTR    lpCmdLine,
                      _In_ int       nCmdShow)
 {
+    // Try to attach to parent console, or allocate a new one if that fails
+    if (AttachConsole(ATTACH_PARENT_PROCESS)) {
+        freopen("CONIN$", "r", stdin);
+        freopen("CONOUT$", "w", stdout);
+        freopen("CONOUT$", "w", stderr);
+    }
+    else {
+        //AllocConsole();
+    }
+
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
-
-    // TODO: Place code here.
 
     // Initialize global strings
     LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
@@ -292,6 +302,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     UINT szData = sizeof(rawinput), szHeader = sizeof(RAWINPUTHEADER);
     HRAWINPUT handle;
 
+    DWORD currentProcessId;
+    DWORD parentProcessId;
+
     switch (message)
     {
     case WM_ACTIVATEAPP:
@@ -304,12 +317,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         break;
 
     case WM_CREATE:
-        AllocConsole();
-
-        freopen("CONIN$", "r", stdin);
-        freopen("CONOUT$", "w", stdout);
-        freopen("CONOUT$", "w", stderr);
-
         UINT nDevices;
         PRAWINPUTDEVICELIST pRawInputDeviceList;
         GetRawInputDeviceList(NULL, &nDevices, sizeof(RAWINPUTDEVICELIST));

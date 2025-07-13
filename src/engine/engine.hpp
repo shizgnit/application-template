@@ -32,21 +32,29 @@
 #if defined WIN32
 #define __PLATFORM_WINDOWS 1
 #define __PLATFORM_64BIT 1
+#define __PLATFORM "WINDOWS"
 #endif
 
 #if defined __ANDROID__
 #define __PLATFORM_ANDROID 1
 //#define __PLATFORM_32BIT 1
+#define __PLATFORM "ANDROID"
 #endif
 
 #if defined __linux__
 #define __PLATFORM_LINUX 1
 //#define __PLATFORM_64BIT 1
+#define __PLATFORM "LINUX"
 #endif
 
 #if defined _M_ARM
 #undef __PLATFORM_64BIT
 #define __PLATFORM_32BIT 1
+#define __PLATFORM "ARM"
+#endif
+
+#if not defined __PLATFORM
+#error "Platform not defined!"
 #endif
 
 #if defined __APPLE__
