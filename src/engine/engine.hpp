@@ -53,10 +53,6 @@
 #define __PLATFORM "ARM"
 #endif
 
-#if not defined __PLATFORM
-#error "Platform not defined!"
-#endif
-
 #if defined __APPLE__
 
 #include <TargetConditionals.h>
@@ -65,12 +61,14 @@
 #define __PLATFORM_APPLE 1
 #define __PLATFORM_IOS 1
 //#define __METAL_SUPPORT 1
+#define __PLATFORM "APPLE"
 #endif
 
 #if defined TARGET_OS_OSX && TARGET_OS_OSX == 1
 #define __PLATFORM_APPLE 1
 #define __PLATFORM_MACOS 1
 //#define __METAL_SUPPORT 1
+#define __PLATFORM "APPLE"
 #endif
 
 #if defined __METAL_SUPPORT
@@ -78,6 +76,10 @@
 #define _MATRIX_PADDING 2
 #endif
 
+#endif
+
+#if not defined __PLATFORM
+#error "Platform not defined!"
 #endif
 
 #if defined __PLATFORM_WINDOWS
