@@ -4,15 +4,6 @@
 #include "engine.hpp"
 #include "application.hpp"
 
-#include <gtest/gtest.h>
-#include <iostream>
-
-
-//int main()
-//{
-//    std::cout << "Hello World!\n";
-//}
-
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu
 // Debug program: F5 or Debug > Start Debugging menu
 
@@ -23,3 +14,11 @@
 //   4. Use the Error List window to view errors
 //   5. Go to Project > Add New Item to create new code files, or Project > Add Existing Item to add existing code files to the project
 //   6. In the future, to open this project again, go to File > Open > Project and select the .sln file
+
+int main(int argc, char* argv[])
+{
+    test->init(argc, argv);
+    return test->run();
+}
+
+
