@@ -204,6 +204,7 @@
 #undef interface // Thanks Microsoft
 
 /// Platform Abstractions
+#include "platform/interfaces/testing.hpp"
 #include "platform/interfaces/audio.hpp"
 #include "platform/interfaces/filesystem.hpp"
 #include "platform/interfaces/assets.hpp"
@@ -237,6 +238,7 @@ inline platform::network::server* server = new implementation::posix::network::s
 #include "platform/implementations/opengl.hpp"
 #include "platform/implementations/openal.hpp"
 #include "platform/implementations/windows.hpp"
+#include "platform/implementations/googletest.hpp"
 inline platform::audio* audio = new implementation::openal::audio();
 inline platform::filesystem* filesystem = new implementation::windows::filesystem();
 inline platform::assets* assets = new implementation::windows::assets();
@@ -245,6 +247,7 @@ inline platform::input* input = new implementation::universal::input();
 inline platform::interface* gui = new implementation::universal::interface();
 inline platform::network::client* client = new implementation::windows::network::client();
 inline platform::network::server* server = new implementation::windows::network::server();
+inline platform::testing* test = new implementation::googletest::testing();
 #endif
 
 #if defined __PLATFORM_IOS
@@ -253,12 +256,14 @@ inline platform::network::server* server = new implementation::windows::network:
 #include "platform/implementations/openal.hpp"
 #include "platform/implementations/posix.hpp"
 #include "platform/implementations/ios.hpp"
+#include "platform/implementations/googletest.hpp"
 inline platform::audio* audio = new implementation::openal::audio();
 inline platform::filesystem* filesystem = new implementation::posix::filesystem();
 inline platform::assets* assets = new implementation::ios::assets();
 inline platform::graphics* graphics = new implementation::opengl::graphics();
 inline platform::input* input = new implementation::universal::input();
 inline platform::interface* gui = new implementation::universal::interface();
+inline platform::testing* test = new implementation::googletest::testing();
 //inline platform::network::client* client = new implementation::posix::network::client();
 //inline platform::network::server* server = new implementation::posix::network::server();
 #endif
@@ -269,12 +274,14 @@ inline platform::interface* gui = new implementation::universal::interface();
 #include "platform/implementations/openal.hpp"
 #include "platform/implementations/posix.hpp"
 #include "platform/implementations/macos.hpp"
+#include "platform/implementations/googletest.hpp"
 inline platform::audio* audio = new implementation::openal::audio();
 inline platform::filesystem* filesystem = new implementation::posix::filesystem();
 inline platform::assets* assets = new implementation::macos::assets();
 inline platform::graphics* graphics = new implementation::opengl::graphics();
 inline platform::input* input = new implementation::universal::input();
 inline platform::interface* gui = new implementation::universal::interface();
+inline platform::testing* test = new implementation::googletest::testing();
 //inline platform::network::client* client = new implementation::posix::network::client();
 //inline platform::network::server* server = new implementation::posix::network::server();
 #endif

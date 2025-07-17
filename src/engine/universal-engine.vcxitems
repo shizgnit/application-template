@@ -25,6 +25,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\deps\zstream-cpp\ozstream_impl.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)engine.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)platform\implementations\android.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)platform\implementations\googletest.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)platform\implementations\openal.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)platform\implementations\opengl.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)platform\implementations\opensl.hpp" />
@@ -39,6 +40,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)platform\interfaces\input.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)platform\interfaces\interface.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)platform\interfaces\network.hpp" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)platform\interfaces\testing.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)types\formats\fbx.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)types\formats\fnt.hpp" />
     <ClInclude Include="$(MSBuildThisFileDirectory)types\formats\frag.hpp" />
@@ -70,7 +72,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\deps\googletest\googletest\src\gtest-all.cc" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\deps\googletest\googletest\src\gtest_main.cc" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\deps\lodepng\lodepng.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\deps\miniz-2.2.0\miniz.c" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\deps\pugixml\src\pugixml.cpp" />

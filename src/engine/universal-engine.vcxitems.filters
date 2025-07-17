@@ -46,9 +46,6 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)tests\test.cpp">
       <Filter>tests</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\deps\googletest\googletest\src\gtest_main.cc">
-      <Filter>deps\gtest</Filter>
-    </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\deps\googletest\googletest\src\gtest-all.cc">
       <Filter>deps\gtest</Filter>
     </ClCompile>
@@ -210,6 +207,12 @@
     </ClInclude>
     <ClInclude Include="$(MSBuildThisFileDirectory)types\interfaces\sound.hpp">
       <Filter>types\interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)platform\interfaces\testing.hpp">
+      <Filter>platform\interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)platform\implementations\googletest.hpp">
+      <Filter>platform\implementations</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
