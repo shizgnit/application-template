@@ -1,10 +1,3 @@
-//
-//  AppDelegate.m
-//  macos-client.Executable
-//
-//  Created by Dee Abbott on 7/31/22.
-//
-
 #define _IMPORT
 #import "AppDelegate.h"
 #undef _IMPORT
@@ -12,6 +5,7 @@
 #import "engine.hpp"
 #import "application.hpp"
 
+#import <gtest/gtest.h>
 
 @interface AppDelegate ()
 {
@@ -23,7 +17,14 @@
 @implementation AppDelegate
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
+    char *argv[2];
+    int argc = 2;
     
+    argv[0] = strdup("foobar");
+    argv[1] = strdup("--gtest_list_tests");
+    
+    testing::InitGoogleTest(&argc, argv);
+    RUN_ALL_TESTS();
 }
 
 

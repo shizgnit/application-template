@@ -1,11 +1,3 @@
-/*
- Copyright (C) 2015 Apple Inc. All Rights Reserved.
- See LICENSE.txt for this sample’s licensing information
- 
- Abstract:
- Window controller subclass.
- */
-
 #import "WindowController.h"
 #import "Window.h"
 #import "AppDelegate.h"

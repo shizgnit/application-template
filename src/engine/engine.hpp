@@ -82,6 +82,7 @@
 #error "Platform not defined!"
 #endif
 
+
 #if defined __PLATFORM_WINDOWS
 #ifndef _UNICODE
 #error Set "Use Unicode Character Set" in the general project settings
