@@ -71,7 +71,7 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)utilities\type_cast.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\deps\googletest\googletest\src\gtest-all.cc" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\deps\gtest\gtest-all.cc" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\deps\lodepng\lodepng.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\deps\miniz-2.2.0\miniz.c" />
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\deps\pugixml\src\pugixml.cpp" />

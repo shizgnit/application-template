@@ -43,9 +43,6 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)utilities\properties.cpp">
       <Filter>utilities</Filter>
     </ClCompile>
-    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\deps\googletest\googletest\src\gtest-all.cc">
-      <Filter>deps\gtest</Filter>
-    </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)tests\test_filesystem.cpp">
       <Filter>tests</Filter>
     </ClCompile>
@@ -60,6 +57,9 @@
     </ClCompile>
     <ClCompile Include="$(MSBuildThisFileDirectory)tests\test_utilities.cpp">
       <Filter>tests</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)..\..\deps\gtest\gtest-all.cc">
+      <Filter>deps\gtest</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
