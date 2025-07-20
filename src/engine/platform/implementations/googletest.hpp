@@ -29,7 +29,7 @@
 
 #define __PLATFORM_SUPPORTS_GOOGLETEST 1
 
-#include <googletest/googletest/include/gtest/gtest.h>
+#include <gtest/gtest.h>
 
 namespace implementation {
 
