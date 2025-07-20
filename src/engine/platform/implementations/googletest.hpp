@@ -40,7 +40,6 @@ namespace implementation {
             void init(int argc, char **argv) {
               ::testing::InitGoogleTest(&argc, argv);
             }
-
             int run() {
               return RUN_ALL_TESTS();
             }
