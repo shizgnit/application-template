@@ -33,6 +33,8 @@
 #include "engine.hpp"
 #include "application.hpp"
 
+#include <string>
+
 inline application* instance = new app();
 
 
@@ -94,23 +96,45 @@ public:
 
 Controller controllers[2];
 
-int g_argc = 0;
-LPWSTR* g_argv = nullptr;
+std::string getRelativePath(const std::string& path) {
+   char executablePath[MAX_PATH];
+   GetModuleFileNameA(NULL, executablePath, MAX_PATH);
+   return filesystem->dirname(executablePath) + "\\..\\..\\" + path;
+} 
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
                      _In_ LPWSTR    lpCmdLine,
                      _In_ int       nCmdShow)
 {
-    // Try to attach to parent console, or allocate a new one if that fails
-    if (AttachConsole(ATTACH_PARENT_PROCESS)) {
-        freopen("CONIN$", "r", stdin);
-        freopen("CONOUT$", "w", stdout);
-        freopen("CONOUT$", "w", stderr);
+    // Googletest creates a console?
+    //if (AttachConsole(ATTACH_PARENT_PROCESS)) {
+    //    freopen("CONIN$", "r", stdin);
+    //    freopen("CONOUT$", "w", stdout);
+    //    freopen("CONOUT$", "w", stderr);
+    //}
+
+    // Parse command line to argc/argv
+    int argc = 0;
+    LPWSTR* argvW = CommandLineToArgvW(GetCommandLineW(), &argc);
+    std::vector<std::string> argvStr;
+    std::vector<char*> argv;
+    for (int i = 0; i < argc; ++i) {
+        int len = WideCharToMultiByte(CP_UTF8, 0, argvW[i], -1, nullptr, 0, nullptr, nullptr);
+        std::string arg(len, 0);
+        WideCharToMultiByte(CP_UTF8, 0, argvW[i], -1, &arg[0], len, nullptr, nullptr);
+        argvStr.push_back(arg);
     }
-    else {
-        //AllocConsole();
+    for (auto& s : argvStr) argv.push_back(&s[0]);
+
+    // For now, assume that if any parameters are given that testing is being done
+    if (argv.size() > 1) {
+        test->setTestDataPath(getRelativePath("test"));
+        test->init(argc, argv.data());
+        return test->run();
     }
+
+    LocalFree(argvW);
 
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
@@ -144,8 +168,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     return (int) msg.wParam;
 }
-
-
 
 //
 //  FUNCTION: MyRegisterClass()
@@ -194,8 +216,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
    // TODO: Add fullscreen, borderless fullscreen and variable resolutions
    HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, 0, width, height, nullptr, nullptr, hInstance, nullptr);
-   if (!hWnd)
-   {
+   if (!hWnd) {
       return false;
    }
 
@@ -248,11 +269,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
    UpdateWindow(hWnd);
 
-   char executablePath[MAX_PATH];
-   GetModuleFileNameA(NULL, executablePath, MAX_PATH);
-
-   auto assetPath = filesystem->dirname(executablePath) + "\\..\\..\\assets";
-   assets->init((void *)assetPath.c_str());
+   assets->init((void *)getRelativePath("assets").c_str());
 
    SYSTEM_INFO systemInfo;
    GetSystemInfo(&systemInfo);

@@ -29,10 +29,24 @@
 
 namespace platform {
 
+    using utilities::string;
+
     class testing : public properties {
     public:
         virtual void init(int argc, char **argv) = 0;
         virtual int run() = 0;
+
+        // Getter for test data path
+        virtual std::string getTestDataPath() const {
+            return testDataPath;
+        }
+        // Setter for test data path
+        virtual void setTestDataPath(const std::string& path) {
+            testDataPath = path;
+        }
+    protected:
+        // System path to test data
+        std::string testDataPath;
     };
 
 }

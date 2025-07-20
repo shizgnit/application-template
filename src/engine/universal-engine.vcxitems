@@ -82,7 +82,11 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)platform\implementations\posix.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)platform\implementations\universal.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)platform\implementations\windows.cpp" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)tests\test.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)tests\test_filesystem.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)tests\test_format.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)tests\test_input.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)tests\test_spatial.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)tests\test_utilities.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)utilities\common.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)utilities\properties.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)utilities\scene.cpp" />
