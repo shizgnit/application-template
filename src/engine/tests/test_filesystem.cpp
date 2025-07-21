@@ -25,7 +25,10 @@
 ================================================================================
 */
 
+
 #include "engine.hpp"
+
+#if defined __PLATFORM_SUPPORTS_GOOGLETEST
 
 #include <gtest/gtest.h>
 
@@ -72,3 +75,5 @@ TEST(FilesystemTest, ReadDirectory) {
     auto contents = filesystem->read_directory(test->getTestDataPath());
     EXPECT_TRUE(contents.size() > 0);
 }
+
+#endif

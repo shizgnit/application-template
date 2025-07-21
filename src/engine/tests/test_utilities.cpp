@@ -25,7 +25,10 @@
 ================================================================================
 */
 
+
 #include "engine.hpp"
+
+#if defined __PLATFORM_SUPPORTS_GOOGLETEST
 
 #include <gtest/gtest.h>
 
@@ -126,3 +129,5 @@ TEST(UtilitiesTest, UUID) {
     auto uuid = utilities::uuid();
     EXPECT_EQ(uuid.length() > 0, true);
 }
+
+#endif

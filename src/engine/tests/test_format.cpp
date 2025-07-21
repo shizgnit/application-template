@@ -25,7 +25,10 @@
 ================================================================================
 */
 
+
 #include "engine.hpp"
+
+#if defined __PLATFORM_SUPPORTS_GOOGLETEST
 
 #include <gtest/gtest.h>
 
@@ -87,3 +90,5 @@ TEST(FormatTest, FBX_Bones) {
     EXPECT_EQ(fbxs.size(), 1);
     //EXPECT_EQ(fbxs[0].texture.map.raster.size(), 33554432);
 }
+
+#endif

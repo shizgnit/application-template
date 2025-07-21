@@ -25,7 +25,10 @@
 ================================================================================
 */
 
+
 #include "engine.hpp"
+
+#if defined __PLATFORM_SUPPORTS_GOOGLETEST
 
 #include <gtest/gtest.h>
 
@@ -93,3 +96,5 @@ TEST(InputTest, PointerDoubleTap) {
     EXPECT_EQ(events.size(), 2);
     delete input;
 }
+
+#endif
