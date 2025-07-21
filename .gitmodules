@@ -16,6 +16,3 @@
 [submodule "deps/gtest"]
 	path = deps/gtest
 	url = https://github.com/shizgnit/googletest.git
-[submodule "deps/google"]
-	path = deps/google
-	url = https://github.com/google/googletest.git
