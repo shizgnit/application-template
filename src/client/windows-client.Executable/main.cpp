@@ -129,7 +129,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     // For now, assume that if any parameters are given that testing is being done
     if (argv.size() > 1) {
-        test->setTestDataPath(getRelativePath("test"));
+        test->setTestDataPath(getRelativePath("framework\\tests\\data\\"));
         test->init(argc, argv.data());
         return test->run();
     }
