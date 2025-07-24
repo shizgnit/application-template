@@ -225,11 +225,11 @@ std::vector<std::string> utilities::tokenize(std::string input, std::string deli
     return(results);
 }
 
-std::string utilities::replace(std::string input, std::string label, std::string value) {
+std::string utilities::replace(std::string input, std::string pattern, std::string value) {
     std::string results = input;
     size_t pos;
-    while ((pos = results.find(label)) != std::string::npos) {
-        results.replace(pos, label.length(), value);
+    while ((pos = results.find(pattern)) != std::string::npos) {
+        results.replace(pos, pattern.length(), value);
     }
     return results;
 }

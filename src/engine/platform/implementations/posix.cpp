@@ -78,8 +78,8 @@ bool implementation::posix::filesystem::cp(std::string src, std::string dest) {
     return(true);
 }
 
-bool implementation::posix::filesystem::rm(std::string filename) {
-    return remove(filename.c_str());
+bool implementation::posix::filesystem::rm(std::string path) {
+    return remove(path.c_str());
 }
 
 bool implementation::posix::filesystem::mv(std::string src, std::string dest) {

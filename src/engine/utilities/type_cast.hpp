@@ -143,7 +143,7 @@ namespace utilities {
         }
 #endif
 
-        type_cast(std::string& in) {
+        type_cast(const std::string& in) {
             m_data = std::wstring(in.begin(), in.end());
         }
 

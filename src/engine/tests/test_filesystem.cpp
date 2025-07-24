@@ -32,12 +32,6 @@
 
 #include <gtest/gtest.h>
 
-TEST(FilesystemTest, FilterFileType) {
-    EXPECT_EQ(filesystem->read_directory(test->getTestDataPath() + "filesystem/directory").size(), 1);
-    EXPECT_EQ(filesystem->read_directory(test->getTestDataPath() + "regular").size(), 13);
-    EXPECT_EQ(filesystem->read_directory(test->getTestDataPath() + "foobar").size(), 0);
-}
-
 TEST(FilesystemTest, PresentWorkingDirectory) {
     auto pwd = filesystem->pwd();
     EXPECT_FALSE(pwd.empty());
@@ -49,8 +43,8 @@ TEST(FilesystemTest, Exists) {
 
 TEST(FilesystemTest, Manipulation) {
     auto testfile_source = test->getTestDataPath() + "filesystem/foobar.txt";
-    auto testfile_copy = test->getTestDataPath() + "filesystem/foobar-copy-" + utilities::uuid() + ".txt";
-    auto testfile_move = test->getTestDataPath() + "filesystem/foobar-move-" + utilities::uuid() + ".txt";
+    auto testfile_copy = test->getTestDataPath() + "filesystem/.foobar-copy-" + utilities::uuid() + ".txt";
+    auto testfile_move = test->getTestDataPath() + "filesystem/.foobar-move-" + utilities::uuid() + ".txt";
 
     EXPECT_TRUE(filesystem->cp(testfile_source, testfile_copy));
     EXPECT_TRUE(filesystem->exists(testfile_copy));
@@ -59,21 +53,15 @@ TEST(FilesystemTest, Manipulation) {
     EXPECT_FALSE(filesystem->exists(testfile_copy));
     EXPECT_TRUE(filesystem->exists(testfile_move));
 
-    /// TODO: determine why this is failing
-    EXPECT_FALSE(filesystem->rm(testfile_move));
-
-    /// For not use this as an opportunity to test failure
-    auto error = filesystem->error();
-
-    EXPECT_EQ(error.first, 5);
-    EXPECT_STREQ(error.second.c_str(), "Access is denied.\r\n");
-
-    // EXPECT_FALSE(filesystem->exists(testfile_move));
+    EXPECT_TRUE(filesystem->rm(testfile_move));
 }
 
 TEST(FilesystemTest, ReadDirectory) {
     auto contents = filesystem->read_directory(test->getTestDataPath());
     EXPECT_TRUE(contents.size() > 0);
+
+    EXPECT_EQ(filesystem->read_directory(test->getTestDataPath() + "filesystem").size(), 1);
+    EXPECT_EQ(filesystem->read_directory(test->getTestDataPath() + "filesystem/").size(), 3);
 }
 
 #endif

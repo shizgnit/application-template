@@ -33,9 +33,9 @@ namespace platform {
     public:
         virtual std::string seperator() = 0;
 
-        virtual bool rm(std::string filename) = 0;
-        virtual bool mv(std::string src, std::string dest) = 0;
-        virtual bool cp(std::string src, std::string dest) = 0;
+        virtual bool rm(const std::string& path) = 0;
+        virtual bool mv(const std::string& src, const std::string& dst) = 0;
+        virtual bool cp(const std::string& src, const std::string& dst) = 0;
 
         virtual bool mkpath(const std::string& path, unsigned int mask = 0766) {
             auto current = path;
@@ -54,31 +54,48 @@ namespace platform {
             return true;
         }
 
-        virtual bool mkdir(std::string path, unsigned int mask = 0) = 0;
-        virtual bool rmdir(std::string path) = 0;
+        virtual bool mkdir(const std::string& path, unsigned int mask = 0) = 0;
+        virtual bool rmdir(const std::string& path) = 0;
 
-        virtual std::string pwd(std::string path = "") = 0;
+        virtual std::string pwd(const std::string& path = "") = 0;
 
-        virtual std::vector<unsigned long> stat(std::string path) = 0;
-        virtual std::vector<unsigned long> lstat(std::string path) = 0;
+        virtual std::vector<unsigned long> stat(const std::string& path) = 0;
+        virtual std::vector<unsigned long> lstat(const std::string& path) = 0;
 
-        virtual bool exists(std::string path) = 0;
+        virtual bool exists(const std::string& path) = 0;
 
-        virtual std::string filetype(std::string path) = 0;
+        virtual std::string filetype(const std::string& path) = 0;
 
         virtual std::pair<int, std::string> error() = 0;
 
-        virtual std::vector<std::string> read_directory(std::string path, bool hidden=false) = 0;
+        virtual std::vector<std::string> read_directory(const std::string& path, bool hidden=false) = 0;
 
-        virtual bool is_directory(std::string path) = 0;
+        virtual bool is_directory(const std::string& path) = 0;
 
-        virtual std::string join(std::vector<std::string> arguments) = 0;
+        virtual std::string join(const std::vector<std::string>& arguments) = 0;
 
         virtual std::string dirname(const std::string& path) = 0;
         virtual std::string basename(const std::string& path) = 0;
 
         virtual std::string home(const std::string& path = "") = 0;
         virtual std::string appdata(const std::string& path = "") = 0;
+
+        virtual std::string normalize_path(const std::string& path) {
+            if (path.empty()) {
+                return "";
+            }
+            std::string result = path;
+            if (result[0] == '~') {
+                result.replace(0, 1, home());
+            }
+            if (seperator() == "/") {
+                result = utilities::replace(result, "\\", seperator());
+            }
+            if (seperator() == "\\") {
+                result = utilities::replace(result, "/", seperator());
+            }
+            return result;
+        }
 
     protected:
         std::string _home;

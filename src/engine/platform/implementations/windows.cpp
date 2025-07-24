@@ -33,22 +33,25 @@ std::string implementation::windows::filesystem::seperator() {
     return "\\";
 }
 
-bool implementation::windows::filesystem::cp(std::string srcfile, std::string dest) {
+bool implementation::windows::filesystem::cp(const std::string& src, const std::string& dst) {
+    std::string source = normalize_path(src);
+    std::string destination = normalize_path(dst);
+
     DWORD dwAttrs;
 
 #if defined WIDE
-    if (CopyFile(utilities::type_cast<std::wstring>(srcfile).c_str(), utilities::type_cast<std::wstring>(dest).c_str(), FALSE)) {
-        dwAttrs = GetFileAttributes(utilities::type_cast<std::wstring>(srcfile).c_str());
-        if (!(dwAttrs & FILE_ATTRIBUTE_READONLY)) {
-            SetFileAttributes(utilities::type_cast<std::wstring>(dest).c_str(), dwAttrs | FILE_ATTRIBUTE_READONLY);
-        }
+    if (CopyFile(utilities::type_cast<std::wstring>(source).c_str(), utilities::type_cast<std::wstring>(destination).c_str(), FALSE)) {
+        dwAttrs = GetFileAttributes(utilities::type_cast<std::wstring>(source).c_str());
+        //if (!(dwAttrs & FILE_ATTRIBUTE_READONLY)) {
+        //    SetFileAttributes(utilities::type_cast<std::wstring>(destination).c_str(), dwAttrs | FILE_ATTRIBUTE_READONLY);
+        //}
     }
 #else
-    if (CopyFile(utilities::type_cast<std::string>(srcfile).c_str(), utilities::type_cast<std::string>(dest).c_str(), FALSE)) {
-        dwAttrs = GetFileAttributes(utilities::type_cast<std::string>(srcfile).c_str());
-        if (!(dwAttrs & FILE_ATTRIBUTE_READONLY)) {
-            SetFileAttributes(utilities::type_cast<std::string>(dest).c_str(), dwAttrs | FILE_ATTRIBUTE_READONLY);
-        }
+    if (CopyFile(utilities::type_cast<std::string>(source).c_str(), utilities::type_cast<std::string>(destination).c_str(), FALSE)) {
+        dwAttrs = GetFileAttributes(utilities::type_cast<std::string>(source).c_str());
+        //if (!(dwAttrs & FILE_ATTRIBUTE_READONLY)) {
+        //    SetFileAttributes(utilities::type_cast<std::string>(destination).c_str(), dwAttrs | FILE_ATTRIBUTE_READONLY);
+        //}
     }
 #endif
     else {
@@ -57,44 +60,55 @@ bool implementation::windows::filesystem::cp(std::string srcfile, std::string de
     return(true);
 }
 
-bool implementation::windows::filesystem::rm(std::string filename) {
+bool implementation::windows::filesystem::rm(const std::string& path) {
+    std::string normalized = normalize_path(path);
+    
 #if defined WIDE
-    if (DeleteFile(utilities::type_cast<std::wstring>(filename).c_str()) == false) {
+    if (DeleteFile(utilities::type_cast<std::wstring>(normalized).c_str()) == false) {
         auto error = GetLastError();
         return(false);
     }
     return(true);
 #else
-    return(DeleteFile(utilities::type_cast<std::string>(filename).c_str()));
+    return(DeleteFile(utilities::type_cast<std::string>(normalized).c_str()));
 #endif
 }
 
-bool implementation::windows::filesystem::mv(std::string srcfile, std::string dest) {
+bool implementation::windows::filesystem::mv(const std::string& src, const std::string& dst) {
+    std::string source = normalize_path(src);
+    std::string destination = normalize_path(dst);
+
 #if defined WIDE
-    return(MoveFile(utilities::type_cast<std::wstring>(srcfile).c_str(), utilities::type_cast<std::wstring>(dest).c_str()));
+    return(MoveFile(utilities::type_cast<std::wstring>(source).c_str(), utilities::type_cast<std::wstring>(destination).c_str()));
 #else
-    return(MoveFile(utilities::type_cast<std::string>(srcfile).c_str(), utilities::type_cast<std::string>(dest).c_str()));
+    return(MoveFile(utilities::type_cast<std::string>(source).c_str(), utilities::type_cast<std::string>(destination).c_str()));
 #endif
 }
 
-bool implementation::windows::filesystem::mkdir(std::string path, unsigned int mask) {
-    return(CreateDirectory(utilities::type_cast<std::wstring>(path).c_str(), NULL) ? true : false);
+bool implementation::windows::filesystem::mkdir(const std::string& path, unsigned int mask) {
+    std::string normalized = normalize_path(path);
+ 
+    return(CreateDirectory(utilities::type_cast<std::wstring>(normalized).c_str(), NULL) ? true : false);
 }
 
-bool implementation::windows::filesystem::rmdir(std::string path) {
+bool implementation::windows::filesystem::rmdir(const std::string& path) {
+    std::string normalized = normalize_path(path);
+ 
 #if defined WIDE
-    return(RemoveDirectory(utilities::type_cast<std::wstring>(path).c_str()) ? true : false);
+    return(RemoveDirectory(utilities::type_cast<std::wstring>(normalized).c_str()) ? true : false);
 #else
-    return(RemoveDirectory(utilities::type_cast<std::string>(path).c_str()) ? true : false);
+    return(RemoveDirectory(utilities::type_cast<std::string>(normalized).c_str()) ? true : false);
 #endif
 }
 
-std::string implementation::windows::filesystem::pwd(std::string path) {
+std::string implementation::windows::filesystem::pwd(const std::string& path) {
+    std::string normalized = normalize_path(path);
+ 
     static wchar_t current[2048];
     //static char current[2048];
 
-    if (!path.empty()) {
-        SetCurrentDirectory(utilities::type_cast<std::wstring>(path).c_str());
+    if (!normalized.empty()) {
+        SetCurrentDirectory(utilities::type_cast<std::wstring>(normalized).c_str());
         //SetCurrentDirectory(utilities::type_cast<std::string>(path).c_str());
     }
 
@@ -105,12 +119,14 @@ std::string implementation::windows::filesystem::pwd(std::string path) {
 }
 
 
-std::vector<unsigned long> implementation::windows::filesystem::stat(std::string path) {
+std::vector<unsigned long> implementation::windows::filesystem::stat(const std::string& path) {
+    std::string normalized = normalize_path(path);
+ 
     std::vector<unsigned long> results;
 
     struct _stat sst;
 
-    if (_stat(path.c_str(), &sst) != 0) {
+    if (_stat(normalized.c_str(), &sst) != 0) {
         return(results);
     }
 
@@ -133,19 +149,25 @@ std::vector<unsigned long> implementation::windows::filesystem::stat(std::string
     return(results);
 }
 
-std::vector<unsigned long> implementation::windows::filesystem::lstat(std::string path) {
-    return(stat(path));
+std::vector<unsigned long> implementation::windows::filesystem::lstat(const std::string& path) {
+    std::string normalized = normalize_path(path);
+ 
+    return(stat(normalized));
 }
 
-bool implementation::windows::filesystem::exists(std::string path) {
+bool implementation::windows::filesystem::exists(const std::string& path) {
+    std::string normalized = normalize_path(path);
+ 
     struct _stat sst;
-    return(_stat(path.c_str(), &sst) == 0);
+    return(_stat(normalized.c_str(), &sst) == 0);
 }
 
-std::string implementation::windows::filesystem::filetype(std::string path) {
+std::string implementation::windows::filesystem::filetype(const std::string& path) {
+    std::string normalized = normalize_path(path);
+ 
     std::string result = "unknown";
 
-    std::vector<unsigned long> stats = stat(path);
+    std::vector<unsigned long> stats = stat(normalized);
     if (stats.size()) {
         unsigned long mode = stats[2];
 
@@ -176,16 +198,19 @@ std::pair<int, std::string> implementation::windows::filesystem::error() {
     return std::pair<int, std::string>(dw, utilities::type_cast<std::string>((LPTSTR)lpMsgBuf));
 }
 
-std::vector<std::string> implementation::windows::filesystem::read_directory(std::string path, bool hidden) {
+std::vector<std::string> implementation::windows::filesystem::read_directory(const std::string& path, bool hidden) {
+    std::string normalized = normalize_path(path);
+ 
     std::vector<std::string> results;
 
-    if (path[path.length() - 1] == '\\') {
-        path.append("*");
+    std::string mod_path = normalized;
+    if (mod_path[mod_path.length() - 1] == '\\') {
+        mod_path.append("*");
     }
 
     auto last = new WIN32_FIND_DATA;
 
-    auto handle = FindFirstFile(utilities::type_cast<std::wstring>(path).c_str(), last);
+    auto handle = FindFirstFile(utilities::type_cast<std::wstring>(mod_path).c_str(), last);
 
     if(handle == INVALID_HANDLE_VALUE) {
         return results;
@@ -200,27 +225,35 @@ std::vector<std::string> implementation::windows::filesystem::read_directory(std
     return results;
 }
 
-bool implementation::windows::filesystem::is_directory(std::string path) {
-    return filetype(path) == "directory";
+bool implementation::windows::filesystem::is_directory(const std::string& path) {
+    std::string normalized = normalize_path(path);
+ 
+    return filetype(normalized) == "directory";
 }
 
-std::string implementation::windows::filesystem::join(std::vector<std::string> arguments) {
+std::string implementation::windows::filesystem::join(const std::vector<std::string>& arguments) {
     return utilities::join(seperator(), arguments);
 }
 
 std::string implementation::windows::filesystem::dirname(const std::string& path) {
-    auto parts = utilities::tokenize(path, seperator());
+    std::string normalized = normalize_path(path);
+ 
+    auto parts = utilities::tokenize(normalized, seperator());
     parts.pop_back();
     return join(parts);
 }
 std::string implementation::windows::filesystem::basename(const std::string& path) {
-    auto parts = utilities::tokenize(path, seperator());
+    std::string normalized = normalize_path(path);
+ 
+    auto parts = utilities::tokenize(normalized, seperator());
     return parts.back();
 }
 
 std::string implementation::windows::filesystem::home(const std::string& path) {
-    if (path.empty() == false) {
-        _home = path;
+    std::string normalized = normalize_path(path);
+ 
+    if (normalized.empty() == false) {
+        _home = normalized;
     }
     if (_home.empty() == false) {
         return _home;
@@ -234,8 +267,10 @@ std::string implementation::windows::filesystem::home(const std::string& path) {
 }
 
 std::string implementation::windows::filesystem::appdata(const std::string& path) {
-    if (path.empty() == false) {
-        _appdata = path;
+    std::string normalized = normalize_path(path);
+ 
+    if (normalized.empty() == false) {
+        _appdata = normalized;
     }
     if (_appdata.empty() == false) {
         return _appdata;
@@ -253,12 +288,14 @@ void implementation::windows::assets::init(void* ref) {
 }
 
 std::vector<std::string> implementation::windows::assets::list(const std::string& path, const std::string& type) {
+    std::string normalized = filesystem().normalize_path(path);
+ 
     if (type.empty()) {
-        return filesystem().read_directory(filesystem().join({ base, path, "\\*"}));
+        return filesystem().read_directory(filesystem().join({ base, normalized, "\\*"}));
     }
     std::vector<std::string> results;
-    for (auto entry : filesystem().read_directory(filesystem().join({ base, path, "\\*" }))) {
-        if (filesystem().filetype(filesystem().join({ base, path, entry })) == type) {
+    for (auto entry : filesystem().read_directory(filesystem().join({ base, normalized, "\\*" }))) {
+        if (filesystem().filetype(filesystem().join({ base, normalized, entry })) == type) {
             results.push_back(entry);
         }
     }
@@ -266,13 +303,15 @@ std::vector<std::string> implementation::windows::assets::list(const std::string
 }
 
 std::istream& implementation::windows::assets::retrieve(const std::string& path) {
+    std::string normalized = filesystem().normalize_path(path);
+
     auto file = new std::ifstream();
     if (file == NULL) {
         // TODO : care about this
     }
 
     std::vector<std::string> directories = { base };
-    for (auto path : utilities::tokenize(resolve(path), "/")) {
+    for (auto path : utilities::tokenize(resolve(normalized), "/")) {
         directories.push_back(path);
     }
     auto asset = filesystem().join(directories);
@@ -283,7 +322,7 @@ std::istream& implementation::windows::assets::retrieve(const std::string& path)
     }
 
     // push onto the stack regardless of success or failure
-    assets::source entry = { utilities::dirname(path), file };
+    assets::source entry = { utilities::dirname(normalized), file };
     stack.push_back(entry);
 
     return *file;

@@ -37,29 +37,29 @@ namespace implementation {
         public:
             std::string seperator();
 
-            bool rm(std::string filename);
-            bool mv(std::string src, std::string dest);
-            bool cp(std::string src, std::string dest);
+            bool rm(const std::string& path);
+            bool mv(const std::string& src, const std::string& dest);
+            bool cp(const std::string& src, const std::string& dest);
 
-            bool mkdir(std::string path, unsigned int mask=0);
-            bool rmdir(std::string path);
+            bool mkdir(const std::string& path, unsigned int mask=0);
+            bool rmdir(const std::string& path);
 
-            std::string pwd(std::string path = "");
+            std::string pwd(const std::string& path = "");
 
-            std::vector<unsigned long> stat(std::string path);
-            std::vector<unsigned long> lstat(std::string path);
+            std::vector<unsigned long> stat(const std::string& path);
+            std::vector<unsigned long> lstat(const std::string& path);
 
-            bool exists(std::string path);
+            bool exists(const std::string& path);
 
-            std::string filetype(std::string path);
+            std::string filetype(const std::string& path);
 
             std::pair<int, std::string> error();
 
-            std::vector<std::string> read_directory(std::string path, bool hidden=false);
+            std::vector<std::string> read_directory(const std::string& path, bool hidden=false);
 
-            bool is_directory(std::string path);
+            bool is_directory(const std::string& path);
 
-            std::string join(std::vector<std::string> arguments);
+            std::string join(const std::vector<std::string>& arguments);
 
             std::string dirname(const std::string& path);
             std::string basename(const std::string& path);
@@ -72,13 +72,13 @@ namespace implementation {
         public:
             void init(void* ref=NULL);
 
-            std::vector<std::string> list(const std::string& path, const std::string &type="");
+            std::vector<std::string> list(const std::string& path, const std::string &type="" );
 
             std::istream& retrieve(const std::string& path);
 
             void release();
 
-            std::string load(const std::string& type, const std::string& resource, const std::string& id = "");
+            std::string load( const std::string& type, const std::string& resource, const std::string& id = "");
 
             std::string base;
         };
