@@ -123,30 +123,30 @@ std::istream &implementation::android::assets::retrieve(const std::string& path)
     AAsset_close(asset);
 
     assets::source entry = { utilities::dirname(path), ss };
-    stack.push_back(entry);
+    _stack.push_back(entry);
 
     return *ss;
 }
 
 void implementation::android::assets::release() {
-    if (stack.size() == 0) {
+    if (_stack.size() == 0) {
         return;
     }
-    std::stringstream* ref = (std::stringstream*)stack.back().stream;
+    std::stringstream* ref = (std::stringstream*)_stack.back().stream;
     if (ref != NULL) {
         // No special resource release for stringstreams
         delete ref;
     }
-    stack.pop_back();
+    _stack.pop_back();
 }
 
 
 std::string implementation::android::assets::load(const std::string& type, const std::string& resource, const std::string& id) {
-    if (loader == NULL) {
-        loader = new implementation::universal::assets();
-        loader->copy(*this);
+    if (_loader == NULL) {
+        _loader = new implementation::universal::assets();
+        _loader->copy(*this);
     }
-    return loader->load(this, type, resource, id);
+    return _loader->load(this, type, resource, id);
 }
 
 

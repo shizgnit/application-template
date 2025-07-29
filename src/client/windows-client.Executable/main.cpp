@@ -107,13 +107,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_ LPWSTR    lpCmdLine,
                      _In_ int       nCmdShow)
 {
-    // Googletest creates a console?
-    //if (AttachConsole(ATTACH_PARENT_PROCESS)) {
-    //    freopen("CONIN$", "r", stdin);
-    //    freopen("CONOUT$", "w", stdout);
-    //    freopen("CONOUT$", "w", stderr);
-    //}
-
     // Parse command line to argc/argv
     int argc = 0;
     LPWSTR* argvW = CommandLineToArgvW(GetCommandLineW(), &argc);
@@ -129,7 +122,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     // For now, assume that if any parameters are given that testing is being done
     if (argv.size() > 1) {
-        test->setTestDataPath(getRelativePath("framework\\tests\\data\\"));
+        auto path = getRelativePath("framework\\tests\\data\\");
+        assets->init((void*)path.c_str());
+        test->setTestDataPath(path);
         test->init(argc, argv.data());
         return test->run();
     }

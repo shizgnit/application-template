@@ -1541,6 +1541,20 @@ spatial::vector spatial::ray::intersection(const spatial::plane& p) {
         return vertices[0] + vertices[1].unit() * t;
     }
     return spatial::vector();
+/*
+    const auto& P0 = vertices[0];
+    auto d = (vertices[1] - vertices[0]).unit();
+    const auto& Pp = p.point;
+    const auto& n = p.normal.unit();
+
+    float denom = d.dot(n);
+    if (fabs(denom) < 1e-6f) {
+        // Ray is parallel to plane
+        return spatial::vector();
+    }
+    float t = (Pp - P0).dot(n) / denom;
+    return P0 + d * t;
+*/
 }
 
 void spatial::ray::extend(const spatial::ray::type_t& d) {

@@ -79,8 +79,6 @@ namespace implementation {
             void release();
 
             std::string load( const std::string& type, const std::string& resource, const std::string& id = "");
-
-            std::string base;
         };
 
         class network : public platform::network {

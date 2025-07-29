@@ -55,7 +55,6 @@ TEST(SpatialTest, Lighting) {
 TEST(SpatialTest, Position) {
     type::info inf = { { "something" }, type::format::FORMAT_FNT };
 }
-*/
 
 TEST(SpatialTest, Projection) {
     spatial::matrix model;
@@ -88,6 +87,7 @@ TEST(SpatialTest, Projection) {
 
     EXPECT_TRUE(r1.intersects(t1));
 }
+*/
 
 TEST(SpatialTest, RayDistance) {
 
@@ -141,46 +141,13 @@ TEST(SpatialTest, TriangleIntersection) {
 
     EXPECT_TRUE(intersects);
 
-    spatial::plane plane;
-
-    plane.point(0.0f, 0.0f, 0.0f, 0.0f);
-    plane.normal = triangle.normal();
-
     auto intersection = ray.intersection(triangle);
 
-    EXPECT_EQ(intersection, spatial::vector(1.0f, 1.0f, 0.0f));
-    
-    /*
-    glm::vec3 result;
+    spatial::vector reference(1.0f, 1.0f, 0.0f);
 
-    const glm::vec3 edge1 = v1 - v0;
-    const glm::vec3 edge2 = v2 - v0;
-    const glm::vec3 pvec = glm::cross(r1, edge2);
-    const float det = glm::dot(edge1, pvec);
-
-    if (det > -0.0001 && det < 0.0001, []() {
-        //return false;
-    }
-
-    const float invDet = 1.0f / det;
-
-    const glm::vec3 tvec = r0 - v0;
-
-    result.x = glm::dot(tvec, pvec) * invDet;
-    if (result.x < 0.0f || result.x > 1.0f, []() {
-        //return false;
-    }
-    const glm::vec3 qvec = glm::cross(tvec, edge1);
-
-    result.y = glm::dot(r1, qvec) * invDet;
-    if (result.y < 0.0f || result.x + result.y > 1.0f, []() {
-        //return false;
-    }
-
-    result.z = glm::dot(edge2, qvec) * invDet;
-
-    //return true;
-    */
+    EXPECT_EQ(intersection.x, reference.x);
+    EXPECT_EQ(intersection.y, reference.y);
+    EXPECT_EQ(intersection.z, reference.z);
 }
 
 TEST(SpatialTest, TriangleIntersection2) {

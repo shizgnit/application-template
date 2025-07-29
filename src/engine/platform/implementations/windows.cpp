@@ -284,18 +284,18 @@ std::string implementation::windows::filesystem::appdata(const std::string& path
 }
 
 void implementation::windows::assets::init(void* ref) {
-    base = (char*)ref;
+    _base = (char*)ref;
 }
 
 std::vector<std::string> implementation::windows::assets::list(const std::string& path, const std::string& type) {
     std::string normalized = filesystem().normalize_path(path);
  
     if (type.empty()) {
-        return filesystem().read_directory(filesystem().join({ base, normalized, "\\*"}));
+        return filesystem().read_directory(filesystem().join({ _base, normalized, "\\*"}));
     }
     std::vector<std::string> results;
-    for (auto entry : filesystem().read_directory(filesystem().join({ base, normalized, "\\*" }))) {
-        if (filesystem().filetype(filesystem().join({ base, normalized, entry })) == type) {
+    for (auto entry : filesystem().read_directory(filesystem().join({ _base, normalized, "\\*" }))) {
+        if (filesystem().filetype(filesystem().join({ _base, normalized, entry })) == type) {
             results.push_back(entry);
         }
     }
@@ -310,7 +310,7 @@ std::istream& implementation::windows::assets::retrieve(const std::string& path)
         // TODO : care about this
     }
 
-    std::vector<std::string> directories = { base };
+    std::vector<std::string> directories = { _base };
     for (auto path : utilities::tokenize(resolve(normalized), "/")) {
         directories.push_back(path);
     }
@@ -323,29 +323,29 @@ std::istream& implementation::windows::assets::retrieve(const std::string& path)
 
     // push onto the stack regardless of success or failure
     assets::source entry = { utilities::dirname(normalized), file };
-    stack.push_back(entry);
+    _stack.push_back(entry);
 
     return *file;
 }
 
 void implementation::windows::assets::release() {
-    if (stack.size() == 0) {
+    if (_stack.size() == 0) {
         return;
     }
-    std::ifstream *ref = (std::ifstream *)stack.back().stream;
+    std::ifstream *ref = (std::ifstream *)_stack.back().stream;
     if (ref != NULL) {
         ref->close();
         delete ref;
     }
-    stack.pop_back();
+    _stack.pop_back();
 }
 
 std::string implementation::windows::assets::load(const std::string& type, const std::string& resource, const std::string& id) {
-    if (loader == NULL) {
-        loader = new implementation::universal::assets();
-        loader->copy(*this);
+    if (_loader == NULL) {
+        _loader = new implementation::universal::assets();
+        _loader->copy(*this);
     }
-    return loader->load(this, type, resource, id);
+    return _loader->load(this, type, resource, id);
 }
 
 std::string implementation::windows::network::hostname() {

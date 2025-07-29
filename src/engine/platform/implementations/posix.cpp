@@ -33,7 +33,7 @@ std::string implementation::posix::filesystem::seperator() {
     return "/";
 }
 
-bool implementation::posix::filesystem::cp(std::string src, std::string dest) {
+bool implementation::posix::filesystem::cp(const std::string &src, const std::string &dest) {
     long fdin, fdout;
     void* sbuf, * dbuf;
     struct stat sst;
@@ -78,11 +78,11 @@ bool implementation::posix::filesystem::cp(std::string src, std::string dest) {
     return(true);
 }
 
-bool implementation::posix::filesystem::rm(std::string path) {
+bool implementation::posix::filesystem::rm(const std::string &path) {
     return remove(path.c_str());
 }
 
-bool implementation::posix::filesystem::mv(std::string src, std::string dest) {
+bool implementation::posix::filesystem::mv(const std::string &src, const std::string &dest) {
     return rename(src.c_str(), dest.c_str());
 }
 
@@ -126,15 +126,15 @@ mode_t _mask(std::string& mask) {
     return(bytes);
 }
 
-bool implementation::posix::filesystem::mkdir(std::string path, unsigned int mask) {
+bool implementation::posix::filesystem::mkdir(const std::string &path, unsigned int mask) {
     return(::mkdir(path.c_str(), mask) == 0);
 }
 
-bool implementation::posix::filesystem::rmdir(std::string path) {
+bool implementation::posix::filesystem::rmdir(const std::string &path) {
     return(::rmdir(path.c_str()) == 0);
 }
 
-std::string implementation::posix::filesystem::pwd(std::string path) {
+std::string implementation::posix::filesystem::pwd(const std::string &path) {
     std::string result;
     static char current[2048];
 
@@ -146,7 +146,7 @@ std::string implementation::posix::filesystem::pwd(std::string path) {
     return(result);
 }
 
-std::vector<unsigned long> implementation::posix::filesystem::stat(std::string path) {
+std::vector<unsigned long> implementation::posix::filesystem::stat(const std::string &path) {
     std::vector<unsigned long> results;
     struct stat sst;
 
@@ -177,7 +177,7 @@ std::vector<unsigned long> implementation::posix::filesystem::stat(std::string p
     return(results);
 }
 
-std::vector<unsigned long> implementation::posix::filesystem::lstat(std::string path) {
+std::vector<unsigned long> implementation::posix::filesystem::lstat(const std::string &path) {
     std::vector<unsigned long> results;
     struct stat sst;
 
@@ -208,13 +208,13 @@ std::vector<unsigned long> implementation::posix::filesystem::lstat(std::string 
     return(results);
 }
 
-bool implementation::posix::filesystem::exists(std::string path) {
+bool implementation::posix::filesystem::exists(const std::string &path) {
     struct stat sst;
     return(::stat(path.c_str(), &sst) == 0);
 }
 
 
-std::string implementation::posix::filesystem::filetype(std::string path) {
+std::string implementation::posix::filesystem::filetype(const std::string &path) {
     std::string result;
 
     std::vector<unsigned long> stats = stat(path);
@@ -244,7 +244,7 @@ std::pair<int, std::string> implementation::posix::filesystem::error() {
     return std::pair<int, std::string>(0, "");
 }
 
-std::vector<std::string> implementation::posix::filesystem::read_directory(std::string path, bool hidden) {
+std::vector<std::string> implementation::posix::filesystem::read_directory(const std::string &path, bool hidden) {
     std::vector<std::string> results;
 
     auto handle = opendir(path.c_str());
@@ -261,11 +261,11 @@ std::vector<std::string> implementation::posix::filesystem::read_directory(std::
     return results;
 }
 
-bool implementation::posix::filesystem::is_directory(std::string path) {
+bool implementation::posix::filesystem::is_directory(const std::string &path) {
     return filetype(path) == "directory";
 }
 
-std::string implementation::posix::filesystem::join(std::vector<std::string> arguments) {
+std::string implementation::posix::filesystem::join(const std::vector<std::string> &arguments) {
     return utilities::join(seperator(), arguments);
 }
 
@@ -301,16 +301,16 @@ std::string implementation::posix::filesystem::appdata(const std::string& path) 
 }
 
 void implementation::posix::assets::init(void* ref) {
-    base = (char*)ref;
+    _base = (char*)ref;
 }
 
 std::vector<std::string> implementation::posix::assets::list(const std::string& path, const std::string& type) {
     if (type.empty()) {
-        return filesystem().read_directory(filesystem().join({ base, path }));
+        return filesystem().read_directory(filesystem().join({ _base, path }));
     }
     std::vector<std::string> results;
-    for (auto entry : filesystem().read_directory(filesystem().join({ base, path }))) {
-        if (filesystem().filetype(filesystem().join({ base, path, entry })) == type) {
+    for (auto entry : filesystem().read_directory(filesystem().join({ _base, path }))) {
+        if (filesystem().filetype(filesystem().join({ _base, path, entry })) == type) {
             results.push_back(entry);
         }
     }
@@ -323,7 +323,7 @@ std::istream& implementation::posix::assets::retrieve(const std::string& path) {
         // TODO : care about this
     }
 
-    std::vector<std::string> directories = { base };
+    std::vector<std::string> directories = { _base };
     for (auto path : utilities::tokenize(resolve(path), "/")) {
         directories.push_back(path);
     }
@@ -337,29 +337,29 @@ std::istream& implementation::posix::assets::retrieve(const std::string& path) {
 
     // push onto the stack regardless of success or failure
     assets::source entry = { utilities::dirname(path), file };
-    stack.push_back(entry);
+    _stack.push_back(entry);
 
     return *file;
 }
 
 void implementation::posix::assets::release() {
-    if (stack.size() == 0) {
+    if (_stack.size() == 0) {
         return;
     }
-    std::ifstream *ref = (std::ifstream *)stack.back().stream;
+    std::ifstream *ref = (std::ifstream *)_stack.back().stream;
     if (ref != NULL) {
         ref->close();
         delete ref;
     }
-    stack.pop_back();
+    _stack.pop_back();
 }
 
 std::string implementation::posix::assets::load(const std::string& type, const std::string& resource, const std::string& id) {
-    if (loader == NULL) {
-        loader = new implementation::universal::assets();
-        loader->copy(*this);
+    if (_loader == NULL) {
+        _loader = new implementation::universal::assets();
+        _loader->copy(*this);
     }
-    return loader->load(this, type, resource, id);
+    return _loader->load(this, type, resource, id);
 }
 
 

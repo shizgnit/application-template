@@ -35,7 +35,7 @@ namespace platform {
 
         assets() {};
         virtual ~assets() {
-            for (auto type : cache) {
+            for (auto type : _cache) {
                 std::vector<identifier_t> ids;
                 for (auto entry : type.second) {
                     ids.push_back(entry.first);
@@ -58,7 +58,7 @@ namespace platform {
 
         virtual std::string resolve(const std::string& path) {
             std::vector<std::string> directories;
-            for (auto entry : stack) {
+            for (auto entry : _stack) {
                 if (entry.path.empty() == false) {
                     directories.push_back(entry.path);
                 }
@@ -87,7 +87,7 @@ namespace platform {
 
         typedef void (assets::* callback)();
         utilities::scoped<assets*, callback> traverse(const source& node) {
-            stack.push_back(node);
+            _stack.push_back(node);
             return utilities::scoped<assets*, callback>(this, &assets::release);
         }
 
@@ -95,35 +95,35 @@ namespace platform {
 
         template<typename T> bool has(const identifier_t& id) {
             auto type = T().type();
-            return cache.find(type) != cache.end() && cache[type].find(id) != cache[type].end();
+            return _cache.find(type) != _cache.end() && _cache[type].find(id) != _cache[type].end();
         }
 
         template<typename T> void release(const identifier_t& id) {
             auto type = T().type();
             if (has<T>(id)) {
-                delete cache[type][id];
-                cache[type].erase(id);
+                delete _cache[type][id];
+                _cache[type].erase(id);
             }
         }
 
         template<typename T> T& create(const identifier_t& id) {
             auto type = T().type();
             release<T>(id);
-            cache[type][id] = new T;
-            cache[type][id]->id(id);
-            return *dynamic_cast<T*>(cache[type][id]);
+            _cache[type][id] = new T;
+            _cache[type][id]->id(id);
+            return *dynamic_cast<T*>(_cache[type][id]);
         }
 
         template<typename T> T& get(const identifier_t& id) {
             auto type = T().type();
-            return has<T>(id) ? *dynamic_cast<T*>(cache[type][id]) : create<T>(id);
+            return has<T>(id) ? *dynamic_cast<T*>(_cache[type][id]) : create<T>(id);
         }
 
         template<typename T> std::vector<T*> get() {
             auto type = T().type();
 
             std::vector<T*> results;
-            for (auto entry : cache[type]) {
+            for (auto entry : _cache[type]) {
                 results.push_back(dynamic_cast<T*>(entry.second));
             }
 
@@ -140,11 +140,13 @@ namespace platform {
         };
 
     protected:
-        std::map<std::string, std::map<identifier_t, type::info*>> cache;
+        std::map<std::string, std::map<identifier_t, type::info*>> _cache;
 
-        common* loader = NULL;
+        common* _loader = NULL;
 
-        std::vector<assets::source> stack;
+        std::vector<assets::source> _stack;
+
+        std::string _base;
     };
 
 }
