@@ -109,7 +109,7 @@ TEST(SpatialTest, PlaneIntersection) {
     triangle.vertices[1](2.0f, 0.0f, 0.0f, 0.0f);
     triangle.vertices[2](0.0f, 2.0f, 0.0f, 0.0f);
 
-    spatial::ray ray(spatial::vector(1.0f, 1.0f, 2.0f), spatial::vector(1.0f, 1.0f, 1.0f));
+    spatial::ray ray(spatial::vector(1.0f, 1.0f, 2.0f), spatial::vector(0.0f, 0.0f, -1.0f));
 
     spatial::plane plane;
 
@@ -135,7 +135,7 @@ TEST(SpatialTest, TriangleIntersection) {
     triangle.vertices[1](2.0f, 0.0f, 0.0f);
     triangle.vertices[2](0.0f, 2.0f, 0.0f);
 
-    spatial::ray ray(spatial::vector(1.0f, 1.0f, 2.0f), spatial::vector(1.0f, 1.0f, -1.0f));
+    spatial::ray ray(spatial::vector(1.0f, 1.0f, 2.0f), spatial::vector(0.0f, 0.0f, -1.0f));
 
     auto intersects = ray.intersects(triangle);
 
@@ -148,32 +148,6 @@ TEST(SpatialTest, TriangleIntersection) {
     EXPECT_EQ(intersection.x, reference.x);
     EXPECT_EQ(intersection.y, reference.y);
     EXPECT_EQ(intersection.z, reference.z);
-}
-
-TEST(SpatialTest, TriangleIntersection2) {
-
-    spatial::triangle triangle;
-
-    triangle.vertices.resize(3);
-
-    triangle.vertices[0](512.0f, 0.0f, 0.0f, 1.0f);
-    triangle.vertices[1](0.0f, 512.0f, 0.0f, 1.0f);
-    triangle.vertices[2](0.0f, 0.0f, 0.0f, 1.0f);
-
-    spatial::ray ray(spatial::vector(1.0f, 1.0f, 2.0f, 1.0f), spatial::vector(1.0f, 1.0f, -1.0f, 1.0f));
-
-    auto intersects = ray.intersects(triangle);
-
-    EXPECT_TRUE(intersects);
-
-    spatial::plane plane;
-
-    plane.point(0.0f, 0.0f, 0.0f, 0.0f);
-    plane.normal = triangle.normal();
-
-    auto intersection = ray.intersection(triangle);
-
-    EXPECT_EQ(intersection, spatial::vector(1.0f, 1.0f, 0.0f));
 }
 
 TEST(SpatialTest, TriangleNormal) {

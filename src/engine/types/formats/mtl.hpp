@@ -79,7 +79,7 @@ namespace format {
                     std::string id = assets->resolve(arguments[1]);
                     parse = assets->has<type::material>(id) == false;
                     material = &assets->get<type::material>(id);
-                    instance.children.push_back(assets->get<type::material>(id));
+                    //instance.children.push_back(assets->get<type::material>(id));
                 }
 
                 if (parse == false) {

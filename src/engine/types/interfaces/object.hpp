@@ -260,7 +260,7 @@ namespace type {
             return instance;
         }
 
-        std::vector<object> children;
+        std::vector<type::object> children;
         type::object *icon = NULL;
 
         std::string type() {

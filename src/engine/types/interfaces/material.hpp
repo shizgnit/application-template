@@ -73,10 +73,10 @@ namespace type {
             return instance;
         }
 
-        friend std::vector<type::material>& operator>>(type::material& input, std::vector<type::material>& instance) {
-            instance = input.children;
-            return instance;
-        }
+        //friend std::vector<type::material>& operator>>(type::material& input, std::vector<type::material>& instance) {
+            //instance = input.children;
+        //    return instance;
+        //}
 
         std::string type() {
             return "type::material";
