@@ -102,6 +102,8 @@ namespace format {
 
             bool parse = false;
 
+            std::shared_ptr<type::object> object;
+
             std::string line;
             while (std::getline(input, line)) {
                 instance._line += 1;
@@ -115,7 +117,8 @@ namespace format {
                 if (command == "o") { //entity
                     std::string id = assets->resolve(instance.decorator + arguments[1]);
                     parse = assets->has<type::object>(id) == false;
-                    instance.children.push_back(assets->get<type::object>(id));
+                    object = assets->reference<type::object>(id);
+                    instance.children.push_back(object);
                     coordinates.clear();
                     textures.clear();
                     normals.clear();
@@ -152,7 +155,7 @@ namespace format {
                     if (assets->has<type::material>(id) == false) {
                         assets->event(utilities::string() << id << " failed to load reference material");
                     }
-                    instance.children.back().texture = assets->get<type::material>(id);
+                    object->texture = assets->get<type::material>(id);
                 }
                 if (command == "f") { //faces
                     if (arguments.size() >= 4) {
@@ -191,18 +194,18 @@ namespace format {
                         }
 
                         if (vertices.size() == 3) {
-                            instance.children.back().vertices.push_back(vertices[0]);
-                            instance.children.back().vertices.push_back(vertices[1]);
-                            instance.children.back().vertices.push_back(vertices[2]);
+                            object->vertices.push_back(vertices[0]);
+                            object->vertices.push_back(vertices[1]);
+                            object->vertices.push_back(vertices[2]);
                         }
                         if (vertices.size() == 4) {
-                            instance.children.back().vertices.push_back(vertices[0]);
-                            instance.children.back().vertices.push_back(vertices[1]);
-                            instance.children.back().vertices.push_back(vertices[2]);
+                            object->vertices.push_back(vertices[0]);
+                            object->vertices.push_back(vertices[1]);
+                            object->vertices.push_back(vertices[2]);
 
-                            instance.children.back().vertices.push_back(vertices[0]);
-                            instance.children.back().vertices.push_back(vertices[2]);
-                            instance.children.back().vertices.push_back(vertices[3]);
+                            object->vertices.push_back(vertices[0]);
+                            object->vertices.push_back(vertices[2]);
+                            object->vertices.push_back(vertices[3]);
                         }
                     }
 

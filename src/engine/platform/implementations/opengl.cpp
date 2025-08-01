@@ -488,7 +488,7 @@ bool implementation::opengl::graphics::compile(type::material& material) {
 
 bool implementation::opengl::graphics::compile(type::object& object) {
     for (auto &child : object.children) {
-        compile(child);
+        compile(*child.get());
     }
     
     if (object.vertices.size() == 0) {
@@ -683,7 +683,7 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
 
     if (object.children.size()) {
         for (auto& child : object.children) {
-            draw(child, shader, projection, view, model, lighting, options);
+            draw(*child.get(), shader, projection, view, model, lighting, options);
         }
     }
 

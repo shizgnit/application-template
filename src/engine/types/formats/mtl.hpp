@@ -66,7 +66,7 @@ namespace format {
             */
 
             bool parse = false;
-            type::material* material = NULL;
+            std::shared_ptr<type::material> material;
 
             std::string line;
             while (std::getline(input, line)) {
@@ -78,7 +78,7 @@ namespace format {
                 if (command == "newmtl") {
                     std::string id = assets->resolve(arguments[1]);
                     parse = assets->has<type::material>(id) == false;
-                    material = &assets->get<type::material>(id);
+                    material = assets->reference<type::material>(id);
                     //instance.children.push_back(assets->get<type::material>(id));
                 }
 

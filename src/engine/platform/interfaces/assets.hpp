@@ -27,6 +27,8 @@
 
 #pragma once
 
+#include <memory>
+
 namespace platform {
 
     class assets : public properties {
@@ -35,15 +37,8 @@ namespace platform {
 
         assets() {};
         virtual ~assets() {
-            for (auto type : _cache) {
-                std::vector<identifier_t> ids;
-                for (auto entry : type.second) {
-                    ids.push_back(entry.first);
-                }
-                for (auto id : ids) {
-                    delete type.second[id];
-                    type.second.erase(id);
-                }
+            for (auto& type : _cache) {
+                type.second.clear();
             }
         }
 
@@ -101,32 +96,35 @@ namespace platform {
         template<typename T> void release(const identifier_t& id) {
             auto type = T().type();
             if (has<T>(id)) {
-                delete _cache[type][id];
+                _cache[type][id].reset();
                 _cache[type].erase(id);
             }
         }
 
-        template<typename T> T& create(const identifier_t& id) {
+        template<typename T> std::shared_ptr<T> create(const identifier_t& id) {
             auto type = T().type();
             release<T>(id);
-            _cache[type][id] = new T;
+            _cache[type][id] = std::make_shared<T>();
             _cache[type][id]->id(id);
-            return *dynamic_cast<T*>(_cache[type][id]);
+            return std::dynamic_pointer_cast<T>(_cache[type][id]);
+        }
+
+        template<typename T> std::shared_ptr<T> reference(const identifier_t& id) {
+            auto type = T().type();
+            return has<T>(id) ? std::dynamic_pointer_cast<T>(_cache[type][id]) : create<T>(id);
         }
 
         template<typename T> T& get(const identifier_t& id) {
             auto type = T().type();
-            return has<T>(id) ? *dynamic_cast<T*>(_cache[type][id]) : create<T>(id);
+            return has<T>(id) ? *dynamic_cast<T*>(_cache[type][id].get()) : *create<T>(id).get();
         }
 
-        template<typename T> std::vector<T*> get() {
+        template<typename T> std::vector<std::shared_ptr<T>> get() {
             auto type = T().type();
-
-            std::vector<T*> results;
-            for (auto entry : _cache[type]) {
-                results.push_back(dynamic_cast<T*>(entry.second));
+            std::vector<std::shared_ptr<T>> results;
+            for (auto& entry : _cache[type]) {
+                results.push_back(std::dynamic_pointer_cast<T>(entry.second));
             }
-
             return results;
         }
 
@@ -140,7 +138,7 @@ namespace platform {
         };
 
     protected:
-        std::map<std::string, std::map<identifier_t, type::info*>> _cache;
+        std::map<std::string, std::map<identifier_t, std::shared_ptr<type::info>>> _cache;
 
         common* _loader = NULL;
 

@@ -228,6 +228,10 @@ namespace type {
         }
 
         friend type::object& operator >> (type::object& input, type::object& instance) {
+            for (auto &child : input.children) {
+                instance.children.push_back(child);
+            }
+            /*
             // Adding another object so pivot the current to a child
             if (instance.vertices.size() && instance.children.size() == 0) {
                 instance.children.push_back(instance);
@@ -251,16 +255,17 @@ namespace type {
                     instance.children.push_back(child);
                 }
             }
+            */
              
             return instance;
         }
 
-        friend std::vector<type::object>& operator >> (type::object& input, std::vector<type::object>& instance) {
+        friend std::vector<std::shared_ptr<type::object>>& operator >> (type::object& input, std::vector<std::shared_ptr<type::object>>& instance) {
             instance = input.children;
             return instance;
         }
 
-        std::vector<type::object> children;
+        std::vector<std::shared_ptr<type::object>> children;
         type::object *icon = NULL;
 
         std::string type() {
