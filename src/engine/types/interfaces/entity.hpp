@@ -72,7 +72,7 @@ namespace type {
         public:
             double elapse = 2.0f; // TODO: this needs to come from the input file
             std::vector<utilities::seconds_t> duration;
-            std::vector<type::object> frames;
+            std::vector<std::shared_ptr<type::object>> frames;
         };
 
         class instance : public properties {
@@ -406,7 +406,7 @@ namespace type {
                 return empty;
             }
 
-            return animations[instance.state].frames[instance.frame];
+            return *animations[instance.state].frames[instance.frame].get();
         }
 
         std::list<std::pair<instance_t, size_t>> available;
@@ -423,15 +423,13 @@ namespace type {
 
         platform::input events;
 
-        type::object* object = NULL;
+        std::shared_ptr<type::object> object;
         std::map<std::string, animation> animations;
-
 
         std::map<key_t, std::map<key_t, std::map<key_t, bucket_t>>> _hash;
         int sector_size = 20;
         spatial::vector bound_bottom_left = { 20, 0, 20 };
         spatial::vector bound_top_right = { 20, 0, 20 };
-
 
     public:
         entity() {}

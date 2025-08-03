@@ -471,7 +471,7 @@ void implementation::universal::interface::draw(widget& instance) {
     graphics->noclip();
 }
 
-std::string implementation::universal::assets::load(platform::assets* instance, const std::string& type, const std::string& resource, const std::string& id) {
+std::string implementation::universal::assets::load(platform::assets* assets, const std::string& type, const std::string& resource, const std::string& id) {
     auto path = resource;
     if (has(type + ".path")) {
         auto source = get(type + ".path");
@@ -493,18 +493,18 @@ std::string implementation::universal::assets::load(platform::assets* instance, 
     std::string cache = id.empty() ? path : id;
 
     if (type == "material") {
-        instance->retrieve(path + (ext.empty() ? ".mtl" : ext)) >> format::parser::mtl >> instance->get<type::material>(cache);
+        assets->retrieve(path + (ext.empty() ? ".mtl" : ext)) >> format::parser::mtl >> assets->get<type::material>(cache);
     }
     if (type == "texture") {
-        instance->retrieve(path + (ext.empty() ? ".png" : ext)) >> format::parser::png >> instance->get<type::image>(cache);
+        assets->retrieve(path + (ext.empty() ? ".png" : ext)) >> format::parser::png >> assets->get<type::image>(cache);
     }
     if (type == "audio") {
-        instance->retrieve(path + (ext.empty() ? ".wav" : ext)) >> format::parser::wav >> instance->get<type::sound>(cache);
+        assets->retrieve(path + (ext.empty() ? ".wav" : ext)) >> format::parser::wav >> assets->get<type::sound>(cache);
     }
     if (type == "shader") {
-        auto& shader = instance->get<type::program>(cache);
-        instance->retrieve(path + ".vert") >> format::parser::vert >> shader.vertex;
-        instance->retrieve(path + ".frag") >> format::parser::frag >> shader.fragment;
+        auto& shader = assets->get<type::program>(cache);
+        assets->retrieve(path + ".vert") >> format::parser::vert >> shader.vertex;
+        assets->retrieve(path + ".frag") >> format::parser::frag >> shader.fragment;
         //instance->retrieve(path + ".metal") >> format::parser::metal >> shader.unified;
         
         if(has("shader.version")) {
@@ -518,35 +518,35 @@ std::string implementation::universal::assets::load(platform::assets* instance, 
         }
     }
     if (type == "font") {
-        instance->retrieve(path + (ext.empty() ? ".fnt" : ext)) >> format::parser::fnt >> instance->get<type::font>(cache);
+        assets->retrieve(path + (ext.empty() ? ".fnt" : ext)) >> format::parser::fnt >> assets->get<type::font>(cache);
     }
     if (type == "object") {
         if (ext == ".fbx") {
-            instance->retrieve(path + ext) >> format::parser::fbx >> instance->get<type::object>(cache);
+            assets->retrieve(path + ext) >> format::parser::fbx >> assets->get<type::object>(cache);
         }
         else if (ext == ".obj") {
-            instance->retrieve(path + ext) >> format::parser::obj >> instance->get<type::object>(cache);
+            assets->retrieve(path + ext) >> format::parser::obj >> assets->get<type::object>(cache);
         }
         else if (ext == ".png") {
-            auto& object = instance->get<type::object>(cache);
-            object.texture.color = &instance->get<type::image>(cache);
-            instance->retrieve(path + ext) >> format::parser::png >> *object.texture.color;
+            auto& object = assets->get<type::object>(cache);
+            object.texture.color = &assets->get<type::image>(cache);
+            assets->retrieve(path + ext) >> format::parser::png >> *object.texture.color;
             object = spatial::quad(object.texture.color->properties.width, object.texture.color->properties.height);
             object.xy_projection(0, 0, object.texture.color->properties.width, object.texture.color->properties.height);
         }
         else {
-            instance->retrieve(path + (ext.empty() ? ".obj" : ext)) >> format::parser::obj >> instance->get<type::object>(cache);
+            assets->retrieve(path + (ext.empty() ? ".obj" : ext)) >> format::parser::obj >> assets->get<type::object>(cache);
         }
     }
     if (type == "entity") {
-        auto& entity = instance->get<type::entity>(cache);
+        auto& entity = assets->get<type::entity>(cache);
 
         std::vector<std::string> states;
         
         std::string object_name;
         std::string icon_name;
 
-        for (auto resource : instance->list(path)) {
+        for (auto resource : assets->list(path)) {
             auto ext = utilities::extension(resource);
             if (ext.empty() == false) {
                 if (ext == "obj") {
@@ -563,9 +563,13 @@ std::string implementation::universal::assets::load(platform::assets* instance, 
 
         spatial::vector offset;
         if (object_name.empty() == false) {
+            std::string cache = path + "/" + object_name;
+            entity.object = assets->reference<type::object>(cache);
+
+            assets->retrieve(cache) >> format::parser::obj.d(resource + ".") >> *entity.object.get();
+                
             entity.animations["static"].frames.resize(1);
-            instance->retrieve(path + "/" + object_name) >> format::parser::obj.d(resource + ".") >> entity.animations["static"].frames[0];
-            entity.object = &entity.animations["static"].frames[0];
+            entity.animations["static"].frames[0] = entity.object;
 
             if (entity.has("scale")) {
                 auto scale = std::get<double>(entity.get("scale"));
@@ -585,10 +589,10 @@ std::string implementation::universal::assets::load(platform::assets* instance, 
 
             if (icon_name.empty() == false) {
                 auto cache = path + "/" + icon_name;
-                auto& icon = instance->get<type::object>(cache);
+                auto& icon = assets->get<type::object>(cache);
                 entity.object->icon = &icon;
-                icon.texture.color = &instance->get<type::image>(cache);
-                instance->retrieve(cache) >> format::parser::png >> icon.texture.color;
+                icon.texture.color = &assets->get<type::image>(cache);
+                assets->retrieve(cache) >> format::parser::png >> icon.texture.color;
                 icon = spatial::quad(icon.texture.color->properties.width, icon.texture.color->properties.height);
                 icon.xy_projection(0, 0, icon.texture.color->properties.width, icon.texture.color->properties.height);
             }
@@ -597,7 +601,7 @@ std::string implementation::universal::assets::load(platform::assets* instance, 
         for (auto state : states) {
             std::vector<std::string> resources;
             
-            resources = instance->list(path + "/" + state);
+            resources = assets->list(path + "/" + state);
             std::sort(resources.begin(), resources.end());
 
             std::vector<std::string> objects;
@@ -611,8 +615,10 @@ std::string implementation::universal::assets::load(platform::assets* instance, 
 
             int frame = 0;
             for (auto resource : objects) {
-                const char* r = std::string(path + "/" + state + "/" + resource).c_str();
-                instance->retrieve(path + "/" + state + "/" + resource) >> format::parser::obj.d(resource + ".").o(offset) >> entity.animations[state].frames[frame];
+                std::string cache = path + "/" + state + "/" + resource;
+                auto object = assets->reference<type::object>(cache);
+                assets->retrieve(cache) >> format::parser::obj.d(resource + ".").o(offset) >> *object.get();
+                entity.animations[state].frames[frame] = object;
                 frame++;
             }
         }
