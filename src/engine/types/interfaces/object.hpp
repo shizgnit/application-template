@@ -36,22 +36,17 @@ namespace type {
 
     class object : virtual public type::info {
     public:
-        unsigned int allocate() {
-            static unsigned int i = 0;
-            return ++i;
-        }
+        typedef spatial::vector::type_t type_t;
 
-        unsigned int instance = allocate();
-
-        program* renderer = NULL;
-        entity* emitter = NULL;
-
-        object() : renderer(NULL), emitter(NULL) {}
+        object() {}
         object(const spatial::geometry& ref) {
             *this = ref;
         }
 
-        typedef spatial::vector::type_t type_t;
+        unsigned int allocate() {
+            static unsigned int i = 0;
+            return ++i;
+        }
 
         spatial::geometry& interpolate(const spatial::matrix& model) {
             if (interpolated.vertices.size() == 0) {
@@ -197,18 +192,6 @@ namespace type {
             return constraint.dimensions;
         }
 
-        std::vector<spatial::vertex> vertices;
-        
-        spatial::geometry interpolated;
-
-        type::material texture;
-
-        unsigned int instances = 0;
-
-        unsigned int flags = 0;
-
-        bool visible = true;
-
         object& operator += (const object& ref) {
             for (auto vertex : ref.vertices) {
                 vertices.push_back(vertex);
@@ -229,8 +212,10 @@ namespace type {
 
         friend type::object& operator >> (type::object& input, type::object& instance) {
             for (auto &child : input.children) {
+                child->parent = &instance;
                 instance.children.push_back(child);
             }
+            
             /*
             // Adding another object so pivot the current to a child
             if (instance.vertices.size() && instance.children.size() == 0) {
@@ -265,9 +250,6 @@ namespace type {
             return instance;
         }
 
-        std::vector<std::shared_ptr<type::object>> children;
-        type::object *icon = NULL;
-
         std::string type() {
             return "type::object";
         }
@@ -292,10 +274,6 @@ namespace type {
             return *this;
         }
 
-        bool depth = false;
-        std::vector<unsigned char> pixels;
-
-//    protected:
         void calculate_constraints() {
             if (vertices.size() == 0) {
                 return;
@@ -342,6 +320,27 @@ namespace type {
             spatial::vector center;
             spatial::vector dimensions;
         } constraint;
+
+        unsigned int instance = allocate();
+
+        program* renderer = NULL;
+        std::shared_ptr<entity> emitter;
+
+        bool visible = true;
+        bool depth = false;
+
+        std::vector<unsigned char> pixels;
+
+        type::object* parent = NULL;
+        std::vector<std::shared_ptr<type::object>> children;
+
+        type::object* icon = NULL;
+
+        std::vector<spatial::vertex> vertices;
+        
+        spatial::geometry interpolated;
+
+        type::material texture;
     };
 
 }

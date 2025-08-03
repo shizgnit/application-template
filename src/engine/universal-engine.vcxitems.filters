@@ -226,6 +226,9 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)platform\implementations\googletest.hpp">
       <Filter>platform\implementations</Filter>
     </ClInclude>
+    <ClInclude Include="$(MSBuildThisFileDirectory)types\interfaces\waypoint.hpp">
+      <Filter>types\interfaces</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="deps">

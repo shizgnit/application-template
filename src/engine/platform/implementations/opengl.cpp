@@ -534,8 +534,8 @@ bool implementation::opengl::graphics::compile(type::object& object) {
         object.compiled(true);
     }
 
-    if(object.emitter) {
-        auto &entity = *object.emitter;
+    if(object.parent && object.parent->emitter) {
+        auto &entity = *object.parent->emitter;
 
         if (entity.resource == NULL) {
             entity.resource = new type::info::opaque_t();
@@ -747,12 +747,12 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
 
     GL_TEST(glUniform4f(shader.u_Clipping, clip_top[clip_top.size()-1], clip_bottom[clip_bottom.size() - 1], clip_left[clip_left.size() - 1], clip_right[clip_right.size() - 1]));
 
-    GL_TEST(glUniform1ui(shader.u_Flags, object.flags));
+    //GL_TEST(glUniform1ui(shader.u_Flags, object.flags));
 
     GL_TEST(glUniformMatrix4fv(shader.u_Parameters, 1, GL_FALSE, (GLfloat*)parameters.data()));
     
     // Draw either the solids or wireframes
-    int instances = object.emitter ? object.emitter->size : 1;
+    int instances = object.parent && object.parent->emitter ? object.parent->emitter->size : 1;
     if (object.vertices.size() == 2 || options & render::WIREFRAME) {
         GL_TEST(glDrawArraysInstanced(GL_LINE_LOOP, 0, (int)object.vertices.size(), instances));
         frame.lines += object.vertices.size() / 2;

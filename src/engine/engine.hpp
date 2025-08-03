@@ -196,6 +196,7 @@
 #include "types/interfaces/object.hpp"
 #include "types/interfaces/font.hpp"
 #include "types/interfaces/rig.hpp"
+#include "types/interfaces/waypoint.hpp"
 #include "types/interfaces/entity.hpp"
 #include "types/interfaces/blueprint.hpp"
 #include "types/interfaces/visitor.hpp"
