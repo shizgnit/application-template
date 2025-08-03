@@ -49,6 +49,7 @@ namespace type {
 
         typedef int key_t;
 
+
         operator bool() {
             return instances.size();
         }
@@ -67,14 +68,12 @@ namespace type {
             return *(i->second);
         }
 
-        type::object* object = NULL;
         class animation {
         public:
             double elapse = 2.0f; // TODO: this needs to come from the input file
             std::vector<utilities::seconds_t> duration;
             std::vector<type::object> frames;
         };
-        std::map<std::string, animation> animations;
 
         class instance : public properties {
         public:
@@ -156,11 +155,6 @@ namespace type {
 
         typedef std::list<instance*> bucket_t;
 
-        std::map<key_t, std::map<key_t, std::map<key_t, bucket_t>>> _hash;
-        int sector_size = 20;
-        spatial::vector bound_bottom_left = { 20, 0, 20 };
-        spatial::vector bound_top_right = { 20, 0, 20 };
-
         void store(const spatial::vector& p, instance& i) {
             auto& bucket = _hash[(key_t)(p.x / sector_size)][(key_t)(p.y / sector_size)][(key_t)(p.z / sector_size)];
             if (i.bucket) {
@@ -208,10 +202,6 @@ namespace type {
             return results;
         }
 
-        std::list<std::pair<instance_t, size_t>> available;
-
-        std::map<instance_t, instance> instances;
-
         // http://www.opengl-tutorial.org/intermediate-tutorials/billboards-particles/particles-instancing/
         struct {
             std::vector<unsigned int> content;
@@ -228,14 +218,6 @@ namespace type {
             type::info::opaque_t *resource = nullptr;
         } positions;
         
-        bool grouped = false;
-
-        size_t size = 0;
-        size_t capacity = 0;
-        size_t limit = 256;
-        
-        type::info::opaque_t *resource = nullptr;
-
         bool compile(spatial::position* reference) {
             if (reference) {
                 for (auto& sector : list(reference->eye + bound_bottom_left, reference->eye - spatial::vector({ bound_top_right.x, reference->eye.y, bound_top_right.z}))) {
@@ -427,7 +409,29 @@ namespace type {
             return animations[instance.state].frames[instance.frame];
         }
 
+        std::list<std::pair<instance_t, size_t>> available;
+
+        std::map<instance_t, instance> instances;
+
+        bool grouped = false;
+
+        size_t size = 0;
+        size_t capacity = 0;
+        size_t limit = 256;
+        
+        type::info::opaque_t *resource = nullptr;
+
         platform::input events;
+
+        type::object* object = NULL;
+        std::map<std::string, animation> animations;
+
+
+        std::map<key_t, std::map<key_t, std::map<key_t, bucket_t>>> _hash;
+        int sector_size = 20;
+        spatial::vector bound_bottom_left = { 20, 0, 20 };
+        spatial::vector bound_top_right = { 20, 0, 20 };
+
 
     public:
         entity() {}
