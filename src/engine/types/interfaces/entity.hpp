@@ -54,7 +54,7 @@ namespace type {
             return instances.size();
         }
 
-        static auto & crossreference() {
+        static auto& crossreference() {
             static std::map<instance_t, type::entity*> _crossreference;
             return _crossreference;
         }
@@ -292,7 +292,7 @@ namespace type {
                     animations[animation].duration.resize(frames);
                     for (int i = 0; i < frames; i++) {
                         animations[animation].duration[i] = duration;
-                        //animations[animation].frames[i].emitter = this;
+                        animations[animation].frames[i]->emitter = this;
                     }
                 }
                 instances[key].state = animation;

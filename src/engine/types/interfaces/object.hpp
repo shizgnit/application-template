@@ -210,38 +210,15 @@ namespace type {
             return *this;
         }
 
+        friend type::object& operator >> (type::object& input, std::shared_ptr<type::object> instance) {
+            return input >> *instance.get();
+        }
+
         friend type::object& operator >> (type::object& input, type::object& instance) {
             for (auto &child : input.children) {
                 child->parent = &instance;
                 instance.children.push_back(child);
             }
-            
-            /*
-            // Adding another object so pivot the current to a child
-            if (instance.vertices.size() && instance.children.size() == 0) {
-                instance.children.push_back(instance);
-                instance.vertices.clear();
-            }
-
-            // Copy over the input to either the instance or its children
-            if (input.vertices.size()) {
-                if (instance.children.size() == 0) {
-                    instance = input;
-                }
-                else {
-                    instance.children.push_back(input);
-                }
-            }
-            else if (input.children.size() == 1 && instance.children.size() == 0) {
-                instance = input.children.at(0);
-            }
-            else {
-                for (auto &child : input.children) {
-                    instance.children.push_back(child);
-                }
-            }
-            */
-             
             return instance;
         }
 
@@ -324,16 +301,16 @@ namespace type {
         unsigned int instance = allocate();
 
         program* renderer = NULL;
-        std::shared_ptr<entity> emitter;
+        type::entity* emitter = NULL;
 
         bool visible = true;
         bool depth = false;
 
-        std::vector<unsigned char> pixels;
 
         type::object* parent = NULL;
         std::vector<std::shared_ptr<type::object>> children;
 
+        std::vector<unsigned char> pixels;
         type::object* icon = NULL;
 
         std::vector<spatial::vertex> vertices;

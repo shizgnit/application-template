@@ -566,7 +566,7 @@ std::string implementation::universal::assets::load(platform::assets* assets, co
             std::string cache = path + "/" + object_name;
             entity.object = assets->reference<type::object>(cache);
 
-            assets->retrieve(cache) >> format::parser::obj.d(resource + ".") >> *entity.object.get();
+            assets->retrieve(cache) >> format::parser::obj.d(resource + ".") >> entity.object;
                 
             entity.animations["static"].frames.resize(1);
             entity.animations["static"].frames[0] = entity.object;
@@ -604,20 +604,20 @@ std::string implementation::universal::assets::load(platform::assets* assets, co
             resources = assets->list(path + "/" + state);
             std::sort(resources.begin(), resources.end());
 
-            std::vector<std::string> objects;
+            std::vector<std::string> references;
             for (auto resource : resources) {
                 if (utilities::extension(resource) == "obj") {
-                    objects.push_back(resource);
+                    references.push_back(resource);
                 }
             }
 
-            entity.animations[state].frames.resize(objects.size());
+            entity.animations[state].frames.resize(references.size());
 
             int frame = 0;
-            for (auto resource : objects) {
+            for (auto resource : references) {
                 std::string cache = path + "/" + state + "/" + resource;
                 auto object = assets->reference<type::object>(cache);
-                assets->retrieve(cache) >> format::parser::obj.d(resource + ".").o(offset) >> *object.get();
+                assets->retrieve(cache) >> format::parser::obj.d(resource + ".").o(offset) >> object;
                 entity.animations[state].frames[frame] = object;
                 frame++;
             }

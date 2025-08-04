@@ -752,7 +752,7 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
     GL_TEST(glUniformMatrix4fv(shader.u_Parameters, 1, GL_FALSE, (GLfloat*)parameters.data()));
     
     // Draw either the solids or wireframes
-    int instances = object.parent && object.parent->emitter ? object.parent->emitter->size : 1;
+    int instances = object.emitter ? object.emitter->size : 1;
     if (object.vertices.size() == 2 || options & render::WIREFRAME) {
         GL_TEST(glDrawArraysInstanced(GL_LINE_LOOP, 0, (int)object.vertices.size(), instances));
         frame.lines += object.vertices.size() / 2;
