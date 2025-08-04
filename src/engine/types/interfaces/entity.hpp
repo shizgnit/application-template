@@ -99,7 +99,7 @@ namespace type {
             spatial::position position;
             spatial::vector offset;
 
-            std::list<waypoint> path;
+            std::list<type::waypoint> path;
 
             spatial::vector::type_t distance;
             bool operator<(const instance& that) const {
