@@ -171,7 +171,7 @@ namespace type {
             return *instances[key].get();
         }
 
-        auto& getInstances() {
+         std::unordered_map<instance_t, std::shared_ptr<instance>>& getInstances() {
             return instances;
         }
 
@@ -190,23 +190,7 @@ namespace type {
             return increment;
         }
 
-        bool compile(spatial::position* reference) {
-           for (auto& instance : instances) {
-                if (instance.second->dirty == false) {
-                    continue;
-                }
-                offsets.content[(instance.second->index * 2)] = instance.second->offset.first;
-                offsets.content[(instance.second->index * 2) + 1] = instance.second->offset.second;
-                identifiers.content[instance.second->index] = instance.second->id;
-                frames.content[instance.second->index] = instance.second->frame;
-                flags.content[instance.second->index] = instance.second->flags;
-                positions.content[instance.second->index] = instance.second->position.serialize();
-                instance.second->dirty = false;
-            }
-            return compiled() == false;
-        }
-
-        void release(instance_t id, bool free=false) {
+        void releaseInstance(instance_t id, bool free=false) {
             auto instance = instances.find(id);
             if (instance == instances.end()) {
                 return;
@@ -222,6 +206,23 @@ namespace type {
 
         void setObject(std::shared_ptr<type::object> object) {
             this->object = object;
+            this->object->emitter = this;
+        }
+
+        bool compile(spatial::position* reference) {
+           for (auto& instance : instances) {
+                if (instance.second->dirty == false) {
+                    continue;
+                }
+                offsets.content[(instance.second->index * 2)] = instance.second->offset.first;
+                offsets.content[(instance.second->index * 2) + 1] = instance.second->offset.second;
+                identifiers.content[instance.second->index] = instance.second->id;
+                frames.content[instance.second->index] = instance.second->frame;
+                flags.content[instance.second->index] = instance.second->flags;
+                positions.content[instance.second->index] = instance.second->position.serialize();
+                instance.second->dirty = false;
+            }
+            return compiled() == false;
         }
 
         bool empty() {

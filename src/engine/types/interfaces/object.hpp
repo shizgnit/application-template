@@ -215,10 +215,11 @@ namespace type {
         }
 
         friend type::object& operator >> (type::object& input, type::object& instance) {
-            for (auto &child : input.children) {
-                child->parent = &instance;
-                instance.children.push_back(child);
-            }
+            //for (auto &child : input.children) {
+            //    child->parent = &instance;
+            //    instance.children.push_back(child);
+            //}
+            instance = input;
             return instance;
         }
 
