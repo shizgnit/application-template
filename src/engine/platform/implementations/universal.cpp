@@ -568,9 +568,6 @@ std::string implementation::universal::assets::load(platform::assets* assets, co
 
             assets->retrieve(cache) >> format::parser::obj.d(resource + ".") >> entity.object;
                 
-            entity.animations["static"].frames.resize(1);
-            entity.animations["static"].frames[0] = entity.object;
-
             if (entity.has("scale")) {
                 auto scale = std::get<double>(entity.get("scale"));
                 entity.object->scale(spatial::matrix().scale(scale));
@@ -595,31 +592,6 @@ std::string implementation::universal::assets::load(platform::assets* assets, co
                 assets->retrieve(cache) >> format::parser::png >> icon.texture.color;
                 icon = spatial::quad(icon.texture.color->properties.width, icon.texture.color->properties.height);
                 icon.xy_projection(0, 0, icon.texture.color->properties.width, icon.texture.color->properties.height);
-            }
-        }
-
-        for (auto state : states) {
-            std::vector<std::string> resources;
-            
-            resources = assets->list(path + "/" + state);
-            std::sort(resources.begin(), resources.end());
-
-            std::vector<std::string> references;
-            for (auto resource : resources) {
-                if (utilities::extension(resource) == "obj") {
-                    references.push_back(resource);
-                }
-            }
-
-            entity.animations[state].frames.resize(references.size());
-
-            int frame = 0;
-            for (auto resource : references) {
-                std::string cache = path + "/" + state + "/" + resource;
-                auto object = assets->reference<type::object>(cache);
-                assets->retrieve(cache) >> format::parser::obj.d(resource + ".").o(offset) >> object;
-                entity.animations[state].frames[frame] = object;
-                frame++;
             }
         }
     }

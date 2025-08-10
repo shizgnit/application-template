@@ -306,7 +306,6 @@ namespace type {
         bool visible = true;
         bool depth = false;
 
-
         type::object* parent = NULL;
         std::vector<std::shared_ptr<type::object>> children;
 

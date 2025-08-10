@@ -594,7 +594,7 @@ bool implementation::opengl::graphics::compile(type::object& object) {
             if (entity.identifiers.content.size()) {
                 GL_TEST(glGenBuffers(1, &entity.identifiers.resource->context));
                 GL_TEST(glBindBuffer(GL_ARRAY_BUFFER, entity.identifiers.resource->context));
-                GL_TEST(glBufferData(GL_ARRAY_BUFFER, sizeof(unsigned int) * entity.capacity, NULL, GL_DYNAMIC_DRAW));
+                GL_TEST(glBufferData(GL_ARRAY_BUFFER, sizeof(unsigned int) * entity.size(), NULL, GL_DYNAMIC_DRAW));
                 GL_TEST(glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(unsigned int) * entity.identifiers.content.size(), entity.identifiers.content.data()));
                 GL_TEST(glVertexAttribIPointer(shader->a_Identifier, 1, GL_UNSIGNED_INT, sizeof(unsigned int), BUFFER_OFFSET(0)));
                 GL_TEST(glEnableVertexAttribArray(shader->a_Identifier));
@@ -604,7 +604,7 @@ bool implementation::opengl::graphics::compile(type::object& object) {
             if (entity.flags.content.size()) {
                 GL_TEST(glGenBuffers(1, &entity.flags.resource->context));
                 GL_TEST(glBindBuffer(GL_ARRAY_BUFFER, entity.flags.resource->context));
-                GL_TEST(glBufferData(GL_ARRAY_BUFFER, sizeof(unsigned int) * entity.capacity, NULL, GL_DYNAMIC_DRAW));
+                GL_TEST(glBufferData(GL_ARRAY_BUFFER, sizeof(unsigned int) * entity.size(), NULL, GL_DYNAMIC_DRAW));
                 GL_TEST(glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(unsigned int) * entity.flags.content.size(), entity.flags.content.data()));
                 GL_TEST(glVertexAttribIPointer(shader->a_Flags, 1, GL_UNSIGNED_INT, sizeof(unsigned int), BUFFER_OFFSET(0)));
                 GL_TEST(glEnableVertexAttribArray(shader->a_Flags));
@@ -614,7 +614,7 @@ bool implementation::opengl::graphics::compile(type::object& object) {
             if (entity.positions.content.size()) {
                 GL_TEST(glGenBuffers(1, &entity.positions.resource->context));
                 GL_TEST(glBindBuffer(GL_ARRAY_BUFFER, entity.positions.resource->context));
-                GL_TEST(glBufferData(GL_ARRAY_BUFFER, sizeof(spatial::matrix) * entity.capacity, NULL, GL_DYNAMIC_DRAW));
+                GL_TEST(glBufferData(GL_ARRAY_BUFFER, sizeof(spatial::matrix) * entity.size(), NULL, GL_DYNAMIC_DRAW));
                 GL_TEST(glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(spatial::matrix) * entity.positions.content.size(), entity.positions.content.data()));
                 
                 GL_TEST(glVertexAttribPointer(shader->a_ModelMatrix + 0, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::matrix), BUFFER_OFFSET(offset_matrix + sizeof(spatial::vector::type_t) * 0)));
@@ -752,7 +752,7 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
     GL_TEST(glUniformMatrix4fv(shader.u_Parameters, 1, GL_FALSE, (GLfloat*)parameters.data()));
     
     // Draw either the solids or wireframes
-    int instances = object.emitter ? object.emitter->size : 1;
+    int instances = object.emitter ? object.emitter->size() : 1;
     if (object.vertices.size() == 2 || options & render::WIREFRAME) {
         GL_TEST(glDrawArraysInstanced(GL_LINE_LOOP, 0, (int)object.vertices.size(), instances));
         frame.lines += object.vertices.size() / 2;

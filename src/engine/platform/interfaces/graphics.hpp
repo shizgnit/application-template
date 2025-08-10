@@ -57,6 +57,11 @@ namespace platform {
 
         virtual bool compile(platform::assets* assets) = 0;
 
+        virtual void draw(std::shared_ptr<type::object>& object, type::program& shader, const spatial::matrix& projection, const spatial::matrix& view = spatial::matrix(), const spatial::matrix& model = spatial::matrix(), const spatial::matrix& lighting = spatial::matrix(), unsigned int options = 0x00) {
+            if(object != nullptr) {
+                draw(*object.get(), shader, projection, view, model, lighting, options);
+            }
+        }
         virtual void draw(type::object& object, type::program& shader, const spatial::matrix& projection, const spatial::matrix& view=spatial::matrix(), const spatial::matrix& model=spatial::matrix(), const spatial::matrix& lighting=spatial::matrix(), unsigned int options = 0x00) = 0;
         virtual void draw(std::string text, type::font& font, type::program& shader, const spatial::matrix& projection, const spatial::matrix& view=spatial::matrix(), const spatial::matrix& model=spatial::matrix(), const spatial::matrix& lighting=spatial::matrix(), unsigned int options = 0x00) = 0;
 

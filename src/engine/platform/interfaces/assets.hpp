@@ -122,6 +122,7 @@ namespace platform {
         template<typename T> std::vector<std::shared_ptr<T>> get() {
             auto type = T().type();
             std::vector<std::shared_ptr<T>> results;
+            results.reserve(_cache[type].size());
             for (auto& entry : _cache[type]) {
                 results.push_back(std::dynamic_pointer_cast<T>(entry.second));
             }

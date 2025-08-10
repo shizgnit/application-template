@@ -49,164 +49,97 @@ namespace type {
 
         typedef int key_t;
 
-
-        operator bool() {
-            return instances.size();
-        }
-
-        static auto& crossreference() {
-            static std::map<instance_t, type::entity*> _crossreference;
-            return _crossreference;
+        static auto& reference() {
+            static std::unordered_map<instance_t, type::entity*> _reference;
+            return _reference;
         }
 
         static entity& find(value_t criteria) {
             static type::entity empty;
-            auto i = crossreference().find(std::get<instance_t>(criteria));
-            if (i == crossreference().end()) {
+            auto i = reference().find(std::get<instance_t>(criteria));
+            if (i == reference().end()) {
                 return empty;
             }
             return *(i->second);
         }
 
-        class animation {
-        public:
-            double elapse = 2.0f; // TODO: this needs to come from the input file
-            std::vector<utilities::seconds_t> duration;
-            std::vector<std::shared_ptr<type::object>> frames;
-        };
+        entity() {}
+
+        std::string type() {
+            return "type::entity";
+        }
 
         class instance : public properties {
         public:
-            void define(instance_t i, entity* r, properties& p, size_t idx) {
+            instance() {}
+            instance(instance_t i, type::entity* r, properties& p, size_t idx) {
                 id = i;
-                parent = r;
+                entity = r;
                 (properties&)*this = p;
                 index = idx;
+                reference().insert({ i, r });
             }
-
-            operator spatial::matrix () {
-                return position.serialize();
-            }
-
-            instance_t id = 0;
-
-            size_t index = 0;
-
-            unsigned int flags = 0;
-            int frame = 0;
-            utilities::seconds_t elapsed;
-            std::string state;
-            spatial::position position;
-            spatial::vector offset;
-
-            std::list<type::waypoint> path;
-
-            spatial::vector::type_t distance;
-            bool operator<(const instance& that) const {
-                return this->distance > that.distance;
-            }
-
-            type::entity* parent = NULL;
-            type::rig::bone *rigging = NULL;
-            void* bucket = NULL;
-
-            std::pair<int, int> quadrant;
 
             void toggle(entity::states state, bool value) {
                 if(value) {
                     switch (state) {
                     case(entity::SELECTED):
                         flags |= entity::SELECTED;
-                    }
+                    };
                 }
                 else {
                     switch (state) {
                     case(entity::SELECTED):
                         flags &= ~entity::SELECTED;
-                    }
+                    };
                 }
-                update();
+                dirty = true;
             }
 
             void update() {
-                if (position.alpha == 0.0) {
-                    flags |= type::entity::VIRTUAL | type::entity::ALPHA;
-                }
-                assign();
-                store();
+                dirty = true;
             }
 
-            void assign() {
-                parent->identifiers.content[index] = id;
-                parent->flags.content[index] = flags;
-                parent->positions.content[index] = position.serialize();
+            operator spatial::matrix () {
+                return position.serialize();
             }
 
-            void store() {
-                parent->store(position.eye, *this);
+            bool operator<(const instance& that) const {
+                return this->distance > that.distance;
             }
 
-            void clear() {
-                parent->identifiers.content[index] = 0;
-                parent->flags.content[index] = 0x00;
-                parent->positions.content[index] = spatial::matrix();
-            }
+            bool active = true;
+            bool dirty = true;
+
+            instance_t id = 0;
+            size_t index = 0;
+
+            unsigned int flags = 0;
+            spatial::position position;
+            unsigned int frame = 0;
+            std::list<type::waypoint> path;
+            std::pair<unsigned int, unsigned int> offset;
+
+            spatial::vector::type_t distance;
+            type::entity* entity = NULL;
+            type::rig::bone *rigging = NULL;
+            std::pair<int, int> quadrant;
         };
 
-        typedef std::list<instance*> bucket_t;
-
-        void store(const spatial::vector& p, instance& i) {
-            auto& bucket = _hash[(key_t)(p.x / sector_size)][(key_t)(p.y / sector_size)][(key_t)(p.z / sector_size)];
-            if (i.bucket) {
-                if (i.bucket == &bucket) {
-                    return;
-                }
-                bucket_t* ref = (bucket_t*)i.bucket;
-                ref->erase(std::find(ref->begin(), ref->end(), &i));
-            }
-            bucket.push_back(&i);
-            i.bucket = &bucket;
-        }
-
-        std::vector<bucket_t*> list(const spatial::vector& p1, const spatial::vector& p2) {
-            key_t x1 = (p1.x < p2.x ? p1.x : p2.x) / sector_size;
-            key_t x2 = (p1.x < p2.x ? p2.x : p1.x) / sector_size;
-            key_t y1 = (p1.y < p2.y ? p1.y : p2.y) / sector_size;
-            key_t y2 = (p1.y < p2.y ? p2.y : p1.y) / sector_size;
-            key_t z1 = (p1.z < p2.z ? p1.z : p2.z) / sector_size;
-            key_t z2 = (p1.z < p2.z ? p2.z : p1.z) / sector_size;
-            
-            std::vector <bucket_t*> results;
-
-            auto& h = _hash;
-            for (int x = x1; x <= x2; x++) {
-                auto mx = h.find(x);
-                if (mx == h.end()) {
-                    continue;
-                }
-                for (int y = y1; y <= y2; y++) {
-                    auto my = mx->second.find(y);
-                    if (my == mx->second.end()) {
-                        continue;
-                    }
-                    for (int z = z1; z <= z2; z++) {
-                        auto mz = my->second.find(z);
-                        if (mz == my->second.end()) {
-                            continue;
-                        }
-                        results.push_back(&mz->second);
-                    }
-                }
-            }
-
-            return results;
-        }
-
-        // http://www.opengl-tutorial.org/intermediate-tutorials/billboards-particles/particles-instancing/
         struct {
             std::vector<unsigned int> content;
             type::info::opaque_t *resource = nullptr;
         } identifiers;
+
+        struct {
+            std::vector<unsigned int> content;
+            type::info::opaque_t *resource = nullptr;
+        } frames;
+
+        struct {
+            std::vector<unsigned int> content;
+            type::info::opaque_t *resource = nullptr;
+        } offsets;
 
         struct {
             std::vector<unsigned int> content;
@@ -217,159 +150,9 @@ namespace type {
             std::vector<spatial::matrix> content;
             type::info::opaque_t *resource = nullptr;
         } positions;
-        
-        bool compile(spatial::position* reference) {
-            if (reference) {
-                for (auto& sector : list(reference->eye + bound_bottom_left, reference->eye - spatial::vector({ bound_top_right.x, reference->eye.y, bound_top_right.z}))) {
-                    for (auto entry : *sector) {
-                        entry->assign();
-                    }
-                }
-            }
-            else {
-                for (auto& entry : instances) {
-                    entry.second.assign();
-                }
-            }
-            return compiled() == false;
-        }
 
-        instance & add(properties& props=properties::instance(), int count = 1) {
-            return getInstance(allocate(props, count));
-        }
-
-        instance_t allocate(properties& props, int count) {
-            static instance_t increment = 0;
-            if (capacity == 0) {
-                capacity = limit;
-                identifiers.content.resize(capacity);
-                flags.content.resize(capacity);
-                positions.content.resize(capacity);
-            }
-            for (int i = 0; i < count; i++) {
-                int index = instances.size() >= limit ? (instances.size() % (limit - 1)) + 1 : instances.size() % limit;
-                instances[++increment].define(increment, this, props, index);
-                crossreference().insert({ increment, this });
-            }
-            size = instances.size() > (limit) ? (limit) : instances.size();
-            return increment;
-        }
-
-        void release(instance_t id, bool free=false) {
-            auto instance = instances.find(id);
-            if (instance == instances.end()) {
-                return;
-            }
-            if (instance->second.bucket) {
-                bucket_t* ref = (bucket_t*)instance->second.bucket;
-                ref->erase(std::find(ref->begin(), ref->end(), &instance->second));
-            }
-            if(free) {
-                instance->second.clear();
-                crossreference().erase(id);
-                instances.erase(id);
-            }
-            else {
-                available.push_back({ id, instance->second.index });
-            }
-        }
-
-        bool play(std::string animation, instance_t id=0) {
-            if (instances.size() == 0) {
-                add();
-            }
-
-            instance_t key = (id == 0) ? instances.begin()->first : id;
-            if (instances.find(key) == instances.end()) {
-                return false;
-            }
-
-            instances[key].elapsed = std::chrono::system_clock::now().time_since_epoch();
-
-            if (int frames = animations[animation].frames.size()) {
-                if (animations[animation].duration.size() == 0) {
-                    utilities::seconds_t duration = utilities::seconds_t{ animations[animation].elapse / (double)frames };
-                    animations[animation].duration.resize(frames);
-                    for (int i = 0; i < frames; i++) {
-                        animations[animation].duration[i] = duration;
-                        animations[animation].frames[i]->emitter = this;
-                    }
-                }
-                instances[key].state = animation;
-                return true;
-            }
-
-            return false;
-        }
-
-        void animate(instance_t id = 0) {
-            if (instances.size() == 0) {
-                return;
-            }
-            if (flag("animated") == false) {
-                return;
-            }
-
-            instance_t key = (id == 0) ? instances.begin()->first : id;
-            if (instances.find(key) == instances.end()) {
-                return;
-            }
-            if (instances[key].state.empty()) {
-                return;
-            }
-
-            utilities::seconds_t now = std::chrono::system_clock::now().time_since_epoch();
-
-            int current = instances[key].frame;
-            int step = 0;
-
-            if (animations[instances[key].state].duration.size()) {
-                while ((instances[key].elapsed + animations[instances[key].state].duration[current + step]) < now) {
-                    instances[key].elapsed += animations[instances[key].state].duration[current + step];
-                    step += 1;
-                    if ((current + step) >= animations[instances[key].state].frames.size()) {
-                        current = 0;
-                        step = 0;
-                    }
-                }
-            }
-
-            instances[key].frame = current + step;
-
-            std::vector<instance_t> cleanup;
-            for (auto& instance : instances) {
-                while(instance.second.path.size()) {
-                    auto position = instance.second.path.begin()->get();
-                    if (instance.second.rigging) {
-                        instance.second.rigging->adjust(position, position.eye);
-                    } 
-                    else {
-                        instance.second.position.reposition(position.eye);
-                        if (position.translation.active) {
-                            instance.second.position.orientation(position);
-                        }
-                        else {
-                            instance.second.position.lookat(position.focus);
-                        }
-                        instance.second.position.alpha = position.alpha;
-                        instance.second.flags &= 0xFF;
-                        instance.second.flags |= (unsigned int)(255.0 * position.alpha) << 24;
-                        instance.second.update();
-                    }
-                    if (instance.second.path.begin()->finished) {
-                        if (instance.second.path.begin()->terminator) {
-                            cleanup.push_back(instance.second.id);
-                        }
-                        instance.second.path.pop_front();
-                    }
-                    else {
-                        break; // the current node isn't finished
-                    }
-                }
-            }
-            for (auto id : cleanup) {
-                release(id);
-            }
+        instance& addInstance(properties& props=properties::instance(), int count = 1) {
+            return getInstance(allocateInstance(props, count));
         }
 
         bool hasInstance(instance_t id) {
@@ -378,73 +161,100 @@ namespace type {
 
         instance& getInstance(instance_t id = 0) {
             static type::entity::instance empty;
-
             if (instances.size() == 0) {
-                add();
+                addInstance();
             }
             instance_t key = (id == 0) ? instances.begin()->first : id;
             if (instances.find(key) == instances.end()) {
                 return empty;
             }
-            return instances[key];
+            return *instances[key].get();
         }
 
-        operator type::object& () {
-            static type::object empty;
+        auto& getInstances() {
+            return instances;
+        }
 
+        instance_t allocateInstance(properties& props, int count) {
+            static instance_t increment = 0;
             if (instances.size() == 0) {
-                return empty;
+                offsets.content.reserve(capacity*2);
+                identifiers.content.reserve(capacity);
+                flags.content.reserve(capacity);
+                positions.content.reserve(capacity);
             }
-
-            auto &instance = getInstance();
-            if (instance.state.empty()) {
-                if (play("static", instance.id) == false) {
-                    return empty;
-                }
+            for (int i = 0; i < count; i++) {
+                int index = instances.size() >= capacity ? (instances.size() % (capacity - 1)) + 1 : instances.size() % capacity;
+                instances.insert({ ++increment, std::make_shared<instance>(increment, this, props, index) });
             }
-            if (animations[instance.state].frames.size() == 0) {
-                return empty;
-            }
-
-            return *animations[instance.state].frames[instance.frame].get();
+            return increment;
         }
 
-        std::list<std::pair<instance_t, size_t>> available;
+        bool compile(spatial::position* reference) {
+           for (auto& instance : instances) {
+                if (instance.second->dirty == false) {
+                    continue;
+                }
+                offsets.content[(instance.second->index * 2)] = instance.second->offset.first;
+                offsets.content[(instance.second->index * 2) + 1] = instance.second->offset.second;
+                identifiers.content[instance.second->index] = instance.second->id;
+                frames.content[instance.second->index] = instance.second->frame;
+                flags.content[instance.second->index] = instance.second->flags;
+                positions.content[instance.second->index] = instance.second->position.serialize();
+                instance.second->dirty = false;
+            }
+            return compiled() == false;
+        }
 
-        std::map<instance_t, instance> instances;
+        void release(instance_t id, bool free=false) {
+            auto instance = instances.find(id);
+            if (instance == instances.end()) {
+                return;
+            }
+            if(free) {
+                reference().erase(id);
+                instances.erase(id);
+            }
+            else {
+                available.push_back({ id, instance->second->index });
+            }
+        }
 
-        bool grouped = false;
-
-        size_t size = 0;
-        size_t capacity = 0;
-        size_t limit = 256;
-        
-        type::info::opaque_t *resource = nullptr;
-
-        platform::input events;
-
-        std::shared_ptr<type::object> object;
-        std::map<std::string, animation> animations;
-
-        std::map<key_t, std::map<key_t, std::map<key_t, bucket_t>>> _hash;
-        int sector_size = 20;
-        spatial::vector bound_bottom_left = { 20, 0, 20 };
-        spatial::vector bound_top_right = { 20, 0, 20 };
-
-    public:
-        entity() {}
-
-        std::string type() {
-            return "type::entity";
+        void setObject(std::shared_ptr<type::object> object) {
+            this->object = object;
         }
 
         bool empty() {
             return instances.size() == 0;
         }
 
-    protected:
+        size_t size() {
+            return instances.size();
+        }
 
-        instance_t last = 0;
+        operator bool() {
+            return instances.size();
+        }
+
+        type::info::opaque_t *resource = nullptr;
+        std::shared_ptr<type::object> object;
+        operator type::object& () {
+            return *object.get();
+        }
+
+    protected:
+        const size_t capacity = 256;
+        std::unordered_map<instance_t, std::shared_ptr<instance>> instances;
+        std::list<std::pair<instance_t, size_t>> available;
+
+        bool grouped = false;
+        
+        platform::input events;
+
+        int sector_size = 20;
+        spatial::vector bound_bottom_left = { 20, 0, 20 };
+        spatial::vector bound_top_right = { 20, 0, 20 };
     };
 
 }
+

@@ -146,7 +146,7 @@ bool parse(const std::string& data) {
         if (entity.second.contains("instances") == false || entity.second.get("instances").get<picojson::array>().size() == 0) {
             properties props;
             props.set("virtual", true);
-            auto& added = reference.add(props);
+            auto& added = reference.addInstance(props);
             added.flags |= type::entity::VIRTUAL;
             added.position.reposition({ 0.0f, -100.0f, 0.0f });
             added.update();
@@ -163,7 +163,7 @@ bool parse(const std::string& data) {
                     parseProperties(instance.get("properties"), props);
                 }
 
-                auto& added = reference.add(props);
+                auto& added = reference.addInstance(props);
                 if (props.has("spin")) {
                     added.position.spin(std::get<double>(props.get("spin")));
                 }
@@ -182,7 +182,7 @@ bool parse(const std::string& data) {
                 }
             }
         }
-        if (reference.instances.size()) {
+        if (reference.size()) {
             stage::scene::global().call("/play " + entity.first + " static");
         }
 
@@ -195,8 +195,8 @@ bool parse(const std::string& data) {
         parseProperties(group.second, reference);
         auto source = group.second.get("property").to_str();
         for (auto& entity : assets->get<type::entity>()) {
-            for (auto& instance : entity->instances) {
-                if (instance.second.has(source) && std::get<std::string>(instance.second.get(source)) == group.first) {
+            for (auto& instance : entity->getInstances()) {
+                if (instance.second->has(source) && std::get<std::string>(instance.second->get(source)) == group.first) {
                     reference.add(instance.first);
                 }
             }
@@ -210,8 +210,8 @@ bool parse(const std::string& data) {
         parseProperties(blueprint.second, reference);
         auto source = blueprint.second.get("property").to_str();
         for (auto& entity : assets->get<type::entity>()) {
-            for (auto& instance : entity->instances) {
-                if (instance.second.has(source) && std::get<std::string>(instance.second.get(source)) == blueprint.first) {
+            for (auto& instance : entity->getInstances()) {
+                if (instance.second->has(source) && std::get<std::string>(instance.second->get(source)) == blueprint.first) {
                     reference.add(instance.first);
                 }
             }
@@ -246,26 +246,26 @@ bool stage::scene::persistence::write() {
     for (auto& entity : assets->get<type::entity>()) {
         picojson::object spec;
         picojson::array instances;
-        for (auto& instance : entity->instances) {
+        for (auto& instance : entity->getInstances()) {
             // Skip all non-user created map content
-            if(entity->flag("required") == false && instance.second.flag("user") == false && instance.second.flag("required") == false) {
+            if(entity->flag("required") == false && instance.second->flag("user") == false && instance.second->flag("required") == false) {
                 continue;
             }
             picojson::object entry;
-            if (instance.second.position.translation.spin != 0.0f) {
-                instance.second.set("spin", instance.second.position.translation.spin);
+            if (instance.second->position.translation.spin != 0.0f) {
+                instance.second->set("spin", instance.second->position.translation.spin);
             }
-            if (instance.second.position.translation.scale != 1.0f) {
-                instance.second.set("scale", instance.second.position.translation.scale - 1.0f);
+            if (instance.second->position.translation.scale != 1.0f) {
+                instance.second->set("scale", instance.second->position.translation.scale - 1.0f);
             }
             picojson::object position;
-            position["x"] = picojson::value(instance.second.position.eye.x);
-            position["y"] = picojson::value(instance.second.position.eye.y);
-            position["z"] = picojson::value(instance.second.position.eye.z);
+            position["x"] = picojson::value(instance.second->position.eye.x);
+            position["y"] = picojson::value(instance.second->position.eye.y);
+            position["z"] = picojson::value(instance.second->position.eye.z);
             entry["position"] = picojson::value(position);
 
             picojson::object spec;
-            if (writeProperties(instance.second, spec)) {
+            if (writeProperties(*instance.second, spec)) {
                 entry["properties"] = picojson::value(spec);
             }
 
@@ -711,7 +711,7 @@ value_t stage::scene::_play(parameters_t p) {
     if (p.size() == 2) {
         auto name = std::get<label_t>(p[0]);
         auto animation = std::get<label_t>(p[1]);
-        assets->get<type::entity>(name).play(animation);
+        //assets->get<type::entity>(name).play(animation);
         return 1;
     }
     return 0;
@@ -767,7 +767,7 @@ value_t stage::scene::_show(parameters_t p) {
     else if (type == "entities") {
         for (auto entry : assets->get<type::entity>()) {
             std::stringstream ss;
-            ss << "entity(" << entry->id() << ", " << entry->instances.size() << ")";
+            ss << "entity(" << entry->id() << ", " << entry->size() << ")";
             stage::scene::global().debug.content.add(ss.str());
         }
     }
