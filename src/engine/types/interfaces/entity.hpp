@@ -206,6 +206,57 @@ namespace type {
             this->object->emitter = this;
         }
 
+        void animate(instance_t id = 0) {
+            if (instances.size() == 0) {
+                return;
+            }
+            if (flag("animated") == false) {
+                return;
+            }
+
+            instance_t key = (id == 0) ? instances.begin()->first : id;
+            if (instances.find(key) == instances.end()) {
+                return;
+            }
+
+            utilities::seconds_t now = std::chrono::system_clock::now().time_since_epoch();
+
+            std::vector<instance_t> cleanup;
+            for (auto& instance : instances) {
+                while(instance.second->path.size()) {
+                    auto position = instance.second->path.begin()->get();
+                    if (instance.second->rigging) {
+                        instance.second->rigging->adjust(position, position.eye);
+                    } 
+                    else {
+                        instance.second->position.reposition(position.eye);
+                        if (position.translation.active) {
+                            instance.second->position.orientation(position);
+                        }
+                        else {
+                            instance.second->position.lookat(position.focus);
+                        }
+                        instance.second->position.alpha = position.alpha;
+                        instance.second->flags &= 0xFF;
+                        instance.second->flags |= (unsigned int)(255.0 * position.alpha) << 24;
+                        instance.second->update();
+                    }
+                    if (instance.second->path.begin()->finished) {
+                        if (instance.second->path.begin()->terminator) {
+                            cleanup.push_back(instance.second->id);
+                        }
+                        instance.second->path.pop_front();
+                    }
+                    else {
+                        break; // the current node isn't finished
+                    }
+                }
+            }
+            for (auto id : cleanup) {
+                releaseInstance(id);
+            }
+        }
+
         bool compile(spatial::position* reference) {
            for (auto& instance : instances) {
                 if (instance.second->dirty == false) {
