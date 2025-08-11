@@ -110,7 +110,7 @@
 #define HAVE_STRUCT_TIMESPEC
 #endif
 
-#if defined __PLATFORM_ANDROID || __PLATFORM_MACOS
+#if defined __PLATFORM_ANDROID
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/mman.h>
@@ -123,13 +123,10 @@
 #include <resolv.h>
 #include <cstring>
 #include <cstdlib>
-#ifndef MAP_FILE
-#define MAP_FILE 0
 #define unordered_map map
 #endif
-#endif
 
-#if defined __PLATFORM_IOS
+#if defined __PLATFORM_IOS || __PLATFORM_MACOS
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/mman.h>
