@@ -125,6 +125,7 @@
 #include <cstdlib>
 #ifndef MAP_FILE
 #define MAP_FILE 0
+#define unordered_map map
 #endif
 #endif
 

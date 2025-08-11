@@ -564,10 +564,13 @@ std::string implementation::universal::assets::load(platform::assets* assets, co
         spatial::vector offset;
         if (object_name.empty() == false) {
             std::string cache = path + "/" + object_name;
-            entity.object = assets->reference<type::object>(cache);
+            entity.setObject(assets->reference<type::object>(cache));
 
             assets->retrieve(cache) >> format::parser::obj.d(resource + ".") >> entity.object;
-                
+
+            // TODO: shouldn't have to reset this
+            entity.object->emitter = &entity;
+
             if (entity.has("scale")) {
                 auto scale = std::get<double>(entity.get("scale"));
                 entity.object->scale(spatial::matrix().scale(scale));

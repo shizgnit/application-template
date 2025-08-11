@@ -215,10 +215,6 @@ namespace type {
         }
 
         friend type::object& operator >> (type::object& input, type::object& instance) {
-            //for (auto &child : input.children) {
-            //    child->parent = &instance;
-            //    instance.children.push_back(child);
-            //}
             instance = input;
             return instance;
         }
@@ -307,7 +303,7 @@ namespace type {
         bool visible = true;
         bool depth = false;
 
-        type::object* parent = NULL;
+        //type::object* parent = NULL;
         std::vector<std::shared_ptr<type::object>> children;
 
         std::vector<unsigned char> pixels;

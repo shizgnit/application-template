@@ -102,7 +102,7 @@ namespace format {
 
             bool parse = false;
 
-            std::shared_ptr<type::object> object;
+            std::shared_ptr<type::object> object = nullptr;
 
             std::string line;
             while (std::getline(input, line)) {
@@ -210,6 +210,12 @@ namespace format {
                     }
 
                 }
+            }
+
+            // If only one object was parsed, then pivot to the parent
+            if (instance.children.size() == 1) {
+                *instance.children.front().get() >> (type::object&)instance;
+                instance.children.clear();
             }
 
             // Done parsing the incoming asset

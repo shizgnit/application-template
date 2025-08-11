@@ -63,7 +63,9 @@ namespace type {
             return *(i->second);
         }
 
-        entity() {}
+        entity() {
+            int x = 1;
+        }
 
         std::string type() {
             return "type::entity";
@@ -129,17 +131,12 @@ namespace type {
         struct {
             std::vector<unsigned int> content;
             type::info::opaque_t *resource = nullptr;
-        } identifiers;
-
-        struct {
-            std::vector<unsigned int> content;
-            type::info::opaque_t *resource = nullptr;
-        } frames;
-
-        struct {
-            std::vector<unsigned int> content;
-            type::info::opaque_t *resource = nullptr;
         } offsets;
+
+        struct {
+            std::vector<unsigned int> content;
+            type::info::opaque_t *resource = nullptr;
+        } identifiers;
 
         struct {
             std::vector<unsigned int> content;
@@ -178,10 +175,10 @@ namespace type {
         instance_t allocateInstance(properties& props, int count) {
             static instance_t increment = 0;
             if (instances.size() == 0) {
-                offsets.content.reserve(capacity*2);
-                identifiers.content.reserve(capacity);
-                flags.content.reserve(capacity);
-                positions.content.reserve(capacity);
+                offsets.content.resize(capacity*2);
+                identifiers.content.resize(capacity);
+                flags.content.resize(capacity);
+                positions.content.resize(capacity);
             }
             for (int i = 0; i < count; i++) {
                 int index = instances.size() >= capacity ? (instances.size() % (capacity - 1)) + 1 : instances.size() % capacity;
@@ -217,7 +214,6 @@ namespace type {
                 offsets.content[(instance.second->index * 2)] = instance.second->offset.first;
                 offsets.content[(instance.second->index * 2) + 1] = instance.second->offset.second;
                 identifiers.content[instance.second->index] = instance.second->id;
-                frames.content[instance.second->index] = instance.second->frame;
                 flags.content[instance.second->index] = instance.second->flags;
                 positions.content[instance.second->index] = instance.second->position.serialize();
                 instance.second->dirty = false;
@@ -243,9 +239,11 @@ namespace type {
             return *object.get();
         }
 
+        std::unordered_map<instance_t, std::shared_ptr<instance>> instances;
+
     protected:
         const size_t capacity = 256;
-        std::unordered_map<instance_t, std::shared_ptr<instance>> instances;
+        size_t allocated = 0;
         std::list<std::pair<instance_t, size_t>> available;
 
         bool grouped = false;
