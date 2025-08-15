@@ -149,7 +149,24 @@ namespace type {
         } positions;
 
         instance& addInstance(properties& props=properties::instance(), int count = 1) {
-            return getInstance(allocateInstance(props, count));
+            static instance_t id = 0;
+            if (available.size() == 0 && instances.size() == 0) {
+                offsets.content.resize(capacity*2);
+                identifiers.content.resize(capacity);
+                flags.content.resize(capacity);
+                positions.content.resize(capacity);
+                for (int i = 0; i < capacity; i++) {
+                    available.push_back({ ++id, std::make_shared<instance>(id, nullptr, props, i) });
+                }
+            }
+            for(int i = 0; i < count && available.size(); i++) {
+                auto& instance = available.front();
+                instance.second->entity = this;
+                instances.insert(instance);
+                available.pop_front();
+                return getInstance(instance.first);
+            }
+            return getInstance(0);
         }
 
         bool hasInstance(instance_t id) {
@@ -172,21 +189,6 @@ namespace type {
             return instances;
         }
 
-        instance_t allocateInstance(properties& props, int count) {
-            static instance_t increment = 0;
-            if (instances.size() == 0) {
-                offsets.content.resize(capacity*2);
-                identifiers.content.resize(capacity);
-                flags.content.resize(capacity);
-                positions.content.resize(capacity);
-            }
-            for (int i = 0; i < count; i++) {
-                int index = instances.size() >= capacity ? (instances.size() % (capacity - 1)) + 1 : instances.size() % capacity;
-                instances.insert({ ++increment, std::make_shared<instance>(increment, this, props, index) });
-            }
-            return increment;
-        }
-
         void releaseInstance(instance_t id, bool free=false) {
             auto instance = instances.find(id);
             if (instance == instances.end()) {
@@ -197,7 +199,7 @@ namespace type {
                 instances.erase(id);
             }
             else {
-                available.push_back({ id, instance->second->index });
+                available.push_back({ id, instance->second });
             }
         }
 
@@ -294,8 +296,7 @@ namespace type {
 
     protected:
         const size_t capacity = 256;
-        size_t allocated = 0;
-        std::list<std::pair<instance_t, size_t>> available;
+        std::list<std::pair<instance_t, std::shared_ptr<instance>>> available;
 
         bool grouped = false;
         

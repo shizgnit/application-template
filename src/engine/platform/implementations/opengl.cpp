@@ -535,6 +535,10 @@ bool implementation::opengl::graphics::compile(type::object& object) {
     }
 
     if(object.emitter) {
+        if (object.emitter->id() == "objects/building.002") {
+            int x = 0;
+        }
+
         auto &entity = *object.emitter;
 
         if (entity.resource == NULL) {
@@ -594,7 +598,7 @@ bool implementation::opengl::graphics::compile(type::object& object) {
             if (entity.identifiers.content.size()) {
                 GL_TEST(glGenBuffers(1, &entity.identifiers.resource->context));
                 GL_TEST(glBindBuffer(GL_ARRAY_BUFFER, entity.identifiers.resource->context));
-                GL_TEST(glBufferData(GL_ARRAY_BUFFER, sizeof(unsigned int) * entity.size(), NULL, GL_DYNAMIC_DRAW));
+                GL_TEST(glBufferData(GL_ARRAY_BUFFER, sizeof(unsigned int) * entity.instances.size(), NULL, GL_DYNAMIC_DRAW));
                 GL_TEST(glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(unsigned int) * entity.instances.size(), entity.identifiers.content.data()));
                 GL_TEST(glVertexAttribIPointer(shader->a_Identifier, 1, GL_UNSIGNED_INT, sizeof(unsigned int), BUFFER_OFFSET(0)));
                 GL_TEST(glEnableVertexAttribArray(shader->a_Identifier));
@@ -604,7 +608,7 @@ bool implementation::opengl::graphics::compile(type::object& object) {
             if (entity.flags.content.size()) {
                 GL_TEST(glGenBuffers(1, &entity.flags.resource->context));
                 GL_TEST(glBindBuffer(GL_ARRAY_BUFFER, entity.flags.resource->context));
-                GL_TEST(glBufferData(GL_ARRAY_BUFFER, sizeof(unsigned int) * entity.size(), NULL, GL_DYNAMIC_DRAW));
+                GL_TEST(glBufferData(GL_ARRAY_BUFFER, sizeof(unsigned int) * entity.instances.size(), NULL, GL_DYNAMIC_DRAW));
                 GL_TEST(glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(unsigned int) * entity.instances.size(), entity.flags.content.data()));
                 GL_TEST(glVertexAttribIPointer(shader->a_Flags, 1, GL_UNSIGNED_INT, sizeof(unsigned int), BUFFER_OFFSET(0)));
                 GL_TEST(glEnableVertexAttribArray(shader->a_Flags));
@@ -614,7 +618,7 @@ bool implementation::opengl::graphics::compile(type::object& object) {
             if (entity.positions.content.size()) {
                 GL_TEST(glGenBuffers(1, &entity.positions.resource->context));
                 GL_TEST(glBindBuffer(GL_ARRAY_BUFFER, entity.positions.resource->context));
-                GL_TEST(glBufferData(GL_ARRAY_BUFFER, sizeof(spatial::matrix) * entity.size(), NULL, GL_DYNAMIC_DRAW));
+                GL_TEST(glBufferData(GL_ARRAY_BUFFER, sizeof(spatial::matrix) * entity.instances.size(), NULL, GL_DYNAMIC_DRAW));
                 GL_TEST(glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(spatial::matrix) * entity.instances.size(), entity.positions.content.data()));
                 
                 GL_TEST(glVertexAttribPointer(shader->a_ModelMatrix + 0, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::matrix), BUFFER_OFFSET(offset_matrix + sizeof(spatial::vector::type_t) * 0)));
