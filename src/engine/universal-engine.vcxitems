@@ -88,6 +88,8 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)tests\test_input.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)tests\test_spatial.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)tests\test_utilities.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)test_assets.cpp" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)test_entity.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)utilities\common.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)utilities\properties.cpp" />
     <ClCompile Include="$(MSBuildThisFileDirectory)utilities\scene.cpp" />

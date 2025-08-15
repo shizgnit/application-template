@@ -61,6 +61,12 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)..\..\deps\gtest\gtest-all.cc">
       <Filter>deps\gtest</Filter>
     </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)test_assets.cpp">
+      <Filter>tests</Filter>
+    </ClCompile>
+    <ClCompile Include="$(MSBuildThisFileDirectory)test_entity.cpp">
+      <Filter>tests</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(MSBuildThisFileDirectory)..\..\deps\lodepng\lodepng.h">

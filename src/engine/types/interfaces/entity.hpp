@@ -57,7 +57,7 @@ namespace type {
         static entity& find(value_t criteria) {
             static type::entity empty;
             auto i = reference().find(std::get<instance_t>(criteria));
-            if (i == reference().end()) {
+            if (i == reference().end() || i->second == nullptr) {
                 return empty;
             }
             return *(i->second);
@@ -159,14 +159,15 @@ namespace type {
                     available.push_back({ ++id, std::make_shared<instance>(id, nullptr, props, i) });
                 }
             }
+            instance_t last = 0;
             for(int i = 0; i < count && available.size(); i++) {
-                auto& instance = available.front();
+                auto instance = available.front();
                 instance.second->entity = this;
-                instances.insert(instance);
+                instances.insert({ instance.first, instance.second });
                 available.pop_front();
-                return getInstance(instance.first);
+                last = instance.first;
             }
-            return getInstance(0);
+            return getInstance(last);
         }
 
         bool hasInstance(instance_t id) {
