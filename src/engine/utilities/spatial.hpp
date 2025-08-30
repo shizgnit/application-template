@@ -65,6 +65,7 @@ namespace spatial {
 
         virtual vector& operator += (const vector& operand);
         virtual vector operator + (const vector& operand) const;
+        virtual vector operator + (const std::pair<type_t, type_t>& operand) const;
 
         virtual vector& operator -= (const vector& operand);
         virtual vector operator - (const vector& operand) const;

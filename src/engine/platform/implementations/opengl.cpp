@@ -558,7 +558,7 @@ bool implementation::opengl::graphics::compile(type::object& object) {
             entity.resource->vao.clear();
         }
         
-        if(entity.resource->vao.find(shader) != entity.resource->vao.end()) {
+        if(false && entity.resource->vao.find(shader) != entity.resource->vao.end()) {
             if(entity.identifiers.resource->context) {
                 GL_TEST(glBindBuffer(GL_ARRAY_BUFFER, entity.identifiers.resource->context));
                 GL_TEST(glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(unsigned int) * entity.instances.size(), entity.identifiers.content.data()));
@@ -595,7 +595,11 @@ bool implementation::opengl::graphics::compile(type::object& object) {
             }
         }
         else {
-            if (entity.identifiers.content.size()) {
+            if (entity.identifiers.resource->context) {
+                GL_TEST(glDeleteBuffers(1, &entity.identifiers.resource->context));
+                entity.identifiers.resource->context = 0;
+            }
+            if (shader->a_Identifier >= 0 && entity.identifiers.content.size()) {
                 GL_TEST(glGenBuffers(1, &entity.identifiers.resource->context));
                 GL_TEST(glBindBuffer(GL_ARRAY_BUFFER, entity.identifiers.resource->context));
                 GL_TEST(glBufferData(GL_ARRAY_BUFFER, sizeof(unsigned int) * entity.instances.size(), NULL, GL_DYNAMIC_DRAW));
@@ -604,8 +608,11 @@ bool implementation::opengl::graphics::compile(type::object& object) {
                 GL_TEST(glEnableVertexAttribArray(shader->a_Identifier));
                 GL_TEST(glVertexAttribDivisor(shader->a_Identifier, 1));
             }
-
-            if (entity.flags.content.size()) {
+            if (entity.flags.resource->context) {
+                GL_TEST(glDeleteBuffers(1, &entity.flags.resource->context));
+                entity.flags.resource->context = 0;
+            }
+            if (shader->a_Flags >= 0 && entity.flags.content.size()) {
                 GL_TEST(glGenBuffers(1, &entity.flags.resource->context));
                 GL_TEST(glBindBuffer(GL_ARRAY_BUFFER, entity.flags.resource->context));
                 GL_TEST(glBufferData(GL_ARRAY_BUFFER, sizeof(unsigned int) * entity.instances.size(), NULL, GL_DYNAMIC_DRAW));
@@ -614,8 +621,11 @@ bool implementation::opengl::graphics::compile(type::object& object) {
                 GL_TEST(glEnableVertexAttribArray(shader->a_Flags));
                 GL_TEST(glVertexAttribDivisor(shader->a_Flags, 1));
             }
-
-            if (entity.positions.content.size()) {
+            if (entity.positions.resource->context) {
+                GL_TEST(glDeleteBuffers(1, &entity.positions.resource->context));
+                entity.positions.resource->context = 0;
+            }
+            if (shader->a_ModelMatrix >= 0 && entity.positions.content.size()) {
                 GL_TEST(glGenBuffers(1, &entity.positions.resource->context));
                 GL_TEST(glBindBuffer(GL_ARRAY_BUFFER, entity.positions.resource->context));
                 GL_TEST(glBufferData(GL_ARRAY_BUFFER, sizeof(spatial::matrix) * entity.instances.size(), NULL, GL_DYNAMIC_DRAW));
@@ -695,8 +705,8 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
         return;
     }
 
-//    static std::mutex lockgl;
-//    std::lock_guard<std::mutex> scoped(lockgl);
+    //    static std::mutex lockgl;
+    //    std::lock_guard<std::mutex> scoped(lockgl);
  
     renderer.push_back(&shader);
     compile(object);

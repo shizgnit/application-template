@@ -85,6 +85,12 @@ spatial::vector spatial::vector::operator + (const vector& operand) const {
     result.z = z + operand.z;
     return result;
 }
+spatial::vector spatial::vector::operator + (const std::pair<type_t, type_t>& operand) const {
+    vector result;
+    result.x = x + operand.first;
+    result.y = y + operand.second;
+    return result;
+}
 
 spatial::vector& spatial::vector::operator -= (const vector& operand) {
     return (*this = (*this) - operand);

@@ -156,16 +156,15 @@ namespace type {
                 flags.content.resize(capacity);
                 positions.content.resize(capacity);
                 for (int i = 0; i < capacity; i++) {
-                    available.push_back({ ++id, std::make_shared<instance>(id, nullptr, props, i) });
+                    available.push_back({ ++id, std::make_shared<instance>(id, this, props, i) });
                 }
             }
             instance_t last = 0;
             for(int i = 0; i < count && available.size(); i++) {
                 auto instance = available.front();
-                instance.second->entity = this;
                 instances.insert({ instance.first, instance.second });
-                available.pop_front();
                 last = instance.first;
+                available.pop_front();
             }
             return getInstance(last);
         }
