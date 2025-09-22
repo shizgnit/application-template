@@ -16,3 +16,6 @@
 [submodule "deps/gtest"]
 	path = deps/gtest
 	url = https://github.com/shizgnit/googletest.git
+[submodule "deps/emsdk"]
+	path = deps/emsdk
+	url = https://github.com/emscripten-core/emsdk.git

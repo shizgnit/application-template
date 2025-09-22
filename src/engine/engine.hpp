@@ -54,34 +54,36 @@
 #endif
 
 #if defined __APPLE__
-
 #include <TargetConditionals.h>
-
 #if defined TARGET_OS_IOS && TARGET_OS_IOS == 1
 #define __PLATFORM_APPLE 1
 #define __PLATFORM_IOS 1
 //#define __METAL_SUPPORT 1
 #define __PLATFORM "APPLE"
 #endif
-
 #if defined TARGET_OS_OSX && TARGET_OS_OSX == 1
 #define __PLATFORM_APPLE 1
 #define __PLATFORM_MACOS 1
 //#define __METAL_SUPPORT 1
 #define __PLATFORM "APPLE"
 #endif
-
 #if defined __METAL_SUPPORT
 #define _VECTOR_PADDING 2
 #define _MATRIX_PADDING 2
 #endif
-
 #endif
+
+#if defined EMSCRIPTEN
+#define __PLATFORM_EMSCRIPTEN 1
+#define __PLATFORM_64BIT 1
+#define __PLATFORM "EMSCRIPTEN"
+#endif
+
+// Done processing the supported platforms
 
 #if not defined __PLATFORM
 #error "Platform not defined!"
 #endif
-
 
 #if defined __PLATFORM_WINDOWS
 #ifndef _UNICODE
@@ -285,6 +287,19 @@ inline platform::testing* test = new implementation::googletest::testing();
 //inline platform::network::server* server = new implementation::posix::network::server();
 #endif
 
+#if defined __PLATFORM_EMSCRIPTEN
+#include "platform/implementations/universal.hpp"
+#include "platform/implementations/opengl.hpp"
+#include "platform/implementations/openal.hpp"
+#include "platform/implementations/posix.hpp"
+#include "platform/implementations/emscripten.hpp"
+inline platform::audio* audio = new implementation::openal::audio();
+inline platform::filesystem* filesystem = new implementation::posix::filesystem();
+inline platform::assets* assets = new implementation::emscripten::assets();
+inline platform::graphics* graphics = new implementation::opengl::graphics();
+inline platform::input* input = new implementation::universal::input();
+inline platform::interface* gui = new implementation::universal::interface();
+#endif
 
 /// Supported Formats
 #include "types/formats/wav.hpp"

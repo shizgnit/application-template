@@ -3,6 +3,11 @@
 packages/
 **/Debug
 **/x86
+
+CMakeFiles/
+Makefile
+cmake_install.cmake
+
 src/client/android-client.Packaging/assets
 src/client/ios-client.Application/assets
 
