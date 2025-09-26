@@ -47,8 +47,6 @@ namespace platform {
             widget() {} // hide the default constructor
 
         public:
-            void draw();
-
             enum spec {
                 none,
                 button,

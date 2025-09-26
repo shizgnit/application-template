@@ -31,6 +31,12 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
         src/client/windows-client.Executable/*.hpp
     )
     file(GLOB PLATFORM_SOURCES
+        src/engine/platform/implementations/universal.cpp
+        src/engine/platform/implementations/universal.hpp
+        src/engine/platform/implementations/opengl.cpp
+        src/engine/platform/implementations/opengl.hpp
+        src/engine/platform/implementations/openal.cpp
+        src/engine/platform/implementations/openal.hpp
         src/engine/platform/implementations/windows.cpp
         src/engine/platform/implementations/windows.hpp
     )
@@ -41,10 +47,12 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
         src/client/macos-client.Executable/*.hpp
     )
     file(GLOB PLATFORM_SOURCES
+        src/engine/platform/implementations/universal.cpp
+        src/engine/platform/implementations/universal.hpp
+        src/engine/platform/implementations/opengl.cpp
+        src/engine/platform/implementations/opengl.hpp
         src/engine/platform/implementations/macos.cpp
         src/engine/platform/implementations/macos.hpp
-        src/engine/platform/implementations/metal.cpp
-        src/engine/platform/implementations/metal.hpp
     )
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Android")
     file(GLOB_RECURSE CLIENT_SOURCES
@@ -54,10 +62,14 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Android")
         src/client/android-client.NativeActivity/*.hpp
     )
     file(GLOB PLATFORM_SOURCES
-        src/engine/platform/implementations/android.cpp
-        src/engine/platform/implementations/android.hpp
+        src/engine/platform/implementations/universal.cpp
+        src/engine/platform/implementations/universal.hpp
+        src/engine/platform/implementations/opengl.cpp
+        src/engine/platform/implementations/opengl.hpp
         src/engine/platform/implementations/opensl.cpp
         src/engine/platform/implementations/opensl.hpp
+        src/engine/platform/implementations/android.cpp
+        src/engine/platform/implementations/android.hpp
     )
 elseif(CMAKE_SYSTEM_NAME STREQUAL "iOS")
     file(GLOB_RECURSE CLIENT_SOURCES
@@ -66,6 +78,10 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "iOS")
         src/client/ios-client.Application/*.hpp
     )
     file(GLOB PLATFORM_SOURCES
+        src/engine/platform/implementations/universal.cpp
+        src/engine/platform/implementations/universal.hpp
+        src/engine/platform/implementations/opengl.cpp
+        src/engine/platform/implementations/opengl.hpp
         src/engine/platform/implementations/ios.cpp
         src/engine/platform/implementations/ios.hpp
     )
@@ -74,6 +90,12 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
         src/client/emscripten-client.Application/main.cpp
     )
     file(GLOB PLATFORM_SOURCES
+        src/engine/platform/implementations/universal.cpp
+        src/engine/platform/implementations/universal.hpp
+        src/engine/platform/implementations/opengl.cpp
+        src/engine/platform/implementations/opengl.hpp
+        src/engine/platform/implementations/openal.cpp
+        src/engine/platform/implementations/openal.hpp
         src/engine/platform/implementations/emscripten.cpp
         src/engine/platform/implementations/emscripten.hpp
     )
@@ -102,6 +124,8 @@ target_include_directories(framework PRIVATE ${OPENGL_INCLUDE_DIR})
 target_include_directories(framework PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src/engine ${CMAKE_CURRENT_SOURCE_DIR}/deps)
 
 set_target_properties(framework PROPERTIES LINKER_LANGUAGE CXX)
+
+set_target_properties(framework PROPERTIES LINK_FLAGS "-sFULL_ES3=1 -sMAX_WEBGL_VERSION=2")
 
 # Install rules (optional)
 # install(TARGETS framework DESTINATION lib)

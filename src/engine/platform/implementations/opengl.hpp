@@ -51,8 +51,12 @@
 #include "OpenGL/gl3.h"
 #endif
 
+
 #if defined __PLATFORM_EMSCRIPTEN
-#include <GLES2/gl2.h>
+#include <GLES3/gl3.h>
+#include <GLES3/gl2ext.h>
+#include <emscripten/emscripten.h>
+#include <emscripten/html5.h>
 #endif
 
 #if !defined GL_MAX_COLOR_ATTACHMENTS

@@ -1,6 +1,7 @@
-#include <emscripten.h>
+#include <GLES3/gl3.h>
+#include <GLES3/gl2ext.h>
+#include <emscripten/emscripten.h>
 #include <emscripten/html5.h>
-#include <GLES2/gl2.h>
 
 #include <string>
 #include <vector>
