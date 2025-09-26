@@ -91,8 +91,11 @@
         //oldY = touchLocation.y;
     //}
     
-    gui->raise({ platform::input::POINTER, platform::input::DOWN, 1, 0, 0.0f, { point.x, point.y, 0.0f } }, 0, 0);
-    input->raise({ platform::input::POINTER, platform::input::DOWN, 1, 1, 0.0f, { point.x, point.y, 0.0f } });
+    gui->raise({ platform::input::POINTER, platform::input::DOWN, 1, 0, 0.0f,
+                 { static_cast<float>(point.x), static_cast<float>(point.y), 0.0f } }, 0, 0);
+
+    input->raise({ platform::input::POINTER, platform::input::DOWN, 1, 1, 0.0f,
+                   { static_cast<float>(point.x), static_cast<float>(point.y), 0.0f } });
 }
 - (void) mouseDragged:(UIEvent *)event {
     //if ([[touch.view class] isSubclassOfClass:[UILabel class]]) {

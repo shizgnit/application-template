@@ -85,8 +85,8 @@
     
     NSUInteger button = [NSEvent pressedMouseButtons];
     
-    if(gui->raise({ platform::input::POINTER, platform::input::DOWN, 1, 0, 0.0f, { point.x, point.y, 0.0f } }, point.x, point.y) == false) {
-        input->raise({ platform::input::POINTER, platform::input::DOWN, 1, 0, 0.0f, { point.x, point.y, 0.0f } });
+    if(gui->raise({ platform::input::POINTER, platform::input::DOWN, 1, 0, 0.0f, { static_cast<float>(point.x), static_cast<float>(point.y), 0.0f } }, point.x, point.y) == false) {
+        input->raise({ platform::input::POINTER, platform::input::DOWN, 1, 0, 0.0f, { static_cast<float>(point.x), static_cast<float>(point.y), 0.0f } });
     }
 }
 - (void) mouseMoved:(NSEvent *)event {
@@ -96,8 +96,8 @@
     point.x = point.x * instance->getScale();
     point.y = point.y * instance->getScale();
 
-    if(gui->raise({ platform::input::POINTER, platform::input::MOVE, 0, 0, 0.0f, { point.x, point.y, 0.0f } }, point.x, point.y) == false) {
-        input->raise({ platform::input::POINTER, platform::input::MOVE, 0, 1, 0.0f, { point.x, point.y, 0.0f } });
+    if(gui->raise({ platform::input::POINTER, platform::input::MOVE, 0, 0, 0.0f, { static_cast<float>(point.x), static_cast<float>(point.y), 0.0f } }, point.x, point.y) == false) {
+        input->raise({ platform::input::POINTER, platform::input::MOVE, 0, 1, 0.0f, { static_cast<float>(point.x), static_cast<float>(point.y), 0.0f } });
     }
 }
 - (void) mouseDragged:(NSEvent *)event {
@@ -107,8 +107,8 @@
     point.x = point.x * instance->getScale();
     point.y = point.y * instance->getScale();
    
-    if(gui->raise({ platform::input::POINTER, platform::input::MOVE, 0, 0, 0.0f, { point.x, point.y, 0.0f } }, point.x, point.y) == false) {
-        input->raise({ platform::input::POINTER, platform::input::MOVE, 0, 1, 0.0f, { point.x, point.y, 0.0f } });
+    if(gui->raise({ platform::input::POINTER, platform::input::MOVE, 0, 0, 0.0f, { static_cast<float>(point.x), static_cast<float>(point.y), 0.0f } }, point.x, point.y) == false) {
+        input->raise({ platform::input::POINTER, platform::input::MOVE, 0, 1, 0.0f, { static_cast<float>(point.x), static_cast<float>(point.y), 0.0f } });
     }
 }
 - (void) mouseUp:(NSEvent *)event {
@@ -118,8 +118,8 @@
     point.x = point.x * instance->getScale();
     point.y = point.y * instance->getScale();
      
-    if(gui->raise({ platform::input::POINTER, platform::input::UP, 1, 0, 0.0f, { point.x, point.y, 0.0f } }, point.x, point.y) == false) {
-        input->raise({ platform::input::POINTER, platform::input::UP, 1, 0, 0.0f, { point.x, point.y, 0.0f } });
+    if(gui->raise({ platform::input::POINTER, platform::input::UP, 1, 0, 0.0f, { static_cast<float>(point.x), static_cast<float>(point.y), 0.0f } }, point.x, point.y) == false) {
+        input->raise({ platform::input::POINTER, platform::input::UP, 1, 0, 0.0f, { static_cast<float>(point.x), static_cast<float>(point.y), 0.0f } });
     }
 }
 - (void) scrollWheel:(NSEvent *)event {
@@ -129,8 +129,8 @@
     point.x = point.x * instance->getScale();
     point.y = point.y * instance->getScale();
    
-    if(gui->raise({ platform::input::POINTER, platform::input::WHEEL, 0, 0, (float)travel, { point.x, point.y, 0.0f } }, point.x, point.y) == false) {
-        input->raise({ platform::input::POINTER, platform::input::WHEEL, 0, 0, (float)travel, { point.x, point.y, 0.0f } });
+    if(gui->raise({ platform::input::POINTER, platform::input::WHEEL, 0, 0, (float)travel, { static_cast<float>(point.x), static_cast<float>(point.y), 0.0f } }, point.x, point.y) == false) {
+        input->raise({ platform::input::POINTER, platform::input::WHEEL, 0, 0, (float)travel, { static_cast<float>(point.x), static_cast<float>(point.y), 0.0f } });
     }
 }
 
