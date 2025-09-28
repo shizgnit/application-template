@@ -99,6 +99,12 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
         src/engine/platform/implementations/emscripten.cpp
         src/engine/platform/implementations/emscripten.hpp
     )
+    file(GLOB DEPENDENCY_SOURCES
+        deps/lodepng/lodepng.cpp
+        deps/lodepng/lodepng.h
+        deps/pugixml/pugiconfig.cpp
+        deps/pugixml/pugixml.cpp
+        deps/pugixml/pugixml.hpp)
 endif()
 
 # Add all sources together
@@ -106,6 +112,7 @@ set(FRAMEWORK_SOURCES
     ${ENGINE_SOURCES}
     ${CLIENT_SOURCES}
     ${PLATFORM_SOURCES}
+    ${DEPENDENCY_SOURCES}
 )
 
 add_library(framework STATIC ${FRAMEWORK_SOURCES})

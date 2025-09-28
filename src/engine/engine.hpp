@@ -73,7 +73,7 @@
 #endif
 #endif
 
-#if defined EMSCRIPTEN
+#if defined __EMSCRIPTEN__
 #define __PLATFORM_EMSCRIPTEN 1
 #define __PLATFORM_64BIT 1
 #define __PLATFORM "EMSCRIPTEN"
@@ -144,6 +144,21 @@
 #ifndef MAP_FILE
 #define MAP_FILE 0
 #endif
+#endif
+
+#if defined __PLATFORM_EMSCRIPTEN
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/mman.h>
+//#include <sys/socket.h>
+//#include <netinet/in.h>
+//#include <arpa/inet.h>
+#include <dirent.h>
+//#include <utime.h>
+//#include <netdb.h>
+//#include <resolv.h>
+#include <cstring>
+#include <cstdlib>
 #endif
 
 

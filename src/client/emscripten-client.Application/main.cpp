@@ -56,7 +56,7 @@ bool init() {
    emscripten_webgl_make_context_current(ctx);
 
    // Initialize the OpenGL render data
-   printf("Initialize OpenGL\n");
+   printf("Initialized OpenGL\n");
 
    glClearColor(0.0f, 0.0f, 0.0f, 1.f);
 
@@ -71,7 +71,6 @@ void render() {
       instance->on_interval();
       instance->on_draw();
    }
-   //SwapBuffers(hdc);
 }
 
 // Handle mouse click events
