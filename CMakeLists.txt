@@ -102,9 +102,12 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
     file(GLOB DEPENDENCY_SOURCES
         deps/lodepng/lodepng.cpp
         deps/lodepng/lodepng.h
-        deps/pugixml/pugiconfig.cpp
-        deps/pugixml/pugixml.cpp
-        deps/pugixml/pugixml.hpp)
+        deps/pugixml/src/pugiconfig.cpp
+        deps/pugixml/src/pugixml.cpp
+        deps/pugixml/src/pugixml.hpp
+        deps/miniz-2.2.0/miniz.c
+        deps/miniz-2.2.0/miniz.h
+    )
 endif()
 
 # Add all sources together
