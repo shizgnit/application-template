@@ -307,6 +307,7 @@ inline platform::testing* test = new implementation::googletest::testing();
 #include "platform/implementations/opengl.hpp"
 #include "platform/implementations/openal.hpp"
 #include "platform/implementations/emscripten.hpp"
+inline platform::trace* trace = new implementation::universal::trace();
 inline platform::audio* audio = new implementation::openal::audio();
 inline platform::filesystem* filesystem = new implementation::emscripten::filesystem();
 inline platform::assets* assets = new implementation::emscripten::assets();

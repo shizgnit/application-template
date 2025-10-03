@@ -19,3 +19,6 @@
 [submodule "deps/emsdk"]
 	path = deps/emsdk
 	url = https://github.com/emscripten-core/emsdk.git
+[submodule "deps/termcolor"]
+	path = deps/termcolor
+	url = https://github.com/ikalnytskyi/termcolor.git

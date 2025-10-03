@@ -92,5 +92,11 @@ namespace implementation {
             std::string load(platform::assets*, const std::string& type, const std::string& resource, const std::string& id);
         };
 
+        class trace : public platform::trace {
+        public:
+            trace();
+            virtual ~trace();
+        };
+
     }
 }
