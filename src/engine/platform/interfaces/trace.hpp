@@ -27,16 +27,32 @@
 
 #pragma once
 
+#define TRACE_SCOPE platform::trace::scoped _scope(trace, __PRETTY_FUNCTION__)
+
 namespace platform {
 
 class trace {
 public:
 
   enum class level {
+    SCOPE,
     DEBUG,
     INFO,
     WARNING,
     ERROR
+  };
+
+  class scoped {
+  public:
+    scoped(trace* parent, const std::string& name) : _parent(parent), _name(name) {
+        _parent->scope() << "Entering(" << _name << ")";
+    }
+    ~scoped() {
+        _parent->scope() << "Exiting(" << _name << ")";
+    }
+  protected:
+    trace* _parent;
+    std::string _name;
   };
 
   class device {
@@ -99,6 +115,10 @@ public:
 
   inline output operator() (level lvl = level::DEBUG) {
       return { this, lvl };
+  }
+
+  inline output scope() {
+      return { this, level::SCOPE };
   }
 
   inline output debug() {

@@ -30,6 +30,8 @@
 #if defined __PLATFORM_SUPPORTS_OPENAL
 
 void implementation::openal::audio::init(int sources) {
+    TRACE_SCOPE;
+
     ALCint attributes[] = { ALC_FREQUENCY, 44100, 0 };
 
     ALCdevice* device = alcOpenDevice(NULL);
@@ -50,6 +52,8 @@ void implementation::openal::audio::init(int sources) {
 }
 
 void implementation::openal::audio::compile(type::sound& sound) {
+    TRACE_SCOPE;
+
     if (sound.resource == NULL) {
         sound.resource = new type::info::opaque_t();
     }
@@ -61,6 +65,8 @@ void implementation::openal::audio::compile(type::sound& sound) {
 }
 
 void implementation::openal::audio::shutdown(void) {
+    TRACE_SCOPE;
+
     //alDeleteSources(1, &sound.source);
     //alDeleteBuffers(1, &sound.context);
     //alcDestroyContext(context);
@@ -68,6 +74,8 @@ void implementation::openal::audio::shutdown(void) {
 }
 
 int implementation::openal::audio::start(type::sound& sound) {
+    TRACE_SCOPE;
+
     unsigned int selection;
     for (selection = 0; selection < this->sources; selection++) {
         ALenum state;
@@ -94,6 +102,8 @@ int implementation::openal::audio::start(type::sound& sound) {
 }
 
 void implementation::openal::audio::stop(int id) {
+    TRACE_SCOPE;
+
     alSourceStop(id);
 }
 #endif

@@ -614,23 +614,30 @@ void implementation::universal::console::log(trace::level lvl, const std::string
 
     std::cout << "[" << utilities::iso8601() << "][";
     switch (lvl) {
+        case(trace::level::SCOPE):
+            if (_termcolors) {
+                std::cout << termcolor::dark << "SCOPE" << termcolor::reset;
+            } else {
+                std::cout << "SCOPE";
+            }
+            break;
         case(trace::level::DEBUG):
             if (_termcolors) {
-                std::cout << termcolor::dark << "DEBUG" << termcolor::reset;
+                std::cout << termcolor::grey << "DEBUG" << termcolor::reset;
             } else {
                 std::cout << "DEBUG";
             }
             break;
         case(trace::level::INFO):
             if (_termcolors) {
-                std::cout << termcolor::grey << "INFO" << termcolor::reset;
+                std::cout << termcolor::white << "INFO" << termcolor::reset;
             } else {
                 std::cout << "INFO";
             }
             break;
         case(trace::level::WARNING):
             if (_termcolors) {
-                std::cout << termcolor::white << "WARNING" << termcolor::reset;
+                std::cout << termcolor::yellow << "WARNING" << termcolor::reset;
             } else {
                 std::cout << "WARNING";
             }

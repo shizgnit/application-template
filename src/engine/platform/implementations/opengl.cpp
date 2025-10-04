@@ -53,6 +53,8 @@ std::string glGetErrorString(GLenum err) {
 static GLint defaultFramebuffer = 0;
 
 bool implementation::opengl::fbo::deinit() {
+    TRACE_SCOPE;
+
     if (context.render) {
         //GL_TEST(glBindRenderbuffer(GL_RENDERBUFFER, context.render));
         //GL_TEST(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, 0));
@@ -67,6 +69,8 @@ bool implementation::opengl::fbo::deinit() {
 }
 
 bool implementation::opengl::fbo::init(type::object& object, platform::graphics *ref, bool depth, unsigned char *collector) {
+    TRACE_SCOPE;
+
     if (allocation == 0) {
         allocation = object.texture.depth ? GL_DEPTH_ATTACHMENT : attachments().allocate();
         if (allocation == 0 || object.texture.color == NULL) {
@@ -101,6 +105,8 @@ bool implementation::opengl::fbo::init(type::object& object, platform::graphics 
 }
 
 void implementation::opengl::fbo::enable(bool clear) {
+    TRACE_SCOPE;
+
     if (target == NULL) {
         return;
     }
@@ -114,6 +120,8 @@ void implementation::opengl::fbo::enable(bool clear) {
 }
 
 void implementation::opengl::fbo::disable() {
+    TRACE_SCOPE;
+
     if (target == NULL || target->texture.color == NULL) {
         return;
     }
@@ -161,6 +169,8 @@ void implementation::opengl::fbo::disable() {
 }
 
 void implementation::opengl::graphics::dimensions(int width, int height, float fov, float scale) {
+    TRACE_SCOPE;
+
     if(width == 0 || height == 0) {
         return;
     }
@@ -236,6 +246,8 @@ void implementation::opengl::graphics::dimensions(int width, int height, float f
 }
 
 void implementation::opengl::graphics::init(void) {
+    TRACE_SCOPE;
+
     // Depth test
     GL_TEST(glEnable(GL_DEPTH_TEST));
     GL_TEST(glDepthFunc(GL_LEQUAL));
@@ -300,15 +312,21 @@ void implementation::opengl::graphics::init(void) {
 }
 
 void implementation::opengl::graphics::clear(void) {
+    TRACE_SCOPE;
+
     GL_TEST(glClearColor(0.0f, 0.0f, 0.0f, 0.0f));
     GL_TEST(glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT));
 }
 
 void implementation::opengl::graphics::flush(void) {
+    TRACE_SCOPE;
+
     GL_TEST(glFlush());
 }
 
 bool implementation::opengl::graphics::compile(type::shader& shader) {
+    TRACE_SCOPE;
+
     if (shader.compiled()) {
         return false;
     }
@@ -354,6 +372,8 @@ bool implementation::opengl::graphics::compile(type::shader& shader) {
 }
 
 bool implementation::opengl::graphics::compile(type::program& program) {
+    TRACE_SCOPE;
+
     if (program.compiled()) {
         return false;
     }
@@ -433,6 +453,8 @@ bool implementation::opengl::graphics::compile(type::program& program) {
 }
 
 bool implementation::opengl::graphics::compile(type::material& material) {
+    TRACE_SCOPE;
+
     if (material.compiled()) {
         return false;
     }
@@ -487,6 +509,8 @@ bool implementation::opengl::graphics::compile(type::material& material) {
 }
 
 bool implementation::opengl::graphics::compile(type::object& object) {
+    TRACE_SCOPE;
+
     for (auto &child : object.children) {
         compile(*child.get());
     }
@@ -658,6 +682,8 @@ bool implementation::opengl::graphics::compile(type::object& object) {
 }
 
 bool implementation::opengl::graphics::compile(type::font& font) {
+    TRACE_SCOPE;
+
     if (font.compiled()) {
         return false;
     }
@@ -672,6 +698,8 @@ bool implementation::opengl::graphics::compile(type::font& font) {
 }
 
 bool implementation::opengl::graphics::compile(platform::assets* assets) {
+    TRACE_SCOPE;
+
     for (auto program : assets->get<type::program>()) {
         compile(*program);
     }
