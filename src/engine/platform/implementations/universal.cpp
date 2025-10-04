@@ -602,23 +602,26 @@ std::string implementation::universal::assets::load(platform::assets* assets, co
     return cache;
 }
 
+#include "termcolor/include/termcolor/termcolor.hpp"
 
 void implementation::universal::console::log(trace::level lvl, const std::string& message) {
 
+    std::cout << "[" << utilities::iso8601() << "][";
     switch (lvl) {
         case(trace::level::DEBUG):
-            std::cout << "[" << utilities::iso8601() << "][DEBUG]: " << message << std::endl;
+            std::cout << termcolor::dark << "DEBUG" << termcolor::reset;
             break;
         case(trace::level::INFO):
-            std::cout << "[" << utilities::iso8601() << "][INFO]: " << message << std::endl;
+            std::cout << termcolor::grey << "INFO" << termcolor::reset;
             break;
         case(trace::level::WARNING):
-            std::cout << "[" << utilities::iso8601() << "][WARNING]: " << message << std::endl;
+            std::cout << termcolor::white << "WARNING" << termcolor::reset;
             break;
         case(trace::level::ERROR):
-            std::cerr << "[" << utilities::iso8601() << "][ERROR]: " << message << std::endl;
+            std::cout << termcolor::red << "ERROR" << termcolor::reset;
             break;
     }
+    std::cout << "]: " << message << std::endl;
 }
 
 #endif

@@ -240,6 +240,7 @@
 #include "platform/implementations/opensl.hpp"
 #include "platform/implementations/posix.hpp"
 #include "platform/implementations/android.hpp"
+inline platform::trace* trace = new implementation::universal::trace();
 inline platform::audio* audio = new implementation::opensl::audio();
 inline platform::filesystem* filesystem = new implementation::posix::filesystem();
 inline platform::assets* assets = new implementation::android::assets();
@@ -258,6 +259,7 @@ inline platform::network::server* server = new implementation::posix::network::s
 #include "platform/implementations/openal.hpp"
 #include "platform/implementations/windows.hpp"
 #include "platform/implementations/googletest.hpp"
+inline platform::trace* trace = new implementation::universal::trace();
 inline platform::audio* audio = new implementation::openal::audio();
 inline platform::filesystem* filesystem = new implementation::windows::filesystem();
 inline platform::assets* assets = new implementation::windows::assets();
@@ -276,6 +278,7 @@ inline platform::testing* test = new implementation::googletest::testing();
 #include "platform/implementations/posix.hpp"
 #include "platform/implementations/ios.hpp"
 #include "platform/implementations/googletest.hpp"
+inline platform::trace* trace = new implementation::universal::trace();
 inline platform::audio* audio = new implementation::openal::audio();
 inline platform::filesystem* filesystem = new implementation::posix::filesystem();
 inline platform::assets* assets = new implementation::ios::assets();
@@ -294,6 +297,7 @@ inline platform::testing* test = new implementation::googletest::testing();
 #include "platform/implementations/posix.hpp"
 #include "platform/implementations/macos.hpp"
 #include "platform/implementations/googletest.hpp"
+inline platform::trace* trace = new implementation::universal::trace();
 inline platform::audio* audio = new implementation::openal::audio();
 inline platform::filesystem* filesystem = new implementation::posix::filesystem();
 inline platform::assets* assets = new implementation::macos::assets();
