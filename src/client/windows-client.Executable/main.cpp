@@ -37,7 +37,6 @@
 
 inline application* instance = new app();
 
-
 #define MAX_LOADSTRING 100
 
 // Global Variables:
@@ -107,9 +106,21 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_ LPWSTR    lpCmdLine,
                      _In_ int       nCmdShow)
 {
+    // Attach to parent console if present, or allocate a new one if not
+    if (!AttachConsole(ATTACH_PARENT_PROCESS)) {
+        AllocConsole();
+        // Redirect standard streams to the new console
+        freopen("CONOUT$", "w", stdout);
+        freopen("CONOUT$", "w", stderr);
+        freopen("CONIN$", "r", stdin);
+    }
+
+    trace->debug() << "wWinMain...";
+
     // Parse command line to argc/argv
     int argc = 0;
     LPWSTR* argvW = CommandLineToArgvW(GetCommandLineW(), &argc);
+
     std::vector<std::string> argvStr;
     std::vector<char*> argv;
     for (int i = 0; i < argc; ++i) {
@@ -603,7 +614,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                     normalizedMagnitude = 0.0;
                 }
             }
-
         }
 
         if (instance->started) {

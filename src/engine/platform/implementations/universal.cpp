@@ -602,6 +602,9 @@ std::string implementation::universal::assets::load(platform::assets* assets, co
     return cache;
 }
 
+implementation::universal::trace::trace() {}
+implementation::universal::trace::~trace() {}
+
 #include "termcolor/include/termcolor/termcolor.hpp"
 
 void implementation::universal::console::log(trace::level lvl, const std::string& message) {
