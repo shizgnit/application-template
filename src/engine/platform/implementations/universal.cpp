@@ -602,4 +602,23 @@ std::string implementation::universal::assets::load(platform::assets* assets, co
     return cache;
 }
 
+
+void implementation::universal::console::log(trace::level lvl, const std::string& message) {
+
+    switch (lvl) {
+        case(trace::level::DEBUG):
+            std::cout << "[" << utilities::iso8601() << "][DEBUG]: " << message << std::endl;
+            break;
+        case(trace::level::INFO):
+            std::cout << "[" << utilities::iso8601() << "][INFO]: " << message << std::endl;
+            break;
+        case(trace::level::WARNING):
+            std::cout << "[" << utilities::iso8601() << "][WARNING]: " << message << std::endl;
+            break;
+        case(trace::level::ERROR):
+            std::cerr << "[" << utilities::iso8601() << "][ERROR]: " << message << std::endl;
+            break;
+    }
+}
+
 #endif

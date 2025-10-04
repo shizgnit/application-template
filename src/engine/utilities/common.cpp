@@ -26,6 +26,9 @@
 */
 
 #include "engine.hpp"
+#include <chrono>
+#include <iomanip>
+#include <sstream>
 
 std::vector<int> utilities::range(int elements) {
     std::vector<int> results(elements);
@@ -430,6 +433,19 @@ template<> std::string utilities::read<std::string>(std::istream& input, size_t 
     return std::string(&buffer[0]);
 }
 
+std::string utilities::iso8601(time_t now) {
+    auto time = std::chrono::system_clock::from_time_t(now);
+    std::tm tm;
+#if defined(_WIN32) || defined(_WIN64)
+    localtime_s(&tm, &now);
+#else
+    localtime_r(&time, &tm);
+#endif
+    std::stringstream ss;
+    ss << std::put_time(&tm, "%Y-%m-%dT%H:%M:%S");
+    ss << "Z";
+    return ss.str();
+}
 
 // https://en.wikipedia.org/wiki/Perlin_noise
 

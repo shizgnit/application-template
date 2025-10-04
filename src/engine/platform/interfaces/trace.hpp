@@ -47,11 +47,13 @@ public:
   };
 
   class output {
+  protected:
     friend class trace;
     output(trace *parent, level lvl) {
       _parent = parent;
       _level = lvl;
     }
+    
   public:
     ~output() {
       for(auto dev : _parent->_devices) {
@@ -95,8 +97,24 @@ public:
     std::stringstream _ss;
   };
 
-  output &operator() (level lvl = level::DEBUG) {
-    return output(this);
+  inline output operator() (level lvl = level::DEBUG) {
+      return { this, lvl };
+  }
+
+  inline output debug() {
+      return { this, level::DEBUG };
+  }
+
+  inline output info() {
+      return { this, level::INFO };
+  }
+
+  inline output warning() {
+      return { this, level::WARNING };
+  }
+
+  inline output error() {
+      return { this, level::ERROR };
   }
 
   void attach(std::shared_ptr<device> dev) {

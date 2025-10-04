@@ -98,5 +98,12 @@ namespace implementation {
             virtual ~trace();
         };
 
+        class console : public platform::trace::device {
+        public:
+            console();
+            virtual ~console();
+            virtual void log(trace::level lvl, const std::string& message);
+        };
+
     }
 }

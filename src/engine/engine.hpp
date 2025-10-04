@@ -193,6 +193,8 @@
 
 #include <pthread.h>
 
+#undef ERROR
+
 /// Utilities
 #include "utilities/common.hpp"
 #include "utilities/type_cast.hpp"
@@ -220,6 +222,7 @@
 #undef interface // Thanks Microsoft
 
 /// Platform Abstractions
+#include "platform/interfaces/trace.hpp"
 #include "platform/interfaces/testing.hpp"
 #include "platform/interfaces/audio.hpp"
 #include "platform/interfaces/filesystem.hpp"
