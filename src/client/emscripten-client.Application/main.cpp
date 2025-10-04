@@ -38,7 +38,6 @@
 
 inline application* instance = new app();
 
-
 // Initialize the application
 bool init() {
    int width = 640;
@@ -55,12 +54,17 @@ bool init() {
    EMSCRIPTEN_WEBGL_CONTEXT_HANDLE ctx = emscripten_webgl_create_context("#canvas", &attr);
    emscripten_webgl_make_context_current(ctx);
 
+   // Initialize the tracer
+   trace->attach(std::make_shared<implementation::universal::console>(false));
+
    // Initialize the OpenGL render data
-   printf("Initialized OpenGL\n");
+   trace->debug() << "Initialized OpenGL...";
 
    glClearColor(0.0f, 0.0f, 0.0f, 1.f);
+   trace->debug() << "Set clear color to " << 0.0f << ", " << 0.0f << ", " << 0.0f << ", " << 1.0f;
 
    instance->dimensions(width, height)->on_startup();
+   trace->debug() << "Initialized Application...";
 
    return instance->started = true;
 }
@@ -76,13 +80,14 @@ void render() {
 // Handle mouse click events
 bool mouse_click(int eventType, const EmscriptenMouseEvent *mouseEvent, void *userData) {
    if (eventType == EMSCRIPTEN_EVENT_CLICK) {
-      printf("Mouse clicked at (%d, %d)\n", mouseEvent->clientX, mouseEvent->clientY);
+      trace->debug() << "Mouse clicked at (" << mouseEvent->clientX << ", " << mouseEvent->clientY << ")";
    }
    return false;
 }
 
 int main() {
 	if (init()) {
+      trace->debug() << "Initialization complete";
       emscripten_set_click_callback(EMSCRIPTEN_EVENT_TARGET_DOCUMENT, nullptr, 0, mouse_click);
 		emscripten_set_main_loop(render, 0, 0);
 	}

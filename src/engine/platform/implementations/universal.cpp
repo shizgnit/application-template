@@ -607,21 +607,40 @@ implementation::universal::trace::~trace() {}
 
 #include "termcolor/include/termcolor/termcolor.hpp"
 
+implementation::universal::console::console(bool termcolors) : _termcolors(termcolors) {}
+implementation::universal::console::~console() {}
+
 void implementation::universal::console::log(trace::level lvl, const std::string& message) {
 
     std::cout << "[" << utilities::iso8601() << "][";
     switch (lvl) {
         case(trace::level::DEBUG):
-            std::cout << termcolor::dark << "DEBUG" << termcolor::reset;
+            if (_termcolors) {
+                std::cout << termcolor::dark << "DEBUG" << termcolor::reset;
+            } else {
+                std::cout << "DEBUG";
+            }
             break;
         case(trace::level::INFO):
-            std::cout << termcolor::grey << "INFO" << termcolor::reset;
+            if (_termcolors) {
+                std::cout << termcolor::grey << "INFO" << termcolor::reset;
+            } else {
+                std::cout << "INFO";
+            }
             break;
         case(trace::level::WARNING):
-            std::cout << termcolor::white << "WARNING" << termcolor::reset;
+            if (_termcolors) {
+                std::cout << termcolor::white << "WARNING" << termcolor::reset;
+            } else {
+                std::cout << "WARNING";
+            }
             break;
         case(trace::level::ERROR):
-            std::cout << termcolor::red << "ERROR" << termcolor::reset;
+            if (_termcolors) {
+                std::cout << termcolor::red << "ERROR" << termcolor::reset;
+            } else {
+                std::cout << "ERROR";
+            }
             break;
     }
     std::cout << "]: " << message << std::endl;

@@ -100,9 +100,11 @@ namespace implementation {
 
         class console : public platform::trace::device {
         public:
-            console();
+            console(bool termcolors = true);
             virtual ~console();
             virtual void log(trace::level lvl, const std::string& message);
+        protected:
+            bool _termcolors;
         };
 
     }

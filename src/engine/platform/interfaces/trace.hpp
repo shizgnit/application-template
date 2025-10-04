@@ -27,6 +27,8 @@
 
 #pragma once
 
+#define trace_scope() trace::scope _scope(trace, __func__)
+
 namespace platform {
 
 class trace {
@@ -39,6 +41,20 @@ public:
     ERROR
   };
 
+  class scope {
+  public:
+    scope(trace *parent, const std::string &function) : _parent(parent), _function(function) {
+      _parent->debug() << "Entering " << _function << "...";
+    }
+    ~scope() {
+      _parent->debug() << "Exiting " << _function << "...";
+    }
+
+  protected:
+    trace *_parent;
+    std::string _function;
+  };
+
   class device {
   public:
     device() {}
@@ -47,13 +63,11 @@ public:
   };
 
   class output {
-  protected:
     friend class trace;
     output(trace *parent, level lvl) {
       _parent = parent;
       _level = lvl;
     }
-    
   public:
     ~output() {
       for(auto dev : _parent->_devices) {
@@ -97,24 +111,8 @@ public:
     std::stringstream _ss;
   };
 
-  inline output operator() (level lvl = level::DEBUG) {
-      return { this, lvl };
-  }
-
-  inline output debug() {
-      return { this, level::DEBUG };
-  }
-
-  inline output info() {
-      return { this, level::INFO };
-  }
-
-  inline output warning() {
-      return { this, level::WARNING };
-  }
-
-  inline output error() {
-      return { this, level::ERROR };
+  output &operator() (level lvl = level::DEBUG) {
+    return output(this);
   }
 
   void attach(std::shared_ptr<device> dev) {

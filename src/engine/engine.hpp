@@ -193,7 +193,9 @@
 
 #include <pthread.h>
 
+/// Remove problematic macros
 #undef ERROR
+#undef DEBUG
 
 /// Utilities
 #include "utilities/common.hpp"

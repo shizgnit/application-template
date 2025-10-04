@@ -439,7 +439,7 @@ std::string utilities::iso8601(time_t now) {
 #if defined(_WIN32) || defined(_WIN64)
     localtime_s(&tm, &now);
 #else
-    localtime_r(&time, &tm);
+    localtime_r(&now, &tm);
 #endif
     std::stringstream ss;
     ss << std::put_time(&tm, "%Y-%m-%dT%H:%M:%S");
