@@ -733,6 +733,8 @@ bool implementation::opengl::graphics::compile(platform::assets* assets) {
 }
 
 void implementation::opengl::graphics::draw(type::object& object, type::program& shader, const spatial::matrix& projection, const spatial::matrix& view, const spatial::matrix& model, const spatial::matrix& lighting, unsigned int options) {
+    TRACE_SCOPE;
+
     if (object.visible == false) {
         return;
     }
@@ -833,6 +835,8 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
 }
 
 void implementation::opengl::graphics::draw(std::string text, type::font& font, type::program& shader, const spatial::matrix& projection, const spatial::matrix& view, const spatial::matrix& model, const spatial::matrix& lighting, unsigned int options) {
+    TRACE_SCOPE;
+
     int prior = 0;
     spatial::matrix position = model;
     for (unsigned int i = 0; i < text.length(); i++) {

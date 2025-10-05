@@ -66,7 +66,7 @@
 std::string glGetErrorString(GLenum err);
 
 #define GL_REPORT_ERROR(_call, _error) \
-    ::graphics->event(utilities::string() << #_call << ", " << _error << ", " << __LINE__ << ", " << __FILE__)
+    trace->error() << #_call << ", " << _error << ", " << __LINE__ << ", " << __FILE__
 
 #if defined _DEBUG_
 #define GL_TEST(_call) \

@@ -64,7 +64,7 @@ bool init() {
    trace->debug() << "Set clear color to " << 0.0f << ", " << 0.0f << ", " << 0.0f << ", " << 1.0f;
 
 	assets->init((void*)"/");
-	assets->set("shader.path", std::string("shaders-win11x86"));
+	assets->set("shader.path", std::string("shaders-emscripten"));
 
    instance->dimensions(width, height)->on_startup();
    trace->debug() << "Initialized Application...";
