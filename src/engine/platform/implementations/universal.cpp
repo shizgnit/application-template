@@ -504,7 +504,10 @@ std::string implementation::universal::assets::load(platform::assets* assets, co
     if (type == "shader") {
         auto& shader = assets->get<type::program>(cache);
         assets->retrieve(path + ".vert") >> format::parser::vert >> shader.vertex;
+        shader.vertex.name = path + ".vert";
         assets->retrieve(path + ".frag") >> format::parser::frag >> shader.fragment;
+        shader.fragment.name = path + ".frag";
+        
         //instance->retrieve(path + ".metal") >> format::parser::metal >> shader.unified;
         
         if(has("shader.version")) {

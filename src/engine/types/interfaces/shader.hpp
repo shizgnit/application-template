@@ -31,10 +31,12 @@ namespace type {
 
     class shader : virtual public type::info {
     public:
+        std::string name;
         std::string text;
 
         shader& operator=(const shader& ref) {
             type::info::operator=(ref);
+            name = ref.name;
             text = ref.text;
             return *this;
         }

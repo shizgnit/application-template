@@ -67,6 +67,8 @@ namespace type {
         }
 
         void create(int width, int height, char r, char g, char b, char a) {
+            std::cout << "Creating Image: " << width << "x" << height << " (" << (int)r << ", " << (int)g << ", " << (int)b << ", " << (int)a << ")" << std::endl;
+
             memset(&properties, 0, sizeof(properties));
 
             r = r > 255 ? 255 : r;
@@ -80,8 +82,15 @@ namespace type {
             properties.depth = 8;
             properties.channels = 4;
 
-            raster.resize(properties.width * properties.height * properties.channels);
+            std::cout << "Resize raster: " << (properties.width * properties.height * properties.channels) << std::endl;
+            try {
+                raster.resize(properties.width * properties.height * properties.channels);
+            } catch (std::exception& e) {
+                std::cout << "Exception: " << e.what() << std::endl;
+                throw e;
+            }
 
+            std::cout << "setting fill color..." << std::endl;
             int index = 0;
             for (int w = 0; w < properties.width; w++) {
                 for (int h = 0; h < properties.height; h++) {
@@ -92,6 +101,7 @@ namespace type {
                 }
             }
 
+            std::cout << "Created Image: " << properties.width << "x" << properties.height << " (" << (int)r << ", " << (int)g << ", " << (int)b << ", " << (int)a << ")" << std::endl;
             compiled(false);
         }
 

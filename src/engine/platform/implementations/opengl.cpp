@@ -249,6 +249,7 @@ void implementation::opengl::graphics::init(void) {
     TRACE_SCOPE;
 
     // Depth test
+    trace->debug() << "Enabling Depth Test...";
     GL_TEST(glEnable(GL_DEPTH_TEST));
     GL_TEST(glDepthFunc(GL_LEQUAL));
     GL_TEST(glDepthMask(GL_TRUE));
@@ -256,19 +257,24 @@ void implementation::opengl::graphics::init(void) {
     GL_TEST(glDepthRangef(0.0f, 1.0f));
 
     // Alpha blending
+    trace->debug() << "Enabling Alpha Blending...";
     GL_TEST(glEnable(GL_BLEND));
     GL_TEST(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
     // Backface culling, makes GLES rendering of objects easier since they don't need to be drawn back to front
+    trace->debug() << "Enabling Backface Culling...";
     GL_TEST(glEnable(GL_CULL_FACE));
     GL_TEST(glFrontFace(GL_CCW));
     GL_TEST(glCullFace(GL_BACK));
 
     auto glsl = glGetString(GL_SHADING_LANGUAGE_VERSION);
 
+    trace->debug() << "Using GLSL Version: " << (glsl ? (const char*)glsl : "unknown");
+
     //auto str = utilities::tokenize((const char*)glGetString(GL_EXTENSIONS), " ");
 
     // Setup the ray used for drawing normals
+    trace->debug() << "Creating Ray Primitive...";
     ray = spatial::ray(spatial::vector(0.0, 0.0, 0.0), spatial::vector(2.0, 0.0, 0.0));
     ray.texture.color = &assets->get<type::image>("ray");
     ray.texture.color->create(1, 1, 255, 255, 255, 255);
@@ -276,14 +282,20 @@ void implementation::opengl::graphics::init(void) {
     compile(ray);
 
     // Setup the shadow depth map
+    trace->debug() << "Creating Shadow Map Primitive...";
     shadow = spatial::quad(256, 256);
+    trace->debug() << "Creating Shadow Map Texture...";
     shadow.texture.color = &assets->get<type::image>("shadowmap");
+    trace->debug() << "Allocating Shadow Map Texture...";
     shadow.texture.color->create(4096, 4096, 0, 0, 0, 0);
     //shadow.texture.depth = true;
+    trace->debug() << "Projecting Shadow Map Texture...";
     shadow.xy_projection(0, 0, shadow.texture.color->properties.width, shadow.texture.color->properties.height);
+    trace->debug() << "Compiling Shadow Map Shader...";
     compile(shadow);
 
     // Calculate the offsets
+    trace->debug() << "Calculating Structure Offsets...";
     spatial::vector vector({ 256.0f });
     unsigned char* vector_ptr = (unsigned char*)&vector;
     for (int i = 0; i < sizeof(spatial::vector); i++) {
@@ -360,6 +372,7 @@ bool implementation::opengl::graphics::compile(type::shader& shader) {
         if (length) {
             char* info = (char*)malloc(length);
             glGetShaderInfoLog(shader.resource->context, length, NULL, info);
+            trace->error() << "Shader compile error: " << shader.name << ", " << info;
             event(info);
             free(info);
             glDeleteShader(shader.resource->context);
@@ -407,6 +420,7 @@ bool implementation::opengl::graphics::compile(type::program& program) {
         if (length) {
             char* info = (char*)malloc(length);
             glGetProgramInfoLog(program.resource->context, length, NULL, info);
+            trace->error() << "Program link error: " << info;
             event(info);
             free(info);
         }

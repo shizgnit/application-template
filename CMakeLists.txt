@@ -96,6 +96,8 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
         src/engine/platform/implementations/opengl.hpp
         src/engine/platform/implementations/openal.cpp
         src/engine/platform/implementations/openal.hpp
+        src/engine/platform/implementations/posix.cpp
+        src/engine/platform/implementations/posix.hpp
         src/engine/platform/implementations/emscripten.cpp
         src/engine/platform/implementations/emscripten.hpp
     )

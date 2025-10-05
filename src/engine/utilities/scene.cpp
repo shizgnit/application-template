@@ -423,8 +423,12 @@ bool stage::scene::deactivate(std::string name) {
 }
 
 bool stage::scene::transition(std::string from, std::string to) {
+    TRACE_SCOPE;
+
+    trace->debug() << "transition from '" << from << "' to '" << to << "'";
     transitions.clear();
     if (to.empty() || scenes.find(to) == scenes.end()) {
+        trace->error() << "invalid transition target: " << to;
         return false;
     }
     if (scenes[to]->loaded == false && scenes[to]->load() == false) {

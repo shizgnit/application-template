@@ -33,41 +33,6 @@ namespace implementation {
 
     namespace emscripten {
 
-        class filesystem : public platform::filesystem {
-        public:
-            std::string seperator();
-
-            bool rm(const std::string& path);
-            bool mv(const std::string& src, const std::string& dest);
-            bool cp(const std::string& src, const std::string& dest);
-
-            bool mkdir(const std::string& path, unsigned int mask=0);
-            bool rmdir(const std::string& path);
-
-            std::string pwd(const std::string& path = "");
-
-            std::vector<unsigned long> stat(const std::string& path);
-            std::vector<unsigned long> lstat(const std::string& path);
-
-            bool exists(const std::string& path);
-
-            std::string filetype(const std::string& path);
-
-            std::pair<int, std::string> error();
-
-            std::vector<std::string> read_directory(const std::string& path, bool hidden=false);
-
-            bool is_directory(const std::string& path);
-
-            std::string join(const std::vector<std::string>& arguments);
-
-            std::string dirname(const std::string& path);
-            std::string basename(const std::string& path);
-
-            std::string home(const std::string& path = "");
-            std::string appdata(const std::string& path = "");
-        };
-
         class assets : public platform::assets {
         public:
             void init(void* ref=NULL);

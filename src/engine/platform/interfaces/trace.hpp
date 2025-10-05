@@ -45,10 +45,10 @@ public:
   class scoped {
   public:
     scoped(trace* parent, const std::string& name) : _parent(parent), _name(name) {
-        _parent->scope() << "Entering(" << _name << ")";
+        _parent->scope() << "enter >>> " << _name << "";
     }
     ~scoped() {
-        _parent->scope() << "Exiting(" << _name << ")";
+        _parent->scope() << "exit <<<< " << _name << "";
     }
   protected:
     trace* _parent;

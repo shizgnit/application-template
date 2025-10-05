@@ -63,6 +63,9 @@ bool init() {
    glClearColor(0.0f, 0.0f, 0.0f, 1.f);
    trace->debug() << "Set clear color to " << 0.0f << ", " << 0.0f << ", " << 0.0f << ", " << 1.0f;
 
+	assets->init((void*)"/");
+	assets->set("shader.path", std::string("shaders-win11x86"));
+
    instance->dimensions(width, height)->on_startup();
    trace->debug() << "Initialized Application...";
 
