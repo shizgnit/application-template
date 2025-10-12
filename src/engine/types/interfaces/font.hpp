@@ -197,8 +197,6 @@ namespace type {
 
         int identifier;
 
-        std::string name;
-
         int size;
 
         char bold;

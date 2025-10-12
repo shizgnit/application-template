@@ -99,8 +99,6 @@ GLuint compileShader(GLenum type, const std::string &source, GLint *status=nullp
    return id;
 };
 
-
-
 inline application* instance = new app();
 
 // Initialize the application
@@ -165,32 +163,35 @@ bool init() {
    glEnableVertexAttribArray(g_shaderAttributeColorLoc);
    printf("Geometry data uploaded, %d\n", g_vertexAttributeArrayId);
 
+   //graphics->init();
+   //scene->call("/load shader basic gui");
+   //scene->call("/load object drawable/Alert.png splash");
+ 
    return instance->started = true;
 }
 
 // Render a frame
 void render() {
-   if (instance->started) {
-      auto& splash = assets->get<type::object>("splash");
-      spatial::vector position = {
-         (spatial::vector::type_t)(graphics->width() / 2) - (splash.width() / 2),
-         (spatial::vector::type_t)graphics->height() - (graphics->height() / 2) - (splash.height() / 2)
-      };
-      trace->debug() << "Drawing splash at " << position.x << ", " << position.y;
-      //graphics->draw(splash, assets->get<type::program>("gui"), graphics->ortho, spatial::matrix(), spatial::matrix().translate(position));
-
-      graphics->compile(splash);
-
-      //instance->on_interval();
-      //instance->on_draw();
+   if(instance->started) {
+      instance->on_interval();
+      instance->on_draw();
    }
-   static int increment = 0;
-   if(increment >= 1000.f) {
-      increment = 0;
-   }
-   glUniform1f(g_shaderUniformIncrementId, ++increment / 1000.f);
-   glDrawArrays(GL_TRIANGLES, 0, 3);
-   exit(0);
+   //if (instance->started) {
+   //   auto& splash = assets->get<type::object>("splash");
+   //   spatial::vector position = {
+   //      (spatial::vector::type_t)(graphics->width() / 2) - (splash.width() / 2),
+   //      (spatial::vector::type_t)graphics->height() - (graphics->height() / 2) - (splash.height() / 2)
+   //   };
+   //   trace->debug() << "Drawing splash at " << position.x << ", " << position.y;
+   //   graphics->draw(splash, assets->get<type::program>("gui"), graphics->ortho, spatial::matrix(), spatial::matrix().translate(position));
+   //   //graphics->compile(splash);
+   //}
+   //static int increment = 0;
+   //if(increment >= 1000.f) {
+   //   increment = 0;
+   //}
+   //glUniform1f(g_shaderUniformIncrementId, ++increment / 1000.f);
+   //glDrawArrays(GL_TRIANGLES, 0, 3);
 }
 
 // Handle mouse click events
@@ -206,6 +207,7 @@ int main() {
       trace->debug() << "Initialization complete";
       emscripten_set_click_callback(EMSCRIPTEN_EVENT_TARGET_DOCUMENT, nullptr, 0, mouse_click);
 		emscripten_set_main_loop(render, 0, 0);
+      //render();
 	}
 	return 0;
 }

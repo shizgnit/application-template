@@ -31,7 +31,6 @@ namespace type {
 
     class shader : virtual public type::info {
     public:
-        std::string name;
         std::string text;
 
         shader& operator=(const shader& ref) {

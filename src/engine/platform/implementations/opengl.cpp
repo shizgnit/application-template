@@ -340,6 +340,7 @@ bool implementation::opengl::graphics::compile(type::shader& shader) {
     TRACE_SCOPE;
 
     if (shader.compiled()) {
+        trace->debug() << "Shader already compiled: " << shader.name;
         return false;
     }
 
@@ -356,6 +357,7 @@ bool implementation::opengl::graphics::compile(type::shader& shader) {
         break;
     }
     if (!shader.resource->context) {
+        trace->error() << "Failed to create shader: " << shader.name;
         return false;
     }
 
@@ -388,13 +390,16 @@ bool implementation::opengl::graphics::compile(type::program& program) {
     TRACE_SCOPE;
 
     if (program.compiled()) {
+        trace->debug() << "Program already compiled: " << program.name;
         return false;
     }
 
     if (compile(program.vertex) == false) {
+        trace->error() << "Failed to compile vertex shader: " << program.vertex.name;
         return false;
     }
     if (compile(program.fragment) == false) {
+        trace->error() << "Failed to compile fragment shader: " << program.fragment.name;
         return false;
     }
 
@@ -404,6 +409,7 @@ bool implementation::opengl::graphics::compile(type::program& program) {
 
     program.resource->context = glCreateProgram();
     if (!program.resource->context) {
+        trace->error() << "Failed to create program: " << program.name;
         return false;
     }
 
@@ -431,37 +437,61 @@ bool implementation::opengl::graphics::compile(type::program& program) {
     GL_TEST(glUseProgram(program.resource->context));
 
     program.a_ModelMatrix = glGetAttribLocation(program.resource->context, "a_ModelMatrix");
+    trace->debug() << "a_ModelMatrix location: " << program.a_ModelMatrix;
 
     program.a_Identifier = glGetAttribLocation(program.resource->context, "a_Identifier");
+    trace->debug() << "a_Identifier location: " << program.a_Identifier;
     program.a_Flags = glGetAttribLocation(program.resource->context, "a_Flags");
+    trace->debug() << "a_Flags location: " << program.a_Flags;
 
     program.a_Vertex = glGetAttribLocation(program.resource->context, "a_Vertex");
+    trace->debug() << "a_Vertex location: " << program.a_Vertex;
     program.a_Texture = glGetAttribLocation(program.resource->context, "a_Texture");
+    trace->debug() << "a_Texture location: " << program.a_Texture;
     program.a_Normal = glGetAttribLocation(program.resource->context, "a_Normal");
+    trace->debug() << "a_Normal location: " << program.a_Normal;
 
     program.u_ProjectionMatrix = glGetUniformLocation(program.resource->context, "u_ProjectionMatrix");
+    trace->debug() << "u_ProjectionMatrix location: " << program.u_ProjectionMatrix;
     program.u_ViewMatrix = glGetUniformLocation(program.resource->context, "u_ViewMatrix");
+    trace->debug() << "u_ViewMatrix location: " << program.u_ViewMatrix;
     program.u_ModelMatrix = glGetUniformLocation(program.resource->context, "u_ModelMatrix");
+    trace->debug() << "u_ModelMatrix location: " << program.u_ModelMatrix;
     program.u_LightingMatrix = glGetUniformLocation(program.resource->context, "u_LightingMatrix");
+    trace->debug() << "u_LightingMatrix location: " << program.u_LightingMatrix;
 
     program.u_Clipping = glGetUniformLocation(program.resource->context, "u_Clipping");
+    trace->debug() << "u_Clipping location: " << program.u_Clipping;
 
     program.u_AmbientLightPosition = glGetUniformLocation(program.resource->context, "u_AmbientLightPosition");
+    trace->debug() << "u_AmbientLightPosition location: " << program.u_AmbientLightPosition;
     program.u_AmbientLightColor = glGetUniformLocation(program.resource->context, "u_AmbientLightColor");
+    trace->debug() << "u_AmbientLightColor location: " << program.u_AmbientLightColor;
     program.u_AmbientLightBias = glGetUniformLocation(program.resource->context, "u_AmbientLightBias");
+    trace->debug() << "u_AmbientLightBias location: " << program.u_AmbientLightBias;
     program.u_AmbientLightStrength = glGetUniformLocation(program.resource->context, "u_AmbientLightStrength");
+    trace->debug() << "u_AmbientLightStrength location: " << program.u_AmbientLightStrength;
 
     program.u_Flags = glGetUniformLocation(program.resource->context, "u_Flags");
+    trace->debug() << "u_Flags location: " << program.u_Flags;
     program.u_Parameters = glGetUniformLocation(program.resource->context, "u_Parameters");
+    trace->debug() << "u_Parameters location: " << program.u_Parameters;
 
     program.u_SurfaceTextureUnit = glGetUniformLocation(program.resource->context, "u_SurfaceTextureUnit");
+    trace->debug() << "u_SurfaceTextureUnit location: " << program.u_SurfaceTextureUnit;
     program.u_NormalTextureUnit = glGetUniformLocation(program.resource->context, "u_NormalTextureUnit");
+    trace->debug() << "u_NormalTextureUnit location: " << program.u_NormalTextureUnit;
     program.u_ShadowTextureUnit = glGetUniformLocation(program.resource->context, "u_ShadowTextureUnit");
+    trace->debug() << "u_ShadowTextureUnit location: " << program.u_ShadowTextureUnit;
     program.u_DepthTextureUnit = glGetUniformLocation(program.resource->context, "u_DepthTextureUnit");
+    trace->debug() << "u_DepthTextureUnit location: " << program.u_DepthTextureUnit;
     program.u_BlurTextureUnit = glGetUniformLocation(program.resource->context, "u_BlurTextureUnit");
+    trace->debug() << "u_BlurTextureUnit location: " << program.u_BlurTextureUnit;
     program.u_PickingTextureUnit = glGetUniformLocation(program.resource->context, "u_PickingTextureUnit");
+    trace->debug() << "u_PickingTextureUnit location: " << program.u_PickingTextureUnit;
 
     program.u_TextureSize = glGetUniformLocation(program.resource->context, "u_TextureSize");
+    trace->debug() << "u_TextureSize location: " << program.u_TextureSize;
     
     return program.compiled(true);
 }
@@ -470,9 +500,11 @@ bool implementation::opengl::graphics::compile(type::material& material) {
     TRACE_SCOPE;
 
     if (material.compiled()) {
+        trace->debug() << "Material already compiled: " << material.name;
         return false;
     }
     if (material.color == NULL && material.normal == NULL) {
+        trace->error() << "No color or normal texture provided for material: " << material.name;
         return false;
     }
 
@@ -530,6 +562,7 @@ bool implementation::opengl::graphics::compile(type::object& object) {
     }
     
     if (object.vertices.size() == 0) {
+        trace->error() << "No vertices provided for object: " << object.name;
         return false;
     }
         
@@ -540,6 +573,7 @@ bool implementation::opengl::graphics::compile(type::object& object) {
         shader = *ptr;
     }
     if(shader == NULL) {
+        trace->error() << "No shader program available to compile object: " << object.name;
         return false;
     }
     compile(*shader);
@@ -699,6 +733,7 @@ bool implementation::opengl::graphics::compile(type::font& font) {
     TRACE_SCOPE;
 
     if (font.compiled()) {
+        trace->debug() << "Font already compiled: " << font.name;
         return false;
     }
 
@@ -736,6 +771,7 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
     TRACE_SCOPE;
 
     if (object.visible == false) {
+        trace->debug() << "Object is not visible: " << object.name;
         return;
     }
 
@@ -746,6 +782,7 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
     }
 
     if (object.vertices.size() == 0) {
+        trace->debug() << "No vertices to draw for object: " << object.name;
         return;
     }
 

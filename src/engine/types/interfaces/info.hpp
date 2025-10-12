@@ -74,6 +74,8 @@ namespace type {
         }
         
     public:
+        std::string name;
+
         class opaque_t;
         opaque_t *resource = nullptr;
 
