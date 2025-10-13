@@ -82,7 +82,6 @@ namespace type {
             properties.depth = 8;
             properties.channels = 4;
 
-            std::cout << "Resize raster: " << (properties.width * properties.height * properties.channels) << std::endl;
             try {
                 raster.resize(properties.width * properties.height * properties.channels);
             } catch (std::exception& e) {
@@ -90,7 +89,6 @@ namespace type {
                 throw e;
             }
 
-            std::cout << "setting fill color..." << std::endl;
             int index = 0;
             for (int w = 0; w < properties.width; w++) {
                 for (int h = 0; h < properties.height; h++) {
@@ -101,7 +99,6 @@ namespace type {
                 }
             }
 
-            std::cout << "Created Image: " << properties.width << "x" << properties.height << " (" << (int)r << ", " << (int)g << ", " << (int)b << ", " << (int)a << ")" << std::endl;
             compiled(false);
         }
 

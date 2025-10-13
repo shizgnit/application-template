@@ -432,11 +432,15 @@ bool stage::scene::transition(std::string from, std::string to) {
         return false;
     }
     if (scenes[to]->loaded == false && scenes[to]->load() == false) {
+        trace->debug() << "deferring transition to '" << to << "'";
         transitions.push_back({ from, to });
         return false;
     }
+    trace->debug() << "transitioning to '" << to << "'";
     scenes[to]->loaded = true;
+
     deactivate(from);
+
     activate(to);
     return true;
 }

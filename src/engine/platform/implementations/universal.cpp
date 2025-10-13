@@ -615,6 +615,10 @@ implementation::universal::console::~console() {}
 
 void implementation::universal::console::log(trace::level lvl, const std::string& message) {
 
+    if(lvl == trace::level::SCOPE) {
+        return;
+    }
+    
     std::cout << "[" << utilities::iso8601() << "][";
     switch (lvl) {
         case(trace::level::SCOPE):

@@ -163,10 +163,6 @@ bool init() {
    glEnableVertexAttribArray(g_shaderAttributeColorLoc);
    printf("Geometry data uploaded, %d\n", g_vertexAttributeArrayId);
 
-   //graphics->init();
-   //scene->call("/load shader basic gui");
-   //scene->call("/load object drawable/Alert.png splash");
- 
    return instance->started = true;
 }
 
@@ -206,8 +202,9 @@ int main() {
 	if (init()) {
       trace->debug() << "Initialization complete";
       emscripten_set_click_callback(EMSCRIPTEN_EVENT_TARGET_DOCUMENT, nullptr, 0, mouse_click);
-		emscripten_set_main_loop(render, 0, 0);
-      //render();
+		//emscripten_set_main_loop(render, 0, 0);
+      render();
+      render();
 	}
 	return 0;
 }

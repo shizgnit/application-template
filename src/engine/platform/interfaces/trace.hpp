@@ -35,11 +35,11 @@ class trace {
 public:
 
   enum class level {
-    SCOPE,
-    DEBUG,
-    INFO,
-    WARNING,
-    ERROR
+    ERROR = 0x01,
+    WARNING = 0x02,
+    INFO = 0x03,
+    DEBUG = 0x04,
+    SCOPE = 0x05
   };
 
   class scoped {

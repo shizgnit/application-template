@@ -340,7 +340,6 @@ bool implementation::opengl::graphics::compile(type::shader& shader) {
     TRACE_SCOPE;
 
     if (shader.compiled()) {
-        trace->debug() << "Shader already compiled: " << shader.name;
         return false;
     }
 
@@ -390,7 +389,6 @@ bool implementation::opengl::graphics::compile(type::program& program) {
     TRACE_SCOPE;
 
     if (program.compiled()) {
-        trace->debug() << "Program already compiled: " << program.name;
         return false;
     }
 
@@ -500,7 +498,6 @@ bool implementation::opengl::graphics::compile(type::material& material) {
     TRACE_SCOPE;
 
     if (material.compiled()) {
-        trace->debug() << "Material already compiled: " << material.name;
         return false;
     }
     if (material.color == NULL && material.normal == NULL) {
@@ -733,7 +730,6 @@ bool implementation::opengl::graphics::compile(type::font& font) {
     TRACE_SCOPE;
 
     if (font.compiled()) {
-        trace->debug() << "Font already compiled: " << font.name;
         return false;
     }
 
