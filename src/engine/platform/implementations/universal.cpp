@@ -507,7 +507,9 @@ std::string implementation::universal::assets::load(platform::assets* assets, co
         shader.vertex.name = path + ".vert";
         assets->retrieve(path + ".frag") >> format::parser::frag >> shader.fragment;
         shader.fragment.name = path + ".frag";
-        
+       
+        shader.name = path;
+
         //instance->retrieve(path + ".metal") >> format::parser::metal >> shader.unified;
         
         if(has("shader.version")) {
@@ -524,21 +526,23 @@ std::string implementation::universal::assets::load(platform::assets* assets, co
         assets->retrieve(path + (ext.empty() ? ".fnt" : ext)) >> format::parser::fnt >> assets->get<type::font>(cache);
     }
     if (type == "object") {
+        auto& object = assets->get<type::object>(cache);
+        object.name = path;
         if (ext == ".fbx") {
-            assets->retrieve(path + ext) >> format::parser::fbx >> assets->get<type::object>(cache);
+            assets->retrieve(path + ext) >> format::parser::fbx >> object;
         }
         else if (ext == ".obj") {
-            assets->retrieve(path + ext) >> format::parser::obj >> assets->get<type::object>(cache);
+            assets->retrieve(path + ext) >> format::parser::obj >> object;
         }
         else if (ext == ".png") {
-            auto& object = assets->get<type::object>(cache);
             object.texture.color = &assets->get<type::image>(cache);
             assets->retrieve(path + ext) >> format::parser::png >> *object.texture.color;
             object = spatial::quad(object.texture.color->properties.width, object.texture.color->properties.height);
+            object.name = path;
             object.xy_projection(0, 0, object.texture.color->properties.width, object.texture.color->properties.height);
         }
         else {
-            assets->retrieve(path + (ext.empty() ? ".obj" : ext)) >> format::parser::obj >> assets->get<type::object>(cache);
+            assets->retrieve(path + (ext.empty() ? ".obj" : ext)) >> format::parser::obj >> object;
         }
     }
     if (type == "entity") {

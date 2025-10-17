@@ -435,61 +435,37 @@ bool implementation::opengl::graphics::compile(type::program& program) {
     GL_TEST(glUseProgram(program.resource->context));
 
     program.a_ModelMatrix = glGetAttribLocation(program.resource->context, "a_ModelMatrix");
-    trace->debug() << "a_ModelMatrix location: " << program.a_ModelMatrix;
 
     program.a_Identifier = glGetAttribLocation(program.resource->context, "a_Identifier");
-    trace->debug() << "a_Identifier location: " << program.a_Identifier;
     program.a_Flags = glGetAttribLocation(program.resource->context, "a_Flags");
-    trace->debug() << "a_Flags location: " << program.a_Flags;
 
     program.a_Vertex = glGetAttribLocation(program.resource->context, "a_Vertex");
-    trace->debug() << "a_Vertex location: " << program.a_Vertex;
     program.a_Texture = glGetAttribLocation(program.resource->context, "a_Texture");
-    trace->debug() << "a_Texture location: " << program.a_Texture;
     program.a_Normal = glGetAttribLocation(program.resource->context, "a_Normal");
-    trace->debug() << "a_Normal location: " << program.a_Normal;
 
     program.u_ProjectionMatrix = glGetUniformLocation(program.resource->context, "u_ProjectionMatrix");
-    trace->debug() << "u_ProjectionMatrix location: " << program.u_ProjectionMatrix;
     program.u_ViewMatrix = glGetUniformLocation(program.resource->context, "u_ViewMatrix");
-    trace->debug() << "u_ViewMatrix location: " << program.u_ViewMatrix;
     program.u_ModelMatrix = glGetUniformLocation(program.resource->context, "u_ModelMatrix");
-    trace->debug() << "u_ModelMatrix location: " << program.u_ModelMatrix;
     program.u_LightingMatrix = glGetUniformLocation(program.resource->context, "u_LightingMatrix");
-    trace->debug() << "u_LightingMatrix location: " << program.u_LightingMatrix;
 
     program.u_Clipping = glGetUniformLocation(program.resource->context, "u_Clipping");
-    trace->debug() << "u_Clipping location: " << program.u_Clipping;
 
     program.u_AmbientLightPosition = glGetUniformLocation(program.resource->context, "u_AmbientLightPosition");
-    trace->debug() << "u_AmbientLightPosition location: " << program.u_AmbientLightPosition;
     program.u_AmbientLightColor = glGetUniformLocation(program.resource->context, "u_AmbientLightColor");
-    trace->debug() << "u_AmbientLightColor location: " << program.u_AmbientLightColor;
     program.u_AmbientLightBias = glGetUniformLocation(program.resource->context, "u_AmbientLightBias");
-    trace->debug() << "u_AmbientLightBias location: " << program.u_AmbientLightBias;
     program.u_AmbientLightStrength = glGetUniformLocation(program.resource->context, "u_AmbientLightStrength");
-    trace->debug() << "u_AmbientLightStrength location: " << program.u_AmbientLightStrength;
 
     program.u_Flags = glGetUniformLocation(program.resource->context, "u_Flags");
-    trace->debug() << "u_Flags location: " << program.u_Flags;
     program.u_Parameters = glGetUniformLocation(program.resource->context, "u_Parameters");
-    trace->debug() << "u_Parameters location: " << program.u_Parameters;
 
     program.u_SurfaceTextureUnit = glGetUniformLocation(program.resource->context, "u_SurfaceTextureUnit");
-    trace->debug() << "u_SurfaceTextureUnit location: " << program.u_SurfaceTextureUnit;
     program.u_NormalTextureUnit = glGetUniformLocation(program.resource->context, "u_NormalTextureUnit");
-    trace->debug() << "u_NormalTextureUnit location: " << program.u_NormalTextureUnit;
     program.u_ShadowTextureUnit = glGetUniformLocation(program.resource->context, "u_ShadowTextureUnit");
-    trace->debug() << "u_ShadowTextureUnit location: " << program.u_ShadowTextureUnit;
     program.u_DepthTextureUnit = glGetUniformLocation(program.resource->context, "u_DepthTextureUnit");
-    trace->debug() << "u_DepthTextureUnit location: " << program.u_DepthTextureUnit;
     program.u_BlurTextureUnit = glGetUniformLocation(program.resource->context, "u_BlurTextureUnit");
-    trace->debug() << "u_BlurTextureUnit location: " << program.u_BlurTextureUnit;
     program.u_PickingTextureUnit = glGetUniformLocation(program.resource->context, "u_PickingTextureUnit");
-    trace->debug() << "u_PickingTextureUnit location: " << program.u_PickingTextureUnit;
 
     program.u_TextureSize = glGetUniformLocation(program.resource->context, "u_TextureSize");
-    trace->debug() << "u_TextureSize location: " << program.u_TextureSize;
     
     return program.compiled(true);
 }
@@ -592,13 +568,13 @@ bool implementation::opengl::graphics::compile(type::object& object) {
         GL_TEST(glBindBuffer(GL_ARRAY_BUFFER, object.resource->context));
         GL_TEST(glBufferData(GL_ARRAY_BUFFER, sizeof(spatial::vertex) * object.vertices.size(), object.vertices.data(), GL_DYNAMIC_DRAW));
         
-        GL_TEST(glVertexAttribPointer(shader->a_Vertex, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::vertex), BUFFER_OFFSET(offset_vector)));
-        GL_TEST(glVertexAttribPointer(shader->a_Texture, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::vertex), BUFFER_OFFSET(sizeof(spatial::vector) + offset_vector)));
-        GL_TEST(glVertexAttribPointer(shader->a_Normal, 4, GL_FLOAT, GL_TRUE, sizeof(spatial::vertex), BUFFER_OFFSET((sizeof(spatial::vector) * 2) + offset_vector)));
-        
-        GL_TEST(glEnableVertexAttribArray(shader->a_Vertex));
-        GL_TEST(glEnableVertexAttribArray(shader->a_Texture));
-        GL_TEST(glEnableVertexAttribArray(shader->a_Normal));
+        if(shader->a_Vertex > 0) GL_TEST(glVertexAttribPointer(shader->a_Vertex, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::vertex), BUFFER_OFFSET(offset_vector)));
+        if(shader->a_Texture > 0) GL_TEST(glVertexAttribPointer(shader->a_Texture, 4, GL_FLOAT, GL_FALSE, sizeof(spatial::vertex), BUFFER_OFFSET(sizeof(spatial::vector) + offset_vector)));
+        if(shader->a_Normal > 0) GL_TEST(glVertexAttribPointer(shader->a_Normal, 4, GL_FLOAT, GL_TRUE, sizeof(spatial::vertex), BUFFER_OFFSET((sizeof(spatial::vector) * 2) + offset_vector)));
+
+        if(shader->a_Vertex > 0) GL_TEST(glEnableVertexAttribArray(shader->a_Vertex));
+        if(shader->a_Texture > 0) GL_TEST(glEnableVertexAttribArray(shader->a_Texture));
+        if(shader->a_Normal > 0) GL_TEST(glEnableVertexAttribArray(shader->a_Normal));
         
         object.compiled(true);
     }
@@ -784,7 +760,9 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
 
     //    static std::mutex lockgl;
     //    std::lock_guard<std::mutex> scoped(lockgl);
- 
+
+    trace->debug() << "Drawing object: " << object.name << ", with shader: " << shader.name;
+
     renderer.push_back(&shader);
     compile(object);
     renderer.pop_back();
@@ -844,6 +822,10 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
     
     // Draw either the solids or wireframes
     int instances = object.emitter ? object.emitter->size() : 1;
+    if(instances == 0) {
+        return;
+    }
+    trace->debug() << "Drawing " << object.vertices.size() << " vertices of object: " << object.name << " with " << instances << " instances.";
     if (object.vertices.size() == 2 || options & render::WIREFRAME) {
         GL_TEST(glDrawArraysInstanced(GL_LINE_LOOP, 0, (int)object.vertices.size(), instances));
         frame.lines += object.vertices.size() / 2;

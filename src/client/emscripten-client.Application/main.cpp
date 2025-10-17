@@ -202,9 +202,9 @@ int main() {
 	if (init()) {
       trace->debug() << "Initialization complete";
       emscripten_set_click_callback(EMSCRIPTEN_EVENT_TARGET_DOCUMENT, nullptr, 0, mouse_click);
-		//emscripten_set_main_loop(render, 0, 0);
-      render();
-      render();
+		emscripten_set_main_loop(render, 0, 0);
+      //render();
+      //render();
 	}
 	return 0;
 }
