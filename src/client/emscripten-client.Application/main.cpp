@@ -35,6 +35,9 @@
 
 #include <string>
 #include <vector>
+#include <fstream>
+#include <sstream>
+#include <cstddef>
 
 // Geometry data to render and colors per-vertex
 struct Vertex { 
@@ -85,6 +88,26 @@ GLuint g_shaderUniformIncrementId = 0;
 
 GLuint g_vertexAttributeArrayId = 0;
 
+// Small helper to compile shader from source string with retrieval of log on failure
+static GLuint compileShaderWithLog(GLenum type, const std::string &source) {
+   GLint status = GL_FALSE;
+   GLuint id = glCreateShader(type);
+   const char *str = source.c_str();
+   glShaderSource(id, 1, &str, nullptr);
+   glCompileShader(id);
+   glGetShaderiv(id, GL_COMPILE_STATUS, &status);
+   if(status != GL_TRUE) {
+      GLint len = 0;
+      glGetShaderiv(id, GL_INFO_LOG_LENGTH, &len);
+      if(len > 0) {
+         std::vector<char> buf(len);
+         glGetShaderInfoLog(id, len, nullptr, buf.data());
+         trace->error() << "Shader compile error: " << buf.data();
+      }
+   }
+   return id;
+}
+
 // Shader attribute positions
 GLuint g_shaderAttributePositionLoc = 0;
 GLuint g_shaderAttributeColorLoc = 1;
@@ -113,7 +136,8 @@ bool init() {
    EmscriptenWebGLContextAttributes attr;
    emscripten_webgl_init_context_attributes(&attr);
    attr.enableExtensionsByDefault = 1;
-   attr.majorVersion = 1;
+   // Use WebGL2 / OpenGL ES 3.0 so we can compile #version 300 es shaders
+   attr.majorVersion = 2;
    EMSCRIPTEN_WEBGL_CONTEXT_HANDLE ctx = emscripten_webgl_create_context("#canvas", &attr);
    emscripten_webgl_make_context_current(ctx);
 
@@ -182,12 +206,7 @@ void render() {
    //   graphics->draw(splash, assets->get<type::program>("gui"), graphics->ortho, spatial::matrix(), spatial::matrix().translate(position));
    //   //graphics->compile(splash);
    //}
-   //static int increment = 0;
-   //if(increment >= 1000.f) {
-   //   increment = 0;
-   //}
-   //glUniform1f(g_shaderUniformIncrementId, ++increment / 1000.f);
-   //glDrawArrays(GL_TRIANGLES, 0, 3);
+   // draw the cell instances created
 }
 
 // Handle mouse click events
@@ -202,9 +221,8 @@ int main() {
 	if (init()) {
       trace->debug() << "Initialization complete";
       emscripten_set_click_callback(EMSCRIPTEN_EVENT_TARGET_DOCUMENT, nullptr, 0, mouse_click);
-		emscripten_set_main_loop(render, 0, 0);
-      //render();
-      //render();
+		//emscripten_set_main_loop(render, 0, 0);
+      render();
 	}
 	return 0;
 }

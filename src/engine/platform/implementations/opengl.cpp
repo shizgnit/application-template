@@ -649,7 +649,8 @@ bool implementation::opengl::graphics::compile(type::object& object) {
                 GL_TEST(glBindBuffer(GL_ARRAY_BUFFER, entity.identifiers.resource->context));
                 GL_TEST(glBufferData(GL_ARRAY_BUFFER, sizeof(unsigned int) * entity.instances.size(), NULL, GL_DYNAMIC_DRAW));
                 GL_TEST(glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(unsigned int) * entity.instances.size(), entity.identifiers.content.data()));
-                GL_TEST(glVertexAttribIPointer(shader->a_Identifier, 1, GL_UNSIGNED_INT, sizeof(unsigned int), BUFFER_OFFSET(0)));
+                GL_TEST(glVertexAttribIPointer(shader->a_Identifier, 1, GL_UNSIGNED_INT, 0, BUFFER_OFFSET(0)));
+                //GL_TEST(glVertexAttribPointer(shader->a_Identifier, 1, GL_UNSIGNED_INT, false, 0, BUFFER_OFFSET(0)));
                 GL_TEST(glEnableVertexAttribArray(shader->a_Identifier));
                 GL_TEST(glVertexAttribDivisor(shader->a_Identifier, 1));
             }
@@ -662,7 +663,8 @@ bool implementation::opengl::graphics::compile(type::object& object) {
                 GL_TEST(glBindBuffer(GL_ARRAY_BUFFER, entity.flags.resource->context));
                 GL_TEST(glBufferData(GL_ARRAY_BUFFER, sizeof(unsigned int) * entity.instances.size(), NULL, GL_DYNAMIC_DRAW));
                 GL_TEST(glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(unsigned int) * entity.instances.size(), entity.flags.content.data()));
-                GL_TEST(glVertexAttribIPointer(shader->a_Flags, 1, GL_UNSIGNED_INT, sizeof(unsigned int), BUFFER_OFFSET(0)));
+                GL_TEST(glVertexAttribIPointer(shader->a_Flags, 1, GL_UNSIGNED_INT, 0, BUFFER_OFFSET(0)));
+                //GL_TEST(glVertexAttribPointer(shader->a_Flags, 1, GL_UNSIGNED_INT, false, 0, BUFFER_OFFSET(0)));
                 GL_TEST(glEnableVertexAttribArray(shader->a_Flags));
                 GL_TEST(glVertexAttribDivisor(shader->a_Flags, 1));
             }
