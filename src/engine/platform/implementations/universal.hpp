@@ -35,12 +35,17 @@ namespace implementation {
 
         class input : public platform::input {
         public:
+            input();
+
             void raise(const event& ev);
             void emit();
 
             std::string printable(int vkey) {
                 return platform::keys[16].pressed || platform::keys[160].pressed ? platform::keys[vkey].meta : platform::keys[vkey].character;
             }
+
+            platform::input::key &lookup_by_reference(std::string ref);
+            platform::input::key &lookup_by_code(int code);
 
         protected:
             int active_pointer();
@@ -57,6 +62,9 @@ namespace implementation {
             void on_button_down(const event& ev);
 
             bool drag;
+
+            std::unordered_map<std::string, platform::input::key> key_ref_map;
+            std::unordered_map<int, platform::input::key> key_code_map;
 
             std::mutex tracking;
 

@@ -29,6 +29,29 @@
 
 #if defined __PLATFORM_UNIVERSAL
 
+implementation::universal::input::input() : platform::input() {
+    for (auto& key : platform::keys) {
+        key_ref_map[key.reference] = key;
+        key_code_map[key.code] = key;
+    }
+}
+
+platform::input::key &implementation::universal::input::lookup_by_reference(std::string ref) {
+    static platform::input::key empty;
+    if (key_ref_map.find(ref) != key_ref_map.end()) {
+        return key_ref_map[ref];
+    }
+    return empty;
+}
+
+platform::input::key &implementation::universal::input::lookup_by_code(int code) {
+    static platform::input::key empty;
+    if (key_code_map.find(code) != key_code_map.end()) {
+        return key_code_map[code];
+    }
+    return empty;
+}
+
 void implementation::universal::input::raise(const event& ev) {
     // Dispatch the event based on type
     if (ev.input == GAMEPAD) {

@@ -650,7 +650,6 @@ bool implementation::opengl::graphics::compile(type::object& object) {
                 GL_TEST(glBufferData(GL_ARRAY_BUFFER, sizeof(unsigned int) * entity.instances.size(), NULL, GL_DYNAMIC_DRAW));
                 GL_TEST(glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(unsigned int) * entity.instances.size(), entity.identifiers.content.data()));
                 GL_TEST(glVertexAttribIPointer(shader->a_Identifier, 1, GL_UNSIGNED_INT, 0, BUFFER_OFFSET(0)));
-                //GL_TEST(glVertexAttribPointer(shader->a_Identifier, 1, GL_UNSIGNED_INT, false, 0, BUFFER_OFFSET(0)));
                 GL_TEST(glEnableVertexAttribArray(shader->a_Identifier));
                 GL_TEST(glVertexAttribDivisor(shader->a_Identifier, 1));
             }
@@ -664,7 +663,6 @@ bool implementation::opengl::graphics::compile(type::object& object) {
                 GL_TEST(glBufferData(GL_ARRAY_BUFFER, sizeof(unsigned int) * entity.instances.size(), NULL, GL_DYNAMIC_DRAW));
                 GL_TEST(glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(unsigned int) * entity.instances.size(), entity.flags.content.data()));
                 GL_TEST(glVertexAttribIPointer(shader->a_Flags, 1, GL_UNSIGNED_INT, 0, BUFFER_OFFSET(0)));
-                //GL_TEST(glVertexAttribPointer(shader->a_Flags, 1, GL_UNSIGNED_INT, false, 0, BUFFER_OFFSET(0)));
                 GL_TEST(glEnableVertexAttribArray(shader->a_Flags));
                 GL_TEST(glVertexAttribDivisor(shader->a_Flags, 1));
             }
@@ -763,7 +761,7 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
     //    static std::mutex lockgl;
     //    std::lock_guard<std::mutex> scoped(lockgl);
 
-    trace->debug() << "Drawing object: " << object.name << ", with shader: " << shader.name;
+    //trace->debug() << "Drawing object: " << object.name << ", with shader: " << shader.name;
 
     renderer.push_back(&shader);
     compile(object);
@@ -823,11 +821,12 @@ void implementation::opengl::graphics::draw(type::object& object, type::program&
     GL_TEST(glUniformMatrix4fv(shader.u_Parameters, 1, GL_FALSE, (GLfloat*)parameters.data()));
     
     // Draw either the solids or wireframes
+    
     int instances = object.emitter ? object.emitter->size() : 1;
     if(instances == 0) {
         return;
     }
-    trace->debug() << "Drawing " << object.vertices.size() << " vertices of object: " << object.name << " with " << instances << " instances.";
+    //trace->debug() << "Drawing " << object.vertices.size() << " vertices of object: " << object.name << " with " << instances << " instances.";
     if (object.vertices.size() == 2 || options & render::WIREFRAME) {
         GL_TEST(glDrawArraysInstanced(GL_LINE_LOOP, 0, (int)object.vertices.size(), instances));
         frame.lines += object.vertices.size() / 2;

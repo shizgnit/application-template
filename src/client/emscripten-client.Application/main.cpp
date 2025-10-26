@@ -209,10 +209,56 @@ void render() {
    // draw the cell instances created
 }
 
+bool keyboard_event(int eventType, const EmscriptenKeyboardEvent *keyEvent, void *userData) {
+   auto key = input->lookup_by_reference(keyEvent->code);
+   if (eventType == EMSCRIPTEN_EVENT_KEYDOWN) {
+      trace->debug() << "Key down: " << keyEvent->key << " (code: " << key.code << ")";
+      gui->raise({ platform::input::KEY, platform::input::DOWN, key.code, 0, 0.0f, { 0.0f, 0.0f, 0.0f } }, 0, 0);
+      input->raise({ platform::input::KEY, platform::input::DOWN, key.code, 1, 0.0f, { 0.0f, 0.0f, 0.0f } });
+   }
+   if (eventType == EMSCRIPTEN_EVENT_KEYUP) {
+      trace->debug() << "Key up: " << keyEvent->key << " (code: " << key.code << ")";
+      gui->raise({ platform::input::KEY, platform::input::UP, key.code, 0, 0.0f, { 0.0f, 0.0f, 0.0f } }, 0, 0);
+      input->raise({ platform::input::KEY, platform::input::UP, key.code, 1, 0.0f, { 0.0f, 0.0f, 0.0f } });
+   }
+   return false;
+}
+
 // Handle mouse click events
-bool mouse_click(int eventType, const EmscriptenMouseEvent *mouseEvent, void *userData) {
-   if (eventType == EMSCRIPTEN_EVENT_CLICK) {
-      trace->debug() << "Mouse clicked at (" << mouseEvent->clientX << ", " << mouseEvent->clientY << ")";
+bool mouse_event(int eventType, const EmscriptenMouseEvent *mouseEvent, void *userData) {
+   struct { int x; int y; } p;
+   p.x = mouseEvent->clientX;
+   p.y = mouseEvent->clientY;
+
+   auto button = mouseEvent->button + 1;
+   if (eventType == EMSCRIPTEN_EVENT_MOUSEDOWN) {
+      trace->debug() << "Mouse down at (" << mouseEvent->clientX << ", " << mouseEvent->clientY << ")";
+      if (gui->raise({ platform::input::POINTER, platform::input::DOWN, button, 0, 0.0f, { (float)p.x, (float)p.y, 0.0f } }, p.x, p.y) == false) {
+         input->raise({ platform::input::POINTER, platform::input::DOWN, button, 0, 0.0f, { (float)p.x, (float)p.y, 0.0f } });
+      }
+   }
+   if (eventType == EMSCRIPTEN_EVENT_MOUSEUP) {
+      trace->debug() << "Mouse up at (" << mouseEvent->clientX << ", " << mouseEvent->clientY << ")";
+      if (gui->raise({ platform::input::POINTER, platform::input::UP, button, 0, 0.0f, { (float)p.x, (float)p.y, 0.0f } }, p.x, p.y) == false) {
+         input->raise({ platform::input::POINTER, platform::input::UP, button, 0, 0.0f, { (float)p.x, (float)p.y, 0.0f } });
+      }
+   }
+   if (eventType == EMSCRIPTEN_EVENT_MOUSEMOVE) {
+      //trace->debug() << "Mouse move at (" << mouseEvent->clientX << ", " << mouseEvent->clientY << ")";
+      if (gui->raise({ platform::input::POINTER, platform::input::MOVE, 0, 0, 0.0f, { (float)p.x, (float)p.y, 0.0f } }, p.x, p.y) == false) {
+         input->raise({ platform::input::POINTER, platform::input::MOVE, 0, 0, 0.0f, { (float)p.x, (float)p.y, 0.0f } });
+      }
+   }
+   return false;
+}
+
+bool mouse_wheel(int eventType, const EmscriptenWheelEvent *wheelEvent, void *userData) {
+   if (eventType == EMSCRIPTEN_EVENT_WHEEL) {
+      trace->debug() << "Mouse wheel scrolled (" << wheelEvent->deltaY << ")";
+      auto travel = wheelEvent->deltaY;
+      if (gui->raise({ platform::input::POINTER, platform::input::WHEEL, 0, 0, (float)travel, { 0.0f, (float)travel, 0.0f } }, 0.0f, 0.0f) == false) {
+         input->raise({ platform::input::POINTER, platform::input::WHEEL, 3, 0, (float)travel, { 0.0f, (float)travel, 0.0f } });
+      }
    }
    return false;
 }
@@ -220,9 +266,14 @@ bool mouse_click(int eventType, const EmscriptenMouseEvent *mouseEvent, void *us
 int main() {
 	if (init()) {
       trace->debug() << "Initialization complete";
-      emscripten_set_click_callback(EMSCRIPTEN_EVENT_TARGET_DOCUMENT, nullptr, 0, mouse_click);
-		//emscripten_set_main_loop(render, 0, 0);
-      render();
+      emscripten_set_keydown_callback(EMSCRIPTEN_EVENT_TARGET_DOCUMENT, nullptr, 0, keyboard_event);
+      emscripten_set_keyup_callback(EMSCRIPTEN_EVENT_TARGET_DOCUMENT, nullptr, 0, keyboard_event);
+      emscripten_set_mousedown_callback(EMSCRIPTEN_EVENT_TARGET_DOCUMENT, nullptr, 0, mouse_event);
+      emscripten_set_mouseup_callback(EMSCRIPTEN_EVENT_TARGET_DOCUMENT, nullptr, 0, mouse_event);
+      emscripten_set_mousemove_callback(EMSCRIPTEN_EVENT_TARGET_DOCUMENT, nullptr, 0, mouse_event);
+      emscripten_set_wheel_callback(EMSCRIPTEN_EVENT_TARGET_DOCUMENT, nullptr, 0, mouse_wheel);
+		emscripten_set_main_loop(render, 0, 0);
+      //render();
 	}
 	return 0;
 }
