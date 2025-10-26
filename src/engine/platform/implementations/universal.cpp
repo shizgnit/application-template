@@ -30,6 +30,7 @@
 #if defined __PLATFORM_UNIVERSAL
 
 implementation::universal::input::input() : platform::input() {
+    return;
     for (auto& key : platform::keys) {
         key_ref_map[key.reference] = key;
         key_code_map[key.code] = key;
