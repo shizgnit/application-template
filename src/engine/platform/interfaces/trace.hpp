@@ -27,7 +27,17 @@
 
 #pragma once
 
-#define TRACE_SCOPE platform::trace::scoped _scope(trace, __PRETTY_FUNCTION__)
+#ifndef PRETTY_FUNCTION
+# if defined(__GNUC__) || defined(__clang__)
+#  define PRETTY_FUNCTION __PRETTY_FUNCTION__
+# elif defined(_MSC_VER)
+#  define PRETTY_FUNCTION __FUNCSIG__
+# else
+#  define PRETTY_FUNCTION __func__
+# endif
+#endif
+
+#define TRACE_SCOPE platform::trace::scoped _scope(trace, PRETTY_FUNCTION)
 
 namespace platform {
 
