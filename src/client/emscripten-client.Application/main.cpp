@@ -30,8 +30,32 @@
 #include <emscripten/emscripten.h>
 #include <emscripten/html5.h>
 
+// EM_JS for getting the left position
+EM_JS(double, get_canvas_left, (), {
+  const canvasElement = Module.canvas;
+  if (canvasElement) {
+    const rect = canvasElement.getBoundingClientRect();
+    return rect.left;
+  }
+  return 0.0; // Return a default value if canvas not found
+});
+
+// EM_JS for getting the top position
+EM_JS(double, get_canvas_top, (), {
+  const canvasElement = Module.canvas;
+  if (canvasElement) {
+    const rect = canvasElement.getBoundingClientRect();
+    return rect.top;
+  }
+  return 0.0; // Return a default value if canvas not found
+});
+
+
 #include "engine.hpp"
 #include "application.hpp"
+
+
+inline application* instance = new app();
 
 #include <string>
 #include <vector>
@@ -49,6 +73,46 @@ std::vector<Vertex> g_vertices = {
    { -.5f, -.5f, 0.f,   0, 255, 0, 255 },
    {  .5f, -.5f, 0.f,   0, 0, 255, 255 }
 };
+
+// Track fullscreen state for toggle
+static bool g_fullscreen = false;
+
+// Resize any size-dependent framebuffers/textures (placeholder).
+// If your renderer uses offscreen FBOs, recreate or reallocate them here.
+static void resize_framebuffers(int w, int h) {
+   trace->debug() << "Resizing framebuffers/textures to " << w << "x" << h;
+   // TODO: Reallocate FBOs, textures, renderbuffers that depend on canvas size.
+}
+
+// Handle browser fullscreen change events and resize the canvas to the
+// reported fullscreen dimensions. We update internal state from the event
+// rather than relying on a keypress toggle.
+bool fullscreen_change(int eventType, const EmscriptenFullscreenChangeEvent *evt, void *userData) {
+   int canvasWidth, canvasHeight;
+
+   // evt->isFullscreen is non-zero when in fullscreen mode
+   bool isFs = evt ? (evt->isFullscreen != 0) : false;
+   g_fullscreen = isFs;
+   if (evt && evt->isFullscreen) {
+      // When entering fullscreen, query the canvas backing size and update GL
+      emscripten_get_canvas_element_size("#canvas", &canvasWidth, &canvasHeight);
+      // Update app dimensions to the actual canvas size
+      instance->dimensions(canvasWidth, canvasHeight);
+      // Resize any size-dependent buffers
+      resize_framebuffers(canvasWidth, canvasHeight);
+      trace->debug() << "Entered fullscreen, canvas=" << canvasWidth << "x" << canvasHeight;
+   } else {
+      // Exiting fullscreen — restore to a reasonable default (same as init)
+      int width = 640;
+      int height = 640;
+      emscripten_set_canvas_element_size("#canvas", width, height);
+      instance->dimensions(width, height);
+      resize_framebuffers(width, height);
+      trace->debug() << "Exited fullscreen, restored canvas=" << width << "x" << height;
+   }
+
+   return false;
+}
 
 // Vertex shader that is called per-vertice
 std::string g_vertexShader =
@@ -122,7 +186,6 @@ GLuint compileShader(GLenum type, const std::string &source, GLint *status=nullp
    return id;
 };
 
-inline application* instance = new app();
 
 // Initialize the application
 bool init() {
@@ -215,6 +278,9 @@ bool keyboard_event(int eventType, const EmscriptenKeyboardEvent *keyEvent, void
       trace->debug() << "Key down: " << keyEvent->key << " (code: " << key.code << ")";
       gui->raise({ platform::input::KEY, platform::input::DOWN, key.code, 0, 0.0f, { 0.0f, 0.0f, 0.0f } }, 0, 0);
       input->raise({ platform::input::KEY, platform::input::DOWN, key.code, 1, 0.0f, { 0.0f, 0.0f, 0.0f } });
+
+      // Note: fullscreen state is now tracked via the browser fullscreenchange
+      // event handler. Do not toggle fullscreen directly on keypress here.
    }
    if (eventType == EMSCRIPTEN_EVENT_KEYUP) {
       trace->debug() << "Key up: " << keyEvent->key << " (code: " << key.code << ")";
@@ -226,19 +292,22 @@ bool keyboard_event(int eventType, const EmscriptenKeyboardEvent *keyEvent, void
 
 // Handle mouse click events
 bool mouse_event(int eventType, const EmscriptenMouseEvent *mouseEvent, void *userData) {
+   static auto left = get_canvas_left();
+   static auto top = get_canvas_top();
+
    struct { int x; int y; } p;
-   p.x = mouseEvent->clientX;
-   p.y = mouseEvent->clientY;
+   p.x = mouseEvent->targetX - left;
+   p.y = mouseEvent->targetY - top;
 
    auto button = mouseEvent->button + 1;
    if (eventType == EMSCRIPTEN_EVENT_MOUSEDOWN) {
-      trace->debug() << "Mouse down at (" << mouseEvent->clientX << ", " << mouseEvent->clientY << ")";
+      trace->debug() << "Mouse down at (" << p.x << ", " << p.y << ")";
       if (gui->raise({ platform::input::POINTER, platform::input::DOWN, button, 0, 0.0f, { (float)p.x, (float)p.y, 0.0f } }, p.x, p.y) == false) {
          input->raise({ platform::input::POINTER, platform::input::DOWN, button, 0, 0.0f, { (float)p.x, (float)p.y, 0.0f } });
       }
    }
    if (eventType == EMSCRIPTEN_EVENT_MOUSEUP) {
-      trace->debug() << "Mouse up at (" << mouseEvent->clientX << ", " << mouseEvent->clientY << ")";
+      trace->debug() << "Mouse up at (" << p.x << ", " << p.y << ")";
       if (gui->raise({ platform::input::POINTER, platform::input::UP, button, 0, 0.0f, { (float)p.x, (float)p.y, 0.0f } }, p.x, p.y) == false) {
          input->raise({ platform::input::POINTER, platform::input::UP, button, 0, 0.0f, { (float)p.x, (float)p.y, 0.0f } });
       }
@@ -272,6 +341,9 @@ int main() {
       emscripten_set_mouseup_callback(EMSCRIPTEN_EVENT_TARGET_DOCUMENT, nullptr, 0, mouse_event);
       emscripten_set_mousemove_callback(EMSCRIPTEN_EVENT_TARGET_DOCUMENT, nullptr, 0, mouse_event);
       emscripten_set_wheel_callback(EMSCRIPTEN_EVENT_TARGET_DOCUMENT, nullptr, 0, mouse_wheel);
+      // Listen for browser fullscreen change events so we can react and resize
+      // the canvas accordingly.
+      emscripten_set_fullscreenchange_callback(EMSCRIPTEN_EVENT_TARGET_DOCUMENT, nullptr, 0, fullscreen_change);
 		emscripten_set_main_loop(render, 0, 0);
       //render();
 	}
